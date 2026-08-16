@@ -79,6 +79,10 @@ pub const GROUPS: &[Group] = &[
                 "The line of the pointer, and the focus of its panel",
             ),
             key("Wheel", "One line up or down, in the list of the pointer"),
+            // **The row of the header of the table of the panel 4** (T-321).
+            // The sequence of one column belongs to T-318, therefore this
+            // click opens the view that holds every sequence today.
+            key("Click a header", "The sequence and the filter"),
             key("Ctrl+o", "Stop the mouse, and start it again"),
             key(
                 "Shift+Click",

@@ -25,6 +25,11 @@ use ratatui::{
     },
 };
 
+/// The columns of the sign of the cursor of a list, which ratatui draws before
+/// the text of every line (`highlight_symbol("➤ ")` with
+/// `HighlightSpacing::Always`). See T-321.
+pub const THE_SIGN_OF_THE_CURSOR: u16 = 2;
+
 /// Gives the background of the line `i` of a list. The even lines take one
 /// colour of the user and the odd lines take the other.
 ///
@@ -85,21 +90,63 @@ pub fn render_the_list_of_a_panel(
     lines: &[String],
     list_state: &mut ListState,
 ) -> Rect {
-    // **A line of a list stands on one row of the panel** (T-311). A `ListItem`
-    // of a text that holds a `\n` takes the rows of the ends of the lines of it,
-    // and every rule of a list of this program then fails together: the mark of
-    // the line and the sign of the cursor stand on the first row alone, the row
-    // after it names a media that the library does not hold, and the bar of the
-    // scroll counts the lines of the list and not the rows of the panel (T-255).
-    // `in_one_line` is the one place of that rule.
-    let items: Vec<ListItem> = lines
-        .iter()
-        .enumerate()
-        .map(|(i, line)| {
-            ListItem::new(crate::logic::message::in_one_line(line).into_owned())
-                .bg(the_colour_of_a_line(colors, i))
-        })
-        .collect();
+    render_the_table_of_a_panel(
+        area,
+        buf,
+        colors,
+        TheContentOfAPanel {
+            the_panel,
+            title,
+            lines,
+            the_rows: None,
+        },
+        list_state,
+    )
+    .0
+}
+
+/// What the panel 4 draws: the number of the panel with the mark of its focus,
+/// the title of the view, the lines of the list of today, and the rows of the
+/// table of T-321.
+///
+/// **The four of them stand together**, because the width of the panel decides
+/// which of the two forms of the lines it draws.
+pub struct TheContentOfAPanel<'a> {
+    /// The number of the panel and the mark of its focus, or `None` for the
+    /// block of one border at the top. See T-320.
+    pub the_panel: Option<(u8, bool)>,
+    /// The title of the view, for the header of the block.
+    pub title: &'a str,
+    /// The lines of the list of today, one text of each row.
+    pub lines: &'a [String],
+    /// The rows of the table, one of each line of `lines`. See T-321.
+    pub the_rows: Option<&'a [crate::ui::the_table_of_a_view::ARowOfTheTable]>,
+}
+
+/// Draws the table of the panel 4, with the row of its header. See T-321.
+///
+/// `the_rows` holds one row of the table for each line of `lines`, in the same
+/// sequence. **The value `None` gives the list of today**, and so does a panel
+/// that is too narrow for the columns of the table
+/// (`the_table_of_a_view::TheColumns::the_table_stands`): the caller therefore
+/// gives the two forms of the same lines, and the width of the panel decides.
+///
+/// The function gives the rows of the lines back, and the row of the header
+/// after them. **A table that does not stand gives `Rect::default()` for that
+/// header**, which holds no cell of the screen and takes no click.
+pub fn render_the_table_of_a_panel(
+    area: Rect,
+    buf: &mut Buffer,
+    colors: &Colors,
+    the_content: TheContentOfAPanel<'_>,
+    list_state: &mut ListState,
+) -> (Rect, Rect) {
+    let TheContentOfAPanel {
+        the_panel,
+        title,
+        lines,
+        the_rows,
+    } = the_content;
 
     // **A colour of the configuration that holds no three numbers is a colour
     // that the program does not have** (T-257): `rgb_parts` gives the value of
@@ -154,19 +201,105 @@ pub fn render_the_list_of_a_panel(
     // draws the header of the view over the whole width, and the list and the
     // bar of the scroll then divide the area below it.
     let inner = block.inner(area);
+
+    // **The row of the header takes one row of the lines** (T-321), therefore
+    // the arithmetic of the bar of the scroll reads the rows that stay. A panel
+    // of two rows or fewer holds the header and no line at all, therefore it
+    // keeps the list of today.
+    let of_the_header = the_rows.is_some() && inner.height >= 3;
+    let rows_of_the_lines = if of_the_header {
+        inner.height - 1
+    } else {
+        inner.height
+    };
+
     let the_list = crate::logic::the_scroll_of_a_list::the_list_of_the_render(
-        items.len(),
+        lines.len(),
         inner.width,
-        inner.height,
+        rows_of_the_lines,
     );
 
+    // **The sign of the cursor stands before the first column of the table**,
+    // therefore the columns of it divide the width that stays.
+    let the_columns = crate::ui::the_table_of_a_view::the_columns_of_the_table(
+        the_list
+            .width_of_the_lines
+            .saturating_sub(THE_SIGN_OF_THE_CURSOR),
+    );
+
+    let the_table = of_the_header && the_columns.the_table_stands();
+
+    // **A panel that is too narrow for the columns of the table draws the list
+    // of today** (T-321), and the arithmetic of the bar then reads every row of
+    // the panel again.
+    let the_list = if the_table {
+        the_list
+    } else {
+        crate::logic::the_scroll_of_a_list::the_list_of_the_render(
+            lines.len(),
+            inner.width,
+            inner.height,
+        )
+    };
+
+    // **A line of a list stands on one row of the panel** (T-311). A `ListItem`
+    // of a text that holds a `\n` takes the rows of the ends of the lines of it,
+    // and every rule of a list of this program then fails together: the mark of
+    // the line and the sign of the cursor stand on the first row alone, the row
+    // after it names a media that the library does not hold, and the bar of the
+    // scroll counts the lines of the list and not the rows of the panel (T-255).
+    // `in_one_line` is the one place of that rule.
+    let the_texts: Vec<String> = match (the_table, the_rows) {
+        (true, Some(the_rows)) => the_rows
+            .iter()
+            .map(|row| crate::ui::the_table_of_a_view::the_text_of_a_row(row, the_columns))
+            .collect(),
+        _ => lines.to_vec(),
+    };
+
+    let items: Vec<ListItem> = the_texts
+        .iter()
+        .enumerate()
+        .map(|(i, line)| {
+            ListItem::new(crate::logic::message::in_one_line(line).into_owned())
+                .bg(the_colour_of_a_line(colors, i))
+        })
+        .collect();
+
     block.render(area, buf);
+
+    let (the_header, the_lines_and_the_bar) = if the_table {
+        let [the_header, the_rest] =
+            Layout::vertical([Constraint::Length(1), Constraint::Fill(1)]).areas(inner);
+
+        (the_header, the_rest)
+    } else {
+        (Rect::default(), inner)
+    };
 
     let [list_area, bar_area] = Layout::horizontal([
         Constraint::Length(the_list.width_of_the_lines),
         Constraint::Fill(1),
     ])
-    .areas(inner);
+    .areas(the_lines_and_the_bar);
+
+    if the_table {
+        // **The words of the header stand over the words of the rows**: the
+        // sign of the cursor takes its two columns of every row, therefore the
+        // text of the header starts after them.
+        let of_the_words = Rect {
+            x: list_area.x.saturating_add(THE_SIGN_OF_THE_CURSOR),
+            y: the_header.y,
+            width: list_area.width.saturating_sub(THE_SIGN_OF_THE_CURSOR),
+            height: 1,
+        };
+
+        Line::raw(crate::ui::the_table_of_a_view::the_header_of_the_table(
+            the_columns,
+        ))
+        .style(header_style.add_modifier(Modifier::BOLD))
+        .render(of_the_words, buf);
+    }
 
     let list = List::new(items)
         .highlight_style(selected_style)
@@ -203,7 +336,7 @@ pub fn render_the_list_of_a_panel(
             .render(bar_area, buf, &mut state);
     }
 
-    list_area
+    (list_area, the_header)
 }
 
 #[cfg(test)]

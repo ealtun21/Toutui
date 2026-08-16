@@ -106,6 +106,30 @@ pub fn of_library(plays_now: bool) -> String {
     }
 }
 
+/// Gives the mark of the state of a media of the **table** of the panel 4, in
+/// one column. See T-321.
+///
+/// **The mark of a line of a list holds the percent of the user**
+/// ([`of_progress`] gives `11% ` in four columns), and the table of the panel 4
+/// holds a column `Done` that says that same percent. A table that keeps the
+/// mark of a list therefore says one number two times, and the columns of the
+/// title lose four of theirs for nothing.
+///
+/// This mark says the state that no column of the table says: the media that
+/// plays now, and the media that the user finished. **The percent belongs to
+/// the column `Done`** (`crate::ui::the_table_of_a_view::the_done_of_a_row`).
+pub fn of_the_state(finished: &str, plays_now: bool) -> String {
+    if plays_now {
+        return PLAYS.to_string();
+    }
+
+    if finished.trim() == "Finished" {
+        return FINISHED.to_string();
+    }
+
+    String::new()
+}
+
 /// Puts a mark in a space of the width of every mark.
 fn fill(mark: &str) -> String {
     let width = mark.chars().count();

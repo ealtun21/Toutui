@@ -28400,3 +28400,201 @@ of the tests failed. The gate: 1407 of 1407.
   that choice yet.
 - **The click of the button at the right and the click of the middle do
   nothing.**
+
+---
+
+## T-321 — The list of the panel 4 becomes a table of a header
+
+**The stage 4 of the road of the panels** (`docs/mockups/mockup-1.txt`, which
+the maintainer chose on 2026-08-16). The stage 2 (T-320) gave the panel 4 its
+frame, and the stage 3 (T-316) gave it the mouse. **The list inside that frame
+still held one text of each row**: the mark of the state and the title, and no
+other word at all.
+
+**This is the work of a feature and not the work of a fault**, therefore the
+rule "show the fault before you correct it" does not hold: the rule of this
+item is the rule of the measurement, and the two screens of the real program
+inside tmux stand below.
+
+### The screen before the change
+
+The real program **v0.8.147** inside tmux, of the Library view of the library
+`Large` of the sandbox (500 items of 2056), on a screen of 160 columns and 45
+rows, with `docs/harness/drive.sh`:
+
+```text
+┌1 Views ────────────────────────┐╔4 Library [500 items of 2056] ═══════════════════════════════════════════╗
+│➤ Home                       Tab│║➤     Large Book 2056                                                   █║
+│  Library                    Tab│║      Large Book 2055                                                   │║
+│  Sequence and filter          f│║      Large Book 2054                                                   │║
+```
+
+**The panel held 74 columns and the title of a book took 17 of them.** The
+author of the media, the length of it, and the place of the user of it stood in
+no column of that panel: the user read those three values for the row of the
+cursor alone, in the panel of the description under the list, and a user who
+looks for a book of two hours had to move the cursor over every row of the
+library.
+
+### The screen after the change
+
+The same harness, of the library `Books` of the sandbox (18 items), at 160
+columns:
+
+```text
+┌1 Views ────────────────────────┐╔4 Library [18 items] ════════════════════════════════════════════════════╗
+│➤ Home                       Tab│║    Title                                Author               Time  Done ║
+│  Library                    Tab│║➤ ✓ A Book Of An Epub With No Container                        <1m  done█║
+│  Sequence and filter          f│║    A Book Of A Broken Epub                                    <1m     -█║
+│  Authors                      a│║  ✓ A Book Of An Epub That Names Nothing                       <1m  done█║
+│  Collections                  c│║    A Big Book Of A Scan                 Big Author            <1m   90%█║
+│  Downloads                    d│║  ✓ A Huge Book Of A Scan                Huge Author           <1m  done█║
+│  Chapters                     C│║    A Long Test Book                     Long Author           30m   50%█║
+│  Sessions                     W│║    A Book Of Many Hours                 Many Hours Author    8h00   96%│║
+│  Settings                     S│║    The Test Chronicles [3 books]                                       │║
+│  Every key                    ?│║    Multi File Test Book                 Test Author            1m     -│║
+```
+
+And the Home view of the same library and the same width:
+
+```text
+╔4 Home [35 items] ═══════════════════════════════════════════════════════╗
+║    Title                                Author               Time  Done ║
+║  ▌ Continue Listening                                                  █║
+║➤   A Long Test Book                     Long Author           30m   50%█║
+║    A Book Of Many Hours                 Many Hours Author    8h00   96%█║
+║    A Second Book Of Many Hours          Many Hours Author    8h00     -│║
+║  ▌ Recently Added                                                      │║
+```
+
+### The three shapes of the table
+
+**A column that takes the title away is a column that costs more than it
+gives.** The panel 4 stands at 120 columns of the screen and up
+(`frame::TheShape::ThreeColumns`), and the width of the panel itself changes
+with the width of the screen: **74 columns at a screen of 160, and 52 at a
+screen of 120**. The table therefore takes its columns in the sequence of their
+value, and it keeps **20 columns** for the title of the media
+(`THE_SMALLEST_TITLE`):
+
+1. **Done** first. It is the one word that the list of today never said and
+   that the user asks for the most: T-242 gave that percent to the mark of the
+   line, and the panel of the description said it a second time.
+2. **Time** second.
+3. **Author** last, because it is the widest of the three (18 columns).
+
+**The measurement of each shape, of the same harness and the same library**:
+
+- **160 columns of the screen** (the panel holds 74): `Title`, `Author`,
+  `Time`, and `Done`.
+- **120 columns of the screen** (the panel holds 50): `Title`, `Time`, and
+  `Done`. The column of the author would leave the title nine columns.
+
+```text
+┌1 Views ────────────────────────┐╔4 Library [18 items] ════════════════════════════╗
+│➤ Home                       Tab│║    Title                             Time  Done ║
+│  Library                    Tab│║➤ ✓ A Book Of An Epub With No Cont…    <1m  done█║
+│  Sequence and filter          f│║    A Book Of A Broken Epub            <1m     -█║
+│  Authors                      a│║  ✓ A Book Of An Epub That Names N…    <1m  done█║
+```
+
+- **100 columns of the screen**: no panel 4 at all, therefore no table at all,
+  and the screen is the screen of today, with the mark that holds the percent:
+
+```text
+────────────────────Library [18 items]─────────────────────
+➤ ✓   A Book Of An Epub With No Container
+      A Book Of A Broken Epub
+  90% A Big Book Of A Scan
+  50% A Long Test Book
+```
+
+### The five decisions of this stage
+
+1. **The mark of the table holds no percent.** `marks::of_progress` gives
+   `11% ` in four columns, and a table that kept that mark beside a column
+   `Done` would say the same number two times and lose four columns of the
+   title for nothing. `marks::of_the_state` is the new mark: one column, the
+   media that plays (`▶`) and the media that the user finished (`✓`) alone.
+   **Every other view of the program keeps the mark that it had**, and the
+   Home view and the Library view keep it at every width under the table.
+2. **A row that names more than one media takes every column of the table.**
+   The name of a shelf of the Home view and the line of a series hold no
+   author, no length, and no place of the user (T-44), therefore a column of
+   those three would say nothing at all.
+3. **A media of one second is not a media of no length.** Every one of the
+   2056 books of the library `Large` of the sandbox holds `duration: 1`, and
+   `(1 / 60).round()` gives 0: the first form of this round drew a column of
+   `0m` on every row, which is a number that is not true. The word of that
+   media is `<1m`, and the word of a media that the server gave no length of
+   is `-` (T-180).
+4. **`N/A` is the value of this program and not the value of the server.** The
+   collectors of `src/api` write those three characters for a field that the
+   answer of the server leaves empty, therefore the first form of this round
+   drew 17 rows of `N/A` in the column of the author of the library `Large`. A
+   cell with no word says the same thing one time, and the header of the column
+   names the value that the row does not hold.
+5. **A click of the row of the header opens the sequence and the filter.** The
+   map of the mouse of `docs/mockups/mockup-1.md` gives that row the sequence
+   of one column, and **the sequences of the server belong to T-318**: a click
+   that did nothing at all is the fault of T-79. The click therefore takes the
+   user to the view that holds every sequence and every filter of the program
+   today, which is the work of the key `f`, and the view of the keys says so.
+
+### The measurement of the mouse
+
+The same harness, with `docs/harness/click.sh` (T-316), at 160 columns:
+
+- **A click of the row 8 of the screen** gave `➤   A Very Large Book`, which is
+  the fourth line of the list: the row of the header takes one row of the
+  panel, and the arithmetic of the lines reads the rows that stay.
+- **A click of the row 4 of the screen**, which is the row of the header, gave
+  the view `The sequence and the filter — The sequence of the server`.
+- **The program stood after the two reports.**
+
+### The correction
+
+Six files. `src/ui/the_table_of_a_view.rs` is new: `TheColumns`,
+`the_columns_of_the_table`, `ARowOfTheTable`, `the_text_of_a_row`,
+`the_header_of_the_table`, `the_time_of_a_row`, `the_done_of_a_row`, and
+`the_word_of_a_column`. `src/ui/the_list_of_a_view.rs` holds
+`render_the_table_of_a_panel` and `TheContentOfAPanel`, and
+`render_the_list_of_a_panel` is one call of it with no row of a table.
+`src/ui/marks.rs` holds `of_the_state`. `src/app.rs` holds
+`library_table_rows`, `home_table_rows`, `the_place_of_this_media`, and the arm
+`TheHeaderOfTheList` of `handle_the_mouse`. `src/ui/the_mouse.rs` holds the
+area `the_header_of_the_list` and the target of it, and `src/ui/tui.rs` gives
+the rows of the table to the panel 4 of the Home view and of the Library view.
+
+**The gate**: `tests/the_table_of_the_panel_4_holds_its_columns.rs` of two
+tests, and three more inside `src/ui/the_table_of_a_view.rs`. **The build of
+the fault** (the trap 147) gave `false &&` to `the_table` of
+`render_the_table_of_a_panel`, to the limit of the title of
+`the_columns_of_the_table`, and to the arm of the header of
+`the_target_of_a_point`: **five of the seven tests failed**. The gate: 1412 of
+1412.
+
+**The trap of this item**: `String::find` gives the index of a **byte** and not
+the column of the screen, and the mark `✓` of a row takes three bytes and one
+column. A test that reads the place of a column of two texts with `find` alone
+therefore says that the columns do not agree while they do.
+
+### What this stage leaves open
+
+- **A click of a word of the header does not sort by that column.** The map of
+  the mouse of the design gives `Title`, `Author`, `Time`, and `Done` the
+  sequence of that column, and the sequences of the server belong to T-318.
+  The geometry of the row stands, therefore that stage takes the columns of the
+  point and no new area at all.
+- **The bar of the scroll holds no arrow of the header.** The design draws `▲`
+  at the end of the row of the header and `▼` at the foot of the panel; the bar
+  of this program holds its track and its thumb alone (T-255).
+- **The last row of the design is a small key to the marks**
+  (`↓ = on this disk   ▸ = open the series   ✓ = finished`), and no row of this
+  program holds it. **The mark `↓` of a media of the disk is not a mark of the
+  table at all**: the list of today holds no such mark either, and the panel of
+  the description says it for the row of the cursor alone.
+- **The mark `▸` and the mark `▾` of a series that opens belong to T-318.**
+- **The views of a search, of a collection, of the episodes of a podcast, and
+  of the queue hold no table**: the panel 4 stands for the Home view and the
+  Library view alone (T-320), and a stage of the road gives it to the others.

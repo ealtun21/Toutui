@@ -1600,6 +1600,7 @@ impl App {
             buf,
             &render_list_title,
             &lines,
+            Some(&self.home_table_rows()),
             &mut self.list_state_cnt_list.clone(),
         );
         self.render_info_home(item_area1, buf);
@@ -1747,6 +1748,7 @@ impl App {
             buf,
             &render_list_title,
             &lines,
+            Some(&self.library_table_rows()),
             &mut self.list_state_library.clone(),
         );
         self.render_info_library(item_area1, buf);
@@ -2781,6 +2783,7 @@ impl App {
         buf: &mut Buffer,
         render_list_title: &str,
         render_list_items: &[String],
+        the_rows: Option<&[crate::ui::the_table_of_a_view::ARowOfTheTable]>,
         list_state: &mut ListState,
     ) {
         let the_panel = if self.the_stack_of_the_panels_stands() {
@@ -2792,13 +2795,21 @@ impl App {
             None
         };
 
-        let the_lines = crate::ui::the_list_of_a_view::render_the_list_of_a_panel(
+        // **The table stands inside the panel 4 alone** (T-321): a view that
+        // draws no panel draws the list of today, and the rows of the table
+        // then reach no frame.
+        let the_rows = the_rows.filter(|_| the_panel.is_some());
+
+        let (the_lines, the_header) = crate::ui::the_list_of_a_view::render_the_table_of_a_panel(
             area,
             buf,
             &self.config.colors,
-            the_panel,
-            render_list_title,
-            render_list_items,
+            crate::ui::the_list_of_a_view::TheContentOfAPanel {
+                the_panel,
+                title: render_list_title,
+                lines: render_list_items,
+                the_rows,
+            },
             list_state,
         );
 
@@ -2808,6 +2819,7 @@ impl App {
             render_list_items.len(),
             list_state,
         );
+        self.the_areas_of_the_mouse.the_header_of_the_list = the_header;
     }
 
     /// Writes the area of the list of the view into the areas that a report of
@@ -2828,6 +2840,11 @@ impl App {
         self.the_areas_of_the_mouse.the_panel_of_the_list = the_panel;
         self.the_areas_of_the_mouse.the_lines_of_the_list = the_lines_of_the_list;
         self.the_areas_of_the_mouse.the_offset_of_the_list = list_state.offset();
+
+        // **A view that draws no table holds no row of a header** (T-321): the
+        // areas of the mouse are the areas of the **last** frame, therefore a
+        // header of the frame before this one would take a click of a line.
+        self.the_areas_of_the_mouse.the_header_of_the_list = Rect::default();
         self.the_areas_of_the_mouse.the_lines = the_lines;
     }
 

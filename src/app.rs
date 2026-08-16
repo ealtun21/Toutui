@@ -2359,6 +2359,15 @@ impl App {
                         self.the_cursor_of_the_view_goes_to(the_line);
                     }
                 }
+                // **A click of the row of the header of the table opens the
+                // sequence and the filter of the view** (T-321). The design of
+                // `docs/mockups/mockup-1.md` gives that row the sequence of one
+                // column, and the sequence of a column belongs to T-318, which
+                // holds the sequences of the server: a click that did nothing
+                // at all is the fault of T-79, therefore this click takes the
+                // user to the view that holds every sequence and every filter
+                // of the program today, which is the work of the key `f`.
+                TheTarget::TheHeaderOfTheList => self.show_the_sequence_and_the_filter(),
                 TheTarget::Nothing => {}
             },
             MouseEventKind::ScrollDown | MouseEventKind::ScrollUp => {
@@ -2380,7 +2389,9 @@ impl App {
                         // and `k` do.
                         self.scroll_offset = 0;
                     }
-                    TheTarget::Nothing => {}
+                    // The wheel over the row of the header moves no list: that
+                    // row holds one line and no cursor at all.
+                    TheTarget::TheHeaderOfTheList | TheTarget::Nothing => {}
                 }
             }
             _ => {}
@@ -8308,6 +8319,198 @@ impl App {
         };
 
         crate::ui::marks::of_progress(of_the_row(0), of_the_row(1), plays_now)
+    }
+
+    /// Gives the percent of the user and the mark of the end of a media, in the
+    /// form that the server gives them. See T-321.
+    ///
+    /// **The three roads stay in the sequence of the panel of a line** (T-239,
+    /// T-240, and T-241), which is the sequence of `the_mark_of_this_media`: a
+    /// live message of the server first, and the box of the places of the
+    /// account after it. The table of the panel 4 needs the two values apart,
+    /// because its column `Done` holds the percent and its mark holds the end.
+    fn the_place_of_this_media(&self, key: Option<String>) -> (String, String) {
+        if let Some(live) = key
+            .as_ref()
+            .and_then(|key| crate::logic::live::progress_of(key))
+        {
+            return (live.percent.clone(), live.finished.clone());
+        }
+
+        let row = key
+            .as_ref()
+            .and_then(|key| crate::logic::the_positions::the_place_of(key));
+
+        let of_the_row = |part: usize| -> String {
+            row.as_ref()
+                .and_then(|row| row.get(part))
+                .cloned()
+                .unwrap_or_default()
+        };
+
+        (of_the_row(0), of_the_row(1))
+    }
+
+    /// Gives the rows of the **table** of the view `Library`. See T-321.
+    ///
+    /// **The table stands in the panel 4 alone**, and the render decides: a
+    /// panel that is too narrow for the columns of the table draws the lines of
+    /// `library_lines` again. The two lists hold the same rows in the same
+    /// sequence, therefore the cursor of the user and the mouse read one place.
+    pub fn library_table_rows(&self) -> Vec<crate::ui::the_table_of_a_view::ARowOfTheTable> {
+        use crate::ui::the_table_of_a_view::ARowOfTheTable;
+
+        let playing = self.playing_item();
+
+        self.library_rows
+            .iter()
+            .map(|row| match row.series() {
+                // **A line of a series names more than one media** (T-44),
+                // therefore it holds no author, no length, and no place of the
+                // user, and it takes every column of the table.
+                Some(index) => ARowOfTheTable {
+                    title: self
+                        .series
+                        .get(index)
+                        .map(|series| series.line())
+                        .unwrap_or_default(),
+                    the_whole_width: true,
+                    ..ARowOfTheTable::default()
+                },
+                None => {
+                    let item = row.item();
+                    let id = self.ids_library.get(item);
+
+                    let plays_now = id
+                        .zip(playing.as_ref())
+                        .is_some_and(|(id, playing)| id == playing);
+
+                    let key = id
+                        .filter(|one| !one.is_empty())
+                        .map(|id| crate::logic::live::the_key_of_the_media(id, None));
+
+                    let (percent, finished) = self.the_place_of_this_media(key);
+
+                    ARowOfTheTable {
+                        the_mark: crate::ui::marks::of_the_state(&finished, plays_now),
+                        title: self.titles_library.get(item).cloned().unwrap_or_default(),
+                        author: self
+                            .auth_names_library
+                            .get(item)
+                            .cloned()
+                            .unwrap_or_default(),
+                        time: crate::ui::the_table_of_a_view::the_time_of_a_row(
+                            self.duration_library.get(item).copied(),
+                        ),
+                        done: crate::ui::the_table_of_a_view::the_done_of_a_row(
+                            &percent, &finished,
+                        ),
+                        the_whole_width: false,
+                    }
+                }
+            })
+            .collect()
+    }
+
+    /// Gives the rows of the **table** of the view `Home`. See T-321.
+    ///
+    /// **The name of a shelf takes every column of the table**: it names no
+    /// media at all, therefore an author, a length, and a place of the user of
+    /// that row would say nothing.
+    pub fn home_table_rows(&self) -> Vec<crate::ui::the_table_of_a_view::ARowOfTheTable> {
+        use crate::ui::the_table_of_a_view::ARowOfTheTable;
+
+        let playing = self.playing_media();
+
+        self.home_rows
+            .iter()
+            .map(|row| match row {
+                HomeRow::Shelf { label } => ARowOfTheTable {
+                    the_mark: "▌".to_string(),
+                    title: label.clone(),
+                    the_whole_width: true,
+                    ..ARowOfTheTable::default()
+                },
+                HomeRow::Series { series } => ARowOfTheTable {
+                    title: self
+                        .series
+                        .get(*series)
+                        .map(|series| series.line())
+                        .unwrap_or_default(),
+                    the_whole_width: true,
+                    ..ARowOfTheTable::default()
+                },
+                HomeRow::Media { item } => {
+                    // **The key of a line holds the episode beside the item**
+                    // (T-228), and it is the key of `home_lines`: the two lists
+                    // of one frame must say the same media.
+                    let key = crate::logic::home_view::the_key_of_the_line(
+                        &self._ids_cnt_list,
+                        &self.ids_ep_cnt_list,
+                        *item,
+                    );
+
+                    let plays_now = key
+                        .as_ref()
+                        .zip(playing.as_ref())
+                        .is_some_and(|(key, playing)| key == playing);
+
+                    let (percent, finished) = match key
+                        .as_ref()
+                        .and_then(|key| crate::logic::live::progress_of(key))
+                    {
+                        Some(live) => (live.percent.clone(), live.finished.clone()),
+                        None => {
+                            let progress = self.book_progress_cnt_list.get(*item);
+
+                            (
+                                progress
+                                    .and_then(|row| row.first())
+                                    .cloned()
+                                    .unwrap_or_default(),
+                                progress
+                                    .and_then(|row| row.get(1))
+                                    .cloned()
+                                    .unwrap_or_default(),
+                            )
+                        }
+                    };
+
+                    // **A library of podcasts holds the author and the length
+                    // of an episode in lists of its own** (T-236), therefore
+                    // the two kinds of library read two places.
+                    let (author, length) = if self.is_podcast {
+                        (
+                            self.authors_pod_cnt_list.get(*item).cloned(),
+                            self.the_lengths_of_the_episodes_of_the_home_view
+                                .get(*item)
+                                .copied()
+                                .flatten(),
+                        )
+                    } else {
+                        (
+                            self.auth_names_cnt_list.get(*item).cloned(),
+                            self.duration_cnt_list.get(*item).copied(),
+                        )
+                    };
+
+                    ARowOfTheTable {
+                        the_mark: crate::ui::marks::of_the_state(&finished, plays_now),
+                        title: self
+                            ._titles_cnt_list
+                            .get(*item)
+                            .cloned()
+                            .unwrap_or_default(),
+                        author: author.unwrap_or_default(),
+                        time: crate::ui::the_table_of_a_view::the_time_of_a_row(length),
+                        done: crate::ui::the_table_of_a_view::the_done_of_a_row(
+                            &percent, &finished,
+                        ),
+                        the_whole_width: false,
+                    }
+                }
+            })
+            .collect()
     }
 
     /// Gives the text of each line of the view `Library`.

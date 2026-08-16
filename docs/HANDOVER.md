@@ -418,7 +418,7 @@ account holds the library `Large`.
 
 **The block of the prompt met the line of 99000 bytes** (T-284). The whole list
 of the decisions of T-201 to T-311 went out of it, into
-`## The decisions of T-201 to T-317 that do not open again` of this file, and a
+`## The decisions of T-201 to T-321 that do not open again` of this file, and a
 pointer of three lines stands in its place: the block held 98907 bytes and it
 holds 66224 now. **That list grows with every round and the turn of a round does
 not**, therefore it is the part of the block to take out again.
@@ -11122,8 +11122,8 @@ measurement can hold.
 | 1 | **T-317** | The theme of the terminal of the user — **done, v0.8.145** |
 | 2 | **T-320** | The frame of the panels, the focus, and the narrow terminal — **done, v0.8.146**; the two lines of the footer stay open |
 | 3 | **T-316** | The harness of a click, the capture, and a click of a row — **done, v0.8.147**; the targets of the regions of the stages after it stay open |
-| 4 | **T-321** | The list of the panel 4 becomes a table of a header — **the next stage** |
-| 5 | **T-318** | The panels 2 and 3, and a series that opens into its books |
+| 4 | **T-321** | The list of the panel 4 becomes a table of a header — **done, v0.8.148**; the sequence of a click of a word of the header belongs to T-318 |
+| 5 | **T-318** | The panels 2 and 3, and a series that opens into its books — **the next stage** |
 | 6 | **T-319** | The panel 5 of one cover, and the panel 6 of the gallery |
 | 7 | **T-322** | The panel 7, the band of the player |
 | 8 | **T-323** | The mode that hides the panels 1 to 3, and the last sweep |
@@ -11286,12 +11286,28 @@ belong to this stage too**: one line of the keys of the panel that holds the
 focus, and one line of the keys of every view. **The three shapes of the
 decision 3 are the measurement of this stage.**
 
-**T-321: the list of the panel 4 becomes a table.** The list of today holds one
-text of each row; the design holds a row of a header (`Title`, `Author`,
-`Time`, `Done`), the marks `➤` of the cursor, `▶` of the media that plays, `✓`
-of a media that is finished, and `↓` of a media of the disk, and a bar of the
-scroll inside the border. **The row of the header is the target of a click of
-T-318 and of the mouse**, therefore its geometry belongs to this stage.
+**T-321: the list of the panel 4 is a table now — done, v0.8.148.** The round
+of the hundred and forty-eighth turn took this stage, and the item of
+`docs/TAKEOVER-BACKLOG.md` holds the screen of the real program before it and
+after it. What stands: a row of a header of the columns `Title`, `Author`,
+`Time`, and `Done`; the mark `▶` of the media that plays and `✓` of a media
+that the user finished, with the percent in the column `Done` and no more in
+the mark; a row of a shelf and a row of a series that take every column; and
+**three shapes of the table** — every column at a panel of 74 columns (a screen
+of 160), the author away at a panel of 50 (a screen of 120), and the list of
+today under the width of the panel 4. **A click of the row of the header opens
+the view of the sequence and of the filter**, which is the work of the key `f`.
+
+**What stays open of this item.** A click of a **word** of the header does not
+sort by that column: the sequences of the server belong to T-318, and the
+geometry of the row stands already, therefore that stage takes the columns of
+the point and no new area at all. The bar of the scroll holds no arrow of the
+header (`▲` and `▼` of the design), the last row of the design is a small key
+to the marks and no row of this program holds it, the mark `↓` of a media of
+the disk stands in no list of this program at all, and the marks `▸` and `▾` of
+a series that opens belong to T-318. **The views of a search, of a collection,
+of the episodes of a podcast, and of the queue hold no table**, because the
+panel 4 stands for the Home view and the Library view alone (T-320).
 
 **T-322: the panel 7, the band of the player.** The row of the player of today
 says `▶ 3:14 / 30:00`; the design holds four rows — the title with the author,
@@ -16410,6 +16426,81 @@ any of them.
     holds too. **This is a candidate and not a measurement.**
 
 
+### The turn of the hundred and forty-sixth: the frame of the panels, the focus, and the three shapes (T-320)
+
+**The session of the hundred and forty-sixth turn took the stage 2 of the
+road of the panels** (T-320), the frame. **It left three parts of that
+stage open.**
+
+**The frame of the panels, the focus, and the three shapes of the width.**
+`the_areas_of_a_view` of `src/ui/tui.rs` gave every view one column of a
+list, with the panel of the covers of T-23 at the right of it. The
+measurement of the real program v0.8.145 inside tmux, of the Library view
+of the library `Large` of 500 items of 2056: at 160 columns the line of the
+list ended at the column 95, at 120 columns it ended at the column 71, and
+the header of every width was `────Library [500 items of 2056]────`. **No
+frame stood at any width.**
+
+**The data of this stage is the program itself**: no proxy, no book of a
+harness, and no change of the sandbox. `COLUMNS_OF_THE_SCREEN` of
+`docs/harness/drive.sh` gives each of the three shapes, and the item of
+`docs/TAKEOVER-BACKLOG.md` holds the screen of the real program at 160, at
+120, at 100, and at 40 columns, before this round and after it.
+
+The correction is seven files. `src/ui/frame.rs` is new: `TheShape`
+(`ThreeColumns` at 120 columns and up, `TwoColumns` from 84, `OneColumn`
+under 84), `the_shape_of`, `the_stack_and_the_work`, `ThePanel` of two
+values, `a_panel` (the block of a number, a name, and a border of
+`BorderType::Double` for the focus against `BorderType::Plain`),
+`THE_VIEWS` of the 14 lines of the panel 1, and `the_lines_of_the_views`.
+`src/app.rs` holds the fields `the_width_of_the_screen`,
+`the_panel_of_the_focus`, and `the_line_of_the_views`, and the two methods
+`the_stack_of_the_panels_stands` and `the_key_of_a_panel` before the match
+of `handle_key`. `src/ui/tui.rs` writes the width of the screen at each
+frame, it draws the stack, and **`split_for_covers` now reads the width of
+the work of the view and not the width of the whole screen**.
+`src/ui/the_list_of_a_view.rs` holds `render_the_list_of_a_panel`, and
+`src/ui/keys.rs` holds the group of the six keys and `the_footer_of_a_panel`.
+
+**The corrected program** of the same harness: at 160 and at 120 columns
+`┌1 Views ─┐╔4 Library [500 items of 2056] ═╗` with the covers after it, at
+100 columns and at 40 columns the screen of today. The key `1` gave
+`╔1 Views ═╗┌4 Library ─┐`, the keys `Ctrl+h` and `Ctrl+l` moved the focus
+back and forward, and the key `l` on the line `Authors` opened the Authors
+view. **The footer changes with the panel**: the panel 4 gives
+`… Q: quit  1/Ctrl+h: the panel of the views`, and the panel 1 gives
+`j/k: move  l: open the view  h: the list  4/Ctrl+l: the list …`.
+
+`tests/the_frame_of_the_panels_holds_its_three_shapes.rs` holds the gate, of
+six tests, and five more stand inside `src/ui/frame.rs`. **The build of the
+fault** (the trap 147) — `if false && width >= THE_WIDTH_OF_THREE_COLUMNS`
+of `the_shape_of`, and `it_holds_the_focus && false` of `a_panel` — made
+four of the eleven fail.
+
+**The trap of this item** (the trap 209 again):
+`tests/the_key_h_leaves_every_view.rs` read the **first**
+`KeyCode::Char('h') => {` of the whole of `src/app.rs`, and the new keys of
+the frame stand above `handle_key` with an arm of that same shape. The
+window of 4000 characters then held the focus of a panel and no view at
+all, and the gate said that the program lost a rule that it holds. **A
+window of a number of characters must anchor on the function that it
+reads**, therefore that search now starts at `pub fn handle_key(`.
+- **The two lines of the keys at the foot have no measurement yet**
+  (T-320): the design holds one line of the keys of the panel of the focus
+  and one line of the keys of every view, and this round gives **one** line
+  that changes with the focus. `App::render_footer` wraps one text, and two
+  lines of their own need the areas of the footer to divide.
+- **The panels 2 and 3 of the stack belong to T-318**, and the panel 7 of
+  the player belongs to T-322: the stack holds the panel 1 alone today,
+  because a panel of a title and of no line at all promises a function that
+  the program does not have (T-118).
+- **The Authors view of the library `Large` of the sandbox said
+  `This library has no author.`** while that library holds 2056 books of
+  Ada Lovelace, of Alan Turing, and of Grace Hopper. **The key `a` of that
+  view takes the same road**, therefore this is no fault of the frame at
+  all, and no round has measured it. **This is a candidate and not a
+  measurement.**
+
 ## The session of the hundred and forty-first turn of 2026-08-16: the panel of the player keeps the row of its keys, of the block of the prompt
 
   **The session of the hundred and forty-first turn took the candidate that
@@ -20349,7 +20440,7 @@ character.
     crate and not of this program, and no count of this program says what it
     does. **This is a candidate and not a measurement.**
 
-## The decisions of T-201 to T-317 that do not open again
+## The decisions of T-201 to T-321 that do not open again
 
 These decisions stood in the block of the prompt of the next session until the
 round of the hundred and thirty-ninth turn, and that block met its limit of
@@ -20821,12 +20912,26 @@ every key of that block off, because the program writes that file for a user
 who holds no file and a change of `Colors::default` alone therefore reaches no
 user at all** (T-317).
 
+
+**The five decisions of T-321, the table of the panel 4.** **The mark of a row
+of the table holds no percent**: `marks::of_progress` gives `11% ` in four
+columns and the column `Done` says that same number, therefore the table takes
+`marks::of_the_state` of one column, and every other view of the program keeps
+the mark that it had. **A row that names more than one media takes every column
+of the table** (a shelf of the Home view, and a series). **A media of one second
+is not a media of no length**: `<1m` is the word of it, and `-` is the word of a
+media that the server gave no length of (T-180). **`N/A` is the value of this
+program and not the value of the server**, therefore a column of it says
+nothing and the cell stays empty. And **a click of the row of the header opens
+the view of the sequence and of the filter**, because the sequence of one column
+belongs to T-318 and a click that does nothing at all is the fault of T-79.
+
 ## The prompt for the next session
 
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.147**; `Cargo.toml` is at 0.8.147. The
+> AlbanDAVID/Toutui. Newest release **v0.8.148**; `Cargo.toml` is at 0.8.148. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -21621,15 +21726,21 @@ user at all** (T-317).
 > makes no request: a measurement of two roads of the header needs a key of a
 > fresh request, and the key `R` alone forgets the state of a view.
 > Verify with a second program: `curl`, `podman logs abs-test`, or a browser.
-> Write the measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-320 and
+> Write the measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-322 and
 > up), and name that item in the commit.
+>
+> **`String::find` gives the index of a byte and not the column of the screen**
+> (the trap 245): the mark `✓` of a row of the table of T-321 takes three bytes
+> and one column, therefore a test that compares the place of a column of two
+> texts with `find` alone says that the columns do not agree while they do.
+> `crate::logic::message::the_columns_of(&text[..at])` is the road.
 >
 > **The gates, before each commit**, under `nice -n 19 ionice -c 3` with `-j 16`:
 > `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`, and
 > `cargo nextest run` with `ALSA_CONFIG_PATH` pointing at a null asound file of
 > two lines (`pcm.!default { type null }` and `ctl.!default { type null }`).
-> Baseline: **1383 tests in 3.0 seconds**, and `cargo nextest run --run-ignored
-> all` gives **1409 of 1409** with the sandbox up, in about 20 seconds. **Run that
+> Baseline: **1412 tests in 3.0 seconds**, and `cargo nextest run --run-ignored
+> all` gives **1438 of 1438** with the sandbox up, in about 20 seconds. **Run that
 > second command at the end of the session too**: it found T-132 and T-111.
 >
 > **A box of the process needs one test function.** Two test functions of one
@@ -21754,88 +21865,15 @@ user at all** (T-317).
 >    T-320 the frame of the panels, T-316 the mouse, T-321 the table, T-318
 >    the panels of the sequence and of the filter, T-319 the covers, T-322 the
 >    band of the player, and T-323 the mode that hides the stack at the left.
->    **The stages 1, 2, and 3 are done** (v0.8.145, v0.8.146, and v0.8.147),
->    and **T-321, the list of the panel 4 that becomes a table of a header, is
->    the next one**.
+>    **The stages 1, 2, 3, and 4 are done** (v0.8.145, v0.8.146, v0.8.147, and
+>    v0.8.148), and **T-318, the panels 2 and 3 of the sequence and of the
+>    filter with a series that opens into its books, is the next one**.
 >    **A round takes the next stage that is not finished**, and that section
 >    holds three decisions that a round must not take alone. Read it first.
 >
 > 1. **A condition of the program that no measurement has reached.** A sweep of
 >    this shape found a fault in one hundred and eleven sessions of one hundred
 >    and twelve.
->   **The session of the hundred and forty-sixth turn took the stage 2 of the
->   road of the panels** (T-320), the frame. **It left three parts of that
->   stage open.**
->
->   **The frame of the panels, the focus, and the three shapes of the width.**
->   `the_areas_of_a_view` of `src/ui/tui.rs` gave every view one column of a
->   list, with the panel of the covers of T-23 at the right of it. The
->   measurement of the real program v0.8.145 inside tmux, of the Library view
->   of the library `Large` of 500 items of 2056: at 160 columns the line of the
->   list ended at the column 95, at 120 columns it ended at the column 71, and
->   the header of every width was `────Library [500 items of 2056]────`. **No
->   frame stood at any width.**
->
->   **The data of this stage is the program itself**: no proxy, no book of a
->   harness, and no change of the sandbox. `COLUMNS_OF_THE_SCREEN` of
->   `docs/harness/drive.sh` gives each of the three shapes, and the item of
->   `docs/TAKEOVER-BACKLOG.md` holds the screen of the real program at 160, at
->   120, at 100, and at 40 columns, before this round and after it.
->
->   The correction is seven files. `src/ui/frame.rs` is new: `TheShape`
->   (`ThreeColumns` at 120 columns and up, `TwoColumns` from 84, `OneColumn`
->   under 84), `the_shape_of`, `the_stack_and_the_work`, `ThePanel` of two
->   values, `a_panel` (the block of a number, a name, and a border of
->   `BorderType::Double` for the focus against `BorderType::Plain`),
->   `THE_VIEWS` of the 14 lines of the panel 1, and `the_lines_of_the_views`.
->   `src/app.rs` holds the fields `the_width_of_the_screen`,
->   `the_panel_of_the_focus`, and `the_line_of_the_views`, and the two methods
->   `the_stack_of_the_panels_stands` and `the_key_of_a_panel` before the match
->   of `handle_key`. `src/ui/tui.rs` writes the width of the screen at each
->   frame, it draws the stack, and **`split_for_covers` now reads the width of
->   the work of the view and not the width of the whole screen**.
->   `src/ui/the_list_of_a_view.rs` holds `render_the_list_of_a_panel`, and
->   `src/ui/keys.rs` holds the group of the six keys and `the_footer_of_a_panel`.
->
->   **The corrected program** of the same harness: at 160 and at 120 columns
->   `┌1 Views ─┐╔4 Library [500 items of 2056] ═╗` with the covers after it, at
->   100 columns and at 40 columns the screen of today. The key `1` gave
->   `╔1 Views ═╗┌4 Library ─┐`, the keys `Ctrl+h` and `Ctrl+l` moved the focus
->   back and forward, and the key `l` on the line `Authors` opened the Authors
->   view. **The footer changes with the panel**: the panel 4 gives
->   `… Q: quit  1/Ctrl+h: the panel of the views`, and the panel 1 gives
->   `j/k: move  l: open the view  h: the list  4/Ctrl+l: the list …`.
->
->   `tests/the_frame_of_the_panels_holds_its_three_shapes.rs` holds the gate, of
->   six tests, and five more stand inside `src/ui/frame.rs`. **The build of the
->   fault** (the trap 147) — `if false && width >= THE_WIDTH_OF_THREE_COLUMNS`
->   of `the_shape_of`, and `it_holds_the_focus && false` of `a_panel` — made
->   four of the eleven fail.
->
->   **The trap of this item** (the trap 209 again):
->   `tests/the_key_h_leaves_every_view.rs` read the **first**
->   `KeyCode::Char('h') => {` of the whole of `src/app.rs`, and the new keys of
->   the frame stand above `handle_key` with an arm of that same shape. The
->   window of 4000 characters then held the focus of a panel and no view at
->   all, and the gate said that the program lost a rule that it holds. **A
->   window of a number of characters must anchor on the function that it
->   reads**, therefore that search now starts at `pub fn handle_key(`.
->   - **The two lines of the keys at the foot have no measurement yet**
->     (T-320): the design holds one line of the keys of the panel of the focus
->     and one line of the keys of every view, and this round gives **one** line
->     that changes with the focus. `App::render_footer` wraps one text, and two
->     lines of their own need the areas of the footer to divide.
->   - **The panels 2 and 3 of the stack belong to T-318**, and the panel 7 of
->     the player belongs to T-322: the stack holds the panel 1 alone today,
->     because a panel of a title and of no line at all promises a function that
->     the program does not have (T-118).
->   - **The Authors view of the library `Large` of the sandbox said
->     `This library has no author.`** while that library holds 2056 books of
->     Ada Lovelace, of Alan Turing, and of Grace Hopper. **The key `a` of that
->     view takes the same road**, therefore this is no fault of the frame at
->     all, and no round has measured it. **This is a candidate and not a
->     measurement.**
->
 >   **The session of the hundred and forty-seventh turn took the stage 3 of the
 >   road of the panels** (T-316), the mouse. **It left the targets of the
 >   regions of the stages after it open.**
@@ -21896,6 +21934,76 @@ user at all** (T-317).
 >     mouse off at every start**: the mouse of the start stands, and the key
 >     `Ctrl+o` is the road back for that session alone.
 >
+>   **The session of the hundred and forty-eighth turn took the stage 4 of the
+>   road of the panels** (T-321), the table. **It left the sequence of a click
+>   of a word of the header open, and that work belongs to T-318.**
+>
+>   **The list of the panel 4, the row of its header, and the three shapes of
+>   its columns.** The measurement of the real program v0.8.147 inside tmux, of
+>   the Library view of the library `Large` of the sandbox at 160 columns and
+>   45 rows: the panel 4 held **74 columns**, the title of a book took **17**
+>   of them, and `╔4 Library [500 items of 2056] ═╗` stood over 17 rows of
+>   `Large Book 20NN` and nothing else. **The author of the media, the length
+>   of it, and the place of the user of it stood in no column of that panel**:
+>   the user read those three values for the row of the cursor alone, in the
+>   panel of the description under the list.
+>
+>   **The data of this stage is the program itself**: no proxy, no book of a
+>   harness, and no change of the sandbox. `COLUMNS_OF_THE_SCREEN` of
+>   `docs/harness/drive.sh` gives each width, and **the library `Books` of the
+>   sandbox is the library of this measurement**, because the 2056 books of the
+>   library `Large` hold no author and a `duration` of one second.
+>
+>   The correction is six files. `src/ui/the_table_of_a_view.rs` is new:
+>   `TheColumns`, `the_columns_of_the_table`, `ARowOfTheTable`,
+>   `the_text_of_a_row`, `the_header_of_the_table`, `the_time_of_a_row`,
+>   `the_done_of_a_row`, and `the_word_of_a_column`.
+>   `src/ui/the_list_of_a_view.rs` holds `render_the_table_of_a_panel` and
+>   `TheContentOfAPanel`, and `render_the_list_of_a_panel` is one call of it
+>   with no row of a table. `src/ui/marks.rs` holds `of_the_state`, which is
+>   the mark of one column with no percent in it. `src/app.rs` holds
+>   `library_table_rows`, `home_table_rows`, `the_place_of_this_media`, and the
+>   arm `TheHeaderOfTheList` of `handle_the_mouse`. `src/ui/the_mouse.rs` holds
+>   the area `the_header_of_the_list` and the target of it, and `src/ui/tui.rs`
+>   gives the rows of the table to the panel 4 of the Home view and of the
+>   Library view.
+>
+>   **The corrected program** of the same harness, at 160 columns:
+>   `║    Title    Author    Time  Done ║` over
+>   `║➤ ✓ A Book Of An Epub With No Container    <1m  done█║` and
+>   `║    A Book Of Many Hours    Many Hours Author    8h00   96%│║`. At 120
+>   columns the panel holds 50 and the author goes away; at 100 columns no
+>   panel 4 stands at all, and the screen is the screen of today with the mark
+>   that holds the percent. **A click of the row 8 gave the fourth line of the
+>   list**, therefore the row of the header takes one row of the panel and the
+>   arithmetic of the lines reads the rows that stay, and **a click of the row
+>   of the header gave the view of the sequence and of the filter**.
+>
+>   `tests/the_table_of_the_panel_4_holds_its_columns.rs` holds the gate, of
+>   two tests, and three more stand inside `src/ui/the_table_of_a_view.rs`.
+>   **The build of the fault** (the trap 147) — `false &&` on `the_table` of
+>   `render_the_table_of_a_panel`, on the limit of the title of
+>   `the_columns_of_the_table`, and on the arm of the header of
+>   `the_target_of_a_point` — made five of the seven fail.
+>
+>   **The trap of this item** (the trap 245): **`String::find` gives the index
+>   of a byte and not the column of the screen**, and the mark `✓` of a row
+>   takes three bytes and one column. A test that reads the place of a column
+>   of two texts with `find` alone therefore says that the columns do not agree
+>   while they do, and `crate::logic::message::the_columns_of(&text[..at])` is
+>   the road.
+>   - **A click of a word of the header does not sort by that column**
+>     (T-321): the map of the mouse of the design gives `Title`, `Author`,
+>     `Time`, and `Done` the sequence of that column, and the sequences of the
+>     server belong to T-318. The geometry of the row stands already, therefore
+>     that stage takes the columns of the point and no new area at all.
+>   - **The bar of the scroll holds no arrow of the header**, the last row of
+>     the design is a small key to the marks and no row of this program holds
+>     it, and **the mark `↓` of a media of the disk stands in no list of this
+>     program at all**.
+>   - **The views of a search, of a collection, of the episodes of a podcast,
+>     and of the queue hold no table**: the panel 4 stands for the Home view
+>     and the Library view alone (T-320).
 >    **The turns before this one stand in `## The turns before the three
 >    newest ones` of this file**, above the heading of this prompt. **This item
 >    held three turns, and the block then stood above its limit of size**
@@ -21951,8 +22059,8 @@ user at all** (T-317).
 > program holds more than one account (T-124). **The decisions of T-124 to
 > T-200 stand in `## The decisions of T-124 to T-200 that do not open again` of
 > `docs/HANDOVER.md`, outside this block, and each of them holds** (T-294).
-> And **the decisions of T-201 to T-317 stand in
-> `## The decisions of T-201 to T-317 that do not open again` of
+> And **the decisions of T-201 to T-321 stand in
+> `## The decisions of T-201 to T-321 that do not open again` of
 > `docs/HANDOVER.md`, outside this block, and each of them holds** (T-310).
 >
 > **This block has a limit of size, and the driver dies above it.** `toutui-loop`
@@ -22000,7 +22108,7 @@ user at all** (T-317).
 > did the same work, and the block then held 98907 bytes with one turn in it —
 > **at the line of 99000**, therefore that round took the whole list of the
 > decisions of T-201 to T-311 out of the block and it put it in
-> `## The decisions of T-201 to T-317 that do not open again` of this file,
+> `## The decisions of T-201 to T-321 that do not open again` of this file,
 > with a pointer of three lines in its place: the block then held **66224**
 > bytes with one turn in it; the round of the hundred and fortieth found it at
 > 66685 bytes with one turn in it, and it did the same work, and the block then
@@ -22011,7 +22119,9 @@ user at all** (T-317).
 > same work; the round of the hundred and forty-third found it at 69573 bytes
 > with one turn in it, and it did the same work; the round of the hundred and
 > forty-fourth found it at 68288 bytes with one turn in it, and it did the same
-> work; the round of the hundred and forty-seventh found it at 68638 bytes with
+> work; the round of the hundred and forty-eighth found it at 74151 bytes with
+> two turns in it, and it took the oldest of the two out and it wrote its own,
+> and the block then held about 74000 bytes with **two** turns in it; the round of the hundred and forty-seventh found it at 68638 bytes with
 > **one** turn in it, and **it took no turn out at all**: the block stood far
 > under the line of 99000, therefore that round wrote its own turn beside the
 > turn of the frame of T-320, and the block then held **73514** bytes with

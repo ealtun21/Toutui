@@ -41,6 +41,29 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.148",
+        date: "16/08/2026",
+        body: &[
+            "Added:",
+            "- **The list of the Home view and of the Library view is a table \
+             now.** A row of a header names the columns `Title`, `Author`, \
+             `Time`, and `Done`, and each row of the list says the author of \
+             the media, the length of it, and your place in it. The table \
+             stands on a terminal of 120 columns or more, which is the \
+             terminal that holds the panels; a terminal that is not so wide \
+             keeps the list of before, and the mark at the start of each line \
+             then says your place.",
+            "- **A click of the row of the header opens the view of the \
+             sequence and of the filter**, which is the work of the key `f`. \
+             The view of the key `?` names this click.",
+            "Changed:",
+            "- **The mark of a line of the table says the media that plays and \
+             the media that you finished alone.** The percent of your place \
+             stands in the column `Done`, therefore the title of the media \
+             holds more columns of the screen.",
+        ],
+    },
+    Entry {
         version: "0.8.147",
         date: "16/08/2026",
         body: &[

@@ -62,6 +62,11 @@ pub struct TheAreasOfTheMouse {
     pub the_offset_of_the_list: usize,
     /// The number of the lines of the list of the view.
     pub the_lines: usize,
+    /// The row of the header of the table of the panel 4. See T-321.
+    ///
+    /// A view that draws no table gives `Rect::default()` here, and that value
+    /// holds no cell of the screen at all.
+    pub the_header_of_the_list: Rect,
 }
 
 /// The place of the screen that a report of the mouse names.
@@ -75,6 +80,8 @@ pub enum TheTarget {
     ThePanelOfTheViews { the_line: Option<usize> },
     /// The list of the view, which is the panel 4 of the frame of the panels.
     TheListOfTheView { the_line: Option<usize> },
+    /// The row of the header of the table of the panel 4. See T-321.
+    TheHeaderOfTheList,
 }
 
 /// The line of a list that stands on a row of the screen, and `None` for a row
@@ -130,6 +137,13 @@ pub fn the_target_of_a_point(
             )
             .filter(|_| areas.the_lines_of_the_views.contains(point)),
         };
+    }
+
+    // **The row of the header stands inside the panel of the list**, therefore
+    // it comes before it: a click of that row asks for the sequence and the
+    // filter of the view, and it moves the cursor of no line. See T-321.
+    if areas.the_header_of_the_list.contains(point) {
+        return TheTarget::TheHeaderOfTheList;
     }
 
     if areas.the_panel_of_the_list.contains(point) {
@@ -201,6 +215,7 @@ mod tests {
             the_lines_of_the_list: Rect::new(35, 3, 66, 18),
             the_offset_of_the_list: 0,
             the_lines: 500,
+            the_header_of_the_list: Rect::default(),
         };
 
         // A click on a line of the panel 1.
@@ -238,6 +253,23 @@ mod tests {
             the_target_of_a_point(&of_one_column, false, 10, 5),
             TheTarget::Nothing,
             "the point stands at the left of the list of that frame"
+        );
+
+        // **The row of the header of the table takes the click before the
+        // lines of the list** (T-321): it stands inside the panel of the list,
+        // and a click of it asks for the sequence and the filter of the view.
+        let of_a_table = TheAreasOfTheMouse {
+            the_lines_of_the_list: Rect::new(35, 4, 66, 17),
+            the_header_of_the_list: Rect::new(35, 3, 68, 1),
+            ..areas
+        };
+        assert_eq!(
+            the_target_of_a_point(&of_a_table, true, 60, 3),
+            TheTarget::TheHeaderOfTheList
+        );
+        assert_eq!(
+            the_target_of_a_point(&of_a_table, true, 60, 4),
+            TheTarget::TheListOfTheView { the_line: Some(0) }
         );
 
         // A point that no panel holds.
