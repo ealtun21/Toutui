@@ -25535,3 +25535,136 @@ sentence cut at "the copies of that".
   measurement.**
 - **Every candidate of the turns before this one stays open** (T-229 to
   T-296).
+
+### T-298: the words of a log out reach the program that starts after it
+
+#### The fault
+
+**A log out of the account that starts the program gives the start to the
+first account that stays, and the program starts again with `exec`: the words
+of that log out reach no user at all.** T-297 gave those words two roads of
+the three — the login screen takes them over the disk (T-270), and a view that
+stays takes them in the row of the message — and the third road dropped them:
+`self.start_the_program_with_this_account(&name)` of `src/app.rs` took the
+name of the new account alone.
+
+**The road of T-270 says nothing on that road.** The program that comes holds
+an account, therefore it draws no login screen and it reads no `login_err` of
+the disk. The box of the message belongs to no process after this one, and the
+program held no road at all for the words of a start.
+
+#### The measurement
+
+The real program v0.8.126, inside tmux, against the sandbox on the port 13399,
+on 2026-08-16. **The data of this fault is the database of the program, and it
+needs no proxy at all.**
+
+The database held `toutuitest` alone. The keys `S`, `Enter`, and `a` gave the
+login screen of a second window of the same terminal, and the address
+`http://localhost:13399`, the name `toutuilimited`, and the password
+`toutuilimited` gave the second account: `users` then held the two of them,
+and **`toutuilimited` was the account of the start** (a login writes that
+mark).
+
+The keys of the log out: `S`, `Enter`, `j` (the line of `toutuilimited`), `l`,
+and `l`. The log said:
+
+```
+[the accounts] the log out of toutuilimited took 1 row(s) of the account and 0
+place(s) of the user.
+[delete_user] User deleted.
+[the accounts] the account toutuitest starts the program. The program starts
+again.
+```
+
+The program started again, and the Home view of `toutuitest` came. **Six polls
+of the whole screen, one every 0.8 seconds, found no word of that log out at
+all.** The words that `delete_user` gave the caller were
+`The program removed the account toutuilimited.`
+
+**The environment of the new process is the road.** A control of the same run:
+`TOUTUI_THE_WORDS_OF_THE_START=…` on the command line of
+`start_the_program` drew that sentence on the row 43 of the Home view, at the
+first frame and one second after it. A read of
+`/proc/<the pid>/environ` of the program that came after the log out then said
+that the corrected program writes the sentence there.
+
+#### The decision
+
+**Every road of a log out carries its words**, and a variable of the
+environment carries them over the `exec` of a start with an account. The disk
+of T-270 belongs to the login screen alone: a program that holds an account
+draws no login screen, therefore that column would stay on the disk for a
+program that never reads it.
+
+**A variable of the environment stays over every `exec` after it**, therefore
+every start of the program again writes it: a start that carries no words
+writes it empty. Without that rule the words of one log out would come back at
+every start of the program after it — the key `c`, and a token that the server
+refused.
+
+#### The correction
+
+Five files.
+
+1. `src/logic/message.rs`: `THE_WORDS_OF_THE_START`, the pure
+   `the_words_of_the_start(of_the_environment)` (a value of no letter is no
+   sentence), and `say_the_words_of_the_start()`.
+2. `src/logic/the_accounts.rs`: `TheWorkOfALogOut` and
+   `the_work_of_a_log_out(after, the_words)` give the words to each of the
+   three roads, and `the_variables_of_a_start(the_words)` gives the variable
+   of the environment of a start that carries words.
+3. `src/app.rs`: the key handler of the log out reads that work, and
+   `start_the_program_with_this_account(name, the_words)` puts the variables
+   in the request of the start. The key `c` gives no words: the header of the
+   new program names the account already.
+4. `src/utils/exit_app.rs`: the pure `the_environment_of_a_start(variables)`
+   writes the variable of the words empty for every start, and a caller that
+   names it wins. `start_the_program_again_with` reads it.
+5. `src/main.rs`: `logic::message::say_the_words_of_the_start()` stands before
+   the first frame, above the values of the file of T-264, because the user
+   pressed a key for these words.
+
+#### The corrected program (measured)
+
+The same keys, of the same two accounts: the Home view of `toutuitest` held
+`The program removed the account toutuilimited.` on its row 43, at every one
+of the six polls of the whole screen.
+
+#### The test
+
+`tests/the_words_of_a_log_out_reach_the_program_that_starts.rs` (3 tests).
+
+The build of the fault: `start_the_program_with_this_account(&name, "")` gave
+the fault of the measurement again — six polls of the whole screen, and no
+word at any of them. The build of the fault of the gate:
+`TheWorkOfALogOut::ThisAccountStarts { name, the_words: String::new() }` and
+`the_variables_of_a_start` that gives `Vec::new()` failed two of the three
+tests.
+
+#### The road back of the sandbox
+
+The account `toutuilimited` went away with the last log out of the
+measurement, and `toutuitest` holds `http://localhost:13399`, the library
+`Books`, the 11 rows of `downloads`, the 13 rows of `download_files`, and the
+mark of the account of the start again.
+
+#### What this item leaves open
+
+- **A message of the row of the message of a view that is longer than the
+  screen**: the sentence of a log out with the copies of the disk of T-297 is
+  about 180 characters, and this road now draws it in the row of the message
+  of the Home view. T-278 gave that row more than one row; a measurement of
+  this sentence on that road did not run. **This is a candidate and not a
+  measurement.**
+- **The words of a start reach no user when `exec` fails**: the loop of
+  `src/main.rs` then says `request.message`, which names the system and not
+  the log out. **This is a candidate and not a measurement.**
+- **The rows of `queue` of an account that logged out stay** (T-297), and the
+  key of that table holds the account and the server. **This is a candidate
+  and not a measurement.**
+- **The table `downloads` holds a column `server` that is not in its key, and
+  `download_files` holds no server at all** (T-297). **This is a candidate and
+  not a measurement.**
+- **Every candidate of the turns before this one stays open** (T-229 to
+  T-297).

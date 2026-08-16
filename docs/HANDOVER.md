@@ -4,7 +4,8 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.8.126.** The item T-297 belongs to this session. The
+**The newest release is v0.8.127.** The item T-298 belongs to this session. The
+item T-297 belongs to the session before it. The
 item T-296 belongs to the session before it. The
 item T-295 belongs to the session before it. The
 item T-294 belongs to the session before it. The
@@ -134,14 +135,75 @@ the one before it, and T-140 and T-141 to the one before those.
 
 **No row of section 4 of `docs/T-24-coverage.md` says `Half`.**
 
-**The numbers of the gates of v0.8.123**: `cargo clippy --all-targets -- -D
+**The numbers of the gates of v0.8.127**: `cargo clippy --all-targets -- -D
 warnings` and `cargo fmt --check` say nothing, `cargo nextest run` gives
-**1345 of 1345** in 2.9 seconds with 26 skipped,
-`cargo nextest run --run-ignored all` gives **1371 of 1371** in 17.1 seconds
+**1353 of 1353** in 2.7 seconds with 26 skipped,
+`cargo nextest run --run-ignored all` gives **1379 of 1379** in 17.1 seconds
 with the sandbox up, and `cargo test -j 16 --no-fail-fast` (the gate of CI)
-gives no failure over its 153 binaries in four runs.
+gives no failure over its binaries in two runs.
 **Two runs of `cargo nextest run` under the load of 24 loops of a shell
 gave 1200 of 1200 at v0.8.49 too** (T-220).
+
+## The session of the hundred and twenty-seventh turn of 2026-08-16: the words of a log out reach the program that starts after it
+
+**The item: T-298**, and the release **v0.8.127**.
+
+**The candidate came of the first line that T-297 left open.** T-297 gave the
+words of a log out to two of the three roads of that key — the login screen
+takes them over the disk (T-270), and a view that stays takes them in the row
+of the message — and it named the third road. The measurement of this round
+gave the fault.
+
+**The data of this fault is the database of the program, and it needs no proxy
+at all.** The sandbox held `toutuitest` alone: the keys `S`, `Enter`, and `a`
+gave the login screen of a second window of the same terminal, and the address
+`http://localhost:13399`, the name `toutuilimited`, and the password
+`toutuilimited` gave the second account. **A login writes the mark of the
+account of the start**, therefore `toutuilimited` then started the program, and
+the keys `S`, `Enter`, `j`, `l`, and `l` logged out of it.
+
+The log said `the log out of toutuilimited took 1 row(s) of the account and 0
+place(s) of the user.` and after it `the account toutuitest starts the
+program.` The Home view of `toutuitest` came, and **six polls of the whole
+screen, one every 0.8 seconds, found no word of that log out at all**. The
+words that `delete_user` gave the caller were `The program removed the account
+toutuilimited.`
+
+**The control of the same run named the road.**
+`TOUTUI_THE_WORDS_OF_THE_START=…` on the command line of `start_the_program`
+drew that sentence on the **row 43** of the Home view, at the first frame and
+one second after it: the environment of a new process carries a sentence, and
+the program did not use it. A read of `/proc/<the pid>/environ` of the program
+that came after the log out then showed the corrected program writing it
+there.
+
+**The decision: a variable of the environment carries the words over the
+`exec`.** The disk of T-270 belongs to the login screen alone, because a
+program that holds an account draws no such screen and reads no `login_err`.
+And **a variable of the environment stays over every `exec` after it**,
+therefore every start of the program again writes that variable: a start that
+carries no words writes it empty. Without that rule the words of one log out
+would come back at the key `c` and at a token that the server refused.
+
+The measurement stands in `docs/TAKEOVER-BACKLOG.md` under T-298. The
+correction stands in `src/logic/message.rs` (`THE_WORDS_OF_THE_START`,
+`the_words_of_the_start`, and `say_the_words_of_the_start`),
+`src/logic/the_accounts.rs` (`TheWorkOfALogOut`, `the_work_of_a_log_out`, and
+`the_variables_of_a_start`), `src/app.rs` (the key handler of the log out, and
+`start_the_program_with_this_account`), `src/utils/exit_app.rs`
+(`the_environment_of_a_start`), and `src/main.rs`. The test is
+`tests/the_words_of_a_log_out_reach_the_program_that_starts.rs`.
+
+**The road back of the sandbox**: the account `toutuilimited` went away with
+the last log out of the measurement, and `toutuitest` holds
+`http://localhost:13399`, the library `Books`, the 11 rows of `downloads`, the
+13 rows of `download_files`, and the mark of the account of the start again.
+No proxy of this round ran at all.
+
+**The gates**: `cargo clippy --all-targets -- -D warnings`, `cargo fmt
+--check`, `cargo nextest run` (**1353 tests** in 2.7 seconds),
+`cargo nextest run --run-ignored all` (**1379 of 1379** with the sandbox up, in
+17.1 seconds), and two runs of `cargo test -j 16 --no-fail-fast`.
 
 ## The session of the hundred and twenty-sixth turn of 2026-08-16: a log out says the copies of the disk
 
@@ -17138,7 +17200,7 @@ log out** (T-200).
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.126**; `Cargo.toml` is at 0.8.126. The
+> AlbanDAVID/Toutui. Newest release **v0.8.127**; `Cargo.toml` is at 0.8.127. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -17147,7 +17209,7 @@ log out** (T-200).
 > **Read before you touch code:** `docs/HANDOVER.md` (the state, the decisions,
 > the road, and the traps that cost real time), `docs/TAKEOVER-BACKLOG.md` (the
 > evidence of every item; **T-87, T-107, T-128, T-131, T-140, T-142, T-145, and
-> T-148 are the eight to know**, and T-142 to T-297 are the newest), and
+> T-148 are the eight to know**, and T-142 to T-298 are the newest), and
 > `docs/T-24-coverage.md`
 > (**no row of section 4 says `Half`, and every row that says `No` belongs to an
 > administrator of the server**, and **section 6 names what the program must not
@@ -17849,7 +17911,7 @@ log out** (T-200).
 > makes no request: a measurement of two roads of the header needs a key of a
 > fresh request, and the key `R` alone forgets the state of a view.
 > Verify with a second program: `curl`, `podman logs abs-test`, or a browser.
-> Write the measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-297 and
+> Write the measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-298 and
 > up), and name that item in the commit.
 >
 > **The gates, before each commit**, under `nice -n 19 ionice -c 3` with `-j 16`:
@@ -17967,6 +18029,65 @@ log out** (T-200).
 > 1. **A condition of the program that no measurement has reached.** A sweep of
 >    this shape found a fault in one hundred and five sessions of one hundred
 >    and six.
+>    **The session of the hundred and twenty-seventh turn took the candidate
+>    "the road `AfterALogOut::ThisAccountStarts` loses the words of its log out
+>    too", which T-297 left open, and the measurement of it gave the fault**
+>    (T-298).
+>
+>    **A log out of the account that starts the program says nothing to the
+>    user.** The key `l` gives the start to the first account that stays, and
+>    the program starts again with `exec`: the box of the message goes away
+>    with the process, and that program holds an account, therefore it draws no
+>    login screen and the disk of T-270 reaches nobody.
+>
+>    The measurement, of the real program v0.8.126 inside tmux against the
+>    sandbox. **The data of this fault is the database of the program, and it
+>    needs no proxy at all.** The keys `S`, `Enter`, and `a` of the account
+>    `toutuitest` gave the login screen, and the address
+>    `http://localhost:13399`, the name `toutuilimited`, and the password
+>    `toutuilimited` gave a second account: **a login writes the mark of the
+>    account of the start**, therefore `toutuilimited` then started the
+>    program. The keys `S`, `Enter`, `j`, `l`, and `l` logged out of it. The
+>    log said `the log out of toutuilimited took 1 row(s) of the account and 0
+>    place(s) of the user.` and `the account toutuitest starts the program.`,
+>    the Home view of `toutuitest` came, and **six polls of the whole screen,
+>    one every 0.8 seconds, found no word of that log out at all**. A control
+>    of the same run:
+>    `TOUTUI_THE_WORDS_OF_THE_START=…` on the command line of
+>    `start_the_program` drew that sentence on the **row 43** of the Home view,
+>    therefore the road of the environment works and the program did not take
+>    it.
+>
+>    **The decision: a variable of the environment carries the words over the
+>    `exec`.** The disk of T-270 belongs to the login screen alone. And **a
+>    variable of the environment stays over every `exec` after it**, therefore
+>    every start of the program again writes it, and a start that carries no
+>    words writes it empty: without that rule the words of one log out would
+>    come back at the key `c` and at a token that the server refused.
+>
+>    The correction is five files. `src/logic/message.rs` holds
+>    `THE_WORDS_OF_THE_START`, the pure `the_words_of_the_start`, and
+>    `say_the_words_of_the_start`. `src/logic/the_accounts.rs` holds
+>    `TheWorkOfALogOut`, `the_work_of_a_log_out`, and
+>    `the_variables_of_a_start`. `src/app.rs` reads that work, and
+>    `start_the_program_with_this_account` takes the words beside the name.
+>    `src/utils/exit_app.rs` holds the pure `the_environment_of_a_start`.
+>    `src/main.rs` says the words before the first frame, above the values of
+>    the file of T-264. **The corrected program**, of the same keys, held
+>    `The program removed the account toutuilimited.` on the row 43 of the Home
+>    view of `toutuitest` at every one of the six polls, and the build of the
+>    fault (`start_the_program_with_this_account(&name, "")`) said nothing at
+>    any of them.
+>    - **The row of the message of a view now draws the sentence of a log out
+>      with the copies of the disk of T-297, and that sentence is about 180
+>      characters** (T-298): T-278 gave that row more than one row, and a
+>      measurement of this sentence on this road did not run. **This is a
+>      candidate and not a measurement.**
+>    - **The words of a start reach no user when `exec` fails** (T-298): the
+>      loop of `src/main.rs` then says `request.message`, which names the
+>      system and not the log out. **This is a candidate and not a
+>      measurement.**
+>
 >    **The session of the hundred and twenty-sixth turn took the candidate
 >    "the rows of `downloads`, of `download_files`, and of `queue` of an account
 >    that logged out stay on the disk, and the files of those downloads stay
@@ -18511,7 +18632,12 @@ log out** (T-200).
 > the copies of the disk says them: the copies stay, because the key is a log out
 > and a login with the same name and the same server gives them again, and the
 > words of that log out name the media, the megabytes, and the road back; and a
-> message of the login screen stands on the rows that it needs** (T-297).
+> message of the login screen stands on the rows that it needs** (T-297), and
+> **the words of a log out reach the program that starts after it: a variable of
+> the environment carries a sentence over the `exec` of a start that holds an
+> account, because such a program draws no login screen and the disk of T-270
+> reaches nobody, and every start of the program again writes that variable so
+> that no sentence of an older process comes back** (T-298).
 >
 > **This block has a limit of size, and the driver dies above it.** `toutui-loop`
 > sends the whole block to the program of the next round in one command, and a

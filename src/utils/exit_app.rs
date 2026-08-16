@@ -184,6 +184,29 @@ pub fn start_the_program_again(the_address_of_the_login: &str) -> io::Error {
 /// user who adds an account gives that address **and** the request of the login
 /// screen, and a user who takes a different account gives nothing at all: the
 /// database then holds the account of the start.
+/// The variables of the environment that a start of the program again writes.
+/// See T-298.
+///
+/// **A variable of the environment stays over every `exec` after it.** The words
+/// of a log out belong to one start of the program, and a program that starts
+/// again after that one must not say them a second time. Therefore every start
+/// writes the variable of those words, and a start that carries no words writes
+/// it empty. A caller that names it wins.
+///
+/// The function is pure, therefore a test needs no process of its own.
+pub fn the_environment_of_a_start<'a>(variables: &[(&'a str, &'a str)]) -> Vec<(&'a str, &'a str)> {
+    let mut all: Vec<(&str, &str)> = vec![(crate::logic::message::THE_WORDS_OF_THE_START, "")];
+
+    for (name, value) in variables {
+        match all.iter_mut().find(|(one, _)| one == name) {
+            Some(place) => place.1 = value,
+            None => all.push((name, value)),
+        }
+    }
+
+    all
+}
+
 pub fn start_the_program_again_with(variables: &[(&str, &str)]) -> io::Error {
     restore_terminal();
 
@@ -199,7 +222,7 @@ pub fn start_the_program_again_with(variables: &[(&str, &str)]) -> io::Error {
         let mut command = std::process::Command::new(program);
         command.args(std::env::args_os().skip(1));
 
-        for (name, value) in variables {
+        for (name, value) in the_environment_of_a_start(variables) {
             command.env(name, value);
         }
 

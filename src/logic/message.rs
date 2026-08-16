@@ -209,6 +209,49 @@ pub fn one_line(text: &str, width: u16) -> String {
     format!("{}…", kept.trim_end())
 }
 
+/// The name of the variable of the environment that carries a sentence over a
+/// start of the program again. See T-298.
+///
+/// **A user does not write this variable.** The program writes it for itself,
+/// like [`crate::logic::auth::auth_input::THE_ADDRESS_OF_THE_LOGIN`].
+///
+/// **The box of the message belongs to no process after this one.** A log out of
+/// the account that starts the program gives the start to another account, and
+/// the program starts again with `exec`: every message of this process goes away
+/// with it. The login screen takes the disk for that work (T-270), and the disk
+/// says nothing to a program that holds an account, because that program draws
+/// no login screen. Therefore the words of such a start ride on the environment
+/// of the new process.
+pub const THE_WORDS_OF_THE_START: &str = "TOUTUI_THE_WORDS_OF_THE_START";
+
+/// Gives the sentence that the program before this one left, if it left one.
+///
+/// The function is pure, therefore a test needs no variable of the environment.
+/// A value of no letter is no sentence: every start of the program again writes
+/// this variable, and a start that carries no words writes it empty. See T-298.
+pub fn the_words_of_the_start(of_the_environment: Option<&str>) -> Option<&str> {
+    let words = of_the_environment?.trim();
+
+    if words.is_empty() {
+        None
+    } else {
+        Some(words)
+    }
+}
+
+/// Says the sentence that the program before this one left. See T-298.
+///
+/// The loop of `src/main.rs` calls this before the first frame: the box of the
+/// message belongs to no `App`, therefore the sentence waits there for the frame
+/// that draws it.
+pub fn say_the_words_of_the_start() {
+    let of_the_environment = std::env::var(THE_WORDS_OF_THE_START).ok();
+
+    if let Some(words) = the_words_of_the_start(of_the_environment.as_deref()) {
+        say(words);
+    }
+}
+
 /// Takes every message away at once.
 ///
 /// A work that ended calls this, and the screen then shows the view alone. An

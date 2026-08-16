@@ -2949,18 +2949,31 @@ impl App {
                             self.the_accounts
                                 .retain(|(name, _, _)| name != &usr_to_delete);
 
-                            match what_comes_now {
-                                crate::logic::the_accounts::AfterALogOut::ThisAccountStarts(
+                            // **Every road of a log out carries its words**
+                            // (T-298). The road of an account that starts the
+                            // program again dropped them, and the measurement of
+                            // 2026-08-16 read the Home view of that new program
+                            // with no word at all.
+                            match crate::logic::the_accounts::the_work_of_a_log_out(
+                                what_comes_now,
+                                &the_words,
+                            ) {
+                                crate::logic::the_accounts::TheWorkOfALogOut::ThisAccountStarts {
                                     name,
-                                ) => {
-                                    self.start_the_program_with_this_account(&name);
+                                    the_words,
+                                } => {
+                                    self.start_the_program_with_this_account(&name, &the_words);
                                     return;
                                 }
-                                crate::logic::the_accounts::AfterALogOut::TheLoginScreen => {
+                                crate::logic::the_accounts::TheWorkOfALogOut::TheLoginScreen {
+                                    the_words,
+                                } => {
                                     self.the_login_screen_comes(&the_words);
                                     return;
                                 }
-                                crate::logic::the_accounts::AfterALogOut::TheViewOnly => {
+                                crate::logic::the_accounts::TheWorkOfALogOut::TheViewStays {
+                                    the_words,
+                                } => {
                                     if !the_words.is_empty() {
                                         crate::logic::message::say(&the_words);
                                     }
@@ -6532,7 +6545,10 @@ impl App {
         }
 
         self.confirm_the_account_that_starts = None;
-        self.start_the_program_with_this_account(&name);
+
+        // The key `c` says nothing to the program after this one: the header of
+        // that program names the account already. See T-298.
+        self.start_the_program_with_this_account(&name, "");
     }
 
     /// Writes the account of the start, and starts the program again.
@@ -6541,7 +6557,14 @@ impl App {
     /// of the account is the work of `App::new` and of every task: the new
     /// process does that work, and no state of this process crosses it. The key
     /// `c` and a log out of the account that starts both come here. See T-124.
-    pub fn start_the_program_with_this_account(&mut self, name: &str) {
+    ///
+    /// **The words of the caller reach the program after this one** (T-298).
+    /// `exec` takes the box of the message away with the process, and that
+    /// program holds an account: it draws no login screen, therefore the disk of
+    /// T-270 says nothing to it. A variable of the environment carries the
+    /// sentence, and the loop of `src/main.rs` says it before the first frame.
+    /// The key `c` gives no words at all.
+    pub fn start_the_program_with_this_account(&mut self, name: &str, the_words: &str) {
         match crate::db::crud::make_this_account_the_default(name) {
             Err(error) => {
                 log::error!(
@@ -6578,7 +6601,7 @@ impl App {
         );
 
         self.the_program_starts_again = Some(TheProgramStartsAgain {
-            variables: Vec::new(),
+            variables: crate::logic::the_accounts::the_variables_of_a_start(the_words),
             message: "This system cannot start the program again. Stop the program, and start it \
                       again: it takes the account then."
                 .to_string(),

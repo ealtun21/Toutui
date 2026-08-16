@@ -165,6 +165,73 @@ pub fn the_account_after_a_log_out(
     }
 }
 
+/// The work of a log out, after the row of the account went away. See T-298.
+///
+/// **The words of a log out belong to every road of it.** T-297 gave those words
+/// to two of the three roads: the login screen takes them over the disk, and the
+/// view that stays takes them in the row of the message. The third road started
+/// the program again with another account and it dropped them.
+#[derive(Debug, PartialEq, Eq)]
+pub enum TheWorkOfALogOut {
+    /// The account of the start went away, and this account takes that work. The
+    /// program starts again, and a variable of the environment carries the words.
+    ThisAccountStarts {
+        /// The account that starts the program now.
+        name: String,
+        /// The words of the log out.
+        the_words: String,
+    },
+    /// No account stays. The program starts again, it draws the login screen,
+    /// and the disk carries the words (T-270).
+    TheLoginScreen {
+        /// The words of the log out.
+        the_words: String,
+    },
+    /// The program stays at the view of the accounts, and the row of the message
+    /// of this process says the words.
+    TheViewStays {
+        /// The words of the log out.
+        the_words: String,
+    },
+}
+
+/// Gives the work of a log out, with the words of that log out. See T-298.
+///
+/// **A measurement of 2026-08-16 of the real program v0.8.126 inside tmux**: the
+/// database held `toutuitest` and `toutuilimited`, and `toutuilimited` started
+/// the program. The keys `S`, `Enter`, `j`, `l`, and `l` logged out of it: the
+/// log said `the log out of toutuilimited took 1 row(s) of the account`, the
+/// program started again with `toutuitest`, and the Home view of that program
+/// held no word of the log out at all.
+pub fn the_work_of_a_log_out(after: AfterALogOut, the_words: &str) -> TheWorkOfALogOut {
+    let the_words = the_words.to_string();
+
+    match after {
+        AfterALogOut::ThisAccountStarts(name) => {
+            TheWorkOfALogOut::ThisAccountStarts { name, the_words }
+        }
+        AfterALogOut::TheLoginScreen => TheWorkOfALogOut::TheLoginScreen { the_words },
+        AfterALogOut::TheViewOnly => TheWorkOfALogOut::TheViewStays { the_words },
+    }
+}
+
+/// The variables of the environment of a program that starts again with an
+/// account. See T-298.
+///
+/// A start that carries no words gives no variable: `start_the_program_again_with`
+/// writes this variable empty for every start, therefore no sentence of an older
+/// process stays.
+pub fn the_variables_of_a_start(the_words: &str) -> Vec<(String, String)> {
+    if the_words.trim().is_empty() {
+        return Vec::new();
+    }
+
+    vec![(
+        crate::logic::message::THE_WORDS_OF_THE_START.to_string(),
+        the_words.to_string(),
+    )]
+}
+
 /// What a key of the view of the accounts finds on the line of the user. See
 /// T-155.
 #[derive(Debug, PartialEq, Eq)]

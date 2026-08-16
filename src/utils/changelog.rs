@@ -41,6 +41,19 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.127",
+        date: "16/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The words of a log out now reach you when a second account \
+             takes the start.** The key l on the account that starts the \
+             program gives that work to the first account that stays, and the \
+             program starts again with it: the message of that log out went \
+             away with the process, and the new screen said nothing at all. \
+             Those words now stand on the first screen of the new account.",
+        ],
+    },
+    Entry {
         version: "0.8.126",
         date: "16/08/2026",
         body: &[

@@ -307,6 +307,15 @@ async fn main() -> Result<()> {
             // for the frame that draws it.
             config::say_the_values_that_the_program_does_not_use(&config_file);
 
+            // T-298. A log out of the account that starts the program gives the
+            // start to another account, and the program starts again with
+            // `exec`: the box of the message goes away with the process, and
+            // that program holds an account, therefore it draws no login screen
+            // and the disk of T-270 reaches nobody. The environment of the new
+            // process carries those words, and they stand here — above the
+            // values of the file, because the user pressed a key for them.
+            logic::message::say_the_words_of_the_start();
+
             // The cache of the ebooks runs inside a task, and that task holds no
             // `App`. Therefore the limit of the configuration file goes to its slot
             // here, one time. See T-72.
