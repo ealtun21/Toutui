@@ -156,8 +156,16 @@ impl Pdf {
 
         let numbers = document.get_pages();
 
+        // **The value says the condition that the program measured** (T-283):
+        // this road gave `NoSuchChapter(0)`, and the sentence of that value was
+        // "This book has no chapter 0." for a PDF of no page. The same
+        // condition of the child of T-274 takes `ThePdfGivesNoPage` already
+        // (`pdf_of_a_child.rs`), and the sentence of it names the form of the
+        // file and the key `h`.
         if numbers.is_empty() {
-            return Err(ReaderError::NoSuchChapter(0));
+            warn!("[pdf] the file is a PDF, and it holds no page at all");
+
+            return Err(ReaderError::ThePdfGivesNoPage);
         }
 
         if numbers.len() > MAX_PAGES {

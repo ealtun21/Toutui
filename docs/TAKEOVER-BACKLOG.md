@@ -23423,3 +23423,151 @@ the screen says what the program measured: … This chapter is absent. …
   candidate, and not a measurement.
 - The header of the program at 80 columns wrote over itself (open since T-278).
   A candidate, and not a measurement.
+
+### T-283: a book that holds no chapter says so
+
+**Status: corrected in v0.8.112.**
+
+`ReaderError::NoSuchChapter(index)` of `src/logic/reader/book.rs` gave the
+sentence `This book has no chapter {index}.` T-282 left this candidate open:
+the number of it is the index of the spine and not the number that the header
+of the reader shows, and the header of a book of three chapters calls the
+index 1 "chapter 2 of 3". This item reaches that candidate.
+
+#### The road
+
+A book of no chapter is the one road of the real program to this value.
+`go_to_chapter` of `src/logic/reader/session.rs` guards every other road with
+`chapter >= self.chapter_count()`, and `Reader::open_with_the_title` writes
+`chapter: 0`. `Book::open` takes the length of the spine with no limit below,
+therefore a spine of no `itemref` gives `chapter_count() == 0`, the guard
+holds the reader at the chapter 0, and the render asks the book for the
+chapter 0 of a book of no chapter.
+
+#### The measurement
+
+Of the real program v0.8.111 inside tmux against the sandbox (podman on
+:13399), on 2026-08-16. **The data of this fault is a book, and it needs no
+proxy at all.** The new harness `docs/harness/a_book_of_no_chapter.py` writes
+an EPUB of **1695 bytes** whose manifest holds the files of two chapters and
+whose spine names no chapter at all.
+
+The book went into the cache of the ebooks of the account `toutuitest`, under
+the name of the item of `Alice in Wonderland`
+(`8fda6e43-0728-46ad-98bc-4c8634e299ad`), because a book of the cache costs no
+request of the server.
+
+The keys `Tab`, 15 keys `j`, and `e` gave
+
+```text
+The Book Of No Chapter — chapter 1 of 1 — 0%
+                      This book has no chapter 0.
+```
+
+The file of the log held **11 lines before the key and 13 lines after it**,
+and `grep -c reader` of it gave **0**: no line of the reader at all.
+
+#### The four faults of that screen
+
+1. **The header said `chapter 1 of 1` for a book of no chapter.** A
+   `count.max(1)` of `line_of_the_top` of `src/ui/reader_tui.rs`, of an older
+   version, kept a division by zero away, and it told the user that the book
+   holds one chapter and that the reader stands in it. The program measured 0.
+2. **The sentence said `chapter 0`, and no view of this program says that
+   number.** The header calls the index 0 "chapter 1".
+3. **The sentence named no key.** The view of the reader holds `n`, `p`, and
+   `h`, and `n` and `p` do no work of this fault, because `go_to_chapter`
+   holds a book of no chapter at the chapter 0. The key `h` is the one key of
+   it.
+4. **The road took no line of the log at all**, while the arms of
+   `chapter_bytes` beside it each write one already.
+
+A fifth fault, of the same value, stood in a second file:
+`src/logic/reader/pdf.rs` gave `ReaderError::NoSuchChapter(0)` for a PDF whose
+`get_pages()` is empty, and the sentence of it was therefore "This book has no
+chapter 0." for a PDF of no page. `ReaderError::ThePdfGivesNoPage` of the same
+enum says that condition already, and the child of T-274
+(`src/logic/reader/pdf_of_a_child.rs`) takes that value for that same
+condition.
+
+#### The correction
+
+Three files.
+
+1. `src/logic/reader/book.rs`: `NoSuchChapter` becomes a struct variant
+   `{ asked: usize, count: usize }`. A new function
+   `Book::no_such_chapter(asked)` reads `chapter_count()`, writes the line of
+   the log, and makes the value; the four roads to that value each call it.
+   Two arms of `Display`: a book of `count == 0` says that the book names no
+   chapter, that the program opened the file and that the list of the chapters
+   of it is empty, and it names the key `h` and the file of the log; a book of
+   chapters says the number of the chapters and the chapter `asked + 1`,
+   because the header of the reader adds one too.
+2. `src/ui/reader_tui.rs`: `line_of_the_top` of a `count` of 0 gives
+   `{title} — this book holds no {word}`, and it names no number of a chapter
+   and no part. The word is "page" for a PDF (T-54).
+3. `src/logic/reader/pdf.rs`: a PDF of no page gives `ThePdfGivesNoPage` and a
+   line of the log.
+
+The corrected program of the same condition said, inside tmux,
+`The Book Of No Chapter — this book holds no chapter` at the top, and this
+sentence on three rows:
+
+```text
+This book names no chapter. The program opened the file, and the list of the
+chapters of that book is empty. Press h to leave the book. The file of the
+log holds more.
+```
+
+and the log held **one** line of the reader:
+
+```text
+[reader] the book holds 0 chapters, and the program asked for the chapter 0
+```
+
+#### The controls
+
+The keys `n` and `p` each left the screen where it stood, which is the reason
+that the sentence names neither of them. The key `h` gave the Library view.
+The good book of that same name gave
+`Alice's Adventures in Wonderland — chapter 2 of 14 — 0%` with its text and
+with no line of the reader in the log.
+
+The build of the fault, with `if count == 0 && false`, `count.max(1)`, and the
+one constant sentence put back, failed 5 tests, and the screen of that build
+reproduced the measurement exactly:
+`The Book Of No Chapter — chapter 1 of 1 — 0% This book has no chapter 0.`
+
+#### The test
+
+`tests/a_book_that_holds_no_chapter_says_so.rs` holds three: the value and the
+sentence of a book of no chapter, the sentence of a chapter past the end (14
+chapters, the chapter 15), and the screen of the real widget drawn into a
+`Buffer` with no terminal. Two tests of the source:
+`a_book_of_no_chapter_says_that_it_holds_no_chapter` of
+`src/logic/reader/book.rs`, and
+`a_book_with_no_chapter_names_no_chapter_of_its_own` of
+`src/ui/reader_tui.rs`. The book stands at
+`tests/data/hostile/12-a-book-of-no-chapter.epub`, and no test needs the
+network.
+
+#### What this item leaves open
+
+- **A number of a sentence of a fault is the number that the user reads, and
+  not the index of the program.** This rule came of T-282, and this item is
+  the first measurement of it. Ask it of every message of `src/` that names a
+  number of a line, of a chapter, or of a file.
+- **The arm `Ok(Err(_))` of `render_for` is dead code in the real program**
+  (open since T-280). A candidate, and not a measurement.
+- `ReaderError::TooManyEntries` and `ReaderError::BookTooLarge` name their
+  numbers and no key at all (open since T-281): those two faults come at the
+  open of the book, and the view of the reader does not stand at that moment.
+  A candidate, and not a measurement.
+- `the_message_of_the_format` says "Try again, or read the log." for a media
+  whose book the server holds. It names no key at all (open since T-279). A
+  candidate, and not a measurement.
+- The sentence of the status 404 of the item names the key `h` alone, and the
+  key `R` of the view before it asks the server again (open since T-279). A
+  candidate, and not a measurement.
+- The header of the program at 80 columns wrote over itself (open since
+  T-278). A candidate, and not a measurement.

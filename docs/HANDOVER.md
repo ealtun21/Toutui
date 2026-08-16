@@ -127,6 +127,78 @@ gives no failure over its 152 binaries.
 **Two runs of `cargo nextest run` under the load of 24 loops of a shell
 gave 1200 of 1200 at v0.8.49 too** (T-220).
 
+## The session of the hundred and twelfth turn of 2026-08-16: a book that holds no chapter says so
+
+**The item: T-283.** `ReaderError::NoSuchChapter(index)` of
+`src/logic/reader/book.rs` gave the sentence `This book has no chapter {index}.`
+T-282 left that candidate open: the number of it is the index of the spine and
+not the number that the header of the reader shows.
+
+**The road.** A book of no chapter is the one road of the real program to that
+value. `go_to_chapter` of `src/logic/reader/session.rs` guards every other road
+with `chapter >= self.chapter_count()`, and `Reader::open_with_the_title` writes
+`chapter: 0`. `Book::open` takes the length of the spine with no limit below,
+therefore a spine of no `itemref` gives `chapter_count() == 0`, the guard holds
+the reader at the chapter 0, and the render asks the book for the chapter 0 of a
+book of no chapter.
+
+**The measurement**, of the real program v0.8.111 inside tmux against the
+sandbox. **The data of this fault is a book, and it needs no proxy at all**: the
+new harness `docs/harness/a_book_of_no_chapter.py` writes an EPUB of 1695 bytes
+whose manifest holds the files of two chapters and whose spine names no chapter
+at all. That book went into the cache of the ebooks of the account `toutuitest`
+under the name of the item of `Alice in Wonderland`. The keys `Tab`, 15 keys
+`j`, and `e` gave
+
+```text
+The Book Of No Chapter — chapter 1 of 1 — 0%
+                      This book has no chapter 0.
+```
+
+and the log held 11 lines before the key and 13 after it, and `grep -c reader`
+of it gave 0: **no line of the reader at all**.
+
+**The four faults of that screen.** The header said `chapter 1 of 1` for a book
+of no chapter: a `count.max(1)` of `line_of_the_top` of `src/ui/reader_tui.rs`,
+which kept a division by zero away, told the user that the book holds one
+chapter and that the reader stands in it, and the program measured 0. The
+sentence said `chapter 0`, and no view of this program says that number. The
+sentence named no key at all, and the keys `n` and `p` do no work of this fault
+because the guard holds the reader at the chapter 0: the key `h` is the one key
+of it. And the road took no line of the log, while the arms of `chapter_bytes`
+beside it each write one already.
+
+**A fifth fault, of the same value, in a second file.** `src/logic/reader/pdf.rs`
+gave `ReaderError::NoSuchChapter(0)` for a PDF whose `get_pages()` is empty, and
+the sentence of it was therefore "This book has no chapter 0." for a PDF of no
+page. `ReaderError::ThePdfGivesNoPage` of the same enum says that condition
+already, and the child of T-274 takes that value for that same condition.
+
+**The correction, in three files.** `NoSuchChapter` becomes a struct variant
+`{ asked, count }`, and a new `Book::no_such_chapter(asked)` reads the count,
+writes the line of the log, and makes the value for the four roads to it. A book
+of `count == 0` says that it names no chapter, and a book of chapters says the
+number of the chapters and the chapter `asked + 1`, because the header of the
+reader adds one too; each of the two names the key `h` and the file of the log.
+`line_of_the_top` of a `count` of 0 gives `{title} — this book holds no {word}`,
+with no number of a chapter and no part. And a PDF of no page gives
+`ThePdfGivesNoPage` and a line of the log.
+
+The corrected program of the same condition said
+`The Book Of No Chapter — this book holds no chapter` at the top and the
+sentence of the fault on three rows, and the log held **one** line of the
+reader. **The controls**: the keys `n` and `p` each left the screen where it
+stood, which is the reason that the sentence names neither of them; the key `h`
+gave the Library view; and the good book of that same name gave
+`Alice's Adventures in Wonderland — chapter 2 of 14 — 0%` with its text and with
+no line of the reader in the log. The build of the fault failed 5 tests and it
+reproduced the measurement exactly.
+
+The gates: `cargo clippy --all-targets -- -D warnings` and `cargo fmt --check`
+are clean, `cargo nextest run` gives 1328 of 1328 in 2.6 seconds with 26
+skipped, `cargo nextest run --run-ignored all` gives 1354 of 1354 with the
+sandbox up, and `cargo test -j 16 --no-fail-fast` passed in two runs.
+
 ## The session of the hundred and eleventh turn of 2026-08-16: a chapter that the book holds no file of says which chapter it is
 
 **One release: v0.8.111**, and one item: T-282. **The road of it is the
@@ -14994,6 +15066,73 @@ the text of the book.
   T-278): the block has a limit of size, therefore this turn names the new
   candidates alone and it does not repeat that list.
 
+### The turn of the hundred and ninth of 2026-08-16 (T-280)
+
+**The
+   session of the hundred and ninth turn took the candidate "`This chapter is
+   too complex.` of `src/logic/reader/session.rs` is the message of a render
+   that went past its limit of time", which T-278 opened, and it holds the arm
+   beside it too** (T-280).
+
+   `Reader::render_for` held the answer of
+   `tokio::time::timeout(TIME_FOR_ONE_CHAPTER, work)` in three arms, and the
+   two arms of a render that did not come back each held a constant sentence:
+   `This chapter did not open.` for a thread that died, and `This chapter is
+   too complex.` for the limit of five seconds. Three faults of the second one.
+   The program measured a time, and it did not measure the chapter: a machine
+   that is busy and a disk that is slow give that same limit, therefore "too
+   complex" is a reason that the program does not have (T-91). The sentence
+   named no key, and the footer of that view says `n/p: chapter` and `h: leave
+   the book`. And the arm took no line of the log at all. The arm beside it
+   dropped the `JoinError`, which holds the reason of the thread that died.
+
+   The measurement, of the real program v0.8.108 inside tmux against the
+   sandbox. **The data of the fault is a book, and it needs no proxy at all**:
+   `docs/harness/a_book_of_a_deep_chapter.py` writes an EPUB of three chapters
+   whose second chapter holds 40000 nested `<div>` in 440214 bytes, and that
+   book went into the cache of the ebooks of the account `toutuitest` under the
+   name of the item of `Alice in Wonderland`. The keys `Tab`, 15 keys `j`, and
+   `e` gave `Reading…`, and a poll of one second gave
+
+   ```text
+   This chapter is too complex.
+   ```
+
+   at the sixth second. The log held two lines of the live message and one
+   warning of `html5ever`, and **no line of the reader at all**.
+
+   The correction is two functions of the same file, each of which writes the
+   log and makes the text.
+   `the_message_of_the_render_that_took_too_long(chapter)` names the limit of
+   time from the constant, it names the two conditions that can give that limit
+   and neither of them as a fact, it names the keys `n`, `p`, and `h`, and it
+   names the file of the log. `the_message_of_the_render_that_died(chapter,
+   fault)` carries the text of the `JoinError`. The corrected program of the
+   same condition said `The program did not read this chapter in 5 seconds. The
+   chapter can have very many tags, or the machine can be busy. Press n for the
+   chapter after this one, or p for the chapter before it. Press h to leave the
+   book. The file of the log holds more.` on three rows, and the log held
+   **one** line of the reader. The controls: the message stood 15 seconds later
+   with still one line of the log, the key `n` gave chapter 3 and its text, the
+   key `p` gave chapter 1 and its text, the key `h` gave the Library view, and
+   the book of the file of the start gave `Alice's Adventures in Wonderland`
+   with no line of a fault at all.
+   - **The arm `Ok(Err(_))` of `render_for` is dead code in the real program**
+     (T-280, and it stays open): a `JoinError` of `spawn_blocking` comes of a
+     panic of that thread, and the hook of T-197 stops the whole program for a
+     panic of a thread that is not the main thread. The Opus decoder holds an
+     `ExpectedPanic` guard for exactly this reason (T-17). **Ask: does the
+     render of one chapter deserve that guard too?** A render is a pure
+     computation of one chapter whose failure the caller handles already.
+     **This is a candidate and not a measurement.**
+   - **A limit of time of a task of this program is a measurement of a time
+     and of nothing else** (T-280): ask of every message of a limit of time of
+     `src/`, does the sentence say what the program measured, or does it say a
+     reason of the thing that it waited for?
+   - **Every candidate of the list of the turns below stays open** (T-229 to
+     T-279): the block has a limit of size, therefore this turn names the new
+     candidates alone and it does not repeat that list.
+
 ## The prompt for the next session
 
 **This session read the candidate "`ChapterTooLarge` of `ReaderError` says
@@ -15056,7 +15195,7 @@ and `cargo test -j 16 --no-fail-fast` passed in three runs.
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.111**; `Cargo.toml` is at 0.8.111. The
+> AlbanDAVID/Toutui. Newest release **v0.8.112**; `Cargo.toml` is at 0.8.112. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -15065,7 +15204,7 @@ and `cargo test -j 16 --no-fail-fast` passed in three runs.
 > **Read before you touch code:** `docs/HANDOVER.md` (the state, the decisions,
 > the road, and the traps that cost real time), `docs/TAKEOVER-BACKLOG.md` (the
 > evidence of every item; **T-87, T-107, T-128, T-131, T-140, T-142, T-145, and
-> T-148 are the eight to know**, and T-142 to T-282 are the newest), and
+> T-148 are the eight to know**, and T-142 to T-283 are the newest), and
 > `docs/T-24-coverage.md`
 > (**no row of section 4 says `Half`, and every row that says `No` belongs to an
 > administrator of the server**, and **section 6 names what the program must not
@@ -15264,6 +15403,21 @@ and `cargo test -j 16 --no-fail-fast` passed in three runs.
 > ```
 >
 > **The rules of the road back of the harness above hold for this book too.**
+>
+> **A book whose spine names no chapter is
+> `docs/harness/a_book_of_no_chapter.py`** (T-283). The three harnesses below
+> give the reader a chapter that it cannot read; this one gives it a book of no
+> chapter at all, which is **the one road of the real program to
+> `ReaderError::NoSuchChapter`** (the turn of T-283 below holds the reason). The
+> manifest of the book holds the files of two chapters, therefore `rbook` opens
+> it and the spine alone is empty:
+>
+> ```bash
+> python3 docs/harness/a_book_of_no_chapter.py /the/path/of/the.epub
+> ```
+>
+> **The rules of the road back of the harnesses below hold for this book too**,
+> and the same file stands at `tests/data/hostile/12-a-book-of-no-chapter.epub`.
 >
 > **A book that names a chapter and that holds no file of it is
 > `docs/harness/a_book_of_a_chapter_that_is_absent.py`** (T-282). The two
@@ -15711,7 +15865,7 @@ and `cargo test -j 16 --no-fail-fast` passed in three runs.
 > makes no request: a measurement of two roads of the header needs a key of a
 > fresh request, and the key `R` alone forgets the state of a view.
 > Verify with a second program: `curl`, `podman logs abs-test`, or a browser.
-> Write the measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-282 and
+> Write the measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-283 and
 > up), and name that item in the commit.
 >
 > **The gates, before each commit**, under `nice -n 19 ionice -c 3` with `-j 16`:
@@ -15830,6 +15984,79 @@ and `cargo test -j 16 --no-fail-fast` passed in three runs.
 >    this shape found a fault in one hundred and three sessions of one hundred
 >    and four.
 >    **The
+>    session of the hundred and twelfth turn took the candidate
+>    "`NoSuchChapter` of `ReaderError` names no key of the view of the
+>    reader", which T-282 opened** (T-283).
+>
+>    `ReaderError::NoSuchChapter(index)` of `src/logic/reader/book.rs` gave one
+>    sentence: `This book has no chapter {index}.` **A book of no chapter is the
+>    one road of the real program to that value**: `go_to_chapter` of
+>    `src/logic/reader/session.rs` guards every other road with
+>    `chapter >= self.chapter_count()`, `Reader::open_with_the_title` writes
+>    `chapter: 0`, and `Book::open` takes the length of the spine with no limit
+>    below.
+>
+>    The measurement, of the real program v0.8.111 inside tmux against the
+>    sandbox. **The data of the fault is a book, and it needs no proxy at
+>    all**: the new harness `docs/harness/a_book_of_no_chapter.py` writes an
+>    EPUB of 1695 bytes whose manifest holds the files of two chapters and
+>    whose spine names no chapter at all. That book went into the cache of the
+>    ebooks of the account `toutuitest` under the name of the item of
+>    `Alice in Wonderland`. The keys `Tab`, 15 keys `j`, and `e` gave
+>
+>    ```text
+>    The Book Of No Chapter — chapter 1 of 1 — 0%
+>                          This book has no chapter 0.
+>    ```
+>
+>    and the log held 11 lines before the key and 13 after it, and
+>    `grep -c reader` of it gave 0: **no line of the reader at all**.
+>
+>    Four faults of that screen. **The header said `chapter 1 of 1` for a book
+>    of no chapter**: a `count.max(1)` of `line_of_the_top` of
+>    `src/ui/reader_tui.rs`, which kept a division by zero away, said that the
+>    book holds one chapter, and the program measured 0. The sentence said
+>    `chapter 0`, and no view of this program says that number. It named no key
+>    at all, and the keys `n` and `p` do no work of this fault because the guard
+>    holds the reader at the chapter 0: the key `h` is the one key of it
+>    (T-170). And the road took no line of the log. A fifth fault of the same
+>    value stood in `src/logic/reader/pdf.rs`, which gave `NoSuchChapter(0)` for
+>    a PDF whose `get_pages()` is empty, while `ThePdfGivesNoPage` of the same
+>    enum says that condition already.
+>
+>    The correction is three files. `NoSuchChapter` becomes a struct variant
+>    `{ asked, count }`, and a new `Book::no_such_chapter(asked)` reads the
+>    count, writes the line of the log, and makes the value for the four roads
+>    to it. A book of `count == 0` says that it names no chapter, and a book of
+>    chapters says the number of the chapters and the chapter `asked + 1`,
+>    because the header adds one too; each of the two names the key `h` and the
+>    file of the log. `line_of_the_top` of a `count` of 0 gives
+>    `{title} — this book holds no {word}`. And a PDF of no page gives
+>    `ThePdfGivesNoPage`. The corrected program of the same condition said
+>    `The Book Of No Chapter — this book holds no chapter` at the top and the
+>    sentence of the fault on three rows, and the log held one line of the
+>    reader. The controls: the keys `n` and `p` each left the screen where it
+>    stood, the key `h` gave the Library view, and the good book of that same
+>    name gave `Alice's Adventures in Wonderland — chapter 2 of 14 — 0%` with
+>    its text and with no line of the reader in the log.
+>    - **A number of a sentence of a fault is the number that the user reads,
+>      and not the index of the program** (T-282, and this item is the first
+>      measurement of it, and it stays open): ask of every message of `src/`
+>      that names a number of a line, of a chapter, or of a file, whether that
+>      number stands in the view that the user sees, **and ask it of every
+>      number that a view itself shows**: the header of the reader named a
+>      chapter that the book does not hold.
+>    - **`TooManyEntries` and `BookTooLarge` of `ReaderError` name their
+>      numbers and no key at all** (T-281, and they stay open): those two
+>      faults come at the open of the book, and the view of the reader does not
+>      stand at that moment. **Ask: which view holds those words, and which key
+>      does the work of that fault? This is a candidate and not a
+>      measurement.**
+>    - **Every candidate of the list of the turns below stays open** (T-229 to
+>      T-282): the block has a limit of size, therefore this turn names the new
+>      candidates alone and it does not repeat that list.
+>
+>    **The
 >    session of the hundred and eleventh turn took the candidate
 >    "`ChapterAbsent` of `ReaderError` names no key of the view of the
 >    reader", which T-274 opened and which T-278, T-280, and T-281 each left
@@ -15947,71 +16174,6 @@ and `cargo test -j 16 --no-fail-fast` passed in three runs.
 >      that fault? This is a candidate and not a measurement.**
 >    - **Every candidate of the list of the turns below stays open** (T-229 to
 >      T-280): the block has a limit of size, therefore this turn names the new
->      candidates alone and it does not repeat that list.
->
->    **The
->    session of the hundred and ninth turn took the candidate "`This chapter is
->    too complex.` of `src/logic/reader/session.rs` is the message of a render
->    that went past its limit of time", which T-278 opened, and it holds the arm
->    beside it too** (T-280).
->
->    `Reader::render_for` held the answer of
->    `tokio::time::timeout(TIME_FOR_ONE_CHAPTER, work)` in three arms, and the
->    two arms of a render that did not come back each held a constant sentence:
->    `This chapter did not open.` for a thread that died, and `This chapter is
->    too complex.` for the limit of five seconds. Three faults of the second one.
->    The program measured a time, and it did not measure the chapter: a machine
->    that is busy and a disk that is slow give that same limit, therefore "too
->    complex" is a reason that the program does not have (T-91). The sentence
->    named no key, and the footer of that view says `n/p: chapter` and `h: leave
->    the book`. And the arm took no line of the log at all. The arm beside it
->    dropped the `JoinError`, which holds the reason of the thread that died.
->
->    The measurement, of the real program v0.8.108 inside tmux against the
->    sandbox. **The data of the fault is a book, and it needs no proxy at all**:
->    `docs/harness/a_book_of_a_deep_chapter.py` writes an EPUB of three chapters
->    whose second chapter holds 40000 nested `<div>` in 440214 bytes, and that
->    book went into the cache of the ebooks of the account `toutuitest` under the
->    name of the item of `Alice in Wonderland`. The keys `Tab`, 15 keys `j`, and
->    `e` gave `Reading…`, and a poll of one second gave
->
->    ```text
->    This chapter is too complex.
->    ```
->
->    at the sixth second. The log held two lines of the live message and one
->    warning of `html5ever`, and **no line of the reader at all**.
->
->    The correction is two functions of the same file, each of which writes the
->    log and makes the text.
->    `the_message_of_the_render_that_took_too_long(chapter)` names the limit of
->    time from the constant, it names the two conditions that can give that limit
->    and neither of them as a fact, it names the keys `n`, `p`, and `h`, and it
->    names the file of the log. `the_message_of_the_render_that_died(chapter,
->    fault)` carries the text of the `JoinError`. The corrected program of the
->    same condition said `The program did not read this chapter in 5 seconds. The
->    chapter can have very many tags, or the machine can be busy. Press n for the
->    chapter after this one, or p for the chapter before it. Press h to leave the
->    book. The file of the log holds more.` on three rows, and the log held
->    **one** line of the reader. The controls: the message stood 15 seconds later
->    with still one line of the log, the key `n` gave chapter 3 and its text, the
->    key `p` gave chapter 1 and its text, the key `h` gave the Library view, and
->    the book of the file of the start gave `Alice's Adventures in Wonderland`
->    with no line of a fault at all.
->    - **The arm `Ok(Err(_))` of `render_for` is dead code in the real program**
->      (T-280, and it stays open): a `JoinError` of `spawn_blocking` comes of a
->      panic of that thread, and the hook of T-197 stops the whole program for a
->      panic of a thread that is not the main thread. The Opus decoder holds an
->      `ExpectedPanic` guard for exactly this reason (T-17). **Ask: does the
->      render of one chapter deserve that guard too?** A render is a pure
->      computation of one chapter whose failure the caller handles already.
->      **This is a candidate and not a measurement.**
->    - **A limit of time of a task of this program is a measurement of a time
->      and of nothing else** (T-280): ask of every message of a limit of time of
->      `src/`, does the sentence say what the program measured, or does it say a
->      reason of the thing that it waited for?
->    - **Every candidate of the list of the turns below stays open** (T-229 to
->      T-279): the block has a limit of size, therefore this turn names the new
 >      candidates alone and it does not repeat that list.
 >
 >    **The turns before those three stand in `## The turns before the three
@@ -16523,7 +16685,13 @@ and `cargo test -j 16 --no-fail-fast` passed in three runs.
 > file of the log** (T-281), and **a chapter that the book holds no file of
 > says which chapter it is: the spine of the book names that chapter and the
 > manifest of it holds no file of it, and the program has no reason of the
-> archive on that road and it therefore says none** (T-282).
+> archive on that road and it therefore says none** (T-282), and **a book that
+> holds no chapter says so: a book of no chapter is the one road of the program
+> to that fault, the line at the top of the reader says the number that the
+> program measured and it names no chapter of a book that holds none, the
+> sentence names the key `h` alone because the keys `n` and `p` do no work of
+> that fault, and a sentence of a chapter that the book does not hold says the
+> number that the user reads** (T-283).
 >
 > **This block has a limit of size, and the driver dies above it.** `toutui-loop`
 > sends the whole block to the program of the next round in one command, and a

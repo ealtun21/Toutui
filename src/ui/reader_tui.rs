@@ -59,12 +59,21 @@ pub fn line_of_the_top(
     let part = (part * 100.0).round().clamp(0.0, 100.0) as i64;
     let word = if holds_pages { "page" } else { "chapter" };
 
+    // **The header says the number that the program measured** (T-283): a
+    // `count.max(1)` of an older version kept the division away, and it told
+    // the user that a book of no chapter holds one chapter and that the reader
+    // stands in it. The program measured 0, therefore the line says that the
+    // book holds no chapter, and it names no number of a chapter and no part.
+    if count == 0 {
+        return format!("{title} — this book holds no {word}");
+    }
+
     format!(
         "{} — {} {} of {} — {}%",
         title,
         word,
         chapter + 1,
-        count.max(1),
+        count,
         part
     )
 }
@@ -223,9 +232,19 @@ mod tests {
     }
 
     #[test]
-    fn a_book_with_no_chapter_gives_no_division_by_zero() {
+    /// **The header of a book of no chapter says what the program measured**
+    /// (T-283): the older line said "chapter 1 of 1", and the book holds no
+    /// chapter at all.
+    fn a_book_with_no_chapter_names_no_chapter_of_its_own() {
         let text = header("A Book", 0, 0, 0.0);
-        assert!(text.contains("chapter 1 of 1"));
+        assert!(text.contains("A Book"));
+        assert!(text.contains("holds no chapter"), "{text}");
+        assert!(!text.contains("of 1"), "{text}");
+        assert!(!text.contains("chapter 1"), "{text}");
+
+        // A PDF of no page says the same of a page. See T-54.
+        let text = line_of_the_top("A PDF", 0, 0, 0.0, true);
+        assert!(text.contains("holds no page"), "{text}");
     }
 
     #[test]

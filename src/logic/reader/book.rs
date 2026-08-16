@@ -81,8 +81,18 @@ pub enum ReaderError {
     /// The archive holds more than [`MAX_ENTRIES`] entries. The number is the
     /// count.
     TooManyEntries(usize),
-    /// The book has no chapter with this number.
-    NoSuchChapter(usize),
+    /// The book has no chapter with this number. `asked` is the index of the
+    /// chapter in the spine, and `count` is the number of chapters that the
+    /// book holds.
+    ///
+    /// **The sentence says the number that the user reads, and not the index of
+    /// the program** (T-283): the header of the view of the reader calls the
+    /// index 0 "chapter 1", therefore the sentence of this value adds one to
+    /// `asked` too. A book of no chapter is the one road of the real program to
+    /// this value — `go_to_chapter` guards every other one — and the sentence of
+    /// that book names no number at all, because "chapter 1 of 0 chapters" says
+    /// nothing to the user.
+    NoSuchChapter { asked: usize, count: usize },
     /// The spine names a chapter, and the manifest of the book does not hold
     /// it. **The program has no reason of the archive on this road, and it
     /// therefore says none** (T-277): a read of the archive that failed takes
@@ -143,9 +153,28 @@ impl fmt::Display for ReaderError {
                 crate::ui::keys::counted(*count, "file"),
                 crate::ui::keys::counted(MAX_ENTRIES, "file")
             ),
-            ReaderError::NoSuchChapter(index) => {
-                write!(f, "This book has no chapter {index}.")
-            }
+            // **The sentence says what the program measured** (T-283): the book
+            // holds no chapter at all, and the program has no reason of that
+            // book (T-91), therefore it says none. It names the key `h`, and
+            // not `n` and `p`: `go_to_chapter` of `src/logic/reader/session.rs`
+            // holds a book of no chapter at the chapter 0, therefore those two
+            // keys do no work of this fault (T-170).
+            ReaderError::NoSuchChapter { count: 0, .. } => write!(
+                f,
+                "This book names no chapter. The program opened the file, and \
+                 the list of the chapters of that book is empty. Press h to \
+                 leave the book. The file of the log holds more."
+            ),
+            // **The number of the sentence is the number of the view** (T-283):
+            // the header of the reader calls the index 0 "chapter 1", therefore
+            // this sentence adds one too.
+            ReaderError::NoSuchChapter { asked, count } => write!(
+                f,
+                "This book has {}, and the program asked for the chapter {}. \
+                 Press h to leave the book. The file of the log holds more.",
+                crate::ui::keys::counted(*count, "chapter"),
+                asked + 1
+            ),
             // **The sentence says what the program measured** (T-282): the
             // spine of the book names this chapter, and the manifest of the
             // same book holds no file of it. The program has no reason of the
@@ -511,7 +540,7 @@ impl Book {
         // Therefore the render of the EPUB book makes the lines of both forms.
         // See T-54.
         if let Kind::Pdf(pdf) = &self.kind {
-            let page = pdf.page(index).ok_or(ReaderError::NoSuchChapter(index))?;
+            let page = pdf.page(index).ok_or_else(|| self.no_such_chapter(index))?;
             return Ok(crate::logic::reader::pdf::xhtml_of_the_page(page));
         }
 
@@ -544,18 +573,32 @@ impl Book {
             .collect()
     }
 
+    /// The fault of a chapter that the book does not hold, with the line of the
+    /// log of it.
+    ///
+    /// **A fault that the user reads takes a line of the log** (T-283): the four
+    /// roads to [`ReaderError::NoSuchChapter`] wrote none at all, and the arms
+    /// beside them each write one already. The value carries the number of the
+    /// chapters of the book, because the sentence of the user says it.
+    fn no_such_chapter(&self, asked: usize) -> ReaderError {
+        let count = self.chapter_count();
+        info!("[reader] the book holds {count} chapters, and the program asked for the chapter {asked}");
+
+        ReaderError::NoSuchChapter { asked, count }
+    }
+
     /// Reads one chapter into memory, with the limit of 8 megabytes.
     fn chapter_bytes(&self, index: usize) -> Result<Vec<u8>, ReaderError> {
-        let epub = self.epub().ok_or(ReaderError::NoSuchChapter(index))?;
+        let epub = self.epub().ok_or_else(|| self.no_such_chapter(index))?;
 
         if index >= self.chapter_count() {
-            return Err(ReaderError::NoSuchChapter(index));
+            return Err(self.no_such_chapter(index));
         }
 
         let spine_entry = epub
             .spine()
             .get(index)
-            .ok_or(ReaderError::NoSuchChapter(index))?;
+            .ok_or_else(|| self.no_such_chapter(index))?;
         // **A fault that the user reads takes a line of the log** (T-282): the
         // two arms of the copy below write one already, and this road wrote
         // none at all.
@@ -730,9 +773,52 @@ mod tests {
         let book = Book::open(&repo_book()).expect("Alice must open");
         let count = book.chapter_count();
         assert_eq!(
-            Err(ReaderError::NoSuchChapter(count)),
+            Err(ReaderError::NoSuchChapter {
+                asked: count,
+                count
+            }),
             book.chapter_xhtml(count)
         );
+    }
+
+    /// **A book of no chapter is the one road of the real program to
+    /// `NoSuchChapter`** (T-283): `go_to_chapter` of
+    /// `src/logic/reader/session.rs` guards every other road with
+    /// `chapter >= self.chapter_count()`, and a book of no chapter keeps the
+    /// reader at the chapter 0 that `Reader::open_with_the_title` writes.
+    ///
+    /// The parts of this test stay in one function.
+    #[test]
+    fn a_book_of_no_chapter_says_that_it_holds_no_chapter() {
+        let path = hostile_dir().join("12-a-book-of-no-chapter.epub");
+        let book = Book::open(&path).expect("the book of no chapter must open");
+        assert_eq!(0, book.chapter_count());
+
+        let fault = book
+            .chapter_xhtml(0)
+            .expect_err("the chapter 0 has no text");
+        assert_eq!(ReaderError::NoSuchChapter { asked: 0, count: 0 }, fault);
+
+        // The sentence says that the book holds no chapter, it names the key
+        // that does the work of that fault, and it names no number of a
+        // chapter at all: the header of the view calls the index 0
+        // "chapter 1", therefore a sentence of "chapter 0" stands in no view
+        // of this program.
+        let text = fault.to_string();
+        assert!(text.contains("names no chapter"), "{text}");
+        assert!(text.contains("Press h"), "{text}");
+        assert!(!text.contains("chapter 0"), "{text}");
+
+        // A book that holds chapters says the number that the user reads: the
+        // index 14 of Alice is the chapter 15 of the header.
+        let text = ReaderError::NoSuchChapter {
+            asked: 14,
+            count: 14,
+        }
+        .to_string();
+        assert!(text.contains("14 chapters"), "{text}");
+        assert!(text.contains("the chapter 15"), "{text}");
+        assert!(text.contains("Press h"), "{text}");
     }
 
     /// The four books of the survey. The test passes when the books are not
@@ -793,7 +879,8 @@ mod tests {
             ReaderError::NotAnEpub.to_string(),
             ReaderError::BookTooLarge(1).to_string(),
             ReaderError::TooManyEntries(1).to_string(),
-            ReaderError::NoSuchChapter(1).to_string(),
+            ReaderError::NoSuchChapter { asked: 1, count: 3 }.to_string(),
+            ReaderError::NoSuchChapter { asked: 0, count: 0 }.to_string(),
             ReaderError::ChapterAbsent(1).to_string(),
             ReaderError::ChapterTooLarge.to_string(),
         ];

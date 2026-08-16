@@ -41,6 +41,29 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.112",
+        date: "16/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The reader says that a book holds no chapter, and the line at \
+             the top of it says the number that the program measured.** A book \
+             can name no chapter at all. The line at the top of the reader said \
+             \"chapter 1 of 1\" for such a book, and the reader gave the \
+             sentence \"This book has no chapter 0.\": the line named a chapter \
+             that the book does not hold, the number 0 stands in no view of \
+             this program, the sentence named no key, and the fault took no \
+             line of the file of the log. Toutui now says that the book holds \
+             no chapter, it names the key `h` of the view of the reader, and \
+             the fault writes a line in the log. A sentence of a chapter that \
+             the book does not hold now says the number that you read in the \
+             line at the top.",
+            "- **A PDF that holds no page says that it holds no page.** Such a \
+             file gave the sentence \"This book has no chapter 0.\" Toutui now \
+             says that the PDF gives no page, as it does already for a PDF that \
+             the other part of the program reads.",
+        ],
+    },
+    Entry {
         version: "0.8.111",
         date: "16/08/2026",
         body: &[
