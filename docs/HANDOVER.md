@@ -16792,6 +16792,43 @@ second book.
   candidates alone and it does not repeat that list.
 
 
+## The session of the hundred and twenty-fourth turn of 2026-08-16: a place of a book waits for no start of a program
+
+**The item: T-295**, and the release **v0.8.124**.
+
+**The candidate came of a sweep of the roads of the table of T-294.** The turn
+before this one gave the reader `pending_ebook_progress`, and the start of the
+program is the one road that reads it. The task of T-25 (`spawn_flush_task` of
+`src/logic/offline/mod.rs`) wakes every 30 seconds and it sends the positions of
+a playback while the program stands, and its own words say the value of it: "The
+user does not need to start the application again." That task named the table of
+the audio alone.
+
+**The reader of a second book takes the rule of the time of the first book
+away.** The measurement of this round found that road: `get_the_book` of
+`src/app.rs` writes `self.reader = None` at once, and
+`send_the_place_of_the_reader_if_it_is_time` needs a reader. **The two runs
+before it did not hold the fault at all**: the key `h` leaves the view of the
+reader and it keeps `self.reader`, therefore the rule of the time sent the place
+15 seconds after the server answered again. **A measurement of a place that
+waits needs a reader that went away.**
+
+The measurement stands in `docs/TAKEOVER-BACKLOG.md` under T-295, with the keys,
+the two proxies of the port 13500, and the four marks of the disk at 30, 60, 90,
+and 120 seconds. The correction stands in `src/db/crud.rs`
+(`count_pending_ebook_progress`) and in `src/logic/offline/mod.rs`
+(`the_places_that_wait_go_to_the_server`), and the test is
+`tests/a_place_of_a_book_waits_for_no_start_of_a_program.rs`.
+
+**The road back of the sandbox**: the account holds `http://localhost:13399`
+again, the two tables of the places that wait hold no row, no proxy stands on
+the port 13500, and `Alice in Wonderland` stands at
+`toutui:the-place-of-the-start` at `ebookProgress 0`.
+
+**The gates**: `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`,
+`cargo nextest run` (1346 tests), and `cargo test -j 16 --no-fail-fast` two
+times, and each of them passed.
+
 ## The decisions of T-124 to T-200 that do not open again
 
 **This section stood in the block of the prompt, and the block reached its
@@ -16952,7 +16989,7 @@ log out** (T-200).
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.123**; `Cargo.toml` is at 0.8.123. The
+> AlbanDAVID/Toutui. Newest release **v0.8.124**; `Cargo.toml` is at 0.8.124. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -17781,6 +17818,54 @@ log out** (T-200).
 > 1. **A condition of the program that no measurement has reached.** A sweep of
 >    this shape found a fault in one hundred and five sessions of one hundred
 >    and six.
+>    **The session of the hundred and twenty-fourth turn took the candidate
+>    "a row of `pending_ebook_progress` reaches the server at the start of a
+>    program alone", which a sweep of the task of T-25 gave, and the
+>    measurement of it gave the fault** (T-295).
+>
+>    **A row of a table of the disk that waits for the server belongs to the
+>    task of the clock, and not to the start of the program alone.** T-294 gave
+>    the reader the table `pending_ebook_progress`, and `spawn_flush_task` of
+>    `src/logic/offline/mod.rs` wakes every 30 seconds and it named the table
+>    of the audio alone. **The reader of a second book takes the rule of the
+>    time of the first book away**: `get_the_book` of `src/app.rs` writes
+>    `self.reader = None` at once, and
+>    `send_the_place_of_the_reader_if_it_is_time` needs a reader.
+>
+>    The measurement, of the real program v0.8.123 inside tmux against the
+>    sandbox, with `docs/harness/one_method_fails.py 13500 13399 requests.log
+>    PATCH:/api/me/progress` and the one address `http://127.0.0.1:13500` of
+>    the account (the trap 129). `Alice in Wonderland` stood at
+>    `toutui:the-place-of-the-start`: the key `/` and the word `Alice`, the key
+>    `e`, one press of the key `n` (`chapter 3 of 14 — 2%`), and the key `h`
+>    gave `The server did not take the place: The server reported a fault.
+>    Status 500.`, and the key `e` of a second book (`One Chapter Book`, which
+>    holds no ebook) took the reader of Alice away. A second proxy of the same
+>    port, with a rule that no request of the program holds, then gave the
+>    server back. **The position of a playback of the same disk went to the
+>    server 28 seconds after that moment, and the place of the book stayed on
+>    the disk at 30, 60, 90, and 120 seconds**, and
+>    `GET /api/me/progress/8fda6e43-…` still gave the place of the start.
+>
+>    The correction is two files. `src/db/crud.rs` holds
+>    `count_pending_ebook_progress`, of the rule of `count_pending_progress`
+>    (T-203). `src/logic/offline/mod.rs` holds one turn of the task in
+>    `the_places_that_wait_go_to_the_server`: it counts the two tables on a
+>    thread of the disk of its own (T-204), it gives `(0, 0)` with no request
+>    at all when neither of the two holds a row, it examines the addresses, and
+>    it then sends the positions and the places of the books. **The corrected
+>    program**, of the same keys, said
+>    `[offline] the server answers again. 1 place(s) of a book went to it.` in
+>    the first turn of the task after the server answered, and the table then
+>    held no row.
+>    - **The box of the process of T-292 keeps the place of the book after the
+>      task of the flush sent the row of the disk** (T-295): the road of the
+>      end of the program then sends that same place a second time. **This is a
+>      candidate and not a measurement.**
+>    - **A place of a book that waits reaches no view of the user at all**
+>      (T-295), while the header of the offline mode says the number of the
+>      positions that wait. **This is a candidate and not a measurement.**
+>
 >    **The session of the hundred and twenty-third turn took the candidate
 >    "the place of the reader of a program that dies reaches no machine at
 >    all", which T-292 and T-293 each left open, and the measurement of it
@@ -18280,7 +18365,9 @@ log out** (T-200).
 > the table `pending_ebook_progress` of the version 10 of the schema holds the
 > place that the server refused, the start of the program after it sends every
 > row of that table, and a place that the server took leaves the disk**
-> (T-294).
+> (T-294), and **a place of a book waits for no start of a program: the task of
+> the clock of T-25 counts the table of the reader beside the table of the
+> audio, and it sends the two of them when the server answers again** (T-295).
 >
 > **This block has a limit of size, and the driver dies above it.** `toutui-loop`
 > sends the whole block to the program of the next round in one command, and a
