@@ -30574,6 +30574,88 @@ word that lies.
 holds the four values; the test of the header of T-329 measures the row with
 the longest of them.
 
+#### The part 2 is done, v0.8.161, of the round of the hundred and sixty-first turn
+
+**The data of this part is the program itself**: no proxy, no book of a
+harness, and no change of the sandbox. The filter of the account comes of a
+`sqlite3` of `library_filter`, which is the write of the key `f` (the trap 203
+and the trap 204), and the value of the longest of the three is
+`progress.bm90LXN0YXJ0ZWQ=`.
+
+**The measurement of the real program v0.8.160 inside tmux**, of the Home view
+of the library `Large` of the sandbox. The panel 3 of the stack, at 160
+columns:
+
+```text
+┌3 Filter ───────────────────────┐
+│➤ ✓ No filter                   │
+│    The media that you finished │
+│    The media that you started  │
+│    The media that you did not… │
+└────────────────────────────────┘
+```
+
+**The third row is cut**, therefore the user cannot read whether that filter
+gives the media that they did not start or the media that they did not finish.
+
+The second row of the header of the same program, with that third filter on:
+
+```text
+| 100 | 🔗 localhost:13399  ⇅ The sequence of the server ▣ The media that you did not start |
+|  84 | 🔗 localhost:13399 |
+```
+
+**A row of 84 columns held none of the words at all**: the whole of them takes
+60 columns, and they do not fit beside the address (T-329), therefore the user
+of that width read no sequence and no filter.
+
+**The corrected program v0.8.161 of the same harness**, of the same three
+places:
+
+```text
+┌3 Filter ───────────────────────┐
+│➤   No filter                   │
+│    Finished                    │
+│    Started, not finished       │
+│  ✓ Not started                 │
+└────────────────────────────────┘
+```
+
+```text
+|  84 | 🔗 localhost:13399   ⇅ The sequence of the server ▣ Not started |
+| 100 | 🔗 localhost:13399           ⇅ The sequence of the server ▣ Not started |
+```
+
+**The controls of the same run**: the view of the key `f` of the corrected
+program held the group `Your position` with its three rows and the mark `✓` on
+the row of the filter that stands, therefore the correction moved no row of
+that view; and the panel 3 kept the mark, the cursor, and the row `No filter`
+of the program before it.
+
+**The correction is one place**: `sort_filter::PROGRESS` of
+`src/logic/sort_filter.rs` holds the three labels, and the panel 3, the view of
+the key `f`, and the second row of the header each read that array. Two tests
+that stood took the new words (`the_panels_of_the_stack` and
+`tests/the_panels_of_the_sequence_and_of_the_filter.rs`).
+
+**The gate is `tests/the_words_of_the_filters_hold_no_empty_part.rs`, of three
+tests.** The first holds the four values of `the_name_of_a_filter` and it
+sweeps `PROGRESS` for a label that begins with `The media` again; the second
+gives the four rows to `the_lines_of_a_panel` of a panel of 32 columns and it
+holds that no line of them carries the mark `…`; and the third measures the row
+of the header of 84 columns with the longest of the four (52 columns), and it
+holds that the words of the start (60 columns) give `None` at that same width.
+**The build of the fault** (the trap 147), of the three labels of the start put
+back in that array, made **five** tests fail.
+
+**The trap of this part.** **A test file that quotes the fault meets the sweep
+of its own item**, which is the trap of the part 1. The sweep of this part
+reads the array `PROGRESS` at run time and not the text of a file, therefore
+the doc comment of the measurement and the third test may name the words of the
+start with no fault at all. **A sweep of the shape of the part 1 is right for
+words that live in four files, and a sweep of the value is right for words that
+live in one array.**
+
 ### The part 3 — The picture of the panel 5 takes every free row
 
 **The fault.** The screen of the maintainer of 2026-08-16, of 45 rows, held a

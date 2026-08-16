@@ -11820,7 +11820,7 @@ the maintainer gave it after that road finished its eight stages.
 | The part | What it gives | Where the design stands |
 |---|---|---|
 | T-330.1 | The words of the key `z` say `the panels 1, 2, and 3` and not `1 to 3` — **done, v0.8.160** | `src/ui/keys.rs:576` and `:95`, `src/app.rs:2302`, `src/utils/changelog.rs` |
-| T-330.2 | The filters lose the empty words: `No filter`, `Finished`, `Started, not finished`, `Not started` | The panel 3, the view of the key `f`, and the second row of the header |
+| T-330.2 | The filters lose the empty words: `No filter`, `Finished`, `Started, not finished`, `Not started` — **done, v0.8.161** | `sort_filter::PROGRESS` of `src/logic/sort_filter.rs` |
 | T-330.3 | The picture of the panel 5 takes every row that the facts and the description leave | `the_parts_of_the_panel` of `src/ui/the_panel_of_the_cover.rs` |
 | T-330.4 | The cell of the gallery holds the picture and its border alone | The panel 6 (T-327) |
 | T-330.5 | The Chapters view of the two bars and of the table of the times | `docs/mockups/mockup-7.txt` and `mockup-7.md` |
@@ -11828,8 +11828,9 @@ the maintainer gave it after that road finished its eight stages.
 
 **The five parts of T-330 come in that sequence**, because the words are small
 and safe and the Chapters view is large: **one part is one round and one
-commit, with a gate of its own**. **The part 1 is done, v0.8.160**, and the
-next round takes the part 2, the words of the filters.
+commit, with a gate of its own**. **The part 1 is done, v0.8.160, and the part
+2 is done, v0.8.161**, and the next round takes the part 3, the picture of the
+panel 5 that takes every row that the facts and the description leave.
 
 **T-331 starts at a spec** in `docs/superpowers/specs/` and not at code: it
 changes the meaning of the keys `h` and `l` of a view, it takes the table of
@@ -22797,6 +22798,85 @@ is the key `+` of a keyboard with no modifier of the shift**, therefore the two
 of them make the cells larger and the view of the key `?` names the three keys
 together.
 
+ **The session of the hundred and fifty-ninth turn took a condition that no
+ measurement had reached** (T-329): the words of the sequence and of the
+ filter wrote on the address of the server.
+
+ **The status bar of the design holds three parts on one row, and each of
+ them is a `Paragraph` over the whole area.** That is the fault of T-115,
+ which the round of 2026-08-12 measured on the **first** row of the header
+ (`👋 Connected as toutuitestBooks (book)` at 60 columns). The round of
+ T-318 gave the **second** row a third part — the words of the sequence and
+ of the filter, between the address at the left and the notice of the key
+ `R` at the right — and it gave that part no rule of a neighbour at all.
+
+ **The data of this item is the program itself**: no proxy, no book of a
+ harness, and no change of the sandbox — the sequence and the filter of the
+ account come of a `sqlite3` of `library_sort`, of `library_desc`, and of
+ `library_filter`, which is the write of the key `f` (the trap 203 and the
+ trap 204).
+
+ **The real program v0.8.158 inside tmux**, of the Home view of the library
+ `Books` of the sandbox, with the sequence "the title, the largest first"
+ and the filter "the media that you finished". The second row of the
+ header:
+
+ ```text
+ | 84 | 🔗 localhost:13399title, the largest first ▣ The media that you finished |
+ | 90 | 🔗 localhost:13399he title, the largest first ▣ The media that you finished |
+ ```
+
+ **84 to 119 columns is the shape of two columns**, which is the one shape
+ that the decision 3 of the road of the panels gives those words. The same
+ row, of the sequence of the server and of no filter, which is the value of
+ the start of every account, broke at every width under 80:
+
+ ```text
+ | 60 | 🔗 localhost:13399quence of the server ▣ No filter |
+ | 70 | 🔗 localhost:13399he sequence of the server ▣ No filter |
+ ```
+
+ **The corrected program of the same harness**:
+
+ ```text
+ | 60 | 🔗 localhost:13399 |
+ | 70 | 🔗 localhost:13399  ⇅ The sequence of the server ▣ No filter |
+ | 84 | 🔗 localhost:13399  ⇅ The title, the largest first ▣ The media that you finished |
+ ```
+
+ **The controls of the same run**: the four rows of 80, 84, 100, and 119
+ columns hold the mark `⇅` at the same column as the program before this
+ item — 20, 22, 30, and 39 — therefore the correction moved no screen that
+ stood; the key `z` of a screen of 160 columns takes the stack away and the
+ words then stand at the middle of the row, whole; and a screen of 160
+ columns with the stack draws no such words at all, because the panel 2 and
+ the panel 3 hold them.
+
+ **The correction is two files, and no new one.**
+ `src/ui/the_panels_of_the_stack.rs` holds `the_column_of_the_words`, which
+ is pure: it takes the width of the row, the columns of the two parts
+ beside the words, and the columns of the words, and it gives the column
+ where they start or `None`. `src/ui/tui.rs` holds
+ `App::draw_the_words_of_the_sequence`, which stands beside `render_header`
+ and not inside it for the reason of `draw_the_row_of_the_message`: a test
+ of it needs a `Buffer` and no `App`, no terminal, and no server at all.
+ `tests/the_words_of_the_header_do_not_meet_the_address.rs` holds four
+ tests and `ui::tui::tests::the_words_of_the_sequence_leave_the_address_whole`
+ holds the fifth, and **the build of the fault** (the trap 147), of one line
+ that gives the centred column back, made each of the five fail.
+
+ **The traps of this item.**
+ - **A mark of two columns takes two cells of a `Buffer`, and the second of
+   them holds no symbol at all**: a row that a test joins cell by cell
+   therefore holds one space more than the screen, and an assertion of
+   `starts_with` of the whole row fails for a program that is right.
+ - **`grep -bo` and `awk index` do not agree on the place of a mark of a
+   capture of tmux**: the column of the screen comes of a `python3` that
+   sums the width of each character, and of no count of bytes.
+ - **`str::len` is not the width of a row** (the trap 245): the words of
+   the measurement hold 60 columns and 66 bytes.
+
+
 ## The prompt for the next session
 
 
@@ -23782,6 +23862,71 @@ together.
 > 1. **A condition of the program that no measurement has reached.** A sweep of
 >    this shape found a fault in one hundred and eleven sessions of one hundred
 >    and twelve.
+>  **The session of the hundred and sixty-first turn took the part 2 of the
+>  second report of the maintainer** (T-330.2, v0.8.161): the three filters of
+>  the position say what they filter, and no word more.
+>
+>  **The fault.** The panel 3 of the stack holds 30 columns of text (T-324),
+>  and the three labels each began with the fourteen columns `The media that`,
+>  which say nothing: every row of a library is a media. The third label
+>  therefore reached that panel cut, and the user could not read whether the
+>  filter gives the media that they did not start or the media that they did
+>  not finish.
+>
+>  **The data of this part is the program itself**: no proxy, no book of a
+>  harness, and no change of the sandbox. The filter of the account comes of a
+>  `sqlite3` of `library_filter` (the trap 203 and the trap 204), and
+>  `progress.bm90LXN0YXJ0ZWQ=` is the longest of the three.
+>
+>  **The real program v0.8.160 inside tmux**, of the Home view of the library
+>  `Large` of the sandbox:
+>
+>  ```text
+>  │    The media that you finished │
+>  │    The media that you started  │
+>  │    The media that you did not… │
+>  | 100 | 🔗 localhost:13399  ⇅ The sequence of the server ▣ The media that you did not start |
+>  |  84 | 🔗 localhost:13399 |
+>  ```
+>
+>  **A row of 84 columns held none of the words at all**: the whole of them
+>  takes 60 columns, and they do not fit beside the address (T-329).
+>
+>  **The corrected program of the same harness**:
+>
+>  ```text
+>  │    Finished                    │
+>  │    Started, not finished       │
+>  │  ✓ Not started                 │
+>  |  84 | 🔗 localhost:13399   ⇅ The sequence of the server ▣ Not started |
+>  ```
+>
+>  **The controls of the same run**: the view of the key `f` held the group
+>  `Your position` with its three rows and the mark `✓` of the filter that
+>  stands, therefore the correction moved no row of that view; and the panel 3
+>  kept the mark, the cursor, and the row `No filter`.
+>
+>  **The correction is one place**: `sort_filter::PROGRESS` of
+>  `src/logic/sort_filter.rs`, which the panel 3, the view of the key `f`, and
+>  the second row of the header each read.
+>
+>  **The gate is `tests/the_words_of_the_filters_hold_no_empty_part.rs`, of
+>  three tests**, and **the build of the fault** (the trap 147) made **five**
+>  tests fail.
+>
+>  **The trap of this part.** **A test file that quotes the fault meets the
+>  sweep of its own item**, which is the trap of the part 1. The sweep of this
+>  part reads the array `PROGRESS` at run time and not the text of a file,
+>  therefore the doc comment of the measurement may name the words of the start
+>  with no fault at all. **A sweep of the shape of the part 1 is right for
+>  words that live in four files, and a sweep of the value is right for words
+>  that live in one array.**
+>
+>  **The next round takes the part 3 of T-330**, the picture of the panel 5
+>  that takes every row that the facts and the description leave:
+>  `the_parts_of_the_panel` of `src/ui/the_panel_of_the_cover.rs`, and
+>  `THE_SHARE_OF_THE_COVER` that gives the picture a share of the height.
+>
 >   **The session of the hundred and sixtieth turn took the part 1 of the
 >   second report of the maintainer** (T-330.1, v0.8.160): the words of the
 >   key `z` name the three panels.
@@ -23856,84 +24001,6 @@ together.
 >   `No filter`, `Finished`, `Started, not finished`, and `Not started`, at
 >   the panel 3, at the view of the key `f`, and at the second row of the
 >   header of T-329.
->
->   **The session of the hundred and fifty-ninth turn took a condition that no
->   measurement had reached** (T-329): the words of the sequence and of the
->   filter wrote on the address of the server.
->
->   **The status bar of the design holds three parts on one row, and each of
->   them is a `Paragraph` over the whole area.** That is the fault of T-115,
->   which the round of 2026-08-12 measured on the **first** row of the header
->   (`👋 Connected as toutuitestBooks (book)` at 60 columns). The round of
->   T-318 gave the **second** row a third part — the words of the sequence and
->   of the filter, between the address at the left and the notice of the key
->   `R` at the right — and it gave that part no rule of a neighbour at all.
->
->   **The data of this item is the program itself**: no proxy, no book of a
->   harness, and no change of the sandbox — the sequence and the filter of the
->   account come of a `sqlite3` of `library_sort`, of `library_desc`, and of
->   `library_filter`, which is the write of the key `f` (the trap 203 and the
->   trap 204).
->
->   **The real program v0.8.158 inside tmux**, of the Home view of the library
->   `Books` of the sandbox, with the sequence "the title, the largest first"
->   and the filter "the media that you finished". The second row of the
->   header:
->
->   ```text
->   | 84 | 🔗 localhost:13399title, the largest first ▣ The media that you finished |
->   | 90 | 🔗 localhost:13399he title, the largest first ▣ The media that you finished |
->   ```
->
->   **84 to 119 columns is the shape of two columns**, which is the one shape
->   that the decision 3 of the road of the panels gives those words. The same
->   row, of the sequence of the server and of no filter, which is the value of
->   the start of every account, broke at every width under 80:
->
->   ```text
->   | 60 | 🔗 localhost:13399quence of the server ▣ No filter |
->   | 70 | 🔗 localhost:13399he sequence of the server ▣ No filter |
->   ```
->
->   **The corrected program of the same harness**:
->
->   ```text
->   | 60 | 🔗 localhost:13399 |
->   | 70 | 🔗 localhost:13399  ⇅ The sequence of the server ▣ No filter |
->   | 84 | 🔗 localhost:13399  ⇅ The title, the largest first ▣ The media that you finished |
->   ```
->
->   **The controls of the same run**: the four rows of 80, 84, 100, and 119
->   columns hold the mark `⇅` at the same column as the program before this
->   item — 20, 22, 30, and 39 — therefore the correction moved no screen that
->   stood; the key `z` of a screen of 160 columns takes the stack away and the
->   words then stand at the middle of the row, whole; and a screen of 160
->   columns with the stack draws no such words at all, because the panel 2 and
->   the panel 3 hold them.
->
->   **The correction is two files, and no new one.**
->   `src/ui/the_panels_of_the_stack.rs` holds `the_column_of_the_words`, which
->   is pure: it takes the width of the row, the columns of the two parts
->   beside the words, and the columns of the words, and it gives the column
->   where they start or `None`. `src/ui/tui.rs` holds
->   `App::draw_the_words_of_the_sequence`, which stands beside `render_header`
->   and not inside it for the reason of `draw_the_row_of_the_message`: a test
->   of it needs a `Buffer` and no `App`, no terminal, and no server at all.
->   `tests/the_words_of_the_header_do_not_meet_the_address.rs` holds four
->   tests and `ui::tui::tests::the_words_of_the_sequence_leave_the_address_whole`
->   holds the fifth, and **the build of the fault** (the trap 147), of one line
->   that gives the centred column back, made each of the five fail.
->
->   **The traps of this item.**
->   - **A mark of two columns takes two cells of a `Buffer`, and the second of
->     them holds no symbol at all**: a row that a test joins cell by cell
->     therefore holds one space more than the screen, and an assertion of
->     `starts_with` of the whole row fails for a program that is right.
->   - **`grep -bo` and `awk index` do not agree on the place of a mark of a
->     capture of tmux**: the column of the screen comes of a `python3` that
->     sums the width of each character, and of no count of bytes.
->   - **`str::len` is not the width of a row** (the trap 245): the words of
->     the measurement hold 60 columns and 66 bytes.
 >
 >
 >    **The turns before this one stand in `## The turns before the three
@@ -24163,7 +24230,9 @@ together.
 > and it did the same work, and the block then held **82818** bytes with **two**
 > turns in it; the round of the hundred and sixtieth found it at 84750 bytes
 > with two turns in it, and it did the same work, and the block then held about
-> **84400** bytes with **two** turns in it.
+> **84400** bytes with **two** turns in it; the round of the hundred and
+> sixty-first found it at 84577 bytes with two turns in it, and it did the same
+> work, and the block then held about **83500** bytes with **two** turns in it.
 > **A block that stands at 80000 bytes or under holds two
 > turns**, and the turn of the stage before this one names the parts of that
 > stage which stay open. **The list of the decisions

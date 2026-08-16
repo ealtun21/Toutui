@@ -462,7 +462,7 @@ mod tests {
         let of_the_place = sort_filter::filter_value("progress", "in-progress");
         assert_eq!(
             the_name_of_a_filter(&of_the_place, &[]),
-            "The media that you started"
+            "Started, not finished"
         );
 
         // **A filter whose name did not come names its group**: the names of

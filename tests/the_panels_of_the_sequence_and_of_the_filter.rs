@@ -45,9 +45,9 @@
 //! ╚════════════════════════════════╝
 //! ┌3 Filter ───────────────────────┐
 //! │➤ ✓ No filter                   │
-//! │    The media that you finished │
-//! │    The media that you started  │
-//! │    The media that you did not… │
+//! │    Finished                    │
+//! │    Started, not finished       │
+//! │    Not started                 │
 //! └────────────────────────────────┘
 //!      j/k: move  l: this filter  h: the list  4/Ctrl+l: the list  ?: every key
 //! ```
@@ -255,7 +255,7 @@ fn the_header_of_a_screen_of_no_stack_names_the_sequence_and_the_filter() {
     );
     assert_eq!(
         words,
-        "⇅ The author, the largest first ▣ The media that you started"
+        "⇅ The author, the largest first ▣ Started, not finished"
     );
 
     // **The words keep the width of a narrow terminal** (T-301): the header of

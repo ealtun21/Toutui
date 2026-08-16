@@ -212,10 +212,21 @@ pub fn is_a_filter_of_one_series(filter: &str) -> bool {
 /// A measurement on 2026-08-11: `progress.ZmluaXNoZWQ=` gives 2 books,
 /// `progress.aW4tcHJvZ3Jlc3M=` gives 4, and `progress.bm90LXN0YXJ0ZWQ=`
 /// gives 4.
+///
+/// **The words hold no empty part** (T-330.2). The three labels of the start
+/// each began with fourteen columns that say nothing, because every row of a
+/// library is a media. A line of the panel 3 of the stack holds 30 columns
+/// (T-324), therefore the third of them reached that panel cut at the word
+/// `not…`, and the same words met the address of the server at the second row
+/// of the header (T-329): a row of 84 columns held none of them at all.
+///
+/// **`Started, not finished` is not `Started`**: the filter of the server
+/// gives the media that the user started **and did not finish**, therefore
+/// `Started` alone says less than the filter does.
 pub const PROGRESS: [(&str, &str); 3] = [
-    ("The media that you finished", "finished"),
-    ("The media that you started", "in-progress"),
-    ("The media that you did not start", "not-started"),
+    ("Finished", "finished"),
+    ("Started, not finished", "in-progress"),
+    ("Not started", "not-started"),
 ];
 
 /// Gives the choices of the position.

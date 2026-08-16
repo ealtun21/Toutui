@@ -41,6 +41,18 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.161",
+        date: "17/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The three filters of your position say what they filter, and \
+             no word more.** The panel `3 Filter` cut the third of them at \
+             `not…`, and a header of 84 columns held none of the words at all. \
+             The filters now say `Finished`, `Started, not finished`, and `Not \
+             started`.",
+        ],
+    },
+    Entry {
         version: "0.8.160",
         date: "17/08/2026",
         body: &[
