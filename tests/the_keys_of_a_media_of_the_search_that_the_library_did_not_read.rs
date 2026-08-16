@@ -110,7 +110,8 @@ async fn the_keys_of_the_line_hold_the_media_of_the_answer() {
     app.desc_library = vec!["No description available".to_string(); 3];
     app.duration_library = vec![60.0; 3];
     app.library_total = 2056;
-    app.library_rows = toutui::logic::library_view::group_library(&app.ids_library, &app.series);
+    app.library_rows =
+        toutui::logic::library_view::group_library(&app.ids_library, &app.series, false);
 
     app.view_state = AppView::SearchBook;
     app.search_query = "Large Book 1200".to_string();

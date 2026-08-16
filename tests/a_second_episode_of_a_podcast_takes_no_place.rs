@@ -221,7 +221,8 @@ async fn a_second_episode_of_a_podcast_takes_no_place() {
     app.ids_library = vec!["a-book-of-no-series".to_string()];
     app.titles_library = vec!["A Long Test Book".to_string()];
     app.auth_names_library = vec!["Long Author".to_string()];
-    app.library_rows = toutui::logic::library_view::group_library(&app.ids_library, &app.series);
+    app.library_rows =
+        toutui::logic::library_view::group_library(&app.ids_library, &app.series, false);
     app.list_state_library.select(Some(0));
     app.view_state = AppView::Library;
 

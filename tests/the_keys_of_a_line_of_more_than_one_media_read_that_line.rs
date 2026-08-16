@@ -147,7 +147,8 @@ async fn the_keys_of_a_line_of_more_than_one_media_read_that_line() {
         "Lewis Carroll".to_string(),
     ];
     app.series = the_series();
-    app.library_rows = toutui::logic::library_view::group_library(&app.ids_library, &app.series);
+    app.library_rows =
+        toutui::logic::library_view::group_library(&app.ids_library, &app.series, false);
     app.list_state_library.select(Some(0));
     app.view_state = AppView::Library;
 
@@ -216,7 +217,8 @@ async fn the_keys_of_a_line_of_more_than_one_media_read_that_line() {
     app.titles_library = vec!["Letters of Two Brides".to_string()];
     app.auth_names_library = vec!["LibriVox".to_string()];
     app.series = Vec::new();
-    app.library_rows = toutui::logic::library_view::group_library(&app.ids_library, &app.series);
+    app.library_rows =
+        toutui::logic::library_view::group_library(&app.ids_library, &app.series, false);
     app.list_state_library.select(Some(0));
 
     app.handle_key(a_key('e'));

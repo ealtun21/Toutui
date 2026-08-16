@@ -4,7 +4,7 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.8.147.** The item T-316 belongs to this session. The
+**The newest release is v0.8.150.** The item T-318 belongs to this session. The
 item T-320 belongs to the session before it. The
 item T-317 belongs to the session before it. The
 item T-315 belongs to the session before it. The
@@ -162,6 +162,57 @@ with the sandbox up, and `cargo test -j 16 --no-fail-fast` (the gate of CI)
 gives no failure over its binaries in two runs.
 **Two runs of `cargo nextest run` under the load of 24 loops of a shell
 gave 1200 of 1200 at v0.8.49 too** (T-220).
+
+## The session of the hundred and fiftieth turn of 2026-08-16: a filter of one series gives the books of that series
+
+**The item: T-318**, and the release **v0.8.150**. It is the rest of the stage 5
+of the road of the panels.
+
+**The claim of the item was half false, and the measurement said so.** The item
+said that a series opens into no book. The real program v0.8.149 inside tmux:
+the key `l` on the row `The Test Chronicles [3 books]` of the Library view opens
+`AppView::SeriesBook`, and that view holds the three books of the series. **That
+road stands since T-22.**
+
+**The fault of the same measurement is the filter of one series.** The user took
+the row `The Test Chronicles` of the group `The series` of the view of the key
+`f`; the program wrote
+`&filter=series.OGE1ZGNlNzgtYzgyMy00NDFlLWE5OTgtZWJhOWY5ZThkMDZi`, the server
+answered with `total: 3` and the three books of that series, and the screen held
+one line:
+
+```text
+╔4 Library [1 item] — a filter is on (f) ═════════════════════════════════╗
+║➤   The Test Chronicles [3 books]                                        ║
+╚═════════════════════════════════════════════════════════════════════════╝
+```
+
+`group_library` (T-22) puts every book of a series on one line, and `src/app.rs`
+called it for every list. That rule is right for a library of many series, and
+it is wrong for a list of one series and of no other media: the line then
+repeats the name of the filter that the user chose, and the header says
+`1 item` for three books.
+
+**The correction, three files.** `src/logic/sort_filter.rs` holds
+`is_a_filter_of_one_series`; `src/logic/library_view.rs` gives `group_library`
+the argument `the_books_stand_apart`; and `src/app.rs` gives that argument at
+its two call sites. The corrected program held
+`4 Library [3 items] — a filter is on (f)` over the three books, each with its
+author, its length, and the place of the user of the table of T-321. **The
+control of the same run**: the key `3` and the key `l` on `No filter` gave the
+list of 18 lines back, with `Depthless Hunger, Book [1 book]` in it.
+
+**The gate**: `tests/a_filter_of_one_series_gives_its_books.rs` of three tests,
+and two more inside the two modules. The build of the fault (the trap 147),
+`if (the_books_stand_apart && false) || series.is_empty()`, made two of the five
+fail. The gates: clippy, fmt, **1424 tests in 3.0 seconds**, **1450 of 1450 with
+the sandbox up**, and three runs of `cargo test -j 16 --no-fail-fast`.
+
+**What this round left open of T-318**: the mode of the whole library that sends
+`collapseseries=0`. **The trap of that work**: the parameter of the server alone
+changes no screen, because `group_library` collapses the answer again on the
+side of the program. `?limit=500&collapseseries=1` gives `total: 18` for the
+library `Books` of the sandbox, and `collapseseries=0` gives `total: 22`.
 
 ## The session of the hundred and forty-first turn of 2026-08-16: the panel of the player keeps the row of its keys
 
@@ -11123,8 +11174,8 @@ measurement can hold.
 | 2 | **T-320** | The frame of the panels, the focus, and the narrow terminal — **done, v0.8.146**; the two lines of the footer stay open |
 | 3 | **T-316** | The harness of a click, the capture, and a click of a row — **done, v0.8.147**; the targets of the regions of the stages after it stay open |
 | 4 | **T-321** | The list of the panel 4 becomes a table of a header — **done, v0.8.148**; the sequence of a click of a word of the header belongs to T-318 |
-| 5 | **T-318** | The panels 2 and 3, and a series that opens into its books — **the panels 2 and 3 are done, v0.8.149**; a series that opens into its books stays open, and it is the next work |
-| 6 | **T-319** | The panel 5 of one cover, and the panel 6 of the gallery — **the next stage, after the series of T-318** |
+| 5 | **T-318** | The panels 2 and 3, and a series that opens into its books — **done, v0.8.149 and v0.8.150**; the mode of the whole library that sends `collapseseries=0` stays open |
+| 6 | **T-319** | The panel 5 of one cover, and the panel 6 of the gallery — **the next stage** |
 | 7 | **T-322** | The panel 7, the band of the player |
 | 8 | **T-323** | The mode that hides the panels 1 to 3, and the last sweep |
 
@@ -11249,12 +11300,24 @@ footer of the panel 4 names the key `f`.
 1. ~~**The view says nothing of itself.**~~ **Done, v0.8.149.** The header of
    the Library view said `Library [500 items of 2056]` and no word of the
    sequence, and the footer named no key `f`.
-2. **A series opens into no book.** `src/app.rs:943` writes
-   `&collapseseries=1` for **every** library of books, with no choice of the
-   user at all, therefore the Library view holds the row `The Test Chronicles
-   [3 books]` and it can never hold the three books of it in the list. The
-   work is a mode of the view that sends `collapseseries=0`, and the key of
-   it belongs beside the key `f`.
+2. ~~**A series opens into no book.**~~ **Half of it was never true, and the
+   half that was true is done, v0.8.150.** The measurement of the real
+   program v0.8.149 inside tmux of the hundred and fiftieth turn: the key `l`
+   on the row `The Test Chronicles [3 books]` of the Library view opens
+   `AppView::SeriesBook`, and the screen holds `The Test Chronicles
+   [3 items]` over the three books of it. **That road stands since T-22.**
+   The fault of that same measurement was the **filter** of one series: the
+   user took the row `The Test Chronicles` of the group `The series` of the
+   view of the key `f`, the server answered with three books, and the list
+   held one line, `The Test Chronicles [3 books]`, under the header
+   `4 Library [1 item]`. `group_library` now takes
+   `the_books_stand_apart`, and
+   `crate::logic::sort_filter::is_a_filter_of_one_series` gives it.
+   **The mode of the whole library that sends `collapseseries=0` stays
+   open**, and the trap of that work stands in the item T-318 of
+   `docs/TAKEOVER-BACKLOG.md`: the parameter of the server alone changes no
+   screen, because `group_library` collapses the answer again on the side of
+   the program.
 3. **The filter of the server is not every filter that a user wants.** The
    item names "added first", and the sequence of that name stands; it also
    names the media that you did not start and the media of the disk, and
@@ -13119,6 +13182,79 @@ start needs `ls target/debug/toutui` before every other diagnosis** (with the
   nothing, because the agent reads the whole file at the start of a round.
 
 ## The turns before the three newest ones
+
+## The session of the hundred and forty-eighth turn of 2026-08-16: the list of the panel 4 becomes a table of a header, of the block of the prompt
+
+  **The session of the hundred and forty-eighth turn took the stage 4 of the
+  road of the panels** (T-321), the table. **It left the sequence of a click
+  of a word of the header open, and that work belongs to T-318.**
+
+  **The list of the panel 4, the row of its header, and the three shapes of
+  its columns.** The measurement of the real program v0.8.147 inside tmux, of
+  the Library view of the library `Large` of the sandbox at 160 columns and
+  45 rows: the panel 4 held **74 columns**, the title of a book took **17**
+  of them, and `╔4 Library [500 items of 2056] ═╗` stood over 17 rows of
+  `Large Book 20NN` and nothing else. **The author of the media, the length
+  of it, and the place of the user of it stood in no column of that panel**:
+  the user read those three values for the row of the cursor alone, in the
+  panel of the description under the list.
+
+  **The data of this stage is the program itself**: no proxy, no book of a
+  harness, and no change of the sandbox. `COLUMNS_OF_THE_SCREEN` of
+  `docs/harness/drive.sh` gives each width, and **the library `Books` of the
+  sandbox is the library of this measurement**, because the 2056 books of the
+  library `Large` hold no author and a `duration` of one second.
+
+  The correction is six files. `src/ui/the_table_of_a_view.rs` is new:
+  `TheColumns`, `the_columns_of_the_table`, `ARowOfTheTable`,
+  `the_text_of_a_row`, `the_header_of_the_table`, `the_time_of_a_row`,
+  `the_done_of_a_row`, and `the_word_of_a_column`.
+  `src/ui/the_list_of_a_view.rs` holds `render_the_table_of_a_panel` and
+  `TheContentOfAPanel`, and `render_the_list_of_a_panel` is one call of it
+  with no row of a table. `src/ui/marks.rs` holds `of_the_state`, which is
+  the mark of one column with no percent in it. `src/app.rs` holds
+  `library_table_rows`, `home_table_rows`, `the_place_of_this_media`, and the
+  arm `TheHeaderOfTheList` of `handle_the_mouse`. `src/ui/the_mouse.rs` holds
+  the area `the_header_of_the_list` and the target of it, and `src/ui/tui.rs`
+  gives the rows of the table to the panel 4 of the Home view and of the
+  Library view.
+
+  **The corrected program** of the same harness, at 160 columns:
+  `║    Title    Author    Time  Done ║` over
+  `║➤ ✓ A Book Of An Epub With No Container    <1m  done█║` and
+  `║    A Book Of Many Hours    Many Hours Author    8h00   96%│║`. At 120
+  columns the panel holds 50 and the author goes away; at 100 columns no
+  panel 4 stands at all, and the screen is the screen of today with the mark
+  that holds the percent. **A click of the row 8 gave the fourth line of the
+  list**, therefore the row of the header takes one row of the panel and the
+  arithmetic of the lines reads the rows that stay, and **a click of the row
+  of the header gave the view of the sequence and of the filter**.
+
+  `tests/the_table_of_the_panel_4_holds_its_columns.rs` holds the gate, of
+  two tests, and three more stand inside `src/ui/the_table_of_a_view.rs`.
+  **The build of the fault** (the trap 147) — `false &&` on `the_table` of
+  `render_the_table_of_a_panel`, on the limit of the title of
+  `the_columns_of_the_table`, and on the arm of the header of
+  `the_target_of_a_point` — made five of the seven fail.
+
+  **The trap of this item** (the trap 245): **`String::find` gives the index
+  of a byte and not the column of the screen**, and the mark `✓` of a row
+  takes three bytes and one column. A test that reads the place of a column
+  of two texts with `find` alone therefore says that the columns do not agree
+  while they do, and `crate::logic::message::the_columns_of(&text[..at])` is
+  the road.
+  - **A click of a word of the header does not sort by that column**
+    (T-321): the map of the mouse of the design gives `Title`, `Author`,
+    `Time`, and `Done` the sequence of that column, and the sequences of the
+    server belong to T-318. The geometry of the row stands already, therefore
+    that stage takes the columns of the point and no new area at all.
+  - **The bar of the scroll holds no arrow of the header**, the last row of
+    the design is a small key to the marks and no row of this program holds
+    it, and **the mark `↓` of a media of the disk stands in no list of this
+    program at all**.
+  - **The views of a search, of a collection, of the episodes of a podcast,
+    and of the queue hold no table**: the panel 4 stands for the Home view
+    and the Library view alone (T-320).
 
 ### The turn of the seventieth: the panel of a book of the Library view (T-241)
 
@@ -21930,13 +22066,12 @@ belongs to T-318 and a click that does nothing at all is the fault of T-79.
 >    T-320 the frame of the panels, T-316 the mouse, T-321 the table, T-318
 >    the panels of the sequence and of the filter, T-319 the covers, T-322 the
 >    band of the player, and T-323 the mode that hides the stack at the left.
->    **The stages 1, 2, 3, and 4 are done** (v0.8.145, v0.8.146, v0.8.147,
->    and v0.8.148), and **the panels 2 and 3 of T-318 came with v0.8.149**.
->    **A series that opens into its books is the part of T-318 that stays**,
->    and it is the next work: `src/app.rs` writes `&collapseseries=1` for
->    every library of books with no choice of the user at all, therefore the
->    row `The Test Chronicles [3 books]` can never hold the three books of
->    it. The stage 6, T-319, comes after it.
+>    **The stages 1, 2, 3, 4, and 5 are done** (v0.8.145, v0.8.146, v0.8.147,
+>    v0.8.148, v0.8.149, and v0.8.150). **The stage 6, T-319, the covers that
+>    fill the space that they have, is the next work.** Of the stage 5 there
+>    stays the mode of the whole library that sends `collapseseries=0`: the
+>    user has no key that gives every book of every series in one list, and
+>    the turn of that stage below holds the trap of that work.
 >    **A round takes the next stage that is not finished**, and that section
 >    holds three decisions that a round must not take alone. Read it first.
 >
@@ -22010,76 +22145,67 @@ belongs to T-318 and a click that does nothing at all is the fault of T-79.
 >     (the decision 1), and **no line of the panel 2 says the number of the
 >     media of a filter**.
 >
->   **The session of the hundred and forty-eighth turn took the stage 4 of the
->   road of the panels** (T-321), the table. **It left the sequence of a click
->   of a word of the header open, and that work belongs to T-318.**
+>   **The session of the hundred and fiftieth turn took the rest of the stage
+>   5 of the road of the panels** (T-318), a series that opens into its books.
+>   **The claim of the item before it was half false, and the measurement said
+>   so**: the key `l` on the row `The Test Chronicles [3 books]` of the Library
+>   view opens `AppView::SeriesBook` already, and that view holds the three
+>   books of the series. **That road stands since T-22.**
 >
->   **The list of the panel 4, the row of its header, and the three shapes of
->   its columns.** The measurement of the real program v0.8.147 inside tmux, of
->   the Library view of the library `Large` of the sandbox at 160 columns and
->   45 rows: the panel 4 held **74 columns**, the title of a book took **17**
->   of them, and `╔4 Library [500 items of 2056] ═╗` stood over 17 rows of
->   `Large Book 20NN` and nothing else. **The author of the media, the length
->   of it, and the place of the user of it stood in no column of that panel**:
->   the user read those three values for the row of the cursor alone, in the
->   panel of the description under the list.
+>   **The fault of the same measurement is the filter of one series.** The
+>   library `Books` of the sandbox at 160 columns and 45 rows, the key `Tab`,
+>   the key `f`, and the row `The Test Chronicles` of the group `The series` of
+>   that view: the program wrote
+>   `&filter=series.OGE1ZGNlNzgtYzgyMy00NDFlLWE5OTgtZWJhOWY5ZThkMDZi`, the
+>   server answered with `total: 3` and the three books, and the screen held
+>   `╔4 Library [1 item] — a filter is on (f) ═╗` over the one line
+>   `➤   The Test Chronicles [3 books]`. The user asked the server for one
+>   series, and the list gave back the name of the filter that they chose.
 >
 >   **The data of this stage is the program itself**: no proxy, no book of a
->   harness, and no change of the sandbox. `COLUMNS_OF_THE_SCREEN` of
->   `docs/harness/drive.sh` gives each width, and **the library `Books` of the
->   sandbox is the library of this measurement**, because the 2056 books of the
->   library `Large` hold no author and a `duration` of one second.
+>   harness, and no change of the sandbox. `crate::logic::library_view::group_library`
+>   (T-22) puts every book of a series on one line, and `src/app.rs` called it
+>   for every list. The correction is three files:
+>   `src/logic/sort_filter.rs` holds `is_a_filter_of_one_series`, which is
+>   `filter.starts_with("series.")`; `src/logic/library_view.rs` gives
+>   `group_library` a third argument, `the_books_stand_apart`; and `src/app.rs`
+>   gives that argument at its two call sites, of `App::new` and of the page
+>   after the first one.
 >
->   The correction is six files. `src/ui/the_table_of_a_view.rs` is new:
->   `TheColumns`, `the_columns_of_the_table`, `ARowOfTheTable`,
->   `the_text_of_a_row`, `the_header_of_the_table`, `the_time_of_a_row`,
->   `the_done_of_a_row`, and `the_word_of_a_column`.
->   `src/ui/the_list_of_a_view.rs` holds `render_the_table_of_a_panel` and
->   `TheContentOfAPanel`, and `render_the_list_of_a_panel` is one call of it
->   with no row of a table. `src/ui/marks.rs` holds `of_the_state`, which is
->   the mark of one column with no percent in it. `src/app.rs` holds
->   `library_table_rows`, `home_table_rows`, `the_place_of_this_media`, and the
->   arm `TheHeaderOfTheList` of `handle_the_mouse`. `src/ui/the_mouse.rs` holds
->   the area `the_header_of_the_list` and the target of it, and `src/ui/tui.rs`
->   gives the rows of the table to the panel 4 of the Home view and of the
->   Library view.
+>   **The corrected program** of the same harness:
+>   `╔4 Library [3 items] — a filter is on (f) ═╗` over
+>   `║➤ ✓ The Test Chronicles Volume 1    Series Author    <1m  done ║`,
+>   `║    The Test Chronicles Volume 2    Series Author    <1m   41% ║`, and
+>   `║  ✓ The Test Chronicles Volume 3    Series Author    <1m  done ║`. The
+>   header counts the lines of the list, therefore it says `3 items` with no
+>   other change. **The control of the same run**: the key `3` gave the focus
+>   to the panel of the filter and the key `l` took the row `No filter`, and
+>   the list of 18 lines came back with `Depthless Hunger, Book [1 book]` in
+>   it.
 >
->   **The corrected program** of the same harness, at 160 columns:
->   `║    Title    Author    Time  Done ║` over
->   `║➤ ✓ A Book Of An Epub With No Container    <1m  done█║` and
->   `║    A Book Of Many Hours    Many Hours Author    8h00   96%│║`. At 120
->   columns the panel holds 50 and the author goes away; at 100 columns no
->   panel 4 stands at all, and the screen is the screen of today with the mark
->   that holds the percent. **A click of the row 8 gave the fourth line of the
->   list**, therefore the row of the header takes one row of the panel and the
->   arithmetic of the lines reads the rows that stay, and **a click of the row
->   of the header gave the view of the sequence and of the filter**.
+>   `tests/a_filter_of_one_series_gives_its_books.rs` holds the gate, of three
+>   tests, and two more stand inside `src/logic/library_view.rs` and
+>   `src/logic/sort_filter.rs`. **The build of the fault** (the trap 147) —
+>   `if (the_books_stand_apart && false) || series.is_empty()` of
+>   `group_library` — made two of the five fail.
 >
->   `tests/the_table_of_the_panel_4_holds_its_columns.rs` holds the gate, of
->   two tests, and three more stand inside `src/ui/the_table_of_a_view.rs`.
->   **The build of the fault** (the trap 147) — `false &&` on `the_table` of
->   `render_the_table_of_a_panel`, on the limit of the title of
->   `the_columns_of_the_table`, and on the arm of the header of
->   `the_target_of_a_point` — made five of the seven fail.
->
->   **The trap of this item** (the trap 245): **`String::find` gives the index
->   of a byte and not the column of the screen**, and the mark `✓` of a row
->   takes three bytes and one column. A test that reads the place of a column
->   of two texts with `find` alone therefore says that the columns do not agree
->   while they do, and `crate::logic::message::the_columns_of(&text[..at])` is
->   the road.
->   - **A click of a word of the header does not sort by that column**
->     (T-321): the map of the mouse of the design gives `Title`, `Author`,
->     `Time`, and `Done` the sequence of that column, and the sequences of the
->     server belong to T-318. The geometry of the row stands already, therefore
->     that stage takes the columns of the point and no new area at all.
->   - **The bar of the scroll holds no arrow of the header**, the last row of
->     the design is a small key to the marks and no row of this program holds
->     it, and **the mark `↓` of a media of the disk stands in no list of this
->     program at all**.
->   - **The views of a search, of a collection, of the episodes of a podcast,
->     and of the queue hold no table**: the panel 4 stands for the Home view
->     and the Library view alone (T-320).
+>   **The trap of this item**: **the parameter `collapseseries` of the server
+>   alone changes no screen**, because `group_library` collapses the answer
+>   again on the side of the program. `?limit=500&collapseseries=1` gives
+>   `total: 18` for the library `Books` of the sandbox, and `collapseseries=0`
+>   gives `total: 22`; **the server gives no `collapsedSeries` at all when the
+>   filter names one series**.
+>   - **The mode of the whole library that sends `collapseseries=0`** is the
+>     part of this stage that stays open: the user has no key that gives every
+>     book of every series in one list, and such a mode must give
+>     `the_books_stand_apart` too, with a column of the table `users` and a
+>     migration of the version 11.
+>   - **A click of a word of the header of the table does not sort by that
+>     column** (T-321), **the panel 3 holds no author, no series, no narrator,
+>     and no tag** (they come of `GET /api/libraries/:id/filterdata`, which the
+>     view of the key `f` asks for), **the two panels hold no digit of a row**
+>     (the decision 1), and **no line of the panel 2 says the number of the
+>     media of a filter**.
 >    **The turns before this one stand in `## The turns before the three
 >    newest ones` of this file**, above the heading of this prompt. **This item
 >    held three turns, and the block then stood above its limit of size**
@@ -22141,7 +22267,10 @@ belongs to T-318 and a click that does nothing at all is the fault of T-79.
 > **The panels 2 and 3 of the stack hold the rows of the view of the key `f`
 > and no row of their own, and the authors, the series, the narrators, and the
 > tags stay in that view**: those rows come of a request that the start of the
-> program does not make (T-318).
+> program does not make (T-318). **The key `l` of a row of a series opens
+> `AppView::SeriesBook`, and that road stands since T-22**, therefore a round
+> that reads "a series opens into no book" measures the program before it
+> believes it (T-318).
 >
 > **This block has a limit of size, and the driver dies above it.** `toutui-loop`
 > sends the whole block to the program of the next round in one command, and a
@@ -22207,7 +22336,9 @@ belongs to T-318 and a click that does nothing at all is the fault of T-79.
 > turn of the frame of T-320, and the block then held **73514** bytes with
 > **two** turns in it; the round of the hundred and forty-ninth found it at
 > 74608 bytes with two turns in it, and it took the oldest of the two out and
-> it wrote its own. **A block that stands under 80000 bytes holds two
+> it wrote its own; the round of the hundred and fiftieth found it at 75710
+> bytes with two turns in it, and it did the same work, and the block then
+> held about 75000 bytes with **two** turns in it. **A block that stands under 80000 bytes holds two
 > turns**, and the turn of the stage before this one names the parts of that
 > stage which stay open. **The list of the decisions
 > grows with every round

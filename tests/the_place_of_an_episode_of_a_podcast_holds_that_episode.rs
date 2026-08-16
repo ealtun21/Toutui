@@ -198,7 +198,8 @@ async fn the_two_keys_name_the_episode_of_the_line() {
     // **The view of the episodes of a podcast.** The two keys said "No media is
     // selected." for a line that holds an episode.
     app.ids_library = vec![THE_PODCAST.to_string()];
-    app.library_rows = toutui::logic::library_view::group_library(&app.ids_library, &app.series);
+    app.library_rows =
+        toutui::logic::library_view::group_library(&app.ids_library, &app.series, false);
     app.list_state_library.select(Some(0));
     app.is_from_search_pod = false;
     app.ids_pod_ep = vec![CHAPTER_00.to_string(), CHAPTER_01.to_string()];
@@ -248,7 +249,8 @@ async fn the_two_keys_name_the_episode_of_the_line() {
     app.ids_library = vec!["a-book".to_string()];
     app.titles_library = vec!["A Test Book".to_string()];
     app.auth_names_library = vec!["A Test Author".to_string()];
-    app.library_rows = toutui::logic::library_view::group_library(&app.ids_library, &app.series);
+    app.library_rows =
+        toutui::logic::library_view::group_library(&app.ids_library, &app.series, false);
     app.list_state_library.select(Some(0));
     app.view_state = AppView::Library;
 

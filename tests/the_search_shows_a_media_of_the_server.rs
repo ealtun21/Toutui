@@ -103,7 +103,8 @@ async fn the_view_holds_a_media_that_the_program_did_not_read() {
     app.desc_library = vec!["No description available".to_string(); 3];
     app.duration_library = vec![60.0; 3];
     app.library_total = 2056;
-    app.library_rows = toutui::logic::library_view::group_library(&app.ids_library, &app.series);
+    app.library_rows =
+        toutui::logic::library_view::group_library(&app.ids_library, &app.series, false);
 
     app.view_state = AppView::SearchBook;
     app.search_query = "Large Book 0100".to_string();

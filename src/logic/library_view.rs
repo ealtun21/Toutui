@@ -53,8 +53,19 @@ impl LibraryRow {
 ///
 /// A podcast library and the offline mode give no series. Every line is then a
 /// book, and the position of a line is the position of the item.
-pub fn group_library(ids: &[String], series: &[SeriesView]) -> Vec<LibraryRow> {
-    if series.is_empty() {
+///
+/// **`the_books_stand_apart` says that every book takes a line of its own**
+/// (T-318). The filter of one series is the one road of the user to the books
+/// of a series inside this list: the server then answers with those books and
+/// with no other media, and a line of the group would repeat the name of the
+/// filter and hide the answer. See
+/// `crate::logic::sort_filter::is_a_filter_of_one_series`.
+pub fn group_library(
+    ids: &[String],
+    series: &[SeriesView],
+    the_books_stand_apart: bool,
+) -> Vec<LibraryRow> {
+    if the_books_stand_apart || series.is_empty() {
         return (0..ids.len())
             .map(|item| LibraryRow::Book { item })
             .collect();
@@ -126,7 +137,7 @@ mod tests {
 
     #[test]
     fn a_library_with_no_series_gives_one_line_for_each_book() {
-        let rows = group_library(&ids(&["a", "b", "c"]), &[]);
+        let rows = group_library(&ids(&["a", "b", "c"]), &[], false);
         assert_eq!(
             rows,
             vec![
@@ -147,7 +158,7 @@ mod tests {
             series("Second Series", &["s1", "s2", "s3"]),
         ];
 
-        let rows = group_library(&all, &list);
+        let rows = group_library(&all, &list, false);
 
         assert_eq!(
             rows,
@@ -170,7 +181,7 @@ mod tests {
         let all = ids(&["alone", "t1", "t2"]);
         let list = vec![series("A Series", &["t1", "t2"])];
 
-        let rows = group_library(&all, &list);
+        let rows = group_library(&all, &list, false);
 
         assert_eq!(
             rows,
@@ -190,7 +201,7 @@ mod tests {
         let all = ids(&["t2"]);
         let list = vec![series("A Series", &["t1", "t2", "t3"])];
 
-        let rows = group_library(&all, &list);
+        let rows = group_library(&all, &list, false);
         assert_eq!(
             rows,
             vec![LibraryRow::Series {
@@ -205,20 +216,47 @@ mod tests {
         let all = ids(&["a"]);
         let list = vec![series("First", &["a"]), series("Second", &["a"])];
 
-        let rows = group_library(&all, &list);
+        let rows = group_library(&all, &list, false);
         assert_eq!(rows.len(), 1);
         assert_eq!(rows[0].series(), Some(0));
     }
 
+    /// **A filter of one series gives the books of that series** (T-318). The
+    /// measurement of the real program v0.8.149 against the sandbox: the row
+    /// `The Test Chronicles` of the view of the key `f` gave the header
+    /// `4 Library [1 item] — a filter is on (f)` over one line,
+    /// `The Test Chronicles [3 books]`, and the server answered with three
+    /// books.
+    #[test]
+    fn a_filter_of_one_series_gives_a_line_for_each_book_of_it() {
+        let all = ids(&["t1", "t2", "t3"]);
+        let list = vec![series("The Test Chronicles", &["t1", "t2", "t3"])];
+
+        assert_eq!(
+            group_library(&all, &list, true),
+            vec![
+                LibraryRow::Book { item: 0 },
+                LibraryRow::Book { item: 1 },
+                LibraryRow::Book { item: 2 },
+            ]
+        );
+
+        // No line of such a list opens a view of the books of a series: the
+        // list holds those books already.
+        assert!(group_library(&all, &list, true)
+            .iter()
+            .all(|row| row.series().is_none()));
+    }
+
     #[test]
     fn an_empty_library_gives_no_line() {
-        assert!(group_library(&[], &[]).is_empty());
-        assert!(group_library(&[], &[series("A Series", &["a"])]).is_empty());
+        assert!(group_library(&[], &[], false).is_empty());
+        assert!(group_library(&[], &[series("A Series", &["a"])], false).is_empty());
     }
 
     #[test]
     fn a_line_gives_the_position_in_the_lists_of_the_library() {
-        let rows = group_library(&ids(&["a", "b"]), &[series("A Series", &["b"])]);
+        let rows = group_library(&ids(&["a", "b"]), &[series("A Series", &["b"])], false);
         assert_eq!(rows[0].item(), 0);
         assert_eq!(rows[1].item(), 1);
         assert_eq!(rows[1].series(), Some(0));

@@ -185,6 +185,28 @@ pub fn filter_value(kind: &str, value: &str) -> String {
     format!("{}.{}", kind, encode_base64(value))
 }
 
+/// Tells if the filter of the library asks the server for one series.
+///
+/// **A filter of one series is the one road of this program to the books of a
+/// series inside the list of the library** (T-318). The measurement of the
+/// real program v0.8.149 of 2026-08-16 against the sandbox: the user took the
+/// row `The Test Chronicles` of the group `The series` of the view of the key
+/// `f`, the server answered with the **three** books of that series, and the
+/// Library view held one line, `The Test Chronicles [3 books]`, and the header
+/// `4 Library [1 item] — a filter is on (f)`.
+///
+/// `crate::logic::library_view::group_library` puts every book of a series on
+/// one line (T-22), and that rule is right for a library of many series. **It
+/// is wrong for a list that holds one series and no other media**: the user
+/// asked for that series, and the line of the group then repeats the name of
+/// the filter and it hides the answer of the server.
+///
+/// The value of such a filter is `series.<the identity in base64>`, and
+/// `filter_value` writes it.
+pub fn is_a_filter_of_one_series(filter: &str) -> bool {
+    filter.starts_with("series.")
+}
+
 /// The three choices of the position that the server knows.
 ///
 /// A measurement on 2026-08-11: `progress.ZmluaXNoZWQ=` gives 2 books,
@@ -369,6 +391,24 @@ mod tests {
         assert_eq!(label_of("addedAt", false), "The time when the book came");
         assert_eq!(label_of("addedAt", true), "The time when the podcast came");
         assert_eq!(label_of("bogus.field", false), "The sequence of the server");
+    }
+
+    /// The value of the filter of a series comes of `filter_value`, and no
+    /// other group of the filters starts with those seven characters.
+    #[test]
+    fn the_program_knows_the_filter_of_one_series() {
+        assert!(is_a_filter_of_one_series(&filter_value(
+            "series",
+            "8a5dce78-c823-441e-a998-eba9f9e8d06b"
+        )));
+        assert!(!is_a_filter_of_one_series(""));
+        assert!(!is_a_filter_of_one_series(&filter_value(
+            "progress", "finished"
+        )));
+        assert!(!is_a_filter_of_one_series(&filter_value(
+            "authors",
+            "cc5891d3-f0a5-42b0-ac39-6c33df199efd"
+        )));
     }
 
     #[test]

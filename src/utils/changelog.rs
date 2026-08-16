@@ -41,6 +41,22 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.150",
+        date: "16/08/2026",
+        body: &[
+            "Fixed:",
+            "- **A filter of one series shows the books of that series now.** \
+             The key `f` gives a list of the series of the library, and a \
+             series of that list showed one line, \"The Test Chronicles \
+             [3 books]\", over the three books that the server gave. The \
+             library then said \"1 item\" for three books. Each book takes a \
+             line of its own now, with its author, its length, and your \
+             place in it, and the header says \"3 items\".",
+            "- **A list of no such filter keeps one line for each series.** A \
+             series of twelve books does not fill the screen.",
+        ],
+    },
+    Entry {
         version: "0.8.149",
         date: "16/08/2026",
         body: &[

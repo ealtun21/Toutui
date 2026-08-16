@@ -90,7 +90,8 @@ async fn every_view_draws_when_the_lists_are_shorter_than_the_selection() {
     app.desc_library = Vec::new();
     app.duration_library = Vec::new();
     app.auth_names_library_pod = Vec::new();
-    app.library_rows = toutui::logic::library_view::group_library(&app.ids_library, &app.series);
+    app.library_rows =
+        toutui::logic::library_view::group_library(&app.ids_library, &app.series, false);
 
     app._titles_cnt_list = three("Continue");
     app._ids_cnt_list = three("id");
@@ -246,7 +247,8 @@ async fn every_view_draws_when_the_lists_are_shorter_than_the_selection() {
     app.list_state_library.select(Some(0));
     app.titles_library = three("A Book");
     app.ids_library = three("id");
-    app.library_rows = toutui::logic::library_view::group_library(&app.ids_library, &app.series);
+    app.library_rows =
+        toutui::logic::library_view::group_library(&app.ids_library, &app.series, false);
     app.auth_names_library = vec![
         "A Name Of An Author That No Terminal Of Eighty Columns Holds In One Row Of Its Screen"
             .to_string(),

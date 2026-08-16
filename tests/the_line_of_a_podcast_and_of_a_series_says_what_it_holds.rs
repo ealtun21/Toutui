@@ -109,7 +109,8 @@ async fn a_line_of_more_than_one_media_names_the_key_that_opens_it() {
     app.ids_library = vec!["9fa45bd1-66bc-4c17-ba49-a5a6a5ec8806".to_string()];
     app.titles_library = vec!["Letters of Two Brides".to_string()];
     app.auth_names_library = vec!["LibriVox".to_string()];
-    app.library_rows = toutui::logic::library_view::group_library(&app.ids_library, &app.series);
+    app.library_rows =
+        toutui::logic::library_view::group_library(&app.ids_library, &app.series, false);
     app.list_state_library.select(Some(0));
     app.view_state = AppView::Library;
 
@@ -219,7 +220,8 @@ async fn a_line_of_more_than_one_media_names_the_key_that_opens_it() {
             },
         ],
     }];
-    app.library_rows = toutui::logic::library_view::group_library(&app.ids_library, &app.series);
+    app.library_rows =
+        toutui::logic::library_view::group_library(&app.ids_library, &app.series, false);
     app.list_state_library.select(Some(0));
     app.view_state = AppView::Library;
 

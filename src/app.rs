@@ -1531,7 +1531,14 @@ impl App {
         };
 
         // Every book of a series gives one line of the Library view. See T-22.
-        let library_rows = group_library(&ids_library, &series);
+        // **A filter of one series is the exception**: the user asked the
+        // server for the books of that series, and every book then takes a
+        // line of its own. See T-318.
+        let library_rows = group_library(
+            &ids_library,
+            &series,
+            crate::logic::sort_filter::is_a_filter_of_one_series(&library_filter),
+        );
 
         // The lines of the Home view: a line for the name of each shelf, and
         // a line for each media of that shelf. See T-24.
@@ -4434,7 +4441,11 @@ impl App {
         // **The lines of the view grow, and no line of them moves.** Every book
         // of a series gives one line, and the function reads the items in their
         // sequence: the lines of the pages before this one are the same lines.
-        self.library_rows = group_library(&self.ids_library, &self.series);
+        self.library_rows = group_library(
+            &self.ids_library,
+            &self.series,
+            crate::logic::sort_filter::is_a_filter_of_one_series(&self.library_filter),
+        );
 
         // The key `G` waits for the end of the library. The new lines stand
         // after the line of that key, therefore the key takes the last line

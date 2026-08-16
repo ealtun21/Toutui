@@ -80,7 +80,8 @@ async fn the_key_of_a_podcast_that_the_program_did_not_read_keeps_the_program() 
         .map(|one| format!("Many Podcast {}", one))
         .collect();
     app.ids_library = (1..=520).map(|one| format!("podcast-{}", one)).collect();
-    app.library_rows = toutui::logic::library_view::group_library(&app.ids_library, &app.series);
+    app.library_rows =
+        toutui::logic::library_view::group_library(&app.ids_library, &app.series, false);
 
     app.all_titles_pod_ep = vec![Vec::new(); 500];
     app.all_ids_pod_ep = vec![Vec::new(); 500];

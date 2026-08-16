@@ -28887,24 +28887,111 @@ The gates: `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`,
 **1419 tests in 3.0 seconds**, **1445 of 1445 with the sandbox up**, and
 `cargo test -j 16 --no-fail-fast`.
 
+### The second round: a filter of one series gives its books
+
+**The claim that was wrong.** The item 1 of the list below said "A series opens
+into no book … the Library view holds the row `The Test Chronicles [3 books]`
+and it can never hold the three books of it in the list." The measurement of the
+real program **v0.8.149** inside tmux says the first half of that claim is
+false: the key `l` on the row `The Test Chronicles [3 books]` of the Library
+view opens `AppView::SeriesBook`, and the screen then held
+`The Test Chronicles [3 items]` over `#1 - The Test Chronicles Volume 1`,
+`41% #2 - The Test Chronicles Volume 2`, and
+`✓ #3 - The Test Chronicles Volume 3`. **That road stands since T-22.**
+
+**The fault that the measurement found.** The library `Books` of the sandbox,
+160 columns and 45 rows, the key `Tab` and the key `f`, and the row
+`The Test Chronicles` of the group `The series` of that view. The program wrote
+`&filter=series.OGE1ZGNlNzgtYzgyMy00NDFlLWE5OTgtZWJhOWY5ZThkMDZi` in the request
+of the items, and
+`GET /api/libraries/1b090ea8-91c5-4591-ac9d-716985e61faf/items?limit=500&collapseseries=1&filter=series.…`
+answered with `total: 3` and the three books. The screen then held:
+
+```text
+╔4 Library [1 item] — a filter is on (f) ═════════════════════════════════╗
+║    Title                                 Author               Time  Done║
+║➤   The Test Chronicles [3 books]                                        ║
+╚═════════════════════════════════════════════════════════════════════════╝
+```
+
+The user asked the server for one series, the server gave three books, and the
+list held one line that repeats the name of the filter. **The header said
+`1 item` for three books.**
+
+**The reason.** `crate::logic::library_view::group_library` (T-22) puts every
+book of a series on one line, and `src/app.rs` called it for every list. That
+rule is right for a library of many series: a series of twelve books filled the
+screen before T-22. **It is wrong for a list that holds one series and no other
+media.**
+
+**The correction, three files.** `src/logic/sort_filter.rs` holds the new
+function `is_a_filter_of_one_series`, which is `filter.starts_with("series.")`;
+`filter_value` writes that shape. `src/logic/library_view.rs` gives
+`group_library` a third argument, `the_books_stand_apart`, and a value of `true`
+takes the arm that gives one `LibraryRow::Book` for each identity. `src/app.rs`
+gives that argument at its two call sites, of `App::new` and of the page after
+the first one.
+
+**The corrected program**, of the same harness:
+
+```text
+╔4 Library [3 items] — a filter is on (f) ════════════════════════════════╗
+║    Title                                 Author              Time  Done ║
+║➤ ✓ The Test Chronicles Volume 1          Series Author        <1m  done ║
+║    The Test Chronicles Volume 2          Series Author        <1m   41% ║
+║  ✓ The Test Chronicles Volume 3          Series Author        <1m  done ║
+╚═════════════════════════════════════════════════════════════════════════╝
+```
+
+The header counts the lines of the list, therefore it says `3 items` with no
+other change. Each book holds the author, the length, and the place of the user
+of the table of T-321.
+
+**The control of the same run.** The key `3` gave the focus to the panel of the
+filter and the key `l` took the row `No filter`: the list came back with 18
+lines, and it held `Depthless Hunger, Book [1 book]`. **The rule of T-22 stands
+for every other list.**
+
+**The measurement of the server.** `?limit=500&collapseseries=1` gives
+`total: 18` for the library `Books`, and `collapseseries=0` gives `total: 22`.
+The three series of that library hold 3, 3, and 1 books, therefore 22 − 4 = 18.
+**The server does not collapse a series when the filter names that series**: the
+answer of the filter above held no `collapsedSeries` at all.
+
+### The gate of the second round
+
+`tests/a_filter_of_one_series_gives_its_books.rs` of three tests, and two more
+inside `src/logic/library_view.rs` and `src/logic/sort_filter.rs`.
+
+**The build of the fault** (the trap 147):
+`if (the_books_stand_apart && false) || series.is_empty()` of `group_library`
+made two of those five fail —
+`the_list_of_such_a_filter_holds_a_line_for_each_book` of the gate and
+`a_filter_of_one_series_gives_a_line_for_each_book_of_it` of the module.
+
+**The release**: v0.8.150. The gates: `cargo clippy --all-targets -- -D
+warnings`, `cargo fmt --check`, **1424 tests in 3.0 seconds**, **1450 of 1450
+with the sandbox up**, and three runs of `cargo test -j 16 --no-fail-fast`.
+
 ### What stays open
 
-1. **A series opens into no book.** `src/app.rs` writes `&collapseseries=1` for
-   every library of books, with no choice of the user at all: the Library view
-   holds the row `The Test Chronicles [3 books]` and it can never hold the
-   three books of it in the list. The work is a mode of the view that sends
-   `collapseseries=0`, and the key of it belongs beside the key `f`.
-2. **A click of a word of the header of the table does not sort by that
-   column** (T-321): that click opens the view of the key `f`, and the map of
-   the mouse of the design gives `Title`, `Author`, `Time`, and `Done` the
-   sequence of that column. The geometry of that row stands already.
+1. **The mode of the whole library that sends `collapseseries=0`.** The user has
+   no key that gives every book of every series in one list. **The trap for the
+   round that takes it**: the parameter of the server alone changes no screen,
+   because `group_library` collapses the answer again on the side of the
+   program; such a mode must give `the_books_stand_apart` too, and it needs a
+   column of the table `users` and a migration of the version 11.
+2. **A click of a word of the header of the table does not sort by that column**
+   (T-321): that click opens the view of the key `f`, and the map of the mouse
+   of the design gives `Title`, `Author`, `Time`, and `Done` the sequence of
+   that column. The geometry of that row stands already.
 3. **The panel 3 holds the three places of the user, and no author, no series,
    no narrator, and no tag**: those rows come of
    `GET /api/libraries/:id/filterdata`, which the view of the key `f` asks for,
-   and a panel of the start that made that request would give every start of
-   the program one request more.
-4. **The panel 2 and the panel 3 hold no digit of a row**: the decision 1 of
-   the road of the panels took the column of the digit of the panel 2 away,
-   because the digits 1 to 7 belong to the focus of a panel.
+   and a panel of the start that made that request would give every start of the
+   program one request more.
+4. **The panel 2 and the panel 3 hold no digit of a row**: the decision 1 of the
+   road of the panels took the column of the digit of the panel 2 away, because
+   the digits 1 to 7 belong to the focus of a panel.
 5. **No line of the panel 2 says the number of the media of a filter**, and the
    design gives that number to the status bar alone.
