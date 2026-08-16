@@ -29773,3 +29773,144 @@ made **five of the five** fail.
 - **The row of a series keeps its empty columns** in the mode of the start: the
   answer of the server holds no author, no length, and no place of the user for
   a group of books (T-321).
+
+## T-325 — The panel 5 of the cover says the facts of the design
+
+**The part of the stage 6 of the road of the panels that its round left open**
+(`### 0. The road of the panels (T-316 to T-323)` of `docs/HANDOVER.md`): "the
+mockup names the series, the narrator, the time that is left, the day of the
+start, the genre, the number of the files, the state of the ebook, and a bar of
+the progress, each on a line of its own at the right of the picture, and the
+panel says the two rows of the panel of a line of today".
+
+### The fault
+
+**The answer of the server holds six of those facts for every book, the program
+parses each of them, and no view of the program says one of them.** The
+measurement of the sandbox of 2026-08-16, of
+`GET /api/libraries/<Books>/items?limit=100` for `A Long Test Book`:
+
+```json
+"narratorName": "A Test Narrator",
+"genres": [ "Fiction", "Adventure" ],
+"numAudioFiles": 1,
+"size": 7337326,
+"ebookFormat": "epub"
+```
+
+and `"seriesName": "The Test Chronicles #2"` for the second book of the series
+of that same library. `crate::api::libraries::get_all_books::Metadata` reads
+`narratorName`, `seriesName`, and `genres`, and `Media` reads `numAudioFiles`
+and `size`: the five of them stood in the memory of the program at every frame,
+and no line of any view held one of them.
+
+**The sixth fact never came at all.** The field of the ebook of that struct was
+`ebook_file_format`, and `#[serde(rename_all = "camelCase")]` reads that name as
+`ebookFileFormat`. The server sends `ebookFormat`, therefore the field was
+`None` for every book of every library of every server, and no call site of the
+program read it.
+
+**The real program v0.8.154 inside tmux**, at 160 columns and 45 rows, of the
+Library view of the library `Books` of the sandbox, with the cursor on `A Long
+Test Book`. The panel 5 held the picture over 21 rows, four facts over three
+rows, and **15 rows of no character at all**:
+
+```text
+┌5 Cover ────────────────────────────────────────┐
+│      ▄                                         │
+│Author: Long Author - Year: N/A - Duration: 30m │
+│Progress: 50%, 15m left, Not finished           │
+│                                                │
+│No description available                        │
+│                                                │
+│                                                │
+└────────────────────────────────────────────────┘
+```
+
+**The data of this item is the program itself**: no proxy, no book of a harness,
+and no change of the sandbox — the library of the row of the account comes of a
+`sqlite3` of `name_selected_lib` and of `id_selected_lib` (the trap 203 and the
+trap 204).
+
+### The correction
+
+**The corrected program of the same harness**, of that same row:
+
+```text
+│Author    Long Author                           │
+│Narrator  A Test Narrator                       │
+│Time      30m, 15m left                         │
+│Genre     Fiction, Adventure                    │
+│Files     1 file, 7.0 MB                        │
+│Ebook     epub                                  │
+│Progress  50%, Not finished                     │
+│████████████████████████░░░░░░░░░░░░░░░░░░░░░░░░│
+│No description available                        │
+```
+
+**The control of the same run**: the key `2`, eight keys `j`, and the key `l` of
+the row `Every book of a series` gave the mode of T-324, and eleven keys `j`
+then put the cursor on `The Test Chronicles Volume 3`. The panel of that row
+said `Series    The Test Chronicles #3`, `Disk      [Downloaded]`,
+`Progress  100%, Finished`, and a bar of 48 cells that were full. The row `A
+Book Of An Epub With No Container`, which the server holds with no cover, said
+`Time      0m, 0m left`, `Files     1 file, 0.0 MB`, and `Ebook     epub` over
+the whole panel, with no picture at all.
+
+**The correction is six files, and one new one.**
+`src/logic/the_facts_of_a_media.rs` is the new module: `TheFactsOfAMedia` of the
+six facts, `TheMediaOfThePanel` of the values that the screen holds already,
+`the_lines_of_the_facts`, and `the_bar_of_the_progress`, and every function of
+it is pure. `src/api/libraries/get_all_books.rs` gives the field of the ebook
+its name of the server. `src/api/utils/collect_get_all_books.rs` holds
+`collect_the_facts_library`. `src/logic/library_pages.rs` and `src/app.rs` carry
+that list of the page of the server to the list `App::the_facts_library`, which
+holds one row for each item beside `titles_library`.
+`src/ui/the_panel_of_the_cover.rs` takes the rows that the facts need, and the
+picture gives its rows to them.  `src/ui/tui.rs` holds
+`App::the_lines_of_the_facts_of_the_panel` and the two call sites of it.
+
+### The trap of this item
+
+**A fact that the server did not give must take no line at all.** T-114 gave the
+line of a view the value `N/A` for a text of no letter, because the line of that
+time held every fact together and `Author:  - Year: N/A` reads like a program
+that lost its words. A panel of one fact of one line holds the same intent with
+**no line**: a row that says `Narrator  N/A` costs a row of the screen and it
+tells the user nothing. **The words of the time that is left end with a comma**,
+because the line of the panel of today is `Progress: {}%, {} {}` and
+`convert_seconds_for_prg` gives `15m left,` for the middle of it: the first form
+of this panel said `Time      30m, 15m left,` on the screen of the real program.
+
+### The gate
+
+`tests/the_panel_of_the_cover_says_the_facts_of_the_media.rs`, of four tests,
+and the four tests of `src/logic/the_facts_of_a_media.rs`. **The build of the
+fault** (the trap 147), of five edits of one line each — `#[serde(rename =
+"ebookFileFormat")]` over the field of the ebook, `narrator: String::new()` of
+the collector, `("Narrator", None)` of the list of the lines, `if width <
+THE_NARROWEST_BAR || true` of the bar, and `THE_ROWS_OF_THE_FACTS.min(...)` of
+the rows of the facts of the panel — made **five of the five** fail.
+
+### What this item leaves open
+
+- **The facts stand under the picture and not beside it.** The design gives the
+  panel 5 a picture of 24 cells at the left and the facts at the right of it in
+  the same rows. This round gives the information and not that geometry: a
+  picture of half the width is a picture of a quarter of the cells, and the
+  panel held 15 rows of nothing already.
+- **The day of the start of the media takes no line.** The design names
+  `Started  14 Aug 2026`, and `started_at` of
+  `crate::api::me::get_media_progress` holds it: no call site of the program
+  reads that field, and the panel of this round says the place of the user and
+  not the day of it.
+- **The other views keep the two lines of today.** The Home view, the view of a
+  search, and the view of a book of a series hold no narrator, no genre, and no
+  ebook in their lists of a row, therefore a panel of the design there would say
+  the same two lines over more rows.
+- **A library of podcasts keeps the two lines too**: the answer of the episodes
+  holds facts of its own, and the panel of an episode is an item of its own.
+- **A panel that is not tall gives the facts the rows that it has**, and the
+  lines after them go away with no word. The measurement of the round stands at
+  39 rows inside the border; a panel of 16 rows holds eight rows of the facts
+  and no description at all.

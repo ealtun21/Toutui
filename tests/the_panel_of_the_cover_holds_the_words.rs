@@ -63,7 +63,7 @@ fn the_panel_of_the_cover_holds_the_picture_and_the_words() {
     // 160 by 45 stands at the column 110 and it holds 41 rows. The border of
     // the panel takes one row and one column at each end.
     let inside = Rect::new(111, 3, 48, 39);
-    let parts = the_parts_of_the_panel(inside, true);
+    let parts = the_parts_of_the_panel(inside, true, THE_ROWS_OF_THE_FACTS);
 
     let cover = parts
         .cover
@@ -101,7 +101,7 @@ fn the_panel_of_the_cover_holds_the_picture_and_the_words() {
 #[test]
 fn a_media_with_no_cover_gives_every_row_to_the_words() {
     let inside = Rect::new(111, 3, 48, 39);
-    let parts = the_parts_of_the_panel(inside, false);
+    let parts = the_parts_of_the_panel(inside, false, THE_ROWS_OF_THE_FACTS);
 
     assert_eq!(parts.cover, None, "no picture comes, therefore no area");
     assert_eq!(parts.facts, Rect::new(111, 3, 48, THE_ROWS_OF_THE_FACTS));
@@ -114,7 +114,7 @@ fn a_media_with_no_cover_gives_every_row_to_the_words() {
 
     // A panel that is not tall still says the words of such a media, because
     // the picture takes no row at all.
-    let parts = the_parts_of_the_panel(Rect::new(111, 3, 48, 4), false);
+    let parts = the_parts_of_the_panel(Rect::new(111, 3, 48, 4), false, THE_ROWS_OF_THE_FACTS);
     assert_eq!(parts.cover, None);
     assert!(parts.the_words_stand_here());
 }
@@ -132,6 +132,7 @@ fn a_panel_that_is_not_tall_leaves_the_words_under_the_list() {
     let parts = the_parts_of_the_panel(
         Rect::new(111, 3, 48, THE_SMALLEST_PANEL_OF_THE_WORDS - 1),
         true,
+        THE_ROWS_OF_THE_FACTS,
     );
 
     assert!(
@@ -146,15 +147,18 @@ fn a_panel_that_is_not_tall_leaves_the_words_under_the_list() {
     );
 
     // One row more, and the three parts stand together.
-    let parts =
-        the_parts_of_the_panel(Rect::new(111, 3, 48, THE_SMALLEST_PANEL_OF_THE_WORDS), true);
+    let parts = the_parts_of_the_panel(
+        Rect::new(111, 3, 48, THE_SMALLEST_PANEL_OF_THE_WORDS),
+        true,
+        THE_ROWS_OF_THE_FACTS,
+    );
     assert!(parts.the_words_stand_here());
     assert!(parts.cover.is_some());
 
     // A screen that draws no panel at all gives no part: that is the terminal
     // of 40 columns of the measurement, where the covers go away with the
     // second column (T-320).
-    let parts = the_parts_of_the_panel(Rect::default(), true);
+    let parts = the_parts_of_the_panel(Rect::default(), true, THE_ROWS_OF_THE_FACTS);
     assert_eq!(parts.cover, None);
     assert!(!parts.the_words_stand_here());
 }

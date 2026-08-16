@@ -37,6 +37,50 @@ pub async fn collect_ids_library(library: &Root) -> Vec<String> {
     ids_library
 }
 
+/// The facts of the panel 5 of the cover, one for each item. See T-325.
+///
+/// **The answer of the items holds these six facts already**, and the program
+/// read none of them: `narratorName`, `seriesName`, and `genres` of the
+/// metadata, and `numAudioFiles`, `size`, and `ebookFormat` of the media. The
+/// panel 5 of the design says each of them on a line of its own.
+///
+/// The list walks the items in the sequence of the server, as every other list
+/// of a row does, therefore the number of an item of `collect_titles_library`
+/// is the number of an item of this list.
+pub async fn collect_the_facts_library(
+    library: &Root,
+) -> Vec<crate::logic::the_facts_of_a_media::TheFactsOfAMedia> {
+    let mut facts = Vec::new();
+
+    if let Some(results) = &library.results {
+        for item in results {
+            if let Some(media) = &item.media {
+                if let Some(metadata) = &media.metadata {
+                    facts.push(crate::logic::the_facts_of_a_media::TheFactsOfAMedia {
+                        // **A text of no letter is not a value** (T-114), and a
+                        // fact of no value takes no line of the panel.
+                        series: metadata.series_name.clone().unwrap_or_default(),
+                        narrator: metadata.narrator_name.clone().unwrap_or_default(),
+                        genre: metadata
+                            .genres
+                            .as_ref()
+                            .map(|genres| genres.join(", "))
+                            .unwrap_or_default(),
+                        files: media.num_audio_files.unwrap_or_default(),
+                        // **The size of the media is the size of the item**:
+                        // `media.size` holds the audio alone, and `item.size`
+                        // holds the ebook and the cover beside it.
+                        size: item.size.or(media.size).unwrap_or_default(),
+                        the_ebook: media.ebook_format.clone().unwrap_or_default(),
+                    });
+                }
+            }
+        }
+    }
+
+    facts
+}
+
 /// collect author name for book
 pub async fn collect_auth_names_library(library: &Root) -> Vec<String> {
     let mut auth_names_library = Vec::new();

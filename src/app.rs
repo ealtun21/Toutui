@@ -490,6 +490,12 @@ pub struct App {
     /// number, and the key `n` of that view needs one. See T-236.
     pub the_lengths_of_the_episodes_of_the_home_view: Vec<Option<f64>>,
     pub published_year_library: Vec<String>,
+    /// The facts of the panel 5 of the cover, one for each item of the library.
+    /// See T-325.
+    ///
+    /// The number of an item of this list is the number of an item of
+    /// `titles_library` and of every other list of a row.
+    pub the_facts_library: Vec<crate::logic::the_facts_of_a_media::TheFactsOfAMedia>,
     pub desc_library: Vec<String>,
     pub duration_library: Vec<f64>,
     pub auth_names_library_pod: Vec<String>,
@@ -1605,6 +1611,19 @@ impl App {
             collect_published_year_library(&all_books).await
         };
 
+        // **The media of the disk hold no fact of the panel 5**: the database
+        // of the program keeps the title, the author, and the length of a
+        // download, and the narrator, the genre, and the ebook of a media come
+        // of the server alone. A fact of no value takes no line. See T-325.
+        let the_facts_library = if is_offline {
+            downloads
+                .iter()
+                .map(|_| crate::logic::the_facts_of_a_media::TheFactsOfAMedia::default())
+                .collect()
+        } else {
+            collect_the_facts_library(&all_books).await
+        };
+
         let auth_names_library_pod = if is_offline {
             downloads.iter().map(|row| row.author.clone()).collect()
         } else {
@@ -2049,6 +2068,7 @@ impl App {
             durations_pod_cnt_list,
             the_lengths_of_the_episodes_of_the_home_view,
             published_year_library,
+            the_facts_library,
             desc_library,
             duration_library,
             auth_names_library_pod,
@@ -4579,6 +4599,7 @@ impl App {
                 durations: collect_duration_library(&root).await,
                 descriptions: collect_desc_library(&root).await,
                 years: collect_published_year_library(&root).await,
+                the_facts: collect_the_facts_library(&root).await,
             });
 
             crate::logic::library_pages::keep_the_flag(false);
@@ -4643,6 +4664,7 @@ impl App {
         self.duration_library.extend(page.durations);
         self.desc_library.extend(page.descriptions);
         self.published_year_library.extend(page.years);
+        self.the_facts_library.extend(page.the_facts);
 
         // **The lines of the view grow, and no line of them moves.** Every book
         // of a series gives one line, and the function reads the items in their

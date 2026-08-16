@@ -41,6 +41,8 @@ pub struct Page {
     pub durations: Vec<f64>,
     pub descriptions: Vec<String>,
     pub years: Vec<String>,
+    /// The facts of the panel 5 of the cover, one for each item. See T-325.
+    pub the_facts: Vec<crate::logic::the_facts_of_a_media::TheFactsOfAMedia>,
 }
 
 /// Tells if the program must ask the server for the next page now.

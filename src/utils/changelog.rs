@@ -41,6 +41,34 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.155",
+        date: "16/08/2026",
+        body: &[
+            "Added:",
+            "- **The panel of the cover says the facts of the media.** The \
+             answer of the server holds the series, the narrator, the genre, \
+             the number of the files, the size, and the kind of the ebook of \
+             every book, and no view of the program said one of them: the \
+             panel gave three rows to the author, the year, the length, and \
+             your place, and 15 rows of it held nothing at all. Each fact now \
+             takes a line of its own, in the Library view of a library of \
+             books.",
+            "- **A bar of the progress stands under those lines.** It says \
+             your place in the media with no letter at all, over the whole \
+             width of the panel.",
+            "Fixed:",
+            "- **The program reads the kind of the ebook of a book.** It \
+             asked the server for the name `ebookFileFormat`, and the server \
+             sends `ebookFormat`: the value was therefore absent for every \
+             book of every library.",
+            "Note:",
+            "- A fact that the server did not give takes no line. A book with \
+             no narrator and no genre says the length and your place alone.",
+            "- The length of the media and your place always take a line, \
+             and a panel that is narrower than eight columns holds no bar.",
+        ],
+    },
+    Entry {
         version: "0.8.154",
         date: "16/08/2026",
         body: &[

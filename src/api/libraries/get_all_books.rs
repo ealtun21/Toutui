@@ -58,7 +58,14 @@ pub struct Media {
     pub num_chapters: Option<i64>,
     pub duration: Option<f64>,
     pub size: Option<i64>,
-    pub ebook_file_format: Option<Value>,
+    /// The kind of the file of the ebook of the media: `epub`, `pdf`, and so
+    /// on. A media of no ebook holds no value.
+    ///
+    /// **The name of this field was `ebook_file_format`** (T-325), and
+    /// `rename_all = "camelCase"` reads that name as `ebookFileFormat`. The
+    /// server sends `ebookFormat`, therefore the field was `None` for every
+    /// book of every library, and no call site of the program read it.
+    pub ebook_format: Option<String>,
 }
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]

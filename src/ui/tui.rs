@@ -575,6 +575,66 @@ impl App {
         }
     }
 
+    /// Every line of the facts of the design, for the panel 5 of the cover.
+    /// See T-325.
+    ///
+    /// **The facts of the design belong to a book of the Library view**, and
+    /// the other views of this program keep the two lines of `Author: … -
+    /// Year: … - Duration: …` and `Progress: …`: the lists of a row of those
+    /// views hold no narrator, no genre, and no ebook, therefore a panel of the
+    /// design there would say the same two lines over more rows.
+    ///
+    /// `width` is the width of the inside of the panel, and it gives the bar of
+    /// the progress its cells.
+    ///
+    /// The function gives `None` for every view and for every row that the
+    /// facts of the design do not reach, and the panel then keeps the rows that
+    /// it held before this stage.
+    fn the_lines_of_the_facts_of_the_panel(&self, width: u16) -> Option<Vec<String>> {
+        if self.view_state != AppView::Library || self.is_podcast {
+            return None;
+        }
+
+        // A line of a series says the number of the books and the whole length,
+        // and no book of it stands under the cursor.
+        if self.selected_library_series().is_some() {
+            return None;
+        }
+
+        let selected = self.selected_library_item()?;
+        let facts = self.the_facts_library.get(selected)?;
+
+        let length = self
+            .duration_library
+            .get(selected)
+            .map(|seconds| convert_seconds(vec![*seconds]))
+            .and_then(|words| words.first().cloned())
+            .unwrap_or_default();
+
+        // **The label of the copy of the disk holds the words of a line of many
+        // facts**: it starts with ` - `, because it stands after the length in
+        // the line of today. A line of one fact takes the words alone.
+        let of_the_disk = the_copy_of_the_disk(at(&self.ids_library, selected))
+            .trim_start()
+            .trim_start_matches("- ");
+
+        let place = self.the_place_of_the_panel_of_the_library(selected);
+
+        Some(crate::logic::the_facts_of_a_media::the_lines_of_the_facts(
+            &crate::logic::the_facts_of_a_media::TheMediaOfThePanel {
+                facts,
+                author: at(&self.auth_names_library, selected),
+                year: at(&self.published_year_library, selected),
+                length: &length,
+                of_the_disk,
+                percent: &place.percent,
+                the_time_that_is_left: &place.the_time_that_is_left,
+                the_end: &place.the_end,
+            },
+            width,
+        ))
+    }
+
     /// Draws the panel 5 of the cover, and it gives the area of the facts of
     /// the media and the area of the description of it. See T-319.
     ///
@@ -640,8 +700,19 @@ impl App {
             .chain(selected.iter())
             .any(|id| !cover::no_picture_comes(id));
 
-        let parts =
-            crate::ui::the_panel_of_the_cover::the_parts_of_the_panel(inside, a_picture_comes);
+        // **The facts of the design take the rows that they need** (T-325): the
+        // panel of a book of the Library view says one fact of one line, and
+        // three rows hold no such list.
+        let of_the_facts = self
+            .the_lines_of_the_facts_of_the_panel(inside.width)
+            .map(|lines| lines.len() as u16)
+            .unwrap_or(crate::ui::the_panel_of_the_cover::THE_ROWS_OF_THE_FACTS);
+
+        let parts = crate::ui::the_panel_of_the_cover::the_parts_of_the_panel(
+            inside,
+            a_picture_comes,
+            of_the_facts,
+        );
 
         let api = std::sync::Arc::clone(&self.api);
 
@@ -1926,7 +1997,7 @@ impl App {
             Some(&self.library_table_rows()),
             &mut self.list_state_library.clone(),
         );
-        self.render_info_library(item_area1, buf);
+        self.render_info_library(item_area1, buf, the_words_of_the_panel.is_some());
         self.render_desc_library(item_area2, buf);
     }
 
@@ -3293,8 +3364,20 @@ impl App {
     }
 
     // info about the book or podacst for `Library`
-    fn render_info_library(&self, area: Rect, buf: &mut Buffer) {
+    fn render_info_library(&self, area: Rect, buf: &mut Buffer, in_the_panel: bool) {
         let duration_library_conv = convert_seconds(self.duration_library.clone());
+
+        // **The facts of the design stand in the panel 5 alone** (T-325): the
+        // area under the list holds three rows in the layout of a list, and a
+        // list of ten facts does not read there.
+        if in_the_panel {
+            if let Some(lines) = self.the_lines_of_the_facts_of_the_panel(area.width) {
+                Paragraph::new(lines.join("\n"))
+                    .left_aligned()
+                    .render(area, buf);
+                return;
+            }
+        }
 
         // A line of a series tells the number of the books and the whole
         // length. See T-22.

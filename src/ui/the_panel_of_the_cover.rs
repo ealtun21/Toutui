@@ -123,7 +123,11 @@ fn nothing(of: Rect) -> Rect {
 /// must take no row of the screen of the user.**
 ///
 /// The function is pure, therefore a test needs no terminal and no server.
-pub fn the_parts_of_the_panel(inside: Rect, a_picture_comes: bool) -> ThePartsOfThePanel {
+pub fn the_parts_of_the_panel(
+    inside: Rect,
+    a_picture_comes: bool,
+    of_the_facts: u16,
+) -> ThePartsOfThePanel {
     if inside.width == 0 || inside.height == 0 {
         return ThePartsOfThePanel {
             cover: None,
@@ -134,7 +138,7 @@ pub fn the_parts_of_the_panel(inside: Rect, a_picture_comes: bool) -> ThePartsOf
 
     // A media with no cover gives every row of the panel to the words.
     if !a_picture_comes {
-        return the_words_of(inside, None);
+        return the_words_of(inside, None, of_the_facts);
     }
 
     // A panel that is not tall holds the picture alone. The words then stay
@@ -148,8 +152,13 @@ pub fn the_parts_of_the_panel(inside: Rect, a_picture_comes: bool) -> ThePartsOf
     }
 
     // The picture keeps its share of the height, and the words keep the rows
-    // that they need.
-    let the_most = inside.height - THE_ROWS_OF_THE_FACTS - THE_ROWS_OF_A_DESCRIPTION;
+    // that they need. **The facts of the design take more than three rows**
+    // (T-325), therefore the picture gives its rows to them and it never goes
+    // under the height that a cover needs.
+    let the_most = inside
+        .height
+        .saturating_sub(of_the_facts + THE_ROWS_OF_A_DESCRIPTION)
+        .max(crate::ui::cover::MIN_HEIGHT_FOR_COVER);
     let of_the_cover = (inside.height * THE_SHARE_OF_THE_COVER / 100)
         .clamp(crate::ui::cover::MIN_HEIGHT_FOR_COVER, the_most);
 
@@ -165,12 +174,13 @@ pub fn the_parts_of_the_panel(inside: Rect, a_picture_comes: bool) -> ThePartsOf
             ..inside
         },
         Some(cover),
+        of_the_facts,
     )
 }
 
 /// Divides the area of the words into the facts and the description.
-fn the_words_of(area: Rect, cover: Option<Rect>) -> ThePartsOfThePanel {
-    let of_the_facts = THE_ROWS_OF_THE_FACTS.min(area.height);
+fn the_words_of(area: Rect, cover: Option<Rect>, of_the_facts: u16) -> ThePartsOfThePanel {
+    let of_the_facts = of_the_facts.min(area.height);
 
     ThePartsOfThePanel {
         cover,
@@ -200,7 +210,7 @@ mod tests {
         // of 160 by 45 stands at the column 110 and it holds 41 rows. The
         // border of the panel takes one row at each end.
         let inside = Rect::new(111, 3, 48, 39);
-        let parts = the_parts_of_the_panel(inside, true);
+        let parts = the_parts_of_the_panel(inside, true, THE_ROWS_OF_THE_FACTS);
 
         let cover = parts
             .cover
@@ -228,7 +238,7 @@ mod tests {
     #[test]
     fn a_media_with_no_cover_gives_its_rows_to_the_words() {
         let inside = Rect::new(111, 3, 48, 39);
-        let parts = the_parts_of_the_panel(inside, false);
+        let parts = the_parts_of_the_panel(inside, false, THE_ROWS_OF_THE_FACTS);
 
         assert_eq!(parts.cover, None);
         assert_eq!(parts.facts, Rect::new(111, 3, 48, THE_ROWS_OF_THE_FACTS));
@@ -244,7 +254,7 @@ mod tests {
     fn a_panel_that_is_not_tall_holds_the_picture_alone() {
         // One row under the smallest panel of the words.
         let inside = Rect::new(111, 3, 48, THE_SMALLEST_PANEL_OF_THE_WORDS - 1);
-        let parts = the_parts_of_the_panel(inside, true);
+        let parts = the_parts_of_the_panel(inside, true, THE_ROWS_OF_THE_FACTS);
 
         assert_eq!(parts.cover, Some(inside));
         assert_eq!(parts.facts.height, 0);
@@ -254,7 +264,7 @@ mod tests {
         // The smallest panel of the words holds the three parts, and the
         // picture keeps the rows that a cover needs.
         let inside = Rect::new(111, 3, 48, THE_SMALLEST_PANEL_OF_THE_WORDS);
-        let parts = the_parts_of_the_panel(inside, true);
+        let parts = the_parts_of_the_panel(inside, true, THE_ROWS_OF_THE_FACTS);
 
         assert_eq!(
             parts.cover.map(|of| of.height),
@@ -267,7 +277,7 @@ mod tests {
         // words**: the picture takes no row at all, therefore the rows of the
         // words come of no picture.
         let inside = Rect::new(111, 3, 48, 4);
-        let parts = the_parts_of_the_panel(inside, false);
+        let parts = the_parts_of_the_panel(inside, false, THE_ROWS_OF_THE_FACTS);
 
         assert_eq!(parts.cover, None);
         assert_eq!(parts.facts.height, THE_ROWS_OF_THE_FACTS);
@@ -285,7 +295,7 @@ mod tests {
             Rect::new(10, 4, 30, 0),
         ] {
             for a_picture_comes in [true, false] {
-                let parts = the_parts_of_the_panel(inside, a_picture_comes);
+                let parts = the_parts_of_the_panel(inside, a_picture_comes, THE_ROWS_OF_THE_FACTS);
 
                 assert_eq!(parts.cover, None);
                 assert_eq!(parts.facts.height, 0);
