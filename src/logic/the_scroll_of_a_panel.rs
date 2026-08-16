@@ -278,10 +278,19 @@ mod tests {
         assert_eq!(the_last_scroll("1\n2\n3\n4\n5\n6", 80, 4), 2);
     }
 
+    /// The key of the scroll, the bar of it, and the letters of the two ends of
+    /// that bar. See T-252, T-253, T-254, and T-332.
+    ///
     /// **The parts of this test stay in one function**, because the box of the
     /// process holds one value for the whole binary of the test.
+    ///
+    /// **This module held three test functions of that one box** (T-332), and
+    /// `the_panel_of_the_render` writes it: `cargo test` gives each test a
+    /// thread of its own, therefore the render of one test took the box that
+    /// another test read, and the gate of CI failed while `cargo nextest run`
+    /// passed every time. That is the shape of T-144 and of T-157.
     #[test]
-    fn the_key_that_moves_the_panel_down_stops_at_the_last_line() {
+    fn the_key_of_the_scroll_and_the_bar_of_it_read_the_same_box() {
         // The render of the panel of the author of the measurement of T-252:
         // one line of text in a panel of four rows.
         let text = "Charles Lutwidge Dodgson wrote under the name Lewis Carroll.";
@@ -311,14 +320,9 @@ mod tests {
         keep_the_last_scroll(3);
         assert_eq!(the_scroll_after_one_step_down(0), 1);
         assert_eq!(the_scroll_after_one_step_down(9), 3);
-    }
 
-    /// The bar of the scroll of the panel. See T-253.
-    ///
-    /// **The parts of this test stay in one function**, because the box of the
-    /// process holds one value for the whole binary of the test.
-    #[test]
-    fn the_bar_of_the_scroll_comes_of_a_text_that_is_longer_than_the_panel() {
+        // ## The bar of the scroll of the panel. See T-253.
+        //
         // A text that ends inside the panel takes no bar, and it keeps the
         // whole width of the panel for its characters.
         let short = the_panel_of_the_render(0, "A book.", 80, 4);
@@ -351,18 +355,13 @@ mod tests {
         assert_eq!(narrow.width_of_the_text, 1);
         assert!(!narrow.the_bar_comes());
         assert_eq!(narrow.last, 2);
-    }
 
-    /// The letters of the keys at the two ends of the bar. See T-254.
-    ///
-    /// **The parts of this test stay in one function**, because the box of the
-    /// process holds one value for the whole binary of the test.
-    #[test]
-    fn the_bar_of_the_scroll_names_the_keys_that_move_the_panel() {
+        // ## The letters of the keys at the two ends of the bar. See T-254.
+        //
         // The panel of the measurement of T-254: the changelog of the settings
         // in a panel of many rows. The bar comes, and it names the two keys.
-        let long = "1\n2\n3\n4\n5\n6\n7\n8\n9\n10";
-        let panel = the_panel_of_the_render(0, long, 80, 4);
+        let of_ten_lines = "1\n2\n3\n4\n5\n6\n7\n8\n9\n10";
+        let panel = the_panel_of_the_render(0, of_ten_lines, 80, 4);
         assert!(panel.the_bar_comes());
         assert!(panel.the_letters_come());
 
@@ -376,7 +375,7 @@ mod tests {
         // each, and a bar of three rows would then hold one row of the place of
         // the user. The bar of such a panel comes, and it names no key.
         for rows in 1..THE_ROWS_OF_THE_LETTERS {
-            let small = the_panel_of_the_render(0, long, 80, rows);
+            let small = the_panel_of_the_render(0, of_ten_lines, 80, rows);
             assert!(small.the_bar_comes(), "{} rows", rows);
             assert!(!small.the_letters_come(), "{} rows", rows);
         }
@@ -389,7 +388,7 @@ mod tests {
 
         // A panel of one character holds the text alone, therefore it names no
         // key.
-        let narrow = the_panel_of_the_render(0, long, 1, 40);
+        let narrow = the_panel_of_the_render(0, of_ten_lines, 1, 40);
         assert!(!narrow.the_bar_comes());
         assert!(!narrow.the_letters_come());
     }
