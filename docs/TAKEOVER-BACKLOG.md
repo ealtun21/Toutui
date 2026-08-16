@@ -23022,3 +23022,146 @@ first tests then fail.
   that the server does not hold can be a library that changed, and the key `R`
   of the view before it asks the server again (new with this item). A
   candidate, and not a measurement.
+
+### T-280: a chapter that did not come in time says what the program measured
+
+**The state**: corrected on 2026-08-16, in v0.8.109. The measurement is of the
+real program inside tmux against the sandbox.
+
+#### The choice of this item
+
+T-278 left the candidate "`This chapter is too complex.` of
+`src/logic/reader/session.rs` is the message of a render that went past its
+limit of time. A limit of time that went by can be a disk that is slow,
+therefore that is a reason that the program does not have (T-91), and it takes
+no line of the log. `This chapter did not open.` of the same file drops the
+reason of the join." This item reaches that candidate, and it holds both arms
+of the same `match`.
+
+#### The fault
+
+`Reader::render_for` of `src/logic/reader/session.rs` held the answer of
+`tokio::time::timeout(TIME_FOR_ONE_CHAPTER, work)` in three arms. The two arms
+of a render that did not come back each held a constant sentence:
+
+```rust
+Ok(Err(_)) => ... message: Some("This chapter did not open.".to_string()),
+Err(_)     => ... message: Some("This chapter is too complex.".to_string()),
+```
+
+Three faults of the second one:
+
+1. **The program measured a time, and it did not measure the chapter.**
+   `TIME_FOR_ONE_CHAPTER` is five seconds. A machine that is busy, a disk that
+   is slow, and a chapter of very many tags each give that same limit. "Too
+   complex" is therefore a reason that the program does not have (T-91).
+2. **The sentence names no key.** The footer of the view of the reader says
+   `n/p: chapter` and `h: leave the book`, and each of those three keys does
+   the work of this fault (T-170).
+3. **The arm takes no line of the log** (T-177). A maintainer of a machine
+   that is slow reads nothing of it.
+
+And the arm beside it dropped the `JoinError`, which holds the reason of the
+thread that died: a panic and a task that the runtime stopped read
+differently, and the user got one sentence for the two of them.
+
+#### The measurement
+
+The real program v0.8.108, inside tmux, against the sandbox. **The data of the
+fault is a book, and it needs no proxy at all**: `docs/harness` of this item is
+a Python script of 40 lines that writes an EPUB of three chapters, whose second
+chapter holds 40000 nested `<div>` and 440214 bytes. That is far under
+`MAX_CHAPTER_BYTES` of 8 megabytes, therefore the book reaches the render and
+not the guard of the size. The head of `src/logic/reader/render.rs` names the
+road: the time of `html2text` grows with the square of the depth of the tags,
+10000 nested `<div>` need 895 milliseconds in a debug build, and 100000 need
+more than 60 seconds.
+
+That book went into the cache of the ebooks of the account `toutuitest`, under
+the name of the item of `Alice in Wonderland`
+(`8fda6e43-0728-46ad-98bc-4c8634e299ad.epub`), because **a book of the cache
+costs no request of the server**. The good file of that name stood in the
+scratchpad for the road back.
+
+The keys `Tab`, 15 keys `j`, and `e` gave `Reading…`, and a poll of one second
+gave, at the sixth second:
+
+```text
+The Deep Book — chapter 2 of 3 — 0%
+                              This chapter is too complex.
+```
+
+The lines of the log that came with it: two of the live message of the server
+and one warning of `html5ever`. **No line of the reader at all.**
+
+#### The correction
+
+Two functions of the same file, each of which writes the log and makes the
+text, therefore a test of the words needs no book and no terminal:
+
+- `the_message_of_the_render_that_took_too_long(chapter)` names the limit of
+  time from `TIME_FOR_ONE_CHAPTER`, it names the two conditions that can give
+  that limit and neither of them as a fact, it names the keys `n`, `p`, and
+  `h`, and it names the file of the log. It writes
+  `[reader] the render of the chapter N did not come in 5 s`.
+- `the_message_of_the_render_that_died(chapter, fault)` carries the text of the
+  `JoinError`, and it names the same three keys. It writes
+  `[reader] the program lost the thread of the render of the chapter N: ...`.
+
+The corrected program of the same condition, at 160 columns, said on three
+rows:
+
+```text
+The program did not read this chapter in 5 seconds. The chapter can have very many tags, or the
+machine can be busy. Press n for the chapter after this one, or p for the chapter before it. Press h
+to leave the book. The file of the log holds more.
+```
+
+and the log held **one** line of the reader:
+`[WARN] - [reader] the render of the chapter 2 did not come in 5 s`.
+
+The controls of the same run: the message still stood 15 seconds later and the
+log still held exactly one line of it (the rule of T-277 holds — the render
+does not start again); the key `n` gave chapter 3 and its text; the key `p`
+gave chapter 1 and its text; and the key `h` gave the Library view. The book
+of the file of the start then gave `Alice's Adventures in Wonderland` with no
+line of a fault at all.
+
+#### The test
+
+`tests/a_chapter_that_did_not_come_in_time_says_why.rs`, three functions, no
+network and no terminal. The build of the fault, with the two `format!` of the
+correction replaced by the two constant sentences of before it, failed all
+three:
+
+```text
+the sentence does not give the road back: This chapter is too complex.
+the sentence is the one of before the correction: This chapter did not open.
+```
+
+#### What this item leaves open
+
+- **The arm `Ok(Err(_))` of `render_for` is dead code in the real program**
+  (new with this item). A `JoinError` of `spawn_blocking` comes of a panic of
+  that thread, and the hook of T-197 stops the whole program for a panic of a
+  thread that is not the main thread. The reader therefore never reads that
+  answer, and the correction of its words cannot be measured against the real
+  program. The Opus decoder holds an `ExpectedPanic` guard for exactly this
+  reason (T-17). **Ask: does the render of one chapter deserve that guard
+  too?** A render is a pure computation of one chapter whose failure the caller
+  handles already, and a panic of `html2text` on hostile markup then stops one
+  chapter and not the program. A candidate, and not a measurement.
+- `ReaderError::ChapterTooLarge` says `This chapter is too large.` It names no
+  size, no limit of 8 megabytes, and no key, and that arm of
+  `src/logic/reader/book.rs` writes no line of the log (open since T-274). A
+  candidate, and not a measurement.
+- `the_message_of_the_format` says "Try again, or read the log." for a media
+  whose book the server holds. It names no key at all (open since T-279). A
+  candidate, and not a measurement.
+- The sentence of the status 404 of the item names the key `h` alone, and the
+  key `R` of the view before it asks the server again (open since T-279). A
+  candidate, and not a measurement.
+- The header of the program at 80 columns wrote over itself: the screen said
+  `⚠ toutuitest: the server reports a faults (podcast)`, and the name of the
+  library lost its first characters (open since T-278). A candidate, and not a
+  measurement.

@@ -353,19 +353,19 @@ impl Reader {
                     places,
                     message,
                 },
-                Ok(Err(_)) => Rendered {
+                Ok(Err(fault)) => Rendered {
                     chapter,
                     width,
                     lines: Vec::new(),
                     places: Vec::new(),
-                    message: Some("This chapter did not open.".to_string()),
+                    message: Some(the_message_of_the_render_that_died(chapter, &fault)),
                 },
                 Err(_) => Rendered {
                     chapter,
                     width,
                     lines: Vec::new(),
                     places: Vec::new(),
-                    message: Some("This chapter is too complex.".to_string()),
+                    message: Some(the_message_of_the_render_that_took_too_long(chapter)),
                 },
             };
 
@@ -716,6 +716,72 @@ pub fn the_message_of_the_item_that_did_not_come(
         "The program did not get the book, and the server did not give the data \
          of this media. The server said: {}. Try the key e again, or read the \
          file of the log. Press h to go back.",
+        said.trim_end().trim_end_matches('.')
+    )
+}
+
+/// Gives the sentence for a render of a chapter that went past its limit of
+/// time.
+///
+/// **A limit of time that went by is not a chapter that is too complex**
+/// (T-280): the program measured a time, and it did not measure the chapter.
+/// A machine that is busy, a disk that is slow, and a chapter of very many
+/// tags each give that same limit. Therefore the sentence says what the
+/// program measured, it names the two conditions that can give it, and it
+/// says no reason as a fact (T-91).
+///
+/// The sentence names the keys `n`, `p`, and `h` of the view of the reader,
+/// because the user reads this text inside that view and each of those keys
+/// does the work of this fault (T-170 and T-183).
+///
+/// The function writes the log and it makes the text, therefore a test of the
+/// words needs no book and no terminal.
+pub fn the_message_of_the_render_that_took_too_long(chapter: usize) -> String {
+    let seconds = TIME_FOR_ONE_CHAPTER.as_secs();
+
+    warn!(
+        "[reader] the render of the chapter {} did not come in {} s",
+        chapter + 1,
+        seconds
+    );
+
+    format!(
+        "The program did not read this chapter in {} seconds. The chapter can \
+         have very many tags, or the machine can be busy. Press n for the \
+         chapter after this one, or p for the chapter before it. Press h to \
+         leave the book. The file of the log holds more.",
+        seconds
+    )
+}
+
+/// Gives the sentence for a render of a chapter whose thread died.
+///
+/// **The reason of the thread that died is the one reason of this fault**
+/// (T-280): the answer of the join holds it, and the arm before this
+/// correction dropped it. A panic of the render and a task that a caller
+/// stopped each give this answer, and the two of them read differently.
+///
+/// The function writes the log and it makes the text, therefore a test of the
+/// words needs no book and no terminal.
+pub fn the_message_of_the_render_that_died(
+    chapter: usize,
+    fault: &tokio::task::JoinError,
+) -> String {
+    warn!(
+        "[reader] the program lost the thread of the render of the chapter {}: {}",
+        chapter + 1,
+        fault
+    );
+
+    // The text of a `JoinError` ends with no period, therefore the sentence
+    // gives one of its own.
+    let said = fault.to_string();
+
+    format!(
+        "The program lost the thread that reads this chapter. The machine \
+         said: {}. Press n for the chapter after this one, or p for the \
+         chapter before it. Press h to leave the book. The file of the log \
+         holds more.",
         said.trim_end().trim_end_matches('.')
     )
 }

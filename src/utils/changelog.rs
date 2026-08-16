@@ -41,6 +41,25 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.109",
+        date: "16/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The reader says what it measured for a chapter that did not \
+             come, and it gives you a road.** A chapter of very many tags \
+             held the reader for more than five seconds, and Toutui then said \
+             \"This chapter is too complex.\" Toutui measured a time, and it \
+             did not measure the chapter: a machine that is busy gives that \
+             same five seconds. That sentence also named no key, and the \
+             fault took no line of the file of the log. Toutui now says the \
+             limit of time that went by, it names the two conditions that can \
+             give it, it names the keys `n`, `p`, and `h` of the view of the \
+             reader, and it writes the fault in the log. A chapter whose \
+             thread of the render died now says what the machine said, and it \
+             no longer drops that reason.",
+        ],
+    },
+    Entry {
         version: "0.8.108",
         date: "16/08/2026",
         body: &[

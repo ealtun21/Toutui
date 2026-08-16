@@ -122,6 +122,69 @@ gives no failure over its 152 binaries.
 **Two runs of `cargo nextest run` under the load of 24 loops of a shell
 gave 1200 of 1200 at v0.8.49 too** (T-220).
 
+## The session of the hundred and ninth turn of 2026-08-16: a chapter that did not come in time says what the program measured
+
+**One release: v0.8.109**, and one item: T-280. **The road of it is the
+candidate "`This chapter is too complex.` of `src/logic/reader/session.rs` is
+the message of a render that went past its limit of time" of T-278**, and the
+item holds the arm beside it too.
+
+`Reader::render_for` held the answer of
+`tokio::time::timeout(TIME_FOR_ONE_CHAPTER, work)` in three arms, and the two
+arms of a render that did not come back each held a constant sentence:
+`This chapter did not open.` for a thread that died, and
+`This chapter is too complex.` for the limit of five seconds. Three faults of
+the second one. The program measured a time, and it did not measure the
+chapter: a machine that is busy and a disk that is slow give that same limit,
+therefore "too complex" is a reason that the program does not have (T-91). The
+sentence named no key, and the footer of that view says `n/p: chapter` and
+`h: leave the book`. And the arm took no line of the log at all. The arm beside
+it dropped the `JoinError`, which holds the reason of the thread that died.
+
+**The data of the fault is a book, and it needs no proxy at all.**
+`docs/harness/a_book_of_a_deep_chapter.py` writes an EPUB of three chapters
+whose second chapter holds 40000 nested `<div>` in 440214 bytes. That is far
+under `MAX_CHAPTER_BYTES` of 8 megabytes, therefore the book reaches the render
+and not the guard of the size, and the head of `src/logic/reader/render.rs`
+names the road: the time of `html2text` grows with the square of the depth of
+the tags. The book went into the cache of the ebooks of the account
+`toutuitest` under the name of the item of `Alice in Wonderland`, because a
+book of the cache costs no request of the server, and the good file of that
+name stood in the scratchpad for the road back.
+
+The measurement, of the real program v0.8.108 inside tmux against the sandbox:
+the keys `Tab`, 15 keys `j`, and `e` gave `Reading…`, and a poll of one second
+gave `This chapter is too complex.` at the sixth second. The log held two lines
+of the live message and one warning of `html5ever`, and **no line of the reader
+at all**.
+
+The correction is two functions of the same file, each of which writes the log
+and makes the text. `the_message_of_the_render_that_took_too_long` names the
+limit of time from the constant, it names the two conditions that can give that
+limit and neither of them as a fact, it names the keys `n`, `p`, and `h`, and
+it names the file of the log. `the_message_of_the_render_that_died` carries the
+text of the `JoinError`. The corrected program of the same condition said the
+sentence on three rows, and the log held **one** line of the reader. The
+controls of the same run: the message stood 15 seconds later with still one
+line of the log, the key `n` gave chapter 3 and its text, the key `p` gave
+chapter 1 and its text, the key `h` gave the Library view, and the book of the
+file of the start gave `Alice's Adventures in Wonderland` with no line of a
+fault at all.
+
+**The arm `Ok(Err(_))` of `render_for` is dead code in the real program.** A
+`JoinError` of `spawn_blocking` comes of a panic of that thread, and the hook
+of T-197 stops the whole program for a panic of a thread that is not the main
+thread. The reader therefore never reads that answer, and the words of that arm
+cannot be measured against the real program. The Opus decoder holds an
+`ExpectedPanic` guard for exactly this reason (T-17), and whether the render of
+one chapter deserves that guard too is the first candidate of this turn.
+
+The gates: `cargo clippy --all-targets -- -D warnings` and `cargo fmt --check`
+give no warning, `cargo nextest run` gives 1320 of 1320 in 2.6 seconds with 26
+skipped, `cargo nextest run --run-ignored all` gives 1346 of 1346 in 17.1
+seconds with the sandbox up, and `cargo test -j 16 --no-fail-fast` passed in
+two runs.
+
 ## The session of the hundred and eighth turn of 2026-08-16: a media whose data the server did not give says why
 
 **One release: v0.8.108**, and one item: T-279. **The road of it is the
@@ -229,75 +292,6 @@ The two tests of the new module draw the real widget into a
 status 500 at the widths 40, 60, and 80, and one of the sentence of the offline
 mode at 80. The build of the fault, with the `.wrap(...)` line removed, gave
 `The server did not give the episodes of` at 40 columns.
-
-## The session of the hundred and sixth turn of 2026-08-16: a chapter that the book did not give says why
-
-**One release: v0.8.106**, and one item: T-277. **The road of it is the
-candidate "`ChapterAbsent` and `ChapterTooLarge` of `ReaderError`" of T-274,
-which T-275 and T-276 each left open.** This turn reaches `ChapterAbsent`, and
-the screen of that value gave a fault of its own.
-
-Three faults of one screen. `Book::chapter_bytes` of
-`src/logic/reader/book.rs` held `Err(_) => Err(ReaderError::ChapterAbsent)` as
-the last arm of the match on `manifest_entry.copy_bytes(&mut writer)`: the
-sentence of that value is `This chapter is absent.`, and the arm took no line
-of the log at all. `Reader::render_for` of `src/logic/reader/session.rs` read
-`!self.lines.is_empty()` as "the render came back": a chapter that gave a fault
-gives no line, therefore that condition never stood and the render started
-again at every frame. The loop of the screen calls `reader.take_the_answer()`
-(`src/ui/tui.rs:629`) and then the render, which calls
-`reader.render_for(inside.width)` (`src/ui/reader_tui.rs:122`): the first wrote
-the message of the fault, and the second wrote `Reading…` over it before the
-draw of that same frame. And the `Paragraph` of that message held no `wrap`,
-therefore a sentence longer than the width of the screen was cut.
-
-The measurement, of the real program v0.8.105 inside tmux against the sandbox,
-of the book `Alice in Wonderland` of the library `Books`. 64 bytes of the
-deflate stream of the entry `OEBPS/6260297267691793459_11-h-1.htm.html` of the
-file of the cache of the ebooks
-(`$XDG_DATA_HOME/toutui/downloads/toutuitest/8fda6e43-0728-46ad-98bc-4c8634e299ad.epub`,
-136761 bytes) each took the value of its own complement, 2000 bytes after the
-start of the data of that entry. The central directory and the local header
-kept every number, and `touch -r` gave the time of the file back: the cache of
-the program therefore kept that file. That entry is the spine 2, and the header
-of the reader calls it "chapter 3 of 14". The key `e` on that book gave
-
-```text
-Alice's Adventures in Wonderland — chapter 3 of 14 — 3%
-                                Reading…
-```
-
-and a poll of 24 looks of 250 milliseconds gave `Reading…` at every one of
-them. **The book was good**: the key `n` gave chapter 4 and the text of
-"CHAPTER II. The Pool of Tears", and the key `p` gave `Reading…` again.
-
-The correction is a value `ReaderError::TheArchiveGaveNoChapter(String)` that
-holds the reason of the crate of the archive, a field
-`the_render_that_came: Option<(usize, u16)>` of `Reader` that `take_the_answer`
-writes and that `render_for` reads in the place of the lines, and a
-`.wrap(Wrap { trim: true })` of the `Paragraph` of the message.
-`ChapterAbsent` stays for the one road of `spine_entry.manifest_entry()` that
-gives `None`, where the program holds no reason. The corrected program of the
-same condition said, on three lines of the screen, `The book gave no text of
-this chapter. The other chapters can be good. The machine said: [CannotRead -
-...]: corrupt deflate stream. The file of the log holds more. Press n for the
-next chapter.`, and the log named the file and the reason. The controls: the
-log held 2 lines of that fault at the first frame and 2 lines 15 seconds later,
-the message stood on the screen after those 15 seconds, the keys `n` and `p`
-each did their work, and the book of the file of the start gave the text of
-chapter 3 with no line of a fault at all.
-
-The test is `tests/a_chapter_that_did_not_come_says_why.rs`, of two tests, with
-no network and no sandbox: the book comes from `tests/data/alice.epub` of this
-repository, and the second test draws the real widget of the reader into a
-`Buffer` of 100 by 30 with no terminal at all and it does the work of the loop
-of the screen for 200 frames. The three builds of the fault each failed a test.
-
-The gates of v0.8.106, under `nice -n 19 ionice -c 3` with `-j 16`:
-`cargo clippy --all-targets -- -D warnings` and `cargo fmt --check` say nothing,
-`cargo nextest run` gives 1311 of 1311 in 2.9 seconds with 26 skipped,
-`cargo nextest run --run-ignored all` gives 1337 of 1337 in 17.4 seconds with
-the sandbox up, and `cargo test -j 16 --no-fail-fast` passed in two runs.
 
 ## The session of the hundred and fifth turn of 2026-08-16: a disk that gave no book says why
 
@@ -14719,66 +14713,140 @@ with the reason of `rbook` in the log.
   T-275): the block has a limit of size, therefore this turn names the new
   candidates alone and it does not repeat that list.
 
-## The prompt for the next session
+## The session of the hundred and sixth turn of 2026-08-16: a chapter that the book did not give says why
 
-**This session read the candidate "`The server has no ebook for this media.` of
-`src/logic/reader/session.rs` is the answer of every fault of `api.get_json`"**,
-which T-278 opened. The road of the key `e` asks the server two times, and the
-second request gave one sentence for every fault.
+**One release: v0.8.106**, and one item: T-277. **The road of it is the
+candidate "`ChapterAbsent` and `ChapterTooLarge` of `ReaderError`" of T-274,
+which T-275 and T-276 each left open.** This turn reaches `ChapterAbsent`, and
+the screen of that value gave a fault of its own.
 
-`why_the_book_did_not_come` of `src/logic/reader/session.rs` held
-`Err(_) => return "The server has no ebook for this media.".to_string()`. The
-endpoint of the ebook answers 404 for a media with no ebook and for an item
-that does not exist, therefore that function asks the server for the item at
-`/api/items/<the id>`. A server that reported a fault, a server that did not
-answer in time, a token that is not valid, and a body of no JSON each said that
-the media holds no ebook. That is a reason that the program does not have
-(T-91), and the arm wrote no line of the log at all.
+Three faults of one screen. `Book::chapter_bytes` of
+`src/logic/reader/book.rs` held `Err(_) => Err(ReaderError::ChapterAbsent)` as
+the last arm of the match on `manifest_entry.copy_bytes(&mut writer)`: the
+sentence of that value is `This chapter is absent.`, and the arm took no line
+of the log at all. `Reader::render_for` of `src/logic/reader/session.rs` read
+`!self.lines.is_empty()` as "the render came back": a chapter that gave a fault
+gives no line, therefore that condition never stood and the render started
+again at every frame. The loop of the screen calls `reader.take_the_answer()`
+(`src/ui/tui.rs:629`) and then the render, which calls
+`reader.render_for(inside.width)` (`src/ui/reader_tui.rs:122`): the first wrote
+the message of the fault, and the second wrote `Reading…` over it before the
+draw of that same frame. And the `Paragraph` of that message held no `wrap`,
+therefore a sentence longer than the width of the screen was cut.
 
-The measurement, of the real program v0.8.107 inside tmux against the sandbox,
-of `Alice in Wonderland` of the library `Books`. **This road needs two
-different statuses of two paths together**, and no harness of this repository
-gave that condition. The new harness `docs/harness/a_status_of_some_paths.py`
-takes rules of the shape `STATUS:part-of-a-path`, and the first rule that holds
-a part of the path wins. With `404:/api/items/<the id>/ebook` and
-`500:/api/items/<the id>`, the keys `Tab`, 15 keys `j`, and `e` gave
+The measurement, of the real program v0.8.105 inside tmux against the sandbox,
+of the book `Alice in Wonderland` of the library `Books`. 64 bytes of the
+deflate stream of the entry `OEBPS/6260297267691793459_11-h-1.htm.html` of the
+file of the cache of the ebooks
+(`$XDG_DATA_HOME/toutui/downloads/toutuitest/8fda6e43-0728-46ad-98bc-4c8634e299ad.epub`,
+136761 bytes) each took the value of its own complement, 2000 bytes after the
+start of the data of that entry. The central directory and the local header
+kept every number, and `touch -r` gave the time of the file back: the cache of
+the program therefore kept that file. That entry is the spine 2, and the header
+of the reader calls it "chapter 3 of 14". The key `e` on that book gave
 
 ```text
-                    The server has no ebook for this media.
+Alice's Adventures in Wonderland — chapter 3 of 14 — 3%
+                                Reading…
 ```
 
-**The book was good**: the sandbox holds the EPUB of it, of 136761 bytes.
+and a poll of 24 looks of 250 milliseconds gave `Reading…` at every one of
+them. **The book was good**: the key `n` gave chapter 4 and the text of
+"CHAPTER II. The Pool of Tears", and the key `p` gave `Reading…` again.
 
-The correction is a function
-`the_message_of_the_item_that_did_not_come(item_id, fault)` of the same file.
-The status 404 of the item is the media that the server does not hold, and it
-keeps a sentence of its own. Every other fault takes a line of the log, and the
-sentence names what the server said, the key `e` that asks again, the file of
-the log, and the key `h` of the view of the reader. The item is **T-279**, and
-it holds the release v0.8.108.
+The correction is a value `ReaderError::TheArchiveGaveNoChapter(String)` that
+holds the reason of the crate of the archive, a field
+`the_render_that_came: Option<(usize, u16)>` of `Reader` that `take_the_answer`
+writes and that `render_for` reads in the place of the lines, and a
+`.wrap(Wrap { trim: true })` of the `Paragraph` of the message.
+`ChapterAbsent` stays for the one road of `spine_entry.manifest_entry()` that
+gives `None`, where the program holds no reason. The corrected program of the
+same condition said, on three lines of the screen, `The book gave no text of
+this chapter. The other chapters can be good. The machine said: [CannotRead -
+...]: corrupt deflate stream. The file of the log holds more. Press n for the
+next chapter.`, and the log named the file and the reason. The controls: the
+log held 2 lines of that fault at the first frame and 2 lines 15 seconds later,
+the message stood on the screen after those 15 seconds, the keys `n` and `p`
+each did their work, and the book of the file of the start gave the text of
+chapter 3 with no line of a fault at all.
+
+The test is `tests/a_chapter_that_did_not_come_says_why.rs`, of two tests, with
+no network and no sandbox: the book comes from `tests/data/alice.epub` of this
+repository, and the second test draws the real widget of the reader into a
+`Buffer` of 100 by 30 with no terminal at all and it does the work of the loop
+of the screen for 200 frames. The three builds of the fault each failed a test.
+
+The gates of v0.8.106, under `nice -n 19 ionice -c 3` with `-j 16`:
+`cargo clippy --all-targets -- -D warnings` and `cargo fmt --check` say nothing,
+`cargo nextest run` gives 1311 of 1311 in 2.9 seconds with 26 skipped,
+`cargo nextest run --run-ignored all` gives 1337 of 1337 in 17.4 seconds with
+the sandbox up, and `cargo test -j 16 --no-fail-fast` passed in two runs.
+
+## The prompt for the next session
+
+**This session read the candidate "`This chapter is too complex.` of
+`src/logic/reader/session.rs` is the message of a render that went past its
+limit of time"**, which T-278 opened. The item holds the arm beside it too:
+`This chapter did not open.` for a render whose thread died.
+
+`Reader::render_for` held the answer of
+`tokio::time::timeout(TIME_FOR_ONE_CHAPTER, work)` in three arms, and the two
+arms of a render that did not come back each held a constant sentence. Three
+faults of the sentence of the limit of time. The program measured a time of
+five seconds, and it did not measure the chapter: a machine that is busy and a
+disk that is slow give that same limit, therefore "too complex" is a reason
+that the program does not have (T-91). The sentence named no key, and the
+footer of that view says `n/p: chapter` and `h: leave the book`. And the arm
+took no line of the log at all. The arm beside it dropped the `JoinError`,
+which holds the reason of the thread that died.
+
+The measurement, of the real program v0.8.108 inside tmux against the sandbox.
+**The data of a fault of the reader is a book, and it needs no proxy at all**:
+the new harness `docs/harness/a_book_of_a_deep_chapter.py` writes an EPUB of
+three chapters whose second chapter holds 40000 nested `<div>` in 440214 bytes.
+That is far under `MAX_CHAPTER_BYTES` of 8 megabytes, therefore the book
+reaches the render and not the guard of the size, and the head of
+`src/logic/reader/render.rs` names the road: the time of `html2text` grows with
+the square of the depth of the tags. The book went into the cache of the ebooks
+of the account `toutuitest` under the name of the item of `Alice in
+Wonderland`, because a book of the cache costs no request of the server. The
+keys `Tab`, 15 keys `j`, and `e` gave `Reading…`, and a poll of one second gave
+
+```text
+                              This chapter is too complex.
+```
+
+at the sixth second, with **no line of the reader in the log at all**.
+
+The correction is two functions of the same file, each of which writes the log
+and makes the text. The corrected program of the same condition said the
+sentence of the limit of time on three rows, with the two conditions that can
+give that limit and neither of them as a fact, the keys `n`, `p`, and `h`, and
+the file of the log; and the log held **one** line of the reader, still one 15
+seconds later. The item is **T-280**, and it holds the release v0.8.109.
 
 Two things are worth the room:
 
-1. **A guard of one value hides every other value of a fault.** The first
-   request of that road takes the status 404 alone to the second request, and
-   the second request then read every fault as that same 404. Ask of every road
-   of this program that asks the server two times: does the answer of the
-   second request keep the reason of its own fault?
-2. **Two proxies of this repository do not stand one behind the other** (the
-   trap 242). The answer of a rule says `Connection: keep-alive`, and
-   `to_the_sandbox` of the proxy in front of it then waits for an end of the
-   stream that never comes. A condition of two statuses needs one proxy of two
-   rules, and not two proxies of one rule each.
+1. **The arm `Ok(Err(_))` of `render_for` is dead code in the real program.** A
+   `JoinError` of `spawn_blocking` comes of a panic of that thread, and the
+   hook of T-197 stops the whole program for a panic of a thread that is not
+   the main thread. The words of that arm therefore cannot be measured against
+   the real program. The Opus decoder holds an `ExpectedPanic` guard for
+   exactly this reason (T-17), and whether the render of one chapter deserves
+   that guard too is the first candidate of this turn.
+2. **A limit of time measures a time and nothing else.** A message of a limit
+   that names a reason of the thing that it waited for is a reason that the
+   program does not have. Ask it of every such message of `src/`.
 
-The gates of v0.8.108, under `nice -n 19 ionice -c 3` with `-j 16`:
+The gates of v0.8.109, under `nice -n 19 ionice -c 3` with `-j 16`:
 `cargo clippy --all-targets -- -D warnings` and `cargo fmt --check` say nothing,
-`cargo nextest run` gives 1317 of 1317 in 2.7 seconds with 26 skipped,
-`cargo nextest run --run-ignored all` gives 1343 of 1343 with the sandbox up,
+`cargo nextest run` gives 1320 of 1320 in 2.6 seconds with 26 skipped,
+`cargo nextest run --run-ignored all` gives 1346 of 1346 with the sandbox up,
 and `cargo test -j 16 --no-fail-fast` passed in two runs.
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.108**; `Cargo.toml` is at 0.8.108. The
+> AlbanDAVID/Toutui. Newest release **v0.8.109**; `Cargo.toml` is at 0.8.109. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -14787,7 +14855,7 @@ and `cargo test -j 16 --no-fail-fast` passed in two runs.
 > **Read before you touch code:** `docs/HANDOVER.md` (the state, the decisions,
 > the road, and the traps that cost real time), `docs/TAKEOVER-BACKLOG.md` (the
 > evidence of every item; **T-87, T-107, T-128, T-131, T-140, T-142, T-145, and
-> T-148 are the eight to know**, and T-142 to T-279 are the newest), and
+> T-148 are the eight to know**, and T-142 to T-280 are the newest), and
 > `docs/T-24-coverage.md`
 > (**no row of section 4 says `Half`, and every row that says `No` belongs to an
 > administrator of the server**, and **section 6 names what the program must not
@@ -14947,6 +15015,28 @@ and `cargo test -j 16 --no-fail-fast` passed in two runs.
 > comes. A measurement of `a_status_of_one_path.py 13510 13500` in front of
 > `one_path_fails.py 13500 13399` gave `The server did not answer in time.` and
 > no road at all.
+>
+> **A book that holds the render for longer than its limit of time is
+> `docs/harness/a_book_of_a_deep_chapter.py`** (T-280). **The data of a fault of
+> the reader is a book, and it needs no proxy at all.** The script writes an EPUB
+> of three chapters whose second chapter holds the number of nested `<div>` of
+> its command line: 40000 of them give 440214 bytes, which is far under
+> `MAX_CHAPTER_BYTES` of 8 megabytes, therefore the book reaches the render and
+> not the guard of the size. The time of `html2text` grows with the square of the
+> depth of the tags, and the first and the third chapter read at once, therefore
+> the keys `n` and `p` hold a control of the same run:
+>
+> ```bash
+> python3 docs/harness/a_book_of_a_deep_chapter.py /the/path/of/the.epub 40000
+> ```
+>
+> **The book goes in the cache of the ebooks of the account**, at
+> `$XDG_DATA_HOME/toutui/downloads/<the account>/<the id of the item>.epub`,
+> because a book of the cache costs no request of the server. Keep the good file
+> of that name for the road back, and give the place of that media back with
+> `PATCH /api/me/progress/:id` at the end: **the reader keeps the chapter of a
+> book of a name that it read already**, therefore a second run of such a
+> measurement opens at the chapter of the run before it.
 >
 > **A server that answers the login and that holds no library is
 > `docs/harness/no_library.py`** (T-173). It forwards every request to the
@@ -15374,15 +15464,15 @@ and `cargo test -j 16 --no-fail-fast` passed in two runs.
 > makes no request: a measurement of two roads of the header needs a key of a
 > fresh request, and the key `R` alone forgets the state of a view.
 > Verify with a second program: `curl`, `podman logs abs-test`, or a browser.
-> Write the measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-270 and
+> Write the measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-281 and
 > up), and name that item in the commit.
 >
 > **The gates, before each commit**, under `nice -n 19 ionice -c 3` with `-j 16`:
 > `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`, and
 > `cargo nextest run` with `ALSA_CONFIG_PATH` pointing at a null asound file of
 > two lines (`pcm.!default { type null }` and `ctl.!default { type null }`).
-> Baseline: **1317 tests in 2.7 seconds**, and `cargo nextest run --run-ignored
-> all` gives **1343 of 1343** with the sandbox up, in about 17 seconds. **Run that
+> Baseline: **1320 tests in 2.6 seconds**, and `cargo nextest run --run-ignored
+> all` gives **1346 of 1346** with the sandbox up, in about 17 seconds. **Run that
 > second command at the end of the session too**: it found T-132 and T-111.
 >
 > **A box of the process needs one test function.** Two test functions of one
@@ -15492,6 +15582,71 @@ and `cargo test -j 16 --no-fail-fast` passed in two runs.
 > 1. **A condition of the program that no measurement has reached.** A sweep of
 >    this shape found a fault in one hundred and three sessions of one hundred
 >    and four.
+>    **The
+>    session of the hundred and ninth turn took the candidate "`This chapter is
+>    too complex.` of `src/logic/reader/session.rs` is the message of a render
+>    that went past its limit of time", which T-278 opened, and it holds the arm
+>    beside it too** (T-280).
+>
+>    `Reader::render_for` held the answer of
+>    `tokio::time::timeout(TIME_FOR_ONE_CHAPTER, work)` in three arms, and the
+>    two arms of a render that did not come back each held a constant sentence:
+>    `This chapter did not open.` for a thread that died, and `This chapter is
+>    too complex.` for the limit of five seconds. Three faults of the second one.
+>    The program measured a time, and it did not measure the chapter: a machine
+>    that is busy and a disk that is slow give that same limit, therefore "too
+>    complex" is a reason that the program does not have (T-91). The sentence
+>    named no key, and the footer of that view says `n/p: chapter` and `h: leave
+>    the book`. And the arm took no line of the log at all. The arm beside it
+>    dropped the `JoinError`, which holds the reason of the thread that died.
+>
+>    The measurement, of the real program v0.8.108 inside tmux against the
+>    sandbox. **The data of the fault is a book, and it needs no proxy at all**:
+>    `docs/harness/a_book_of_a_deep_chapter.py` writes an EPUB of three chapters
+>    whose second chapter holds 40000 nested `<div>` in 440214 bytes, and that
+>    book went into the cache of the ebooks of the account `toutuitest` under the
+>    name of the item of `Alice in Wonderland`. The keys `Tab`, 15 keys `j`, and
+>    `e` gave `Reading…`, and a poll of one second gave
+>
+>    ```text
+>    This chapter is too complex.
+>    ```
+>
+>    at the sixth second. The log held two lines of the live message and one
+>    warning of `html5ever`, and **no line of the reader at all**.
+>
+>    The correction is two functions of the same file, each of which writes the
+>    log and makes the text.
+>    `the_message_of_the_render_that_took_too_long(chapter)` names the limit of
+>    time from the constant, it names the two conditions that can give that limit
+>    and neither of them as a fact, it names the keys `n`, `p`, and `h`, and it
+>    names the file of the log. `the_message_of_the_render_that_died(chapter,
+>    fault)` carries the text of the `JoinError`. The corrected program of the
+>    same condition said `The program did not read this chapter in 5 seconds. The
+>    chapter can have very many tags, or the machine can be busy. Press n for the
+>    chapter after this one, or p for the chapter before it. Press h to leave the
+>    book. The file of the log holds more.` on three rows, and the log held
+>    **one** line of the reader. The controls: the message stood 15 seconds later
+>    with still one line of the log, the key `n` gave chapter 3 and its text, the
+>    key `p` gave chapter 1 and its text, the key `h` gave the Library view, and
+>    the book of the file of the start gave `Alice's Adventures in Wonderland`
+>    with no line of a fault at all.
+>    - **The arm `Ok(Err(_))` of `render_for` is dead code in the real program**
+>      (T-280, and it stays open): a `JoinError` of `spawn_blocking` comes of a
+>      panic of that thread, and the hook of T-197 stops the whole program for a
+>      panic of a thread that is not the main thread. The Opus decoder holds an
+>      `ExpectedPanic` guard for exactly this reason (T-17). **Ask: does the
+>      render of one chapter deserve that guard too?** A render is a pure
+>      computation of one chapter whose failure the caller handles already.
+>      **This is a candidate and not a measurement.**
+>    - **A limit of time of a task of this program is a measurement of a time
+>      and of nothing else** (T-280): ask of every message of a limit of time of
+>      `src/`, does the sentence say what the program measured, or does it say a
+>      reason of the thing that it waited for?
+>    - **Every candidate of the list of the turns below stays open** (T-229 to
+>      T-279): the block has a limit of size, therefore this turn names the new
+>      candidates alone and it does not repeat that list.
+>
 >    **The
 >    session of the hundred and eighth turn took the candidate "`The server has
 >    no ebook for this media.` of `src/logic/reader/session.rs` is the answer of
@@ -15630,93 +15785,6 @@ and `cargo test -j 16 --no-fail-fast` passed in two runs.
 >      measurement.**
 >    - **Every candidate of the list of the turns below stays open** (T-229 to
 >      T-277): the block has a limit of size, therefore this turn names the new
->      candidates alone and it does not repeat that list.
->
->    **The
->    session of the hundred and sixth turn took the candidate "`ChapterAbsent`
->    and `ChapterTooLarge` of `ReaderError`", which T-274 opened and which T-275
->    and T-276 each left open. It reaches `ChapterAbsent`, and the screen of that
->    value gave a fault of its own** (T-277).
->
->    Three faults of one screen. `Book::chapter_bytes` of
->    `src/logic/reader/book.rs` held `Err(_) => Err(ReaderError::ChapterAbsent)`
->    as the last arm of the match on `manifest_entry.copy_bytes(&mut writer)`:
->    the sentence of that value is `This chapter is absent.`, and the arm took no
->    line of the log at all. `Reader::render_for` of
->    `src/logic/reader/session.rs` read `!self.lines.is_empty()` as "the render
->    came back": a chapter that gave a fault gives no line, therefore the render
->    started again at every frame. The loop of the screen calls
->    `reader.take_the_answer()` (`src/ui/tui.rs:629`) and then the render, which
->    calls `reader.render_for(inside.width)` (`src/ui/reader_tui.rs:122`): the
->    first wrote the message of the fault, and the second wrote `Reading…` over
->    it before the draw of that same frame. And the `Paragraph` of that message
->    held no `wrap`, therefore a sentence longer than the width of the screen was
->    cut.
->
->    The measurement, of the real program v0.8.105 inside tmux against the
->    sandbox, of the book `Alice in Wonderland` of the library `Books`. 64 bytes
->    of the deflate stream of the entry
->    `OEBPS/6260297267691793459_11-h-1.htm.html` of the file of the cache of the
->    ebooks each took the value of its own complement, 2000 bytes after the start
->    of the data of that entry. The central directory and the local header kept
->    every number, and `touch -r` gave the time of the file back: the cache of
->    the program therefore kept that file. That entry is the spine 2, and the
->    header of the reader calls it "chapter 3 of 14". The key `e` on that book
->    gave
->
->    ```text
->    Alice's Adventures in Wonderland — chapter 3 of 14 — 3%
->                                    Reading…
->    ```
->
->    and a poll of 24 looks of 250 milliseconds gave `Reading…` at every one of
->    them. **The book was good**: the key `n` gave chapter 4 and the text of
->    "CHAPTER II. The Pool of Tears", and the key `p` gave `Reading…` again.
->
->    The correction is a value `ReaderError::TheArchiveGaveNoChapter(String)`
->    that holds the reason of the crate of the archive, a field
->    `the_render_that_came: Option<(usize, u16)>` of `Reader` that
->    `take_the_answer` writes and that `render_for` reads in the place of the
->    lines, and a `.wrap(Wrap { trim: true })` of the `Paragraph` of the message.
->    `ChapterAbsent` stays for the one road of `spine_entry.manifest_entry()`
->    that gives `None`, where the program holds no reason. The corrected program
->    of the same condition said `The book gave no text of this chapter. The other
->    chapters can be good. The machine said: [CannotRead - ...]: corrupt deflate
->    stream. The file of the log holds more. Press n for the next chapter.` on
->    three lines, and the log named the file and the reason. The controls: the
->    log held 2 lines of that fault at the first frame and 2 lines 15 seconds
->    later, the message stood on the screen after those 15 seconds, the keys `n`
->    and `p` each did their work, and the book of the file of the start gave the
->    text of chapter 3 with no line of a fault at all.
->    - **A message that a view never draws and a message that the view cuts are
->      one fault** (T-277): the correction of the value gave the user
->      `The machine said: [CannotRead` and no more, because the `Paragraph` of
->      that message held no `wrap`. Ask of every message of a view: does the
->      widget of it hold a `wrap`, and how long is the longest sentence that
->      reaches it?
->    - **A condition of the state that a fault cannot make is a loop** (T-277):
->      `render_for` read "the lines are not empty" for "the render came back",
->      and a render that failed gives no line. Ask of every "is it necessary"
->      of this program: does the answer of the work write the value that the
->      condition reads, or does the condition read a value that only the work
->      that succeeded writes?
->    - **The gate of the tests says which roads an arm holds** (T-277): the
->      hostile file `03-missing-target.epub` names a file of the manifest that
->      the archive does not hold, and its read reaches the same arm of
->      `copy_bytes`. The first form of the correction said in its doc comment
->      that the archive holds the chapter, and that was a reason that the
->      program does not have.
->    - **`ChapterTooLarge` of `ReaderError`** (T-277, and it stays open) says one
->      reason still, and no measurement of this turn reached it. **This is a
->      candidate and not a measurement.**
->    - **Every other `Paragraph` of a message of this program that holds no
->      `wrap`** (T-277, and they stay open) can cut a sentence that says why.
->      **This is a candidate and not a measurement.**
->    - **`chapter_sizes` gives 0 for a chapter that failed** (T-277, and it stays
->      open), and it says nothing at all. **This is a candidate and not a
->      measurement.**
->    - **Every candidate of the list of the turns below stays open** (T-229 to
->      T-276): the block has a limit of size, therefore this turn names the new
 >      candidates alone and it does not repeat that list.
 >
 >    **The turns before those three stand in `## The turns before the three
@@ -16217,7 +16285,11 @@ and `cargo test -j 16 --no-fail-fast` passed in two runs.
 > shorter than it** (T-278), and **a media whose data the server did not give
 > says why: the status 404 of the item is the media that the server does not
 > hold, and every other fault of that request says nothing at all of the book
-> of that media** (T-279).
+> of that media** (T-279), and **a chapter that did not come in time says what
+> the program measured: the limit of time that went by is a fact of the program
+> and the reason of that limit is not, the sentence names the keys of the view
+> of the reader, and the reason of a thread of a render that died stays in the
+> sentence and in the log** (T-280).
 >
 > **This block has a limit of size, and the driver dies above it.** `toutui-loop`
 > sends the whole block to the program of the next round in one command, and a
