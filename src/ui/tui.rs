@@ -431,14 +431,12 @@ fn megabytes(bytes: u64) -> String {
     crate::ui::keys::megabytes(bytes)
 }
 
-/// Makes a text shorter. The function adds a full stop character.
+/// Makes a text shorter, with three points for the end that goes away.
+///
+/// **`crate::logic::message::in_one_row` is the one maker of a text of one row
+/// of this program** (T-304).
 fn shorten(text: &str, width: usize) -> String {
-    if text.chars().count() <= width {
-        return text.to_string();
-    }
-
-    let kept: String = text.chars().take(width.saturating_sub(1)).collect();
-    format!("{}…", kept)
+    crate::logic::message::in_one_row(text, u16::try_from(width).unwrap_or(u16::MAX))
 }
 
 /// The cover art. See T-23.

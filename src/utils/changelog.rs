@@ -41,6 +41,21 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.133",
+        date: "16/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The title of a view keeps its start.** The title stands in the \
+             middle of the header of a list, and a title that was longer than \
+             the screen lost its start and its end together: a terminal of 40 \
+             columns said \"he books of Many Hours Author]\" for the title \
+             \"Search result [2 items, with the books of Many Hours Author]\", \
+             therefore the user read no name of the view and no number of its \
+             items. A title that does not stand now keeps its start, and three \
+             points say that the screen cut the end of it.",
+        ],
+    },
+    Entry {
         version: "0.8.132",
         date: "16/08/2026",
         body: &[

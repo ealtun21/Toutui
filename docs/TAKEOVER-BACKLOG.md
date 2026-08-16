@@ -26409,3 +26409,134 @@ and it does not say that the screen must be drawn again. See T-303."
   set the field after the loop of `src/main.rs` read it. **This is a candidate
   and not a measurement.**
 - **Every candidate of the turns before this one stays open** (T-229 to T-302).
+
+### T-304: the title of a view keeps its start
+
+#### The fault
+
+**A title that was longer than the screen lost its start and its end
+together.** `render_the_list` of `src/ui/the_list_of_a_view.rs` — the one road
+of every list of this program to the screen — gave its title to ratatui as
+`Line::raw(title).centered()`, and it gave that line the whole width of the
+view.
+
+ratatui holds two roads for a centered title of a `Block`.
+`render_centered_titles_without_truncation` of `ratatui-widgets-0.3.2` draws a
+title that stands, and `render_centered_titles_with_truncation` draws one that
+does not: that second road takes `offset = (the title − the width) / 2`, it
+gives the title an area of `the width − offset` columns, and it then draws the
+title **right-aligned** in that area. A right-aligned line that is wider than
+its area keeps its **end**. The title therefore lost `offset` characters of its
+start and `offset` more of its end, and the border of the block stood bare in
+the columns that stayed.
+
+**The user of a narrow terminal read no name of the view and no number of its
+items**, and the program said nothing of the words that went away.
+
+#### The measurement
+
+Of the real program v0.8.132 inside tmux, against the sandbox with the account
+`toutuitest`. **The data of this fault is the size of the terminal** (T-301),
+therefore it needs no proxy, no book of a harness, and no change of the sandbox
+at all: `COLUMNS_OF_THE_SCREEN=40` and `ROWS_OF_THE_SCREEN=30` of
+`docs/harness/drive.sh`, and the keys `/`, `hours`, and `Enter` of the Home
+view.
+
+The header of the view of the search said:
+
+```
+he books of Many Hours Author]──────────
+```
+
+The title of that view is `the_title_of_the_search` of
+`src/logic/search/mod.rs:142`, and it gave
+`Search result [2 items, with the books of Many Hours Author]` — **60
+characters**. The screen holds **40**.
+
+**The cause, in numbers.** `offset = (60 − 40) / 2 = 10`, the area of the title
+is `40 − 10 = 30` columns, and the right-aligned draw of it keeps the last 30
+characters of the title: `he books of Many Hours Author]`, which is the string
+of the screen, character for character. The columns 30 to 39 of that row kept
+the `─` of the top border of the block, which is the ten characters after it.
+The start that went away — `Search result [2 items, with t` — holds the name of
+the view and the number of its items.
+
+A control of the same run: the same view at 80 columns said
+`Search result [2 items, with the books of Many Hours Author]` whole, with ten
+characters of the border on each side of it.
+
+#### The decision
+
+**The title of a view keeps its start, and it loses its end to three points.**
+The start of a title names the view and the number of its lines; the end of it
+names the query or the author, which the user wrote themselves. That is the
+rule of T-299 for a message and of T-300 for the line at the top of the reader,
+for the part that the user can spare.
+
+**`crate::logic::message::in_one_row` is the one maker of a text of one row of
+this program.** Three functions of this repository held that same rule apart —
+`in_one_row` of `src/ui/reader_tui.rs` (T-300), `shorten` of `src/ui/tui.rs`,
+and the tail of `in_the_rows` of `src/logic/message.rs` — and no title of a
+view called any of them.
+
+#### The correction
+
+Four files. `src/logic/message.rs` holds the new pure `in_one_row`, which takes
+a width of columns and gives three points for the end that goes away.
+`src/ui/the_list_of_a_view.rs` calls it with `area.width` before it makes the
+`Line`, therefore ratatui never meets a title that it must cut.
+`src/ui/reader_tui.rs` and `src/ui/tui.rs` each give their own copy of that rule
+away and they call the one maker.
+
+#### The measurement of the corrected program
+
+Of v0.8.133, of the same keys and of the same sandbox:
+
+| The columns | The header of the view of the search |
+|---|---|
+| 39 | `Search result [2 items, with the books…` |
+| 40 | `Search result [2 items, with the books…─` |
+| 41 | `Search result [2 items, with the books o…` |
+| 80 | `──────────Search result [2 items, with the books of Many Hours Author]──────────` |
+
+#### The build of the fault
+
+`crate::logic::message::in_one_row(title, area.width)` of
+`src/ui/the_list_of_a_view.rs` with `u16::MAX` in the place of `area.width`
+makes the call a no operation and it keeps every other line. The gate then said:
+
+```
+the title lost its start at 39 columns: e books of Many Hours Author]
+```
+
+#### The gates
+
+`a_title_that_is_longer_than_the_screen_keeps_its_start` of
+`src/ui/the_list_of_a_view.rs` draws the list into a `Buffer` at 39, 40, 41,
+and 59 columns and it reads the row of the header: the title starts with
+`Search result [`, it ends with three points, and it stands inside the screen.
+The controls of that test: a title that stands loses nothing at 60 columns, the
+title `Episodes` stands whole at 40, and a width of 1 column gives no panic.
+`a_text_of_one_row_keeps_its_start` of `src/logic/message.rs` holds the pure
+function.
+
+`cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`, and
+`cargo nextest run` (1366 of 1366, 26 skipped).
+
+#### What this turn leaves open
+
+- **The four titles of a fixed text stand outside this gate.** `.title("The
+  sessions that you played")` of `src/ui/sessions_tui.rs:142`, `.title("Your
+  listening time")` of `src/ui/stats_tui.rs:339`, `.title("The reader of the
+  ebook")` of `src/ui/tui.rs:652`, and `.title("The contents of the book")` of
+  `src/ui/reader_tui.rs:304` are literals of `src/ui/`, in the shape of the five
+  footers of T-302 and of the four texts of T-301. The longest of them holds 28
+  characters, therefore each of them stands at 40 columns and no measurement of
+  this turn reached a fault of them. **A table of them in a file that a gate
+  reads is the answer of that class.** **This is a candidate and not a
+  measurement.**
+- **The rule of a title counts characters and not columns** (T-300, T-301,
+  T-302, and T-304). A name of a media of two columns takes one character of
+  every count of this program. **This is a candidate and not a measurement.**
+- **`App::search_mode` is never true** (T-303). This candidate stays open.
+- **Every candidate of the turns before this one stays open** (T-229 to T-303).

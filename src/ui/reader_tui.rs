@@ -105,49 +105,32 @@ pub fn line_of_the_top(
 /// is wider than the whole screen loses its end in the same way.
 ///
 /// The function is pure, therefore a test needs no screen.
+///
+/// **The three points come of `crate::logic::message::in_one_row`** (T-304),
+/// which is the one maker of a text of one row of this program.
 pub fn the_line_that_stands(title: &str, the_place: &str, width: u16) -> String {
     if width == 0 {
         return format!("{title}{the_place}");
     }
 
-    let width = usize::from(width);
+    let columns = usize::from(width);
     let letters = title.chars().count();
     let place = the_place.chars().count();
 
-    if letters + place <= width {
+    if letters + place <= columns {
         return format!("{title}{the_place}");
     }
 
     // The place of the user alone is wider than the screen: no room stays for
     // the title, and the place then loses its own end.
-    if place + 1 > width {
-        return in_one_row(the_place, width);
+    if place + 1 > columns {
+        return crate::logic::message::in_one_row(the_place, width);
     }
 
     // One column stays for the three points of the title.
-    let kept: String = title.chars().take(width - place - 1).collect();
+    let kept: String = title.chars().take(columns - place - 1).collect();
 
     format!("{}…{}", kept.trim_end(), the_place)
-}
-
-/// Gives a text that stands in a width of columns, with three points for the
-/// end that goes away. See T-300.
-fn in_one_row(text: &str, width: usize) -> String {
-    if width == 0 {
-        return String::new();
-    }
-
-    if text.chars().count() <= width {
-        return text.to_string();
-    }
-
-    if width == 1 {
-        return "…".to_string();
-    }
-
-    let kept: String = text.chars().take(width - 1).collect();
-
-    format!("{}…", kept.trim_end())
 }
 
 /// Gives the footer of the reader.

@@ -89,8 +89,20 @@ pub fn render_the_list(
         .fg(the_colour(&colors.line_header_color))
         .bg(the_colour(&colors.header_background_color));
 
+    // **The title of a list keeps its start** (T-304). ratatui centers a title
+    // that stands, and a title that is wider than the block takes
+    // `render_centered_titles_with_truncation`: that road gives the title an
+    // area of `width - (title - width) / 2` columns and it draws it
+    // **right-aligned** in that area, therefore the title loses its start and
+    // its end together. The measurement of 2026-08-16, of a terminal of 40
+    // columns: the title "Search result [2 items, with the books of Many Hours
+    // Author]" of 60 characters gave `he books of Many Hours Author]` and ten
+    // characters of the border, and the user read no name of the view and no
+    // number of its items. The three points say that the screen cut it.
+    let title = crate::logic::message::in_one_row(title, area.width);
+
     let block = Block::new()
-        .title(Line::raw(title.to_string()).centered())
+        .title(Line::raw(title).centered())
         .borders(Borders::TOP)
         .border_style(header_style)
         .bg(the_colour(&colors.list_background_color));
@@ -236,6 +248,74 @@ mod tests {
         // A list with no cursor keeps the offset of the panel: the thumb of it
         // stands at the top of the track.
         assert_eq!(the_rows_of_the_thumb(57, None).first(), Some(&1));
+    }
+
+    /// Gives the row of the header of a list of a width, with the border of it
+    /// taken away.
+    fn the_header_of_the_list(title: &str, width: u16) -> String {
+        let area = Rect::new(0, 0, width, 4);
+        let mut buf = Buffer::empty(area);
+
+        let the_lines: Vec<String> = (0..3).map(|i| format!("Letter {}", i + 1)).collect();
+
+        let mut state = ListState::default();
+        state.select(None);
+
+        render_the_list(
+            area,
+            &mut buf,
+            &Colors::default(),
+            title,
+            &the_lines,
+            &mut state,
+        );
+
+        (0..width)
+            .map(|column| buf[(column, 0)].symbol().to_string())
+            .collect::<String>()
+            .replace('─', "")
+    }
+
+    /// The title of a list keeps its start at every width. See T-304.
+    ///
+    /// **The parts of this test stay in one function.**
+    #[test]
+    fn a_title_that_is_longer_than_the_screen_keeps_its_start() {
+        // **The fault of T-304, of the real program v0.8.132 inside tmux**: a
+        // search of "hours" in a terminal of 40 columns gave the title
+        // "Search result [2 items, with the books of Many Hours Author]" of 60
+        // characters, and the header of the view said
+        // `he books of Many Hours Author]` and ten characters of the border.
+        // ratatui draws a centered title that does not stand **right-aligned**
+        // in an area that it cut, therefore the title lost its start and its
+        // end together.
+        let long = "Search result [2 items, with the books of Many Hours Author]";
+        assert_eq!(long.chars().count(), 60);
+
+        for width in [39u16, 40, 41, 59] {
+            let header = the_header_of_the_list(long, width);
+
+            assert!(
+                header.starts_with("Search result ["),
+                "the title lost its start at {width} columns: {header}"
+            );
+            assert!(
+                header.ends_with('…'),
+                "the title said nothing of the end that went away at {width} columns: {header}"
+            );
+            assert!(
+                header.chars().count() <= usize::from(width),
+                "the title stood outside the screen at {width} columns: {header}"
+            );
+        }
+
+        // The control: a title that stands loses nothing at all, and the border
+        // of the block then holds every other column of the row.
+        assert_eq!(the_header_of_the_list(long, 60), long);
+        assert_eq!(the_header_of_the_list("Episodes", 40), "Episodes");
+
+        // A width that holds no title at all gives no panic.
+        assert_eq!(the_header_of_the_list(long, 1), "…");
     }
 
     /// Draws a list of three lines with the colours of a user, and gives the

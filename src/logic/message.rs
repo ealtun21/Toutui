@@ -298,6 +298,35 @@ pub fn in_the_rows(text: &str, width: u16, rows: u16) -> String {
     String::new()
 }
 
+/// Makes the text that must stand in one row of a width of columns.
+///
+/// **A text of one row keeps its start** (T-304, and the rule of T-299 and of
+/// T-300): the start of a title of a view names the view and the number of its
+/// lines, therefore the end is the part that the user can spare, and the three
+/// points then say that the screen cut it.
+///
+/// A width of 0 gives no character at all, and a width of 1 gives the three
+/// points alone. The function is pure, therefore a test needs no screen.
+pub fn in_one_row(text: &str, width: u16) -> String {
+    if width == 0 {
+        return String::new();
+    }
+
+    let width = usize::from(width);
+
+    if text.chars().count() <= width {
+        return text.to_string();
+    }
+
+    if width == 1 {
+        return "…".to_string();
+    }
+
+    let kept: String = text.chars().take(width - 1).collect();
+
+    format!("{}…", kept.trim_end())
+}
+
 /// The name of the variable of the environment that carries a sentence over a
 /// start of the program again. See T-298.
 ///
@@ -497,5 +526,36 @@ mod tests {
             Duration::from_secs(0),
             Duration::from_secs(0)
         ));
+    }
+
+    /// A text of one row keeps its start. See T-304.
+    ///
+    /// **The parts of this test stay in one function.**
+    #[test]
+    fn a_text_of_one_row_keeps_its_start() {
+        // The title of the measurement of T-304, of 60 characters.
+        let long = "Search result [2 items, with the books of Many Hours Author]";
+        assert_eq!(long.chars().count(), 60);
+
+        // The space before the three points goes away, therefore the cut of a
+        // width of 40 columns holds 39 characters.
+        let cut = in_one_row(long, 40);
+        assert_eq!(cut, "Search result [2 items, with the books…");
+        assert!(cut.chars().count() <= 40, "{cut}");
+        assert!(cut.starts_with("Search result ["), "{cut}");
+        assert!(cut.ends_with('\u{2026}'), "{cut}");
+
+        // A text that stands loses nothing at all.
+        assert_eq!(in_one_row(long, 60), long);
+        assert_eq!(in_one_row("Episodes", 40), "Episodes");
+
+        // A width of one column gives the three points alone, and a width of no
+        // column gives nothing.
+        assert_eq!(in_one_row(long, 1), "\u{2026}");
+        assert_eq!(in_one_row(long, 0), "");
+
+        // A cut that ends at a space gives that space away.
+        assert_eq!(in_one_row("one two three", 8), "one two\u{2026}");
+        assert_eq!(in_one_row("one two three", 5), "one\u{2026}");
     }
 }
