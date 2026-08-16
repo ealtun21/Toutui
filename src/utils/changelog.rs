@@ -41,6 +41,21 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.118",
+        date: "16/08/2026",
+        body: &[
+            "Fixed:",
+            "- **A media now never says a time that is left of less than \
+             zero.** The panel of a line took the length of the media away \
+             from the place of the user, and it wrote the difference: a media \
+             of a length that the server does not give said \"-1m left\" \
+             beside a length of \"N/A\", and a media whose place stands past \
+             its length said \"-1h-1m left\". A media of a length that the \
+             program does not have now says no time at all, and a media whose \
+             place stands at its length or past it says \"0m left\".",
+        ],
+    },
+    Entry {
         version: "0.8.117",
         date: "16/08/2026",
         body: &[

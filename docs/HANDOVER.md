@@ -4,7 +4,9 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.8.116.** The item T-287 belongs to this session. The
+**The newest release is v0.8.118.** The item T-289 belongs to this session. The
+item T-288 belongs to the session before it. The
+item T-287 belongs to the session before it. The
 item T-286 belongs to the session before it. The
 item T-285 belongs to the session before it. The
 item T-284 belongs to the session before it. The
@@ -132,6 +134,71 @@ with the sandbox up, and `cargo test -j 16 --no-fail-fast` (the gate of CI)
 gives no failure over its 152 binaries.
 **Two runs of `cargo nextest run` under the load of 24 loops of a shell
 gave 1200 of 1200 at v0.8.49 too** (T-220).
+
+## The session of the hundred and eighteenth turn of 2026-08-16: a time that is left of less than zero is no time at all
+
+**The item: T-289.** T-288 left the candidate "the panel of the first line of
+that measurement said `Progress: 22%, -1m left, Not finished`: a time that is
+left of less than zero is no time at all".
+
+**One release: v0.8.118.**
+
+`convert_seconds_for_prg` of `src/utils/convert_seconds.rs` writes the time that
+is left of every panel of a line of this program, and it took
+`duration - current_time` and wrote the difference, with no guard at all. Two
+roads of the real program gave a difference of less than zero:
+
+- **a length that the server did not give is not a length of 0** (T-180): the
+  three callers of `src/app.rs` read the length of the media with
+  `length.unwrap_or(0.0)`, therefore a media of no length gave
+  `0 - the place of the user`;
+- **the place of the user can stand past the length of the media**: the server
+  holds a `duration` of its own beside the `duration` of the audio file, and the
+  two of them do not agree.
+
+The measurement, of the real program v0.8.117 inside tmux against the sandbox,
+of the podcast `Arthur Gordon Pym` of the library `Podcasts`.
+`a_field_of_one_row_goes_away.py` took the audio file of the first episode away,
+and the panel of that line said `Duration: N/A` and
+`Progress: 22%, -1m left, Not finished`. A `PATCH` of the place of `Chapter 02`
+to 6000 seconds, of an audio file of 2336 seconds, gave `Duration: 39m` and
+`Progress: 100%, -1h-1m left, Finished`: `/` and `%` of Rust go toward zero,
+therefore -61 minutes gave `-1h` and `-1m` together, and the program says a time
+in one form (T-284). The control of the same run, the second line, said
+`Duration: 22m` and `Progress: 74%, 5m left, Not finished`.
+
+The two neighbours of that function hold the rule already, and that is the
+argument that this is a fault of one function and not a decision:
+`the_left_of_the_row` of `src/player/integrated/player_info.rs` takes
+`saturating_sub` and it says `N/A` for a length of 0, and `the_time_of_the_line`
+of `src/logic/queue.rs` writes the difference inside a guard of
+`place < length`.
+
+The correction is one file. A length that is NaN, or that is not more than 0, is
+a length that the program does not have, therefore the function gives no text at
+all, as a place of 0 gives none; and the difference takes `.max(0.0)`, therefore
+a place at the length of the media or past it says `0m left,`. The corrected
+program of the same condition said `Progress: 22%,  Not finished`,
+`Progress: 74%, 5m left, Not finished`, and `Progress: 100%, 0m left, Finished`.
+
+The test is `tests/a_time_that_is_left_is_never_less_than_zero.rs`, of one
+function. The build of the fault, with the two lines of the guard removed,
+failed it with `left: "-1m left,"` and `right: ""`.
+
+**The candidate 4 of T-288 closes with no correction.** `render_desc_pod_ep` of
+`src/ui/tui.rs` holds a branch of the length of a list with a `log::error!` and
+the sentence `Error: Episode description unavailable.`, and that arm is
+unreachable: the view draws its own message `This podcast has no episode.` when
+`titles_pod_ep` is empty (measured with `a_field_of_the_answer_goes_away.py`
+taking `episodes` out of the answer of that item), and `collect_titles_pod_ep`
+and `collect_subtitles_pod_ep` each push one value for each episode. The
+`log::debug!` of that same function writes nothing, because `src/utils/logs.rs`
+holds `LevelFilter::Info`. It is dead code and not a fault of the user.
+
+The gates of v0.8.118: `cargo clippy --all-targets -- -D warnings` clean,
+`cargo fmt --check` clean, `cargo nextest run` 1337 of 1337 in 2.7 seconds,
+`cargo nextest run --run-ignored all` 1363 of 1363 with the sandbox up in 17
+seconds, and `cargo test -j 16 --no-fail-fast` clean on three runs.
 
 ## The session of the hundred and seventeenth turn of 2026-08-16: the panel of a line of the view of the episodes holds the value of that line
 
@@ -15858,6 +15925,83 @@ parts of it stay in one function**.
   T-286): the block has a limit of size, therefore this turn names the
   new candidates alone and it does not repeat that list.
 
+### The session of the hundred and seventeenth turn of 2026-08-16 (T-288)
+
+**The session of the hundred and seventeenth turn took the candidate "A line of
+a log that a user takes to a maintainer is a word for the user too: ask
+it of every line of the log of `src/` that names a number of a list",
+which T-287 opened** (T-288).
+
+The sweep, of the 352 lines of the log of `src/`. It found one candidate
+of the shape of T-287 (`src/player/engine/hls_file.rs:248` says "The
+reader starts at the part {first}", and `first` is the index of the
+segment while the line two below it says `first + 1`) — and it found
+**two lines of the log that no rule of this fork allows at all**:
+`render_info_pod_ep: Index {} out of bounds for episode/duration vectors
+(ep_len={}, dur_len={})!` of the **render** of `src/ui/tui.rs`, each with
+a sentence for the user beside it: `Error: Podcast metadata missing.`,
+`Error: Episode info rendering mismatch.`, and `Error: Episode data
+unavailable or index out of bounds.` **The twin of that render for the
+view of a search holds no such branch at all**: it reads every list with
+`at`, which gives `N/A`.
+
+The measurement, of the real program v0.8.116 inside tmux against the
+sandbox. **The data of that fault is one field of one row of one
+answer**: `docs/harness/a_field_of_one_row_goes_away.py 13506 13399
+requests.log /api/items/b793354b-9841-480a-bd09-41923596517e
+media.episodes 0 audioFile` took the audio file of the first episode of
+the podcast `Arthur Gordon Pym` of the library `Podcasts` away. The
+account took `http://127.0.0.1:13506` (the trap 129), and a `sqlite3` of
+`name_selected_lib` gave the library before the start (the trap 203 and
+the trap 204). The keys `Tab`, `j`, and `l` gave the view of the 11
+episodes, and the panel of the first line said `Duration: 22m` for an
+episode of 305 seconds — the length of the episode after it. Ten keys `j`
+gave the last line, and the panel of it said `Error: Episode data
+unavailable or index out of bounds.` **The log held 35 lines of that one
+fault in nine seconds**, because the render writes one of them at every
+frame.
+
+The road of the fault: `collect_episodes_pod_ep` pushes one value for
+each episode, and `collect_durations_pod_ep` pushed one value for each
+episode **that holds an audio file**. `the_lengths_of_the_episodes` of
+that same file obeys the rule of T-24 already (T-236), and its own doc
+comment named this fault of its neighbour and left it standing.
+
+The correction is two files. `collect_durations_pod_ep` reads
+`the_lengths_of_the_episodes` now, therefore it gives one value for each
+episode, and a length of 0 or an episode of no audio file gives `N/A`
+(T-180 and T-249). `the_panel_of_an_episode` of
+`src/logic/the_panel_of_a_line.rs` holds the format of both roads of that
+view, and it reads every list with the words of a value that the program
+does not have: the three branches, the three sentences of a program, and
+the two lines of the log of every frame go away. The corrected program of
+the same condition said `Duration: N/A` for the first line and
+`Episode: 10 - Duration: 12m` for the last one, and the log held no line
+of that render at all. **The control of the same run**: the same program
+against the sandbox with no proxy said `5m` and `12m`.
+- **The candidate 2 of T-287 closes** (T-288): the three call sites of
+  `no_such_chapter` of `chapter_bytes` are `?` and `return Err(…)`,
+  therefore one call of that function writes 0 or 1 lines of that fault.
+  **No road of the program says that fault two times for one key.**
+- **The line of `src/player/engine/hls_file.rs:248` stays open** (T-288).
+  **The name of a part of a stream is the value of every other line of
+  that file** (`part.name`, of the form `output-7.ts`), therefore the
+  road of that line is the name and not a number of one more. It needs
+  the book of xHE-AAC of the sandbox. **This is a candidate and not a
+  measurement.**
+- **The panel of the first line of that measurement said `Progress: 22%,
+  -1m left, Not finished`** (T-288). A time that is left of **less than
+  zero** is no time at all. **This is a candidate and not a
+  measurement.**
+- **`render_desc_pod_ep` of `src/ui/tui.rs` holds the last branch of this
+  shape** (T-288): a `log::error!` of every frame beside `Error: Episode
+  description unavailable.`, and its twin of the view of a search holds
+  none. **Ask it of every render of `src/ui/` that holds a branch of the
+  length of a list. This is a candidate and not a measurement.**
+- **Every candidate of the turns before this one stays open** (T-229 to
+  T-287): the block has a limit of size, therefore this turn names the
+  new candidates alone and it does not repeat that list.
+
 ## The prompt for the next session
 
 **This session read the candidate "`ChapterTooLarge` of `ReaderError` says
@@ -15920,7 +16064,7 @@ and `cargo test -j 16 --no-fail-fast` passed in three runs.
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.116**; `Cargo.toml` is at 0.8.116. The
+> AlbanDAVID/Toutui. Newest release **v0.8.118**; `Cargo.toml` is at 0.8.118. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -16749,89 +16893,89 @@ and `cargo test -j 16 --no-fail-fast` passed in three runs.
 > 1. **A condition of the program that no measurement has reached.** A sweep of
 >    this shape found a fault in one hundred and four sessions of one hundred
 >    and five.
->    **The
->    session of the hundred and seventeenth turn took the candidate "A line of
->    a log that a user takes to a maintainer is a word for the user too: ask
->    it of every line of the log of `src/` that names a number of a list",
->    which T-287 opened** (T-288).
+>    **The session of the hundred and eighteenth turn took the candidate "The
+>    panel of the first line of that measurement said `Progress: 22%, -1m left,
+>    Not finished`: a time that is left of less than zero is no time at all",
+>    which T-288 opened** (T-289).
 >
->    The sweep, of the 352 lines of the log of `src/`. It found one candidate
->    of the shape of T-287 (`src/player/engine/hls_file.rs:248` says "The
->    reader starts at the part {first}", and `first` is the index of the
->    segment while the line two below it says `first + 1`) — and it found
->    **two lines of the log that no rule of this fork allows at all**:
->    `render_info_pod_ep: Index {} out of bounds for episode/duration vectors
->    (ep_len={}, dur_len={})!` of the **render** of `src/ui/tui.rs`, each with
->    a sentence for the user beside it: `Error: Podcast metadata missing.`,
->    `Error: Episode info rendering mismatch.`, and `Error: Episode data
->    unavailable or index out of bounds.` **The twin of that render for the
->    view of a search holds no such branch at all**: it reads every list with
->    `at`, which gives `N/A`.
+>    `convert_seconds_for_prg` of `src/utils/convert_seconds.rs` writes the time
+>    that is left of every panel of a line of this program, and it took
+>    `duration - current_time` with no guard at all. **Two roads of the real
+>    program gave a difference of less than zero**: a length that the server did
+>    not give is not a length of 0 (T-180), and the three callers of `src/app.rs`
+>    read the length with `length.unwrap_or(0.0)`; and the place of the user can
+>    stand past the length of the media, because the server holds a `duration` of
+>    its own beside the `duration` of the audio file and the two of them do not
+>    agree.
 >
->    The measurement, of the real program v0.8.116 inside tmux against the
->    sandbox. **The data of that fault is one field of one row of one
->    answer**: `docs/harness/a_field_of_one_row_goes_away.py 13506 13399
->    requests.log /api/items/b793354b-9841-480a-bd09-41923596517e
->    media.episodes 0 audioFile` took the audio file of the first episode of
->    the podcast `Arthur Gordon Pym` of the library `Podcasts` away. The
->    account took `http://127.0.0.1:13506` (the trap 129), and a `sqlite3` of
->    `name_selected_lib` gave the library before the start (the trap 203 and
->    the trap 204). The keys `Tab`, `j`, and `l` gave the view of the 11
->    episodes, and the panel of the first line said `Duration: 22m` for an
->    episode of 305 seconds — the length of the episode after it. Ten keys `j`
->    gave the last line, and the panel of it said `Error: Episode data
->    unavailable or index out of bounds.` **The log held 35 lines of that one
->    fault in nine seconds**, because the render writes one of them at every
->    frame.
+>    The measurement, of the real program v0.8.117 inside tmux against the
+>    sandbox, of the podcast `Arthur Gordon Pym` of the library `Podcasts`. **The
+>    road 1**: `docs/harness/a_field_of_one_row_goes_away.py 13506 13399
+>    requests.log /api/items/b793354b-9841-480a-bd09-41923596517e media.episodes 0
+>    audioFile` took the audio file of the first episode away, and the panel of
+>    that line said `Duration: N/A` and `Progress: 22%, -1m left, Not finished` —
+>    the panel named a length that the program does not have, and it then said a
+>    time made of that same length. **The road 2**: a `PATCH` of
+>    `/api/me/progress/<the item>/<the episode>` with `{"currentTime": 6000}` put
+>    the place of `Chapter 02`, of an audio file of 2336 seconds, past the length
+>    of that file, and the panel of that line said `Duration: 39m` and
+>    `Progress: 100%, -1h-1m left, Finished`. **That road holds a fault of the
+>    form too**: `/` and `%` of Rust go toward zero, therefore -61 minutes gave
+>    `-1h` and `-1m` together (the rule of T-284). **The control of the same
+>    run**: the second line, of a real length, said `Duration: 22m` and
+>    `Progress: 74%, 5m left, Not finished`.
 >
->    The road of the fault: `collect_episodes_pod_ep` pushes one value for
->    each episode, and `collect_durations_pod_ep` pushed one value for each
->    episode **that holds an audio file**. `the_lengths_of_the_episodes` of
->    that same file obeys the rule of T-24 already (T-236), and its own doc
->    comment named this fault of its neighbour and left it standing.
+>    **The two neighbours of that function hold the rule already**, and that is
+>    the argument that this is a fault of one function and not a decision:
+>    `the_left_of_the_row` of `src/player/integrated/player_info.rs` takes
+>    `saturating_sub` and it says `N/A` for a length of 0, and
+>    `the_time_of_the_line` of `src/logic/queue.rs` writes the difference inside a
+>    guard of `place < length`.
 >
->    The correction is two files. `collect_durations_pod_ep` reads
->    `the_lengths_of_the_episodes` now, therefore it gives one value for each
->    episode, and a length of 0 or an episode of no audio file gives `N/A`
->    (T-180 and T-249). `the_panel_of_an_episode` of
->    `src/logic/the_panel_of_a_line.rs` holds the format of both roads of that
->    view, and it reads every list with the words of a value that the program
->    does not have: the three branches, the three sentences of a program, and
->    the two lines of the log of every frame go away. The corrected program of
->    the same condition said `Duration: N/A` for the first line and
->    `Episode: 10 - Duration: 12m` for the last one, and the log held no line
->    of that render at all. **The control of the same run**: the same program
->    against the sandbox with no proxy said `5m` and `12m`.
->    - **The candidate 2 of T-287 closes** (T-288): the three call sites of
->      `no_such_chapter` of `chapter_bytes` are `?` and `return Err(…)`,
->      therefore one call of that function writes 0 or 1 lines of that fault.
->      **No road of the program says that fault two times for one key.**
->    - **The line of `src/player/engine/hls_file.rs:248` stays open** (T-288).
->      **The name of a part of a stream is the value of every other line of
->      that file** (`part.name`, of the form `output-7.ts`), therefore the
->      road of that line is the name and not a number of one more. It needs
->      the book of xHE-AAC of the sandbox. **This is a candidate and not a
+>    The correction is one file. A length that is NaN, or that is not more than 0,
+>    gives no text at all, as a place of 0 gives none; and the difference takes
+>    `.max(0.0)`, therefore a place at the length of the media or past it says
+>    `0m left,`. The corrected program of the same condition said
+>    `Progress: 22%,  Not finished` for the first line and
+>    `Progress: 100%, 0m left, Finished` for the third one, and the control said
+>    `Progress: 74%, 5m left, Not finished` again.
+>    - **The candidate 4 of T-288 closes with no correction** (T-289).
+>      `render_desc_pod_ep` of `src/ui/tui.rs` holds a branch of the length of a
+>      list with a `log::error!` and the sentence `Error: Episode description
+>      unavailable.`, and **that arm is unreachable**: the view draws its own
+>      message `This podcast has no episode.` when `titles_pod_ep` is empty (the
+>      measurement of the same round, with `a_field_of_the_answer_goes_away.py`
+>      taking `episodes` out of the answer of that item), and
+>      `collect_titles_pod_ep` and `collect_subtitles_pod_ep` each push one value
+>      for each episode. The `log::debug!` of that same function writes nothing,
+>      because `src/utils/logs.rs` holds `LevelFilter::Info`. **It is dead code
+>      and not a fault of the user.**
+>    - **A sweep of the whole of `src/ui/` found no second branch of that shape**
+>      (T-289): every other render reads its lists with `at` or with `.get`.
+>      **The candidate now is the dead branch itself**: a render that holds an arm
+>      that no road reaches promises a fault that the program does not have, and
+>      a reader of the source takes it for a condition of the user. **Ask it of
+>      every arm of `src/` that no test and no measurement can reach. This is a
+>      candidate and not a measurement.**
+>    - **A percent of the server and a length of the program can disagree**
+>      (T-289): `Chapter 01` of the sandbox holds an audio file of 1319 seconds,
+>      and the row of the progress of the server of that same episode says 1355.
+>      The panel therefore says a percent of one length and a time of another
+>      one. **This is a candidate and not a measurement.**
+>    - **The line of `src/player/engine/hls_file.rs:248` stays open** (T-288). It
+>      needs the book of xHE-AAC of the sandbox. **This is a candidate and not a
 >      measurement.**
->    - **The panel of the first line of that measurement said `Progress: 22%,
->      -1m left, Not finished`** (T-288). A time that is left of **less than
->      zero** is no time at all. **This is a candidate and not a
->      measurement.**
->    - **`render_desc_pod_ep` of `src/ui/tui.rs` holds the last branch of this
->      shape** (T-288): a `log::error!` of every frame beside `Error: Episode
->      description unavailable.`, and its twin of the view of a search holds
->      none. **Ask it of every render of `src/ui/` that holds a branch of the
->      length of a list. This is a candidate and not a measurement.**
 >    - **Every candidate of the turns before this one stays open** (T-229 to
->      T-287): the block has a limit of size, therefore this turn names the
->      new candidates alone and it does not repeat that list.
+>      T-288): the block has a limit of size, therefore this turn names the new
+>      candidates alone and it does not repeat that list.
 >
 >    **The turns before this one stand in `## The turns before the three
 >    newest ones` of this file**, above the heading of this prompt. **This item
 >    held three turns, and the block then stood above its limit of size**
 >    (T-284): a round that writes its own turn takes the oldest turn out, and
 >    it takes a second one out while `toutui-loop --dry-run | wc -c` gives more
->    than 100000. That section holds the turn of the hundred and sixteenth and
->    every turn before it, the item of each, and the
+>    than 100000. That section holds the turn of the hundred and seventeenth
+>    and every turn before it, the item of each, and the
 >    sweeps
 >    that they left open — the fields of an answer of the server that hold no
 >    default (T-183, T-190, T-191, and T-192), the words of a program that

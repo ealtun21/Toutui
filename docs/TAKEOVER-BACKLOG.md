@@ -24311,3 +24311,142 @@ the two renders call it.
   memory over the key `h`.
 - **The three forms of a size of T-285 stay open**, and the two messages of
   `--update` of `src/update/install.rs` stay open.
+
+### T-289: a time that is left of less than zero is no time at all
+
+**The state**: corrected on 2026-08-16, in v0.8.118. The measurement is of the
+real program v0.8.117 inside tmux against the sandbox.
+
+#### The choice of this item
+
+T-288 left this candidate open: "The panel of the first line of that
+measurement said `Progress: 22%, -1m left, Not finished`. A time that is left
+of **less than zero** is no time at all."
+
+#### The fault
+
+`convert_seconds_for_prg` of `src/utils/convert_seconds.rs` writes the time
+that is left of every panel of a line of the program. It took
+`duration - current_time` and it wrote the difference, with no guard at all.
+
+#### The two roads to the fault
+
+1. **A length that the server did not give is not a length of 0** (the rule of
+   T-180). The three callers of `src/app.rs` —
+   `the_place_of_the_panel_of_the_home_view`,
+   `the_place_of_the_panel_of_this_media`, and
+   `the_place_of_the_panel_of_this_podcast` — each read the length of the media
+   with `length.unwrap_or(0.0)`. A media of no length therefore gave
+   `0 - the place of the user`.
+2. **The place of the user can stand past the length of the media**: the server
+   holds a `duration` of its own beside the `duration` of the audio file, and
+   the two of them do not agree. The episode `Chapter 01` of `Arthur Gordon
+   Pym` of the sandbox holds an audio file of 1319.601633 seconds, and the row
+   of the progress of the server of that same episode says 1355 seconds.
+
+#### The measurement
+
+2026-08-16, of the real program v0.8.117 inside tmux with
+`docs/harness/drive.sh`, against the podman sandbox on :13399. The library
+`Podcasts`, and the podcast `Arthur Gordon Pym` of 11 episodes.
+
+**The road 1.** `docs/harness/a_field_of_one_row_goes_away.py` took the audio
+file of the first episode away:
+
+```bash
+python3 docs/harness/a_field_of_one_row_goes_away.py 13506 13399 requests.log \
+    /api/items/b793354b-9841-480a-bd09-41923596517e media.episodes 0 audioFile
+```
+
+The account took `http://127.0.0.1:13506` in `users.server_address` (the trap
+129), and a `sqlite3` of `name_selected_lib` and of `id_selected_lib` gave the
+library `Podcasts` before the start (the trap 203 and the trap 204). The keys
+`Tab`, `j`, and `l` gave the view of the episodes, and the panel of the first
+line said:
+
+```text
+[Arthur Gordon Pym] - Author: LibriVox - Episode: 0 - Duration: N/A
+Progress: 22%, -1m left, Not finished
+```
+
+The panel named a length that the program does not have, and it then said a
+time made of that same length.
+
+**The road 2.** A `PATCH` of
+`/api/me/progress/b793354b-.../ff28a3b0-4ade-4a41-a3c3-864d264354a7` with
+`{"currentTime": 6000}` put the place of `Chapter 02`, of an audio file of
+2336.731429 seconds, past the length of that file. The panel of that line said:
+
+```text
+[Arthur Gordon Pym] - Author: LibriVox - Episode: 2 - Duration: 39m
+Progress: 100%, -1h-1m left, Finished
+```
+
+**That road holds a fault of the form too**: `/` and `%` of Rust go toward
+zero, therefore -61 minutes gave `-1h` and `-1m` together, and the program says
+a time in one form (the rule of T-284).
+
+**The control of the same run**: the second line, `Chapter 01`, holds a real
+length, and the panel of it said `Duration: 22m` and
+`Progress: 74%, 5m left, Not finished`. The keys and the panel do their work.
+
+#### The two neighbours of that function
+
+The two neighbours hold the rule already, and that is the argument that this is
+a fault of one function and not a decision of the fork:
+
+- `the_left_of_the_row` of `src/player/integrated/player_info.rs` takes
+  `saturating_sub` of two whole numbers, and it says `N/A` for a length of 0;
+- `the_time_of_the_line` of `src/logic/queue.rs` writes the difference inside a
+  guard of `place > 0.0 && place < length && !the_end`.
+
+#### The correction
+
+One file, `src/utils/convert_seconds.rs`:
+
+- a length that is NaN, or that is not more than 0, is a length that the
+  program does not have, therefore the function gives no text at all, as a
+  place of 0 gives none;
+- the difference takes `.max(0.0)`, therefore a place at the length of the
+  media or past it says `0m left,`.
+
+The corrected program, of the same condition and of the same run:
+
+- the line 1: `Duration: N/A` and `Progress: 22%,  Not finished`, and no time
+  at all;
+- the line 2, the control: `Duration: 22m` and
+  `Progress: 74%, 5m left, Not finished`, and nothing changed;
+- the line 3: `Duration: 39m` and `Progress: 100%, 0m left, Finished`.
+
+#### The test, and the build of the fault
+
+`tests/a_time_that_is_left_is_never_less_than_zero.rs`, of one function. The
+build of the fault, with the two lines of the guard removed, failed it:
+
+```text
+left: "-1m left,"
+right: ""
+```
+
+#### What this item closes, and what stays open
+
+- **The candidate 2 of T-288 closes.** The measurement gave the second road
+  too: the place of the server can stand past the length of the audio file on
+  its own, with no length missing at all.
+- **The candidate 4 of T-288 closes with no correction.**
+  `render_desc_pod_ep` of `src/ui/tui.rs` holds a branch of the length of a
+  list with a `log::error!` and the sentence
+  `Error: Episode description unavailable.`, and its twin
+  `render_desc_pod_ep_search` holds none. **That arm is unreachable.** The view
+  draws its own message `This podcast has no episode.` when `titles_pod_ep` is
+  empty — the measurement of the same round, with
+  `a_field_of_the_answer_goes_away.py 13503 13399 requests.log
+  /api/items/b793354b-... episodes`, gave that message and no panel at all —
+  and `collect_titles_pod_ep` and `collect_subtitles_pod_ep` each push one
+  value for each episode, therefore the two lists never disagree. The
+  `log::debug!` of that same function writes nothing, because
+  `src/utils/logs.rs` holds `LevelFilter::Info`. It is dead code and not a
+  fault of the user, therefore it takes no correction of this round, and it
+  stays as a candidate of a round that removes the dead branches of the render.
+- **The line of `src/player/engine/hls_file.rs:248` stays open**, and every
+  candidate of the turns before this one stays open.
