@@ -79,6 +79,11 @@ pub const GROUPS: &[Group] = &[
             ),
             key("h / ←", "A panel of the stack gives the focus back"),
             key("j / k", "The panel 5 moves the description of the media"),
+            // **The stack of the panels 1 to 3 goes away with one key**
+            // (T-323): the section (f) of `docs/mockups/mockup-1.md` names the
+            // cost of a screen that is always full, and the panel 4 of the
+            // list takes the 34 columns of the stack.
+            key("z", "Hide the panels 1 to 3, and show them again"),
         ],
     },
     Group {
@@ -512,9 +517,15 @@ pub const FOOTER_OF_A_LIBRARY_OF_PODCASTS: &str = "j/k: move  l: the episodes  \
 /// keys as the panel 1** (T-318), and the key `l` of them takes the line and it
 /// opens no view: the footer of each of the three panels therefore names the
 /// work of its own key `l`.
+/// **The key `z` hides the stack of the panels 1, 2, and 3** (T-323), and the
+/// footer of the panel 4 then names no digit of that stack: the digit of a
+/// panel that the frame did not draw does nothing (T-79), and a footer must not
+/// promise it. The key `z` itself stands in the footer of the two modes,
+/// because it is the road back of the mode that hides them.
 pub fn the_footer_of_a_panel(
     of_the_view: &str,
     the_frame_stands: bool,
+    the_stack_stands: bool,
     the_focus: crate::ui::frame::ThePanel,
 ) -> String {
     use crate::ui::frame::ThePanel;
@@ -543,7 +554,10 @@ pub fn the_footer_of_a_panel(
         ThePanel::TheCover => "j/k: the description  l: play or open  h: the list  \
                 4/Ctrl+h: the list  ?: every key  Q: quit"
             .to_string(),
-        ThePanel::TheList => format!("{of_the_view}  f: sequence  1/Ctrl+h: the panels"),
+        ThePanel::TheList if the_stack_stands => {
+            format!("{of_the_view}  f: sequence  1/Ctrl+h: the panels  z: hide them")
+        }
+        ThePanel::TheList => format!("{of_the_view}  f: sequence  z: the panels 1 to 3"),
     }
 }
 

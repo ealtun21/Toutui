@@ -604,6 +604,14 @@ pub struct App {
     /// of this program does the work that it did before this frame until the
     /// user moves the focus.
     pub the_panel_of_the_focus: crate::ui::frame::ThePanel,
+    /// The user hid the stack of the panels 1, 2, and 3. See T-323.
+    ///
+    /// **This is not the mode of the start.** The section (f) of
+    /// `docs/mockups/mockup-1.md` names the cost of a screen that is always
+    /// full: a user who wants a small and quiet screen finds it busy. The key
+    /// `z` gives the 34 columns of the stack to the panel 4 of the list, and
+    /// the same key gives the stack back.
+    pub the_stack_is_hidden: bool,
     /// The line of the user in the panel 1 of the views. See T-320.
     pub the_line_of_the_views: ListState,
     /// The line of the user in the panel 2 of the sequence. See T-318.
@@ -676,6 +684,12 @@ pub struct TheStateThatARefreshKeeps {
     /// application would give the user the panel of the list after every choice
     /// of a sequence, and the direction of that sequence is one key more.
     pub the_panel_of_the_focus: crate::ui::frame::ThePanel,
+    /// The user hid the stack of the panels 1, 2, and 3. See T-323.
+    ///
+    /// **A refresh must keep this mode**: the key `R` makes the application
+    /// again, and a user who hid the stack and who then asked the server for
+    /// the list again would get the busy screen back with no key of their own.
+    pub the_stack_is_hidden: bool,
     /// The line of the user in the panel 2 of the sequence. See T-318.
     pub the_line_of_the_sequence: ListState,
     /// The line of the user in the panel 3 of the filter. See T-318.
@@ -713,6 +727,7 @@ impl App {
             sleep: self.sleep,
             sleep_choice: self.sleep_choice,
             the_panel_of_the_focus: self.the_panel_of_the_focus,
+            the_stack_is_hidden: self.the_stack_is_hidden,
             the_line_of_the_sequence: self.the_line_of_the_sequence,
             the_line_of_the_filter: self.the_line_of_the_filter,
         }
@@ -727,6 +742,7 @@ impl App {
         self.sleep = of_the_old.sleep;
         self.sleep_choice = of_the_old.sleep_choice;
         self.the_panel_of_the_focus = of_the_old.the_panel_of_the_focus;
+        self.the_stack_is_hidden = of_the_old.the_stack_is_hidden;
         self.the_line_of_the_sequence = of_the_old.the_line_of_the_sequence;
         self.the_line_of_the_filter = of_the_old.the_line_of_the_filter;
     }
@@ -2097,6 +2113,10 @@ impl App {
             rows_of_the_footer: crate::ui::keys::THE_SMALLEST_FOOTER,
             the_width_of_the_screen: 0,
             the_panel_of_the_focus: crate::ui::frame::ThePanel::default(),
+            // **The stack of the panels stands at the start** (T-323): the
+            // mode that hides it is a mode of the user and not the mode of the
+            // start.
+            the_stack_is_hidden: false,
             the_line_of_the_views: {
                 let mut of_the_views = ListState::default();
                 of_the_views.select(Some(0));
@@ -2128,11 +2148,29 @@ impl App {
     /// Says if the stack of the panels of the frame stands on the screen now.
     /// See T-320.
     ///
+    /// **The stack comes with the frame of the panels**
+    /// ([`Self::the_frame_of_the_panels_stands`]), **and the key `z` takes it
+    /// away** (T-323): a user who wants a quiet screen hides the panels 1, 2,
+    /// and 3, and the panel 4 of the list then takes their 34 columns.
+    pub fn the_stack_of_the_panels_stands(&self) -> bool {
+        self.the_frame_of_the_panels_stands() && !self.the_stack_is_hidden
+    }
+
+    /// Says if the frame of the panels of the design stands on the screen now.
+    /// See T-320 and T-323.
+    ///
+    /// **The frame is not the stack.** The frame holds the panel 4 of the list
+    /// and the panel 5 of the cover too, and the key `z` of T-323 hides the
+    /// stack of the panels 1, 2, and 3 alone: the digits, the keys of the
+    /// focus, the border of the panel 4, and the click of a panel therefore
+    /// read this function, and the three panels of the stack read
+    /// [`Self::the_stack_of_the_panels_stands`].
+    ///
     /// **The stack comes with the three columns alone**
     /// (`crate::ui::frame::the_shape_of`), and it stands in the Home view and
     /// in the Library view, which are the two views that the panel 4 of the
     /// design holds. Every other view keeps the screen that it had.
-    pub fn the_stack_of_the_panels_stands(&self) -> bool {
+    pub fn the_frame_of_the_panels_stands(&self) -> bool {
         matches!(self.view_state, AppView::Home | AppView::Library)
             && crate::ui::frame::the_shape_of(self.the_width_of_the_screen)
                 == crate::ui::frame::TheShape::ThreeColumns
@@ -2182,11 +2220,39 @@ impl App {
             }
         }
 
+        // **The key `z` hides the stack of the panels 1, 2, and 3, and it
+        // gives them back** (T-323). The section (f) of
+        // `docs/mockups/mockup-1.md` names the cost of a screen that is always
+        // full, and this key is the answer of it.
+        //
+        // **The key comes before the keys of a panel of the stack**: a focus
+        // that stands on the panel 1, 2, or 3 must reach this key too, and the
+        // road back of such a focus is the panel 4, because the focus must not
+        // stand on a panel that holds no cell of the screen (T-79).
+        if key.code == KeyCode::Char('z') {
+            self.the_stack_is_hidden = !self.the_stack_is_hidden;
+
+            if self.the_stack_is_hidden && self.the_panel_of_the_focus.is_of_the_stack() {
+                self.the_panel_of_the_focus = ThePanel::TheList;
+            }
+
+            if self.the_stack_is_hidden {
+                crate::logic::message::say(
+                    "The panels 1 to 3 are hidden. Press the key z for them.",
+                );
+            } else {
+                crate::logic::message::say("The panels 1 to 3 stand again.");
+            }
+
+            return true;
+        }
+
         // **A digit of a panel that the frame draws moves the focus**, and a
         // digit of one of the three panels that no stage drew is no key of this
         // program at all (T-79). **A panel of the stack that this frame did not
         // draw takes no digit either**: a terminal that is not tall loses the
-        // panel 3 first and the panel 2 after it.
+        // panel 3 first and the panel 2 after it, and the key `z` takes the
+        // three of them away together (T-323).
         if let KeyCode::Char(digit) = key.code {
             if let Some(panel) = ThePanel::of_the_digit(digit) {
                 if !self.a_panel_of_the_frame_stands(panel) {
@@ -2481,8 +2547,16 @@ impl App {
     /// `TOUTUI_NO_COVERS` each take the panel 5 away. The digit of such a panel
     /// names a panel that this program does not draw, and it must do nothing
     /// (T-79).
+    ///
+    /// **The key `z` takes the panel 1 away with the panel 2 and the panel 3**
+    /// (T-323), therefore the panel 1 reads its area of the last frame too. The
+    /// panel 1 stood at every frame of the frame of the panels until that key
+    /// came, and this function then gave it `true` with no area at all.
     pub fn a_panel_of_the_frame_stands(&self, the_panel: crate::ui::frame::ThePanel) -> bool {
         let area = match the_panel {
+            crate::ui::frame::ThePanel::TheViews => {
+                self.the_areas_of_the_mouse.the_panel_of_the_views
+            }
             crate::ui::frame::ThePanel::TheSequence => {
                 self.the_areas_of_the_mouse.the_panel_of_the_sequence
             }
@@ -2683,7 +2757,7 @@ impl App {
 
         let target = the_target_of_a_point(
             &self.the_areas_of_the_mouse,
-            self.the_stack_of_the_panels_stands(),
+            self.the_frame_of_the_panels_stands(),
             the_report.column,
             the_report.row,
         );
@@ -2884,7 +2958,7 @@ impl App {
         // and for the Library view of a terminal of three columns and for
         // nothing else. Every other view and every other width keeps every key
         // that it had.
-        if self.the_stack_of_the_panels_stands() && self.the_key_of_a_panel(key) {
+        if self.the_frame_of_the_panels_stands() && self.the_key_of_a_panel(key) {
             return;
         }
 

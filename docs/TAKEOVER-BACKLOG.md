@@ -29455,3 +29455,185 @@ second whose bar holds that cell.
    makes it easy to see. The reader draws a layout of its own and it does not
    call `the_areas_of_a_view`, therefore the round that gives it the rows of the
    band is a round of the Reader view.
+
+
+## T-323 — The key `z` hides the panels 1 to 3, and the last sweep of the mouse
+
+**The stage 8 of the road of the panels** (`### 0. The road of the panels
+(T-316 to T-323)` of `docs/HANDOVER.md`), and the last of the eight stages of
+the mockup 1. **This is the work of a feature and not the work of a fault**,
+therefore the rule "show the fault before you correct it" does not hold: the
+rule that holds is the rule of the measurement, and the two screens of the real
+program stand below.
+
+**The design names this work in its own words.** The section (f) of
+`docs/mockups/mockup-1.md`, "What this design gives up": *"A quiet screen.
+Today, when nothing plays and there is no message, the screen is mostly empty
+and calm. This design is always full. A user who wants a small, quiet screen
+will find it busy. The answer is a key that hides panels 1, 2 and 3 and gives
+their columns to the list, but that is a second mode and not the default."*
+
+### The screen before the correction
+
+**The real program v0.8.152 inside tmux**, of the Library view of the library
+`Books` of the sandbox at 160 columns and 45 rows, with the key `Tab`:
+
+```text
+┌1 Views ────────────────────────┐╔4 Library [18 items] ═══════════════════════════════════╗ ┌5 Cover ──────────────────┐
+│➤ Home                       Tab│║    Title                     Author            Time Done║ │Author: N/A - Year: N/A   │
+│  Library                    Tab│║➤ ✓ A Book Of An Epub With No Container          <1m done║ │Progress: 100%, Finished  │
+│  Sequence and filter          f│║    A Book Of A Broken Epub                      <1m    -║ │                          │
+│  Authors                      a│║  ✓ A Book Of An Epub That Names Nothing         <1m done║ │No description available  │
+└────────────────────────────────┘╚════════════════════════════════════════════════════════╝ └──────────────────────────┘
+```
+
+**The stack held 34 columns of the 160**, the panel 4 of the list held 73 of
+them, and the panel 5 of the cover held 48. **The key `z` of that program did
+nothing and it said nothing at all**: the screen of the design gave the user no
+road to the quiet screen of the program before it, and no key of the 60 keys of
+the view of the key `?` gave it either.
+
+### The data of the fault
+
+**The program itself.** No proxy, no book of a harness, and no change of the
+sandbox: the mode is a mode of the screen of the user, and the library `Books`
+of the sandbox holds the 18 items of the measurement already. The library of
+the row of the account comes of a `sqlite3` of `name_selected_lib` and of
+`id_selected_lib` (the trap 203 and the trap 204), because the key of the next
+library is more expensive.
+
+### The correction
+
+**Four files, and no new one.**
+
+`src/ui/frame.rs`: `the_stack_and_the_work` takes a third argument,
+`the_user_hid_the_stack`, and it gives `(None, area)` for that mode at every
+shape. The function stays pure, and the whole width of the screen then reaches
+`cover::split_for_covers`, which gives the panel 5 the columns that it needs.
+
+`src/app.rs` holds the state and the key:
+
+- The field `the_stack_is_hidden` of `App`, which is `false` at the start:
+  **the mode of the design is not the mode of the start.**
+- `App::the_frame_of_the_panels_stands`, which is the predicate of today
+  (the Home view or the Library view, at 120 columns and up), and
+  `App::the_stack_of_the_panels_stands`, which is that predicate **and** the
+  mode. **The frame is not the stack**: the panel 4 of the list and the panel 5
+  of the cover keep their border, their digit, and their click while the stack
+  is away, therefore the digits, the keys of the focus, the border of the panel
+  4, the footer, and the click of a panel read the first predicate, and the
+  three panels of the stack read the second.
+- The key `z` of `the_key_of_a_panel`, before the digits: a focus that stands
+  on the panel 1, 2, or 3 must reach that key too, and the focus of such a
+  panel goes to the panel 4, because the focus must not stand on a panel that
+  holds no cell of the screen (T-79).
+- `a_panel_of_the_frame_stands` reads the area of the panel 1 of the last
+  frame, as it reads the area of the panels 2, 3, and 5 already.
+- `TheStateThatARefreshKeeps` holds the mode, therefore the key `R` keeps it.
+
+`src/ui/tui.rs` gives the mode to `the_stack_and_the_work`, and it moves the
+footer, the border of the panel 4, and the target of a click of the mouse to
+`the_frame_of_the_panels_stands`. **The words of the sequence and of the filter
+of the second row of the header read the stack** (T-318 holds that rule for
+every screen that draws no stack), therefore they come back with this mode.
+
+`src/ui/keys.rs` holds the key `z` of the view of the key `?`, and
+`the_footer_of_a_panel` takes a third argument of the stack: the footer of the
+panel 4 says `f: sequence  1/Ctrl+h: the panels  z: hide them` with the stack,
+and `f: sequence  z: the panels 1 to 3` without it.
+
+### The screen after the correction
+
+**The same harness, after the key `z`**:
+
+```text
+👋 Connected as toutuitest                          📖 Books (book)                     🦜 Toutui v0.8.153
+🔗 localhost:13399                       ⇅ The sequence of the server ▣ No filter
+╔4 Library [18 items] ═════════════════════════════════════════════════╗ ┌5 Cover ─────────────────────┐
+║    Title                                 Author           Time   Done║ │Author: N/A - Year: N/A      │
+║➤ ✓ A Book Of An Epub With No Container                     <1m   done║ │Progress: 100%, Finished     │
+║    A Book Of A Broken Epub                                 <1m      -║ │No description available     │
+╚══════════════════════════════════════════════════════════════════════╝ └─────────────────────────────┘
+                      The panels 1 to 3 are hidden. Press the key z for them.
+  j/k: move  l: play or open  Tab: home/library  …  Q: quit  f: sequence  z: the panels 1 to 3
+```
+
+**The panel 4 went from 73 columns to 93, and the panel 5 from 48 to 62.** The
+second row of the header took the words `⇅ The sequence of the server ▣ No
+filter`, and the message said the road back.
+
+**The digit `1` of that mode does nothing** (T-79): two keys `j` after it moved
+the list of the panel 4, therefore the focus stayed where the user can see it.
+**The digit `5` still gives the panel 5 the focus**: the border went to
+`╔5 Cover ═══╗` against `┌4 Library [18 items] ───┐`, and the footer said
+`j/k: the description  l: play or open  h: the list  4/Ctrl+h: the list`. **The
+key `z` a second time gave the stack back**, with the line of the cursor of the
+list where it stood, and the message said `The panels 1 to 3 stand again.`
+**The key `R` of a refresh kept the mode**, in the Home view of the same run.
+
+### The gate
+
+`tests/the_stack_of_the_panels_goes_away_with_one_key.rs` holds four tests: the
+two modes of `the_stack_and_the_work` at the three shapes, the two footers of
+the panel 4, the key `z` of the view of the key `?`, and the three rules of the
+handler (the focus that leaves a panel of the stack, the area of the panel 1,
+and the mode that a refresh keeps).
+
+**The build of the fault** (the trap 147), of five edits of one line each —
+`(the_user_hid_the_stack && false)` of `the_stack_and_the_work`,
+`&& false &&` on the focus of the key `z`, `the_stack_stands || true` of the
+footer, the line `key("z", …)` of `src/ui/keys.rs` taken out, and the arm
+`ThePanel::TheViews` of `a_panel_of_the_frame_stands` taken out — made **four
+of the four** fail.
+
+### The trap of this item
+
+**The frame of the panels is not the stack of the panels, and one predicate
+cannot hold the two of them.** `the_stack_of_the_panels_stands` was the one
+predicate of six call sites: the footer, the border of the panel 4, the target
+of a click, the gate of every key of a panel, the words of the header, and the
+stack itself. A mode that took that one predicate away gave a screen with **no
+border of the panel 4, no table of the header of T-321, no digit `5`, and no
+click of a panel at all** — the key of a quiet screen would have taken the
+whole stage 4 and the whole stage 6 with it. The two predicates are the road,
+and the words of each of them name the panels that it holds.
+
+### The last sweep of the mouse, and what stays open
+
+**The stage 8 holds the last sweep of the map of the mouse of the section (e)
+of `docs/mockups/mockup-1.md`.** The sweep is a read of that map against
+`src/ui/the_mouse.rs` and the handler of `src/app.rs`, and **it names
+candidates and not faults**: no row of it stands as an item until a measurement
+of the real program stands behind it.
+
+**The kinds of a report that the program reads today**: the button at the left
+that goes down, the wheel up, and the wheel down. **The button at the right,
+the button of the middle, a move of the pointer, a release, a drag, and a
+double click each reach the arm `_` of the handler and they do nothing.**
+`crossterm` sends no kind of a double click at all, therefore a program that
+wants one needs a timer of its own.
+
+**The regions of the map that the program does not reach**: the whole status
+bar (the name of the library, the word of the sequence, and the word of the
+filter), the button `[↑↓ turn the order]` of the panel 2, the list of the genre
+and the field of the text of the panel 3, the mark `▸`/`▾` of a series of the
+panel 4, the picture of the panel 5 (a click of it plays no media, and the
+wheel of it moves the description and no line of the list), the buttons of the
+facts and the bar of the progress of the panel 5, the whole of the panel 6 of
+the gallery (no area of it stands in the code at all), the buttons of the panel
+7 and the words `Volume` and `Speed` of it, the box of the message, the row of
+the downloads, the row of the words of the keys, and the menu of a click of the
+button at the right.
+
+**The regions that the program reaches in part**: a row of the panel 1 (the
+wheel moves the line, and a click gives the focus and it opens no view), a word
+of the header of the panel 4 (one click of the whole row opens the view of the
+key `f`, and no column of it holds a sequence of its own — that part belongs to
+T-318), the bar of the scroll of the panel 4 (the wheel moves the list, and a
+click jumps to no place), a row of the panel 4 (no double click and no drag),
+and the bar of the seek of the panel 7 (no drag).
+
+**Three parts of the road of the panels stay open after this stage**: the panel
+6 of the gallery and the facts of the design of the panel 5 (T-319), the mode
+of the whole library that sends `collapseseries=0` (T-318), and the digit `7`,
+the drag of the bar, and the buttons of the band (T-322).

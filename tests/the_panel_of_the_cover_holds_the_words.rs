@@ -195,7 +195,8 @@ fn the_digit_of_the_panel_of_the_cover_names_it() {
 #[test]
 fn the_words_of_the_keys_of_the_panel_of_the_cover_stand() {
     let of_the_view = toutui::ui::keys::FOOTER_OF_A_LIBRARY_OF_BOOKS;
-    let footer = toutui::ui::keys::the_footer_of_a_panel(of_the_view, true, ThePanel::TheCover);
+    let footer =
+        toutui::ui::keys::the_footer_of_a_panel(of_the_view, true, true, ThePanel::TheCover);
 
     // The keys `j` and `k` of this panel move the description of the media,
     // and not the line of a list.
@@ -210,7 +211,7 @@ fn the_words_of_the_keys_of_the_panel_of_the_cover_stand() {
 
     // A screen that holds no frame keeps the footer of the view.
     assert_eq!(
-        toutui::ui::keys::the_footer_of_a_panel(of_the_view, false, ThePanel::TheCover),
+        toutui::ui::keys::the_footer_of_a_panel(of_the_view, false, false, ThePanel::TheCover),
         of_the_view
     );
 

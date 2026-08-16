@@ -1621,6 +1621,7 @@ impl App {
         // does not hold (T-143).
         let text_render_footer = crate::ui::keys::the_footer_of_a_panel(
             of_the_view,
+            self.the_frame_of_the_panels_stands(),
             self.the_stack_of_the_panels_stands(),
             self.the_panel_of_the_focus,
         );
@@ -1833,6 +1834,7 @@ impl App {
         // does not hold (T-143).
         let text_render_footer = crate::ui::keys::the_footer_of_a_panel(
             of_the_view,
+            self.the_frame_of_the_panels_stands(),
             self.the_stack_of_the_panels_stands(),
             self.the_panel_of_the_focus,
         );
@@ -2881,6 +2883,7 @@ impl App {
         let (stack, work) = crate::ui::frame::the_stack_and_the_work(
             main_area,
             crate::ui::frame::the_shape_of(main_area.width),
+            self.the_stack_is_hidden,
         );
 
         let Some(stack) = stack else {
@@ -3106,7 +3109,7 @@ impl App {
         the_rows: Option<&[crate::ui::the_table_of_a_view::ARowOfTheTable]>,
         list_state: &mut ListState,
     ) {
-        let the_panel = if self.the_stack_of_the_panels_stands() {
+        let the_panel = if self.the_frame_of_the_panels_stands() {
             Some((
                 crate::ui::frame::ThePanel::TheList.the_number(),
                 self.the_panel_of_the_focus == crate::ui::frame::ThePanel::TheList,

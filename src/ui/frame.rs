@@ -101,13 +101,24 @@ pub fn the_shape_of(width: u16) -> TheShape {
 ///
 /// The stack is `None` for every shape but [`TheShape::ThreeColumns`].
 ///
+/// **The user can hide the stack** (T-323), and `the_user_hid_the_stack` is
+/// that mode: the design of `docs/mockups/mockup-1.md`, in its section (f),
+/// names the cost of a screen that is always full, and the answer of it is a
+/// key that gives the 34 columns of the stack to the panel 4. **That mode is
+/// not the mode of the start**, and the panels 4 and 5 keep every key that they
+/// hold, because those two panels stand on the screen still.
+///
 /// **The area of the work goes to `cover::split_for_covers` after this
 /// function**, and that function reads the width that it gets: a stack of 34
 /// columns at the left therefore takes 34 columns away from the arithmetic of
 /// the panel of the covers, and the covers of a screen of 120 columns stand on
 /// the 86 columns that stay.
-pub fn the_stack_and_the_work(area: Rect, shape: TheShape) -> (Option<Rect>, Rect) {
-    if shape != TheShape::ThreeColumns {
+pub fn the_stack_and_the_work(
+    area: Rect,
+    shape: TheShape,
+    the_user_hid_the_stack: bool,
+) -> (Option<Rect>, Rect) {
+    if the_user_hid_the_stack || shape != TheShape::ThreeColumns {
         return (None, area);
     }
 
@@ -464,7 +475,7 @@ mod tests {
     fn the_stack_stands_at_the_left_of_the_work_of_the_view() {
         let area = Rect::new(0, 2, 160, 30);
 
-        let (stack, work) = the_stack_and_the_work(area, TheShape::ThreeColumns);
+        let (stack, work) = the_stack_and_the_work(area, TheShape::ThreeColumns, false);
         let stack = stack.expect("the three columns hold the stack");
         assert_eq!(stack.x, 0);
         assert_eq!(stack.width, THE_WIDTH_OF_THE_STACK);
@@ -477,6 +488,7 @@ mod tests {
         let (_, work) = the_stack_and_the_work(
             Rect::new(0, 2, THE_WIDTH_OF_THREE_COLUMNS, 30),
             TheShape::ThreeColumns,
+            false,
         );
         assert!(
             work.width >= THE_WIDTH_OF_TWO_COLUMNS,
@@ -486,7 +498,7 @@ mod tests {
 
         // The two other shapes give the whole area to the work of the view.
         for shape in [TheShape::TwoColumns, TheShape::OneColumn] {
-            let (stack, work) = the_stack_and_the_work(area, shape);
+            let (stack, work) = the_stack_and_the_work(area, shape, false);
             assert_eq!(stack, None, "the shape {shape:?} holds no stack");
             assert_eq!(work, area);
         }

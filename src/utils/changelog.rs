@@ -41,6 +41,33 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.153",
+        date: "16/08/2026",
+        body: &[
+            "Added:",
+            "- **The key `z` hides the panels 1 to 3, and it gives them \
+             back.** The screen of the design is always full: the stack of \
+             the views, of the sequence, and of the filter takes 34 columns \
+             at the left, and a user who wants a small and quiet screen \
+             found no key for it. The key `z` gives those 34 columns to the \
+             list. On a screen of 160 columns the list goes from 73 columns \
+             to 93, and the panel of the cover goes from 48 to 62.",
+            "- **The words of the sequence and of the filter stay on the \
+             screen.** The second row of the header says them while the two \
+             panels are away, therefore you keep the two facts of the list \
+             that you see.",
+            "- **A refresh keeps this mode.** The key `R` asks the server \
+             again, and the screen stays quiet.",
+            "Fixed:",
+            "- **The footer names no key of a panel that went away.** With \
+             the panels hidden, the footer says `z: the panels 1 to 3` and \
+             no digit of them, and the digit `1` does nothing: a key that \
+             moves the focus to a panel that you cannot see is a key of no \
+             work. The digits `4` and `5` of the list and of the cover keep \
+             their work in the two modes.",
+        ],
+    },
+    Entry {
         version: "0.8.152",
         date: "16/08/2026",
         body: &[
