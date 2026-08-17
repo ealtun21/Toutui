@@ -36627,3 +36627,72 @@ item:**
 - The candidates of T-375: the cursor of an empty list at large (the nine
   sibling views of `src/app.rs`), a fact value of an East Asian language in
   the panel 5, and every candidate of the turns before it.
+## T-378 — A name of a filter of the server stands in one row of the header
+
+**The candidate of T-377.** That item left this line: the name of a filter of
+the header — `the_name_of_a_filter` of `src/ui/the_panels_of_the_stack.rs`
+gives `FilterChoice::label` to `the_words_of_the_sequence_and_the_filter`,
+which `draw_the_words_of_the_sequence` of `src/ui/tui.rs` draws into a
+`Paragraph` of one row with no wrap and no collapse.
+
+**The root.** A `Paragraph::new(String)` of ratatui splits its text at a
+`\n` into two lines, and the row of the header holds a height of one: the
+screen then shows the first line alone, with no mark that a word is gone.
+The rows of the view of the key `f` and the lines of the panel 3 collapse
+already (`in_one_line` of T-374 and `in_one_row` of T-304): the header was
+the one render site of a `FilterChoice::label` with no collapse at all.
+
+**The measurement of the fault, of the real program v0.8.208 inside tmux at
+100 columns (the stack of the panels stands at 120 and up, therefore the
+header holds the words under that width) against the sandbox on `:13399`,
+library `Books`.** `PATCH /api/items/:id/media` gave `A Long Test Book`
+(`9a671047-6146-4003-8510-d215db074a9c`) the genre `Alpha\nOMEGAEND`. A
+restart of the sandbox refreshed the cache of `filterdata` (the answer of
+`GET /api/libraries/:id/filterdata` keeps its genres until a restart). The
+view of the key `f` showed the row `Alpha OMEGAEND` (the rule of the list
+collapses it), the key `Enter` applied it, a second `f` and the key `h` gave
+the choices back (the refresh after an application forgets them), and the
+second row of the header read: `⇅ The time when the book came, the smallest
+first ▣ Alpha` — **the word OMEGAEND was gone with no mark at all**. The
+control of the same run: the genre `Fiction` of one line gave `▣ Fiction`
+whole.
+
+**A second finding of the measurement, a candidate and not an item.** The
+road of an application of a filter rebuilds the application in the way of
+the key `R`, and `src/main.rs:785` then calls `from_the_server::forget()` —
+the header therefore names the group (`▣ A genre`) and not the name that the
+user just took, until the view of the key `f` asks the server again. The
+name comes back at the next `f`.
+
+**The correction, v0.8.209.** One collapse with
+`crate::logic::message::in_one_line` at the composition of the label in
+`the_name_of_a_filter` (`src/ui/the_panels_of_the_stack.rs`). Every caller
+of the name takes it together. The fallback arms (the group names of the
+program) hold no end of a line already.
+
+**The test.** `tests/a_name_of_a_filter_stands_in_one_row.rs`, one test
+function (the rule of the box of the process). `the_name_of_a_filter` of a
+choice of the label `Alpha\nOMEGAEND` gives `Alpha OMEGAEND`, and the whole
+of the words of `the_words_of_the_sequence_and_the_filter` holds no end of a
+line. The build of the fault — the collapse removed — fails it.
+
+**The control of the correction, of the corrected binary and the same
+data.** The second row of the header read `⇅ The time when the book came,
+the smallest first ▣ Alpha OMEGAEND` in one row, and the title of the
+Library view read `Library [1 item]`.
+
+**The road back of the sandbox.** The `PATCH` gave the genres `Fiction,
+Adventure` back, a restart refreshed `filterdata`, and `sqlite3` gave the
+row of the account `library_sort`, `library_desc`, and `library_filter` of
+the start back (the measurement wrote a sequence and a filter into that
+row). No playback ran, therefore no session row came.
+
+**What this round leaves open, each a candidate and not an item.** (1) The
+forget of the choices after an application (the second finding above) — the
+header names the group until the next `f`. (2) `the_columns_of` of
+`draw_the_words_of_the_sequence` counts the columns of a text of two lines
+as one sum, therefore the room of the words reads wider than the screen
+draws — the collapse of this round takes that road away for the words of
+the header. (3) The candidates of T-375 (the cursor of an empty list at
+large, the nine sibling views of `src/app.rs`; a fact value of an East Asian
+language in the panel 5).

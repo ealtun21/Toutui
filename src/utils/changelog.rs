@@ -41,6 +41,19 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.209",
+        date: "18/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The name of a filter stands in one row of the header.** A \
+             genre, a tag, or a narrator of the server can hold an end of a \
+             line, and the header of the screen then showed the first line \
+             of that name alone, with no mark that a word was gone. The name \
+             now takes one space for each end of a line, as the rows of the \
+             lists do.",
+        ],
+    },
+    Entry {
         version: "0.8.208",
         date: "18/08/2026",
         body: &[

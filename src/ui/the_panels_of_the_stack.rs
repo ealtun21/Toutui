@@ -186,6 +186,11 @@ pub fn the_three_panels(
 /// **A filter whose name did not come names its group and no word more**: the
 /// user then reads that a filter stands, and the view of the key `f` gives the
 /// name of it.
+///
+/// **The name stands in one line** (T-378). A genre of the server can hold an
+/// end of a line, the words of the header go into a `Paragraph` of one row,
+/// and a `Paragraph` splits its text at a `\n`: the header then shows the
+/// first line of the name alone, with no mark that a word is gone.
 pub fn the_name_of_a_filter(value: &str, of_the_server: &[FilterChoice]) -> String {
     if value.is_empty() {
         return "No filter".to_string();
@@ -195,7 +200,7 @@ pub fn the_name_of_a_filter(value: &str, of_the_server: &[FilterChoice]) -> Stri
 
     for one in of_the_program.iter().chain(of_the_server.iter()) {
         if one.value == value {
-            return one.label.clone();
+            return crate::logic::message::in_one_line(&one.label).into_owned();
         }
     }
 
