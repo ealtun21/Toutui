@@ -36325,3 +36325,84 @@ item.**
   `the_columns_of` reads the width of two columns, and no media of the sandbox
   holds such a name, therefore no measurement of this round reached it.
 - Every candidate of the turns before this one stays open.
+
+## T-374 — A fact of the panel of the cover whose value holds an end of a line stands in one row, and the bar of the progress stays in the panel
+
+**The candidate of T-370.** That item gave the panel 5 of the facts the rule of
+one row, and it left this line: "**A value of a fact that holds an end of a
+line** — the rule of T-312 and of `in_one_line` — **shifts every line under it
+and it takes the bar off the panel**: the `Paragraph` of the facts reads
+`lines.join("\n")`, therefore one `\n` of the server gives the panel one row
+more. No measurement of this round reached it, because no media of the
+sandbox holds such a value." **The round of the two hundred and seventh** made
+that media.
+
+**The measurement of the fault, of the real program of v0.8.204 inside tmux
+at 160x45 against the sandbox.** `PATCH
+/api/items/9a671047-6146-4003-8510-d215db074a9c/media` gave `A Long Test Book`
+the genres `["Alpha\nOMEGAEND", "Adventure"]`, and the server said 200. The
+Library view with the cursor on that book gave the panel 5 the row `Genre
+    Alpha`, the label-less row `OMEGAEND, Adventure` under it, and **no bar
+at all**, for a book at 50 percent.
+
+**The control of the same run.** `One Chapter Book`, a clean genre and 20
+percent, showed its bar `██████████░░...` directly under its `Progress` row,
+in the same panel, in the same run.
+
+**Why.** `the_lines_of_the_facts` of `src/logic/the_facts_of_a_media.rs`
+passes each line through `in_one_row` alone. `the_columns_of` (the unicode
+width) gives a `\n` zero columns, therefore `in_one_row` reads the line as
+short enough and it returns the value of two lines whole. The two renders of
+the panel 5, `render_info_home` (`src/ui/tui.rs:4972`, the Home view) and
+`render_info_library` (`src/ui/tui.rs:5105`, the Library view), draw
+`Paragraph::new(lines.join("\n"))`, and ratatui's `Text::raw` splits that
+string on `\n`: the value takes a second visual row, with no label of its
+own. The budget of the rows, `of_the_facts` at `src/ui/tui.rs:1219`, counts
+`lines.len()`, one fewer than the visual rows that the panel then draws: the
+last row of the panel — the bar of the progress of T-325 — falls out of it.
+
+**The correction is one call, at the one push site.**
+`crate::logic::message::in_one_line` (`src/logic/message.rs:523`, the one
+place of the rule of a row of a list, T-311) now wraps the line before
+`in_one_row`, inside `the_lines_of_the_facts`. **v0.8.205.**
+
+**The corrected program of the same data of the server** gave `Genre
+    Alpha OMEGAEND, Adventure` in one row, and the bar of the progress — 24
+cells of 48 filled, of 50 percent — stood in the panel again.
+
+**The build of the fault fails the gate.** The new in-module test
+`a_value_of_an_end_of_a_line_stands_in_one_row` of
+`src/logic/the_facts_of_a_media.rs`, which is pure and needs no server,
+failed against the code with the correction removed: the assertion said "a
+line of the facts holds an end of a line" and it printed the line `Genre
+    Alpha\nOMEGAEND, Adventure`.
+
+**The road back.** The genres of `A Long Test Book` went back to `["Fiction",
+"Adventure"]`, and a `GET` of the item confirmed them.
+
+**What this item leaves open, and each of them is a candidate and not an
+item.**
+
+- **The titles of `render_the_reason` (`src/ui/tui.rs:3140`) and
+  `render_the_message` (`src/ui/the_message_of_a_view.rs:60`) pass through
+  `in_one_row` alone too.** A `\n` there is milder: ratatui drops a control
+  character inside a `Span` (`Buffer::set_stringn` filters
+  `char::is_control`), therefore the words of a title of two lines glue
+  together (`Alpha\nOMEGA` reads `AlphaOMEGA`) — no lost row, but a name that
+  the library does not hold.
+- **The cursor of an empty list.** `select_next` of the Bookmarks view
+  (`src/app.rs:10815`) and of eight sibling views sets `Some(0)` on a list of
+  no line, and the bare `ListState::select_previous()` (`src/app.rs:10991`)
+  sets `Some(usize::MAX)`. ratatui heals such a cursor only when the `List`
+  renders, and a view of no line renders its reason instead
+  (`src/ui/tui.rs:4847`), and every render passes a clone of the state
+  (`src/ui/tui.rs:2389`), therefore the out-of-range cursor stays in the
+  state of the program. Every read absorbs it with `.get(index)` today —
+  silent nothing, no panic.
+- **The key `l` of a search of a podcast with such a stale cursor**
+  (`src/app.rs:4657` to `:4703`) is gated on `if let Some(index)` alone and
+  ends at `AppView::PodcastEpisode`: it can switch the view with every field
+  empty, instead of doing nothing.
+- A fact value of an East Asian language (two-column characters) in the
+  panel 5; no media of the sandbox holds one.
+- Every candidate of the turns before this one stays open.

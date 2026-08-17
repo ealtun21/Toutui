@@ -41,6 +41,25 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.205",
+        date: "17/08/2026",
+        body: &[
+            "Fixed:",
+            "- **A fact of the cover panel whose value holds an end of a \
+             line stands in one row, and the bar of the progress stays in \
+             the panel.** The values of the facts come of the server, and a \
+             server can hold a genre, a series, or a narrator of more than \
+             one line. The panel gave such a value a second row with no \
+             label, and the budget of the rows of the panel counts the \
+             lines: the last row of the panel — the bar of the progress — \
+             then fell out of it. A genre of the server of two lines gave \
+             the row `Genre     Alpha`, a row of `OMEGAEND, Adventure` under \
+             it, and no bar for a book of 50 percent. Every end of a line of \
+             a value now takes one space, as every list of the program gives \
+             it (T-311), and the bar stays.",
+        ],
+    },
+    Entry {
         version: "0.8.204",
         date: "17/08/2026",
         body: &[

@@ -27664,6 +27664,64 @@ panel 4 of a view with no line; the footers of the panel 5 and of the panel 6
 (T-354); the rows of the band that does not fit (T-353); the width of the panel
 5 of a media with no cover; and every candidate of the turns before this one.
 
+## The session of the two hundred and sixth turn of 2026-08-17: T-373, the title of a view with no line, of the block of the prompt
+
+**The session of the two hundred and sixth turn shipped T-373**: the title of
+a view with no line that the screen cuts keeps its start now, and the three
+points say that the screen cut it. **The candidate came of T-367 and of
+T-361**, which left "the title of a panel that holds a name of the server"
+open.
+
+**The fault was the T-304 shape on the two roads that T-304 did not reach.**
+ratatui gives a centered title that is wider than the block a smaller area,
+and it draws the title right-aligned in it: the title loses its start and its
+end together, with no mark of either. T-304 gave the road of a view **with**
+lines the cut of `in_one_row`, and the two roads of a view with **no** line —
+`App::render_the_reason` of `src/ui/tui.rs` and `render_the_message` of
+`src/ui/the_message_of_a_view.rs` — passed the title raw. The measurement of
+the fault, of v0.8.203 inside tmux at 40 columns: the key `V` of the book
+`A Book Of An Epub With No Container` gave the bookmarks view with no line,
+and the row of the title said `With No Container" [0 items]` — no start, no
+mark, and no word that named the view. **The control of the same run**: the
+reason under the title wrapped whole (T-361), and the search view of the same
+terminal — a view with lines — cut its long line with the three points.
+
+**The correction is two calls of `in_one_row`**: `render_the_reason` gives
+the branch of `a_panel` the width `area.width.saturating_sub(6)` (the T-304
+rule of the corners and of the number) and the plain branch `area.width`, and
+`render_the_message` gives `area.width`. The corrected program at 40 columns
+said `The bookmarks of "A Book Of An Epub Wit…`, and at 160 columns the whole
+title stood with no mark. **v0.8.204.**
+
+**The build of the fault** — the two calls with `u16::MAX` in the place of
+the width, which is the program of v0.8.203 — **failed the two new tests**:
+`a_title_longer_than_the_screen_keeps_its_start` of
+`src/ui/the_message_of_a_view.rs`, and
+`tests/the_title_of_a_view_with_no_line_says_the_screen_cut_it.rs` (a
+`TestBackend` of 40 columns, the Bookmarks view, the box of the bookmarks at
+`Ready` of no row).
+
+**One gate of T-361 read the new mark as the old fault.** The second
+assertion of `tests/the_reason_of_a_view_with_no_line_holds_its_words.rs`
+said that no `…` stands on the screen of a view with no line: that mark
+could only mean a reason that the title cut when the round of T-361 wrote
+it, and it is the mark of a title that says the cut now. The assertion now
+reads the rows: a row that holds the mark must hold the start of the title
+of its view, and a mark on a row of the body is the fault of T-361 again.
+The first assertion — the whole reason stands — did not change.
+
+**What this round leaves open, and each of them is a candidate and not an
+item**: the raw titles of a `Block` that hold static words
+(`sessions_tui.rs`, `reader_tui.rs`, `stats_tui.rs`, and the reader with no
+book of `tui.rs`), which a terminal of 40 columns can still cut; the title
+`Player` of `a_band`, static too; the title of a view with no line of a name
+of an East Asian language, and no media of the sandbox holds such a name;
+the box of the screen of the start and the rule of the rows (T-371); a value
+of a fact that holds an end of a line (T-370); the keys `4`, `j`, `k`, and
+`l` of the panel 4 of a view with no line; the footers of the panel 5 and of
+the panel 6 (T-354); the rows of the band that does not fit (T-353); and
+every candidate of the turns before this one.
+
 ## The prompt for the next session
 
 
@@ -28682,61 +28740,52 @@ panel 4 of a view with no line; the footers of the panel 5 and of the panel 6
 > 1. **A condition of the program that no measurement has reached.** A sweep of
 >    this shape found a fault in one hundred and seventeen sessions of one
 >    hundred and eighteen.
-> **The session of the two hundred and sixth turn shipped T-373**: the title of
-> a view with no line that the screen cuts keeps its start now, and the three
-> points say that the screen cut it. **The candidate came of T-367 and of
-> T-361**, which left "the title of a panel that holds a name of the server"
-> open.
+> **The session of the two hundred and seventh turn shipped T-374**: a fact of
+> the panel of the cover whose value holds an end of a line stands in one row
+> now, and the bar of the progress stays in the panel. **The candidate came of
+> T-370**, which left "a value of a fact that holds an end of a line" open, and
+> the round made the media of the fault itself: `PATCH /api/items/:id/media`
+> gave `A Long Test Book` of the sandbox the genre `Alpha\nOMEGAEND`, and it
+> gave the genres of the start back at the end, with a `GET` that confirmed
+> them.
 >
-> **The fault was the T-304 shape on the two roads that T-304 did not reach.**
-> ratatui gives a centered title that is wider than the block a smaller area,
-> and it draws the title right-aligned in it: the title loses its start and its
-> end together, with no mark of either. T-304 gave the road of a view **with**
-> lines the cut of `in_one_row`, and the two roads of a view with **no** line —
-> `App::render_the_reason` of `src/ui/tui.rs` and `render_the_message` of
-> `src/ui/the_message_of_a_view.rs` — passed the title raw. The measurement of
-> the fault, of v0.8.203 inside tmux at 40 columns: the key `V` of the book
-> `A Book Of An Epub With No Container` gave the bookmarks view with no line,
-> and the row of the title said `With No Container" [0 items]` — no start, no
-> mark, and no word that named the view. **The control of the same run**: the
-> reason under the title wrapped whole (T-361), and the search view of the same
-> terminal — a view with lines — cut its long line with the three points.
+> **The fault**: `the_lines_of_the_facts` of
+> `src/logic/the_facts_of_a_media.rs` passes each line through `in_one_row`
+> alone, `the_columns_of` gives a `\n` zero columns, and the `Paragraph` of
+> the panel 5 draws `lines.join("\n")`: the value took a second row with no
+> label, and the budget of the rows (`of_the_facts` of `src/ui/tui.rs`,
+> `lines.len()`) then stood one row short — the last row of the panel, the bar
+> of the progress of T-325, fell out of it. The measurement, of v0.8.204
+> inside tmux at 160x45: the panel said `Genre     Alpha`, a label-less
+> `OMEGAEND, Adventure` under it, and no bar for a book of 50 percent. **The
+> control of the same binary**: `One Chapter Book`, of a clean genre and of 20
+> percent, held its bar under its `Progress` row.
 >
-> **The correction is two calls of `in_one_row`**: `render_the_reason` gives
-> the branch of `a_panel` the width `area.width.saturating_sub(6)` (the T-304
-> rule of the corners and of the number) and the plain branch `area.width`, and
-> `render_the_message` gives `area.width`. The corrected program at 40 columns
-> said `The bookmarks of "A Book Of An Epub Wit…`, and at 160 columns the whole
-> title stood with no mark. **v0.8.204.**
->
-> **The build of the fault** — the two calls with `u16::MAX` in the place of
-> the width, which is the program of v0.8.203 — **failed the two new tests**:
-> `a_title_longer_than_the_screen_keeps_its_start` of
-> `src/ui/the_message_of_a_view.rs`, and
-> `tests/the_title_of_a_view_with_no_line_says_the_screen_cut_it.rs` (a
-> `TestBackend` of 40 columns, the Bookmarks view, the box of the bookmarks at
-> `Ready` of no row).
->
-> **One gate of T-361 read the new mark as the old fault.** The second
-> assertion of `tests/the_reason_of_a_view_with_no_line_holds_its_words.rs`
-> said that no `…` stands on the screen of a view with no line: that mark
-> could only mean a reason that the title cut when the round of T-361 wrote
-> it, and it is the mark of a title that says the cut now. The assertion now
-> reads the rows: a row that holds the mark must hold the start of the title
-> of its view, and a mark on a row of the body is the fault of T-361 again.
-> The first assertion — the whole reason stands — did not change.
+> **The correction is one call**: `in_one_line` (the T-311 rule of a row) now
+> wraps the line before `in_one_row` at the one push site of
+> `the_lines_of_the_facts`. The corrected program of the same data of the
+> server said `Genre     Alpha OMEGAEND, Adventure` in one row, and the bar
+> stood in the panel again. **v0.8.205.** The build of the fault — the
+> correction removed — failed the new pure test
+> `a_value_of_an_end_of_a_line_stands_in_one_row` of that module.
 >
 > **What this round leaves open, and each of them is a candidate and not an
-> item**: the raw titles of a `Block` that hold static words
-> (`sessions_tui.rs`, `reader_tui.rs`, `stats_tui.rs`, and the reader with no
-> book of `tui.rs`), which a terminal of 40 columns can still cut; the title
-> `Player` of `a_band`, static too; the title of a view with no line of a name
-> of an East Asian language, and no media of the sandbox holds such a name;
-> the box of the screen of the start and the rule of the rows (T-371); a value
-> of a fact that holds an end of a line (T-370); the keys `4`, `j`, `k`, and
-> `l` of the panel 4 of a view with no line; the footers of the panel 5 and of
-> the panel 6 (T-354); the rows of the band that does not fit (T-353); and
-> every candidate of the turns before this one.
+> item**: the titles of `render_the_reason` and of `render_the_message`, where
+> a `\n` glues the words of a title together, because a `Span` drops a control
+> character — no lost row, and a name that the library does not hold; the
+> cursor of an empty list, which `select_next` of the Bookmarks view and of
+> eight sibling views sets to `Some(0)` and a bare `select_previous` sets to
+> `Some(usize::MAX)`, and which no render heals, because a view of no line
+> draws its reason and every render takes a clone of the state — every read
+> absorbs it with `.get(index)` today, therefore it is silent and it does not
+> stop the program; the key `l` of a search of a podcast with such a stale
+> cursor, which can open `AppView::PodcastEpisode` with every field empty; a
+> fact value of an East Asian language in the panel 5, and no media of the
+> sandbox holds one; the static titles of a `Block` (`sessions_tui.rs`,
+> `stats_tui.rs`, `reader_tui.rs`, and the reader with no book of `tui.rs`)
+> each stand under 36 columns and fit a terminal of 40 — the sweep of this
+> round measured the four of them, and they are no candidates now; and every
+> candidate of the turns before this one.
 >    **The turns before this one stand in `## The turns before the three
 >    newest ones` of this file**, above the heading of this prompt. **This item
 >    held three turns, and the block then stood above its limit of size**
@@ -29003,7 +29052,7 @@ panel 4 of a view with no line; the footers of the panel 5 and of the panel 6
 > and it held **88074** bytes with **one** turn in it. The round of the two
 > hundred and fifth found it at 88308 bytes with one turn in it, and it did the
 > same work: the block held **81281** bytes with no turn at all after the
-> removal, and it held **85713** bytes with **one** turn in it. The round of the two hundred and sixth found it at 85713 bytes with one turn in it, and it did the same work: it holds about **86000** bytes with **one** turn in it now.
+> removal, and it held **85713** bytes with **one** turn in it. The round of the two hundred and sixth found it at 85713 bytes with one turn in it, and it did the same work: it holds about **86000** bytes with **one** turn in it now. The round of the two hundred and seventh found it at 85815 bytes with one turn in it, and it did the same work.
 > **A block that stands at 80000 bytes or under holds two
 > turns**, and the turn of the stage before this one names the parts of that
 > stage which stay open. **The list of the decisions

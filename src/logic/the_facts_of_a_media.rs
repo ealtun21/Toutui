@@ -276,8 +276,12 @@ pub fn the_lines_of_the_facts(media: &TheMediaOfThePanel, width: u16) -> Vec<Str
         ("Progress", the_place_of(media)),
     ] {
         if let Some(value) = value {
+            // **A value of the server that holds an end of a line stands in
+            // one row** (T-374): the `Paragraph` of the panel gives a `\n` a
+            // second row, the budget of the rows counts the lines, and the
+            // last line of the panel then falls out of it.
             lines.push(crate::logic::message::in_one_row(
-                &line_of(label, &value),
+                &crate::logic::message::in_one_line(&line_of(label, &value)),
                 width,
             ));
         }
@@ -380,6 +384,34 @@ mod tests {
                 "░".repeat(40),
             ]
         );
+    }
+
+    /// A value of the server that holds an end of a line stands in one row
+    /// (T-374).
+    ///
+    /// The measurement of 2026-08-17, of the real program of v0.8.204 against
+    /// the sandbox: a genre of `Alpha\nOMEGAEND` gave the panel 5 the row
+    /// `Genre     Alpha`, a row of `OMEGAEND, Adventure` with no label under
+    /// it, and the bar of the progress of T-325 fell out of the panel — the
+    /// budget of the rows counts the lines, and a `\n` inside one line takes a
+    /// second row of the `Paragraph`.
+    ///
+    /// **The parts of this test stay in one function.**
+    #[test]
+    fn a_value_of_an_end_of_a_line_stands_in_one_row() {
+        let facts = TheFactsOfAMedia {
+            genre: "Alpha\nOMEGAEND, Adventure".to_string(),
+            ..a_long_test_book()
+        };
+
+        let lines = the_lines_of_the_facts(&the_media_of(&facts), 48);
+
+        assert!(
+            lines.iter().all(|line| !line.contains(['\n', '\r'])),
+            "a line of the facts holds an end of a line: {:?}",
+            lines
+        );
+        assert!(lines.contains(&"Genre     Alpha OMEGAEND, Adventure".to_string()));
     }
 
     /// The line of the series, and the line of the disk.
