@@ -31549,3 +31549,129 @@ user whose screen holds the same characters as before. The round 2 draws the
 bands, and the release of it carries the module of this round with it. That is
 the rule of T-334 for a round that gives the user nothing to see, and the entry
 of the round 2 says the new keys.
+
+## T-336 — The render of the bands of the Home view, in the panel 4
+
+**The round 2 of the road of the spec**
+`docs/superpowers/specs/2026-08-17-the-home-view-of-the-bands-of-covers-design.md`
+(T-334). T-335 gave the module of the bands and the moves of the keys over
+them, and it changed no line of the screen. **This round changes the screen of
+the user**: it draws the bands of covers in the panel 4 of the Home view, it
+gives that view its keys, and it gives that view its footer.
+
+**The screen before this round, of the real program v0.8.167 inside tmux**, of
+160 columns and 45 rows, of the library `Books` of the sandbox:
+
+```text
+╔4 Home [35 items] ═══════════════════════════════════════════════════════╗
+║    Title                                 Author               Time  Done║
+║  ▌ Continue Listening                                                   ║
+║➤   A Long Test Book                      Long Author           30m   54%║
+║    A Second Book Of Many Hours           Many Hours Author    8h00   63%║
+
+j/k: move  l: play or open  Tab: home/library  S-Tab: the next library  …
+```
+
+**The screen after this round, of the same harness**:
+
+```text
+╔4 Home [35 items] ═══════════════════════════════════════════════════════╗
+║Continue Listening ─────────────────────────────────────────────── 5 of 5║
+║┏━━━━━━━━┓ ┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐                   ║
+║┃        ┃ │        │ │        │ │        │ │        │                   ║
+║┗━━━━━━━━┛ └────────┘ └────────┘ └────────┘ └────────┘                   ║
+║                                                                         ║
+║Recently Added ──────────────────────────────────────────────── 6 of 10 ›║
+║┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐        ║
+║Recent Series ──────────────────────────────────────────────────── 3 of 3║
+║Discover ─────────────────────────────────────────────────────── 6 of 7 ›║
+
+j/k: a shelf  h/l: a cover  Enter: play or open  Tab: home/library  S-Tab: the next library  …
+```
+
+**The new files and the changes.** `src/ui/the_panel_of_the_bands.rs` (new)
+holds the arithmetic of the screen of the bands: `plan_the_bands(inside,
+of_a_cell, font, bands, the_line) -> TheBandsOfThePanel`, and
+`the_row_of_a_title(band, width) -> String`, of nine unit tests.
+`src/ui/tui.rs` takes `render_the_bands_of_the_panel_4`, and `render_home`
+chooses the footer after the panel 4 draws. `src/app.rs` takes the field
+`the_bands_of_the_last_frame`, the function
+`the_key_of_a_band_of_the_home_view`, and
+`the_identity_of_a_line_of_the_home_view`. `src/ui/keys.rs` takes
+`FOOTER_OF_THE_BANDS_OF_BOOKS`, `FOOTER_OF_THE_BANDS_OF_PODCASTS`, and the
+function `the_footer_of_the_home_view(is_podcast, the_bands_stand)`. The gate
+is `tests/the_bands_of_the_home_view_hold_their_keys.rs`, of one test
+function.
+
+**The measurement of the sandbox of 2026-08-17**, all inside tmux, of 160
+columns and 45 rows unless said:
+
+- The library `Large` (2 shelves) gives 2 bands: `Recently Added 6 of 10 ›`
+  and `Discover 6 of 10 ›`.
+- The library `Books` (5 shelves of the server, 4 that give a band) gives
+  `Continue Listening 5 of 5`, `Recently Added 6 of 10 ›`,
+  `Recent Series 3 of 3`, and `Discover 6 of 7 ›`. The shelf
+  `newest-authors` gives no band, which is the rule of T-335.
+- The panel 4 held 71 columns and 39 rows; a cell of ten columns of a font of
+  ten by twenty gives 6 cells of a band and a band of 8 rows (1 title + 6 of
+  the box + 1 space).
+- Ten presses of `l` in the band `Recently Added` took the cursor to the
+  last cell; the count stayed `6 of 10`, and the arrow turned from `›` to
+  `‹`.
+- The key `j` moved the cursor from the cell 5 of the first band to the cell
+  5 of the second band. The key `g` gave the first cell of the band.
+- The key `l` started no playback. The key `Enter` did: the log said
+  `[handle_key (l)] Session successfully closed` and
+  `[play] the item e2b76945-10de-45f9-a09c-86c4666b9808 starts at 18025
+  seconds with 1 tracks`.
+- A screen of 100 columns drew no frame of the panels, therefore the list of
+  one column of today, and the footer `j/k: move  l: play or open`.
+- A screen of 160 columns and 16 rows kept the frame; the panel 4 had no
+  room for one whole band, therefore the table of today with its header
+  `Title Author Time Done`, and the footer `j/k: move  l: play or open`.
+- The panel 5 of the facts followed the cursor with no change at all.
+- Most cells drew no picture in tmux: the store of the covers holds one
+  request of one id at a time, and the panel 6 of the gallery drew empty
+  boxes in the same frames. **That is the work of the round 4 of the spec**
+  (the limit of the new covers of one frame), and it is not a fault of this
+  round.
+
+**The three decisions of this round that the spec did not hold.**
+
+- **The shape of the panel lives in `App::the_bands_of_the_last_frame`**, as
+  the grid of the panel 6 lives in `the_gallery_of_the_last_frame`: the
+  shape comes of the arithmetic of the width and the height of the panel,
+  and the handler of a key holds no area of the screen.
+- **The offset of a band comes of the cursor, and no band holds a state of
+  its own.** The spec names an offset of each band; the wheel of the mouse
+  of the round 3 is the one road that moves a band with no cursor in it,
+  therefore that state belongs to that round. The cells of the band of the
+  cursor end at the cursor, and every other band draws its first cells.
+- **The bands stand where the table stands** (T-321): the table of the
+  panel 4 needs the frame of the panels, therefore a screen under 120
+  columns keeps the list of one column that it had. **And the footer takes
+  the rows of the longer of the two texts**, so that the panel 4 holds the
+  same rows in the two shapes: a footer of a height of its own would decide
+  the shape that names it, and a screen of one row more or less would then
+  say the keys of one shape over the other one, which is the fault of
+  T-143.
+
+**The build of the fault**, of three corrections removed one at a time:
+
+| The rule removed | The test that failed |
+|---|---|
+| The dispatch of the keys of the bands | `the key l gives the cell at the right`, left `Some(1)`, right `Some(2)` |
+| `FOOTER_OF_THE_BANDS_OF_BOOKS` back to the words of the table | `the footer of the bands names the key of a shelf` |
+| `inside.width < of_a_cell` and `the_columns == 0`, removed together | `a_panel_of_no_room_for_one_whole_band_gives_no_band` |
+
+**A fourth rule is not measurable by a test that can fail**: `the_rows == 0`
+of a panel that is too short. The loop of the bands runs zero times with
+that guard away, therefore the plan is empty either way. The assertion of
+the test stands as a rule that a later round cannot break, and not as a
+build of a fault.
+
+**The gates**: `cargo clippy --all-targets -- -D warnings` and
+`cargo fmt --check` clean; `cargo nextest run` gave **1554 of 1554** in 3.1
+seconds (1544 before this round).
+
+**The release**: v0.8.168.

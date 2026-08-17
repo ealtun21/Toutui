@@ -507,13 +507,47 @@ pub fn lines() -> Vec<String> {
 /// a key changes its work with the view. The footer of those views says it.
 pub const FOOTER_OF_THE_KEYS: &str = "j/k: move  h/Esc: back  ?: close  Q: quit";
 
-/// The footer of the Home view and of the Library view of books.
+/// The footer of the Library view of books, and of the Home view that draws the
+/// table of today.
 pub const FOOTER_OF_A_LIBRARY_OF_BOOKS: &str = "j/k: move  l: play or open  \
      Tab: home/library  S-Tab: the next library  /: search  R: refresh  ?: every key  Q: quit";
 
-/// The footer of the Home view and of the Library view of podcasts.
+/// The footer of the Library view of podcasts, and of the Home view that draws
+/// the table of today.
 pub const FOOTER_OF_A_LIBRARY_OF_PODCASTS: &str = "j/k: move  l: the episodes  \
      Tab: home/library  S-Tab: the next library  /: search  R: refresh  ?: every key  Q: quit";
+
+/// The footer of the Home view of the bands of covers, of a library of books.
+/// See T-331 and T-336.
+///
+/// **A footer must not promise a key that the view does not hold** (T-143), and
+/// the two footers above promise the key `l` of a media. The bands give `l` the
+/// cell at the right, and the key `Enter` plays or opens: the footer of a Home
+/// view of bands therefore says the four moves and it says `Enter`.
+pub const FOOTER_OF_THE_BANDS_OF_BOOKS: &str = "j/k: a shelf  h/l: a cover  \
+     Enter: play or open  Tab: home/library  S-Tab: the next library  /: search  \
+     R: refresh  ?: every key  Q: quit";
+
+/// The footer of the Home view of the bands of covers, of a library of
+/// podcasts. See [`FOOTER_OF_THE_BANDS_OF_BOOKS`].
+pub const FOOTER_OF_THE_BANDS_OF_PODCASTS: &str = "j/k: a shelf  h/l: a cover  \
+     Enter: the episodes  Tab: home/library  S-Tab: the next library  /: search  \
+     R: refresh  ?: every key  Q: quit";
+
+/// The footer of the Home view, of the shape that the panel 4 draws. See T-336.
+///
+/// **A footer must not promise a key that the view does not hold** (T-143), and
+/// the Home view holds two shapes: the bands of covers, and the table of today
+/// of a panel that has no room for one whole band. The key `l` plays a media in
+/// the second shape alone.
+pub fn the_footer_of_the_home_view(is_podcast: bool, the_bands_stand: bool) -> &'static str {
+    match (is_podcast, the_bands_stand) {
+        (false, true) => FOOTER_OF_THE_BANDS_OF_BOOKS,
+        (true, true) => FOOTER_OF_THE_BANDS_OF_PODCASTS,
+        (false, false) => FOOTER_OF_A_LIBRARY_OF_BOOKS,
+        (true, false) => FOOTER_OF_A_LIBRARY_OF_PODCASTS,
+    }
+}
 
 /// The footer of a view that the frame of the panels holds. See T-320.
 ///

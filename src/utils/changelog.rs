@@ -41,6 +41,32 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.168",
+        date: "17/08/2026",
+        body: &[
+            "Added:",
+            "- **The Home view shows a band of covers for each shelf.** The \
+             view showed one table of the title, the author, the length, and \
+             the mark of the end. It now shows the cover of each media, in a \
+             band under the name of its shelf. The name of the band says how \
+             many covers the view shows, and how many the shelf holds: \
+             `Recently Added ── 6 of 10 ›`. The arrow says that the band \
+             holds more covers at that side.",
+            "",
+            "Changed:",
+            "- **The keys of the Home view.** The keys `j` and `k` give the \
+             shelf under and the shelf above. The keys `h` and `l` give the \
+             cover at the left and the cover at the right of the same shelf. \
+             The keys `g` and `G` give the first cover and the last cover of \
+             that shelf. **The key `Enter` plays the media, or it opens the \
+             series or the podcast.** The key `l` did that work before, and a \
+             band needs it for the cover at the right.",
+            "- **A screen that is too small for one whole band keeps the \
+             table.** The keys of that table do not change, and the footer of \
+             the view says which keys it holds.",
+        ],
+    },
+    Entry {
         version: "0.8.167",
         date: "17/08/2026",
         body: &[

@@ -638,6 +638,14 @@ pub struct App {
     /// of the screen, therefore it stands beside those areas and not inside
     /// them, which every frame copies.
     pub the_gallery_of_the_last_frame: crate::ui::the_panel_of_the_gallery::TheGallery,
+    /// The bands of the Home view of the last frame. See T-331 and T-336.
+    ///
+    /// **The render writes it, and the keys read it**: the shape of the panel 4
+    /// comes of the arithmetic of the width and the height of that panel, and
+    /// the handler of a key holds no area of the screen at all. A plan of no
+    /// band therefore says that the panel drew the table of today, and the keys
+    /// `h`, `j`, `k`, `l`, `g`, and `G` then keep the moves of that table.
+    pub the_bands_of_the_last_frame: crate::ui::the_panel_of_the_bands::TheBandsOfThePanel,
     /// The line of the user in the panel 1 of the views. See T-320.
     pub the_line_of_the_views: ListState,
     /// The line of the user in the panel 2 of the sequence. See T-318.
@@ -2178,6 +2186,8 @@ impl App {
                 crate::ui::the_panel_of_the_gallery::THE_WIDTH_OF_THE_START,
             the_gallery_of_the_last_frame: crate::ui::the_panel_of_the_gallery::TheGallery::default(
             ),
+            the_bands_of_the_last_frame:
+                crate::ui::the_panel_of_the_bands::TheBandsOfThePanel::default(),
             the_line_of_the_views: {
                 let mut of_the_views = ListState::default();
                 of_the_views.select(Some(0));
@@ -2694,6 +2704,29 @@ impl App {
     ///
     /// **The Home view and the Library view are the two views of the frame of
     /// the panels** (T-320), therefore every other view gives no media at all.
+    /// The identity of the media of a line of the Home view, for the store of
+    /// the covers of a cell of a band. See T-336.
+    ///
+    /// **The cell of a series draws the cover of the first book of that
+    /// series**, because a series of Audiobookshelf holds no cover of its own
+    /// (the decision 7 of the design). `App::series` holds the books of it
+    /// already (T-22), therefore this road costs no request of its own.
+    ///
+    /// A line that names a shelf, a series of no book, and a media that no list
+    /// of identities holds each give `None`, and the cell of them keeps its
+    /// border and its place.
+    pub fn the_identity_of_a_line_of_the_home_view(&self, the_line: usize) -> Option<String> {
+        match self.home_rows.get(the_line)? {
+            HomeRow::Media { item } => self._ids_cnt_list.get(*item).cloned(),
+            HomeRow::Series { series } => self
+                .series
+                .get(*series)
+                .and_then(|one| one.books.first())
+                .map(|book| book.id.clone()),
+            HomeRow::Shelf { .. } => None,
+        }
+    }
+
     pub fn the_media_of_the_gallery(
         &self,
     ) -> Vec<crate::ui::the_panel_of_the_gallery::AMediaOfTheGallery> {
@@ -3183,6 +3216,64 @@ impl App {
         }
     }
 
+    /// The keys `h`, `l`, `j`, `k`, `g`, and `G` of the bands of the Home view.
+    /// See T-331 and T-336.
+    ///
+    /// It gives `true` when the key moved the cursor over the bands, and
+    /// `false` for every other key, for every other view, and for a panel 4
+    /// that drew the table of today.
+    ///
+    /// **The key `l` plays no media in this view** (the decision 2 of the
+    /// design): a key of two meanings in one view is a fault of its own, and the
+    /// user of a band reads `h` and `l` as the two directions of that band. The
+    /// key `Enter` plays or opens, and it is an alias of `l` in every other view
+    /// of this program already, therefore no other view changes.
+    ///
+    /// **The cursor stays one line of the flat list** (the decision 1), and
+    /// `crate::logic::the_bands_of_the_home` gives the line of each move: every
+    /// key of a media, the panel 5 of the facts, and the panel 6 of the gallery
+    /// therefore keep their work with no change at all.
+    fn the_key_of_a_band_of_the_home_view(&mut self, key: KeyEvent) -> bool {
+        use crate::logic::the_bands_of_the_home as of_the_bands;
+
+        if self.view_state != AppView::Home
+            || !self.the_bands_of_the_last_frame.stands()
+            || self.the_panel_of_the_focus != crate::ui::frame::ThePanel::TheList
+        {
+            return false;
+        }
+
+        let bands = of_the_bands::the_bands(&self.home_rows);
+        let from = self.list_state_cnt_list.selected().unwrap_or(0);
+
+        let of_the_key = match key.code {
+            KeyCode::Char('h') | KeyCode::Left => of_the_bands::the_cell_at_the_left(&bands, from),
+            KeyCode::Char('l') | KeyCode::Right => {
+                of_the_bands::the_cell_at_the_right(&bands, from)
+            }
+            KeyCode::Char('j') | KeyCode::Down => of_the_bands::the_band_under(&bands, from),
+            KeyCode::Char('k') | KeyCode::Up => of_the_bands::the_band_above(&bands, from),
+            KeyCode::Char('g') | KeyCode::Home => {
+                of_the_bands::the_first_cell_of_the_band(&bands, from)
+            }
+            KeyCode::Char('G') | KeyCode::End => {
+                of_the_bands::the_last_cell_of_the_band(&bands, from)
+            }
+            _ => return false,
+        };
+
+        // A move of the user stops the wait of the key `G`, which is the rule of
+        // `select_next` of today (T-112).
+        self.reads_every_page_of_the_library = false;
+
+        if let Some(the_line) = of_the_key {
+            self.list_state_cnt_list.select(Some(the_line));
+        }
+
+        self.scroll_offset = 0;
+        true
+    }
+
     pub fn handle_key(&mut self, key: KeyEvent) {
         if key.kind != KeyEventKind::Press {
             return;
@@ -3237,6 +3328,14 @@ impl App {
         // nothing else. Every other view and every other width keeps every key
         // that it had.
         if self.the_frame_of_the_panels_stands() && self.the_key_of_a_panel(key) {
+            return;
+        }
+
+        // **The keys of the bands of covers of the Home view** (T-331 and
+        // T-336): the panel 4 of that view draws bands, and `h` and `l` are the
+        // two directions of a band there. A frame that drew the table of today
+        // gives no band at all, and every key then keeps the move that it had.
+        if self.the_key_of_a_band_of_the_home_view(key) {
             return;
         }
 

@@ -2000,23 +2000,38 @@ impl App {
     fn render_home(&mut self, area: Rect, buf: &mut Buffer) {
         // **The footer stands on the rows that it needs** (T-302): the
         // number of its rows is the number that the wrap of its text needs.
-        let of_the_view = if self.is_podcast {
-            crate::ui::keys::FOOTER_OF_A_LIBRARY_OF_PODCASTS
-        } else {
-            crate::ui::keys::FOOTER_OF_A_LIBRARY_OF_BOOKS
-        };
+        let of_the_table = crate::ui::keys::the_footer_of_the_home_view(self.is_podcast, false);
+        let of_the_bands = crate::ui::keys::the_footer_of_the_home_view(self.is_podcast, true);
         // **The footer names the keys of the panel that holds the focus**
         // (T-320), and it names no panel at all in a terminal that holds no
         // frame of the panels: a footer must not promise a key that the view
         // does not hold (T-143).
-        let text_render_footer = crate::ui::keys::the_footer_of_a_panel(
-            of_the_view,
-            self.the_frame_of_the_panels_stands(),
-            self.the_stack_of_the_panels_stands(),
-            self.the_panel_of_the_focus,
+        let the_frame_stands = self.the_frame_of_the_panels_stands();
+        let the_stack_stands = self.the_stack_of_the_panels_stands();
+        let the_focus = self.the_panel_of_the_focus;
+        let of_the_table = crate::ui::keys::the_footer_of_a_panel(
+            of_the_table,
+            the_frame_stands,
+            the_stack_stands,
+            the_focus,
         );
-        let text_render_footer = text_render_footer.as_str();
-        let rows_of_the_footer = self.the_rows_of_the_footer(text_render_footer, area);
+        let of_the_bands = crate::ui::keys::the_footer_of_a_panel(
+            of_the_bands,
+            the_frame_stands,
+            the_stack_stands,
+            the_focus,
+        );
+
+        // **The footer takes the rows of the longer of the two texts, and the
+        // panel 4 then holds the same rows in the two shapes** (T-336). The
+        // shape of that panel comes of its own height, therefore a footer of a
+        // height of its own would decide the shape that names it, and a screen
+        // of one row more or less would then say the keys of one shape over the
+        // other one, which is the fault of T-143. The cost is one row of the
+        // panel, at a width where the two texts wrap in a different way.
+        let rows_of_the_footer = self
+            .the_rows_of_the_footer(&of_the_table, area)
+            .max(self.the_rows_of_the_footer(&of_the_bands, area));
         let [header_area, main_area, footer_area] =
             the_areas_of_a_view(area, self.the_rows_of_the_band(), rows_of_the_footer);
 
@@ -2049,11 +2064,12 @@ impl App {
         let render_list_title = format!("Home [{}]", crate::ui::keys::items(count));
 
         self.render_header(header_area, buf);
-        App::render_footer(footer_area, buf, text_render_footer);
 
         // **A view says why it holds no line.** The Home view of a library with
         // no media drew an empty list and no word at all. See T-103 and T-91.
         if lines.is_empty() {
+            self.the_bands_of_the_last_frame = Default::default();
+            App::render_footer(footer_area, buf, &of_the_table);
             App::render_the_reason(
                 main_area,
                 buf,
@@ -2069,16 +2085,144 @@ impl App {
             return;
         }
 
-        self.render_the_list_of_the_panel_4(
-            list_area,
+        // **The bands of the covers stand in the place of the table** (T-331 and
+        // T-336), and a panel that has no room for one whole band draws the
+        // table of today.
+        //
+        // **The footer says the keys of the shape that this frame drew**
+        // (T-143), therefore it comes after the panel 4 and not before it.
+        let the_bands_stand =
+            self.render_the_bands_of_the_panel_4(list_area, buf, &render_list_title);
+
+        App::render_footer(
+            footer_area,
             buf,
-            &render_list_title,
-            &lines,
-            Some(&self.home_table_rows()),
-            &mut self.list_state_cnt_list.clone(),
+            crate::ui::keys::the_footer_of_a_panel(
+                crate::ui::keys::the_footer_of_the_home_view(self.is_podcast, the_bands_stand),
+                the_frame_stands,
+                the_stack_stands,
+                the_focus,
+            )
+            .as_str(),
         );
+
+        if !the_bands_stand {
+            self.render_the_list_of_the_panel_4(
+                list_area,
+                buf,
+                &render_list_title,
+                &lines,
+                Some(&self.home_table_rows()),
+                &mut self.list_state_cnt_list.clone(),
+            );
+        }
+
         self.render_info_home(item_area1, buf, the_words_of_the_panel.is_some());
         self.render_desc_home(item_area2, buf);
+    }
+
+    /// Draws the bands of the covers of the Home view in the panel 4. See T-336.
+    ///
+    /// It gives `true` when the bands stand, and `false` when the panel has no
+    /// room for one whole band: the Home view then draws the table of today,
+    /// which is the decision 5 of the maintainer.
+    ///
+    /// **The bands stand where the table stands** (T-321): the table of the
+    /// panel 4 needs the frame of the panels, therefore a screen under 120
+    /// columns keeps the list of one column that it had.
+    fn render_the_bands_of_the_panel_4(
+        &mut self,
+        area: Rect,
+        buf: &mut Buffer,
+        title: &str,
+    ) -> bool {
+        use crate::ui::the_panel_of_the_bands::{plan_the_bands, the_row_of_a_title};
+
+        if !self.the_frame_of_the_panels_stands() {
+            self.the_bands_of_the_last_frame = Default::default();
+            return false;
+        }
+
+        let it_holds_the_focus = self.the_panel_of_the_focus == crate::ui::frame::ThePanel::TheList;
+        let block = crate::ui::frame::a_panel(
+            crate::ui::frame::ThePanel::TheList.the_number(),
+            title,
+            it_holds_the_focus,
+        );
+        let inside = block.inner(area);
+
+        let of_a_cell = crate::ui::the_panel_of_the_gallery::THE_WIDTHS_OF_A_CELL
+            [self.the_size_of_a_cell_of_the_gallery];
+        let font = cover::picker().font_size();
+        let bands = crate::logic::the_bands_of_the_home::the_bands(&self.home_rows);
+        let the_line = self.list_state_cnt_list.selected().unwrap_or(0);
+        let plan = plan_the_bands(inside, of_a_cell, font, &bands, the_line);
+
+        if !plan.stands() {
+            self.the_bands_of_the_last_frame = plan;
+            return false;
+        }
+
+        block.render(area, buf);
+
+        // **The areas of the mouse are the areas of the last frame**: a view
+        // that draws no line of a list must take the lines of the frame before
+        // it away, or a click of a cell reads a row that no frame drew (T-321).
+        self.the_areas_of_the_list_of_the_mouse(
+            area,
+            Rect::default(),
+            0,
+            &self.list_state_cnt_list.clone(),
+        );
+
+        let api = std::sync::Arc::clone(&self.api);
+
+        for band in &plan.bands {
+            Paragraph::new(the_row_of_a_title(band, band.the_title.width))
+                .style(crate::ui::theme::a_quiet_text())
+                .render(band.the_title, buf);
+
+            for cell in &band.cells {
+                // **The border of the cell of the cursor is heavy and bright,
+                // and the border of every other cell is thin and dim** (T-327):
+                // a colour alone is not the mark of the focus.
+                let border = if cell.the_line == the_line {
+                    Block::new()
+                        .borders(Borders::ALL)
+                        .border_type(ratatui::widgets::BorderType::Thick)
+                        .border_style(
+                            Style::default()
+                                .fg(crate::ui::theme::THE_ACCENT)
+                                .add_modifier(Modifier::BOLD),
+                        )
+                } else {
+                    Block::new()
+                        .borders(Borders::ALL)
+                        .border_style(crate::ui::theme::a_quiet_text())
+                };
+                border.render(cell.the_box, buf);
+
+                let Some(id) = self.the_identity_of_a_line_of_the_home_view(cell.the_line) else {
+                    continue;
+                };
+
+                if cover::no_picture_comes(&id) {
+                    continue;
+                }
+
+                let form = self.covers.form_of(&id).unwrap_or(1.0);
+                let of_the_picture = cover::box_of_the_picture(cell.the_picture, font, form);
+
+                if of_the_picture.width > 0 && of_the_picture.height > 0 {
+                    if let Some(picture) = self.covers.picture(&api, &id) {
+                        StatefulImage::default().render(of_the_picture, buf, picture);
+                    }
+                }
+            }
+        }
+
+        self.the_bands_of_the_last_frame = plan;
+        true
     }
 
     /// Says if a media plays now. See T-104.

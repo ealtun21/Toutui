@@ -12307,8 +12307,8 @@ rounds**:
 | The round | What it gives |
 |---|---|
 | 1 | `src/logic/the_bands_of_the_home.rs`: the bands of the flat list of `HomeRow`, the moves of `h`, `l`, `j`, `k`, `g`, and `G`, and the count of a title. Pure functions, and no change of the screen. — **done, T-335 of 2026-08-17, and no release** |
-| 2 | The render of the bands in the panel 4 of the Home view, the keys, and the footer of its own. **This round changes the screen of the user.** |
-| 3 | The mouse: a click of a cell, two clicks, the wheel over a band, and a click of the title of a band. |
+| 2 | The render of the bands in the panel 4 of the Home view, the keys, and the footer of its own. **This round changes the screen of the user.** — **done, T-336 of 2026-08-17, v0.8.168** |
+| 3 | The mouse: a click of a cell, two clicks, the wheel over a band, and a click of the title of a band. **It needs the offset of a band in the state of the program**, which the round 2 read of the cursor alone (T-336). |
 | 4 | The covers: the limit of the new requests of one frame, with the number of the requests measured against the sandbox. |
 | 5 | The panel 6 of the gallery of the shelf of the cursor, and the terminal that draws no pictures. |
 
@@ -22699,7 +22699,7 @@ the real program.
   and not the panel**, therefore a gate of the words of one panel takes the
   columns of that panel out of the row first.
 
-## The decisions of T-201 to T-335 that do not open again
+## The decisions of T-201 to T-336 that do not open again
 
 These decisions stood in the block of the prompt of the next session until the
 round of the hundred and thirty-ninth turn, and that block met its limit of
@@ -24079,6 +24079,61 @@ footer of the Home view **and** of the Library view — and the files that keep
 standing with no change. **The next round takes the round 1 of that road.**
 
 
+## The session of the hundred and sixty-ninth turn of 2026-08-17: the bands of the Home view of the data of the flat list, of the block of the prompt
+
+**The session of the hundred and sixty-ninth turn took the round 1 of the road
+of the spec of T-331** (T-335): `src/logic/the_bands_of_the_home.rs`, the bands
+of the flat list of the Home view and the moves of the keys `h`, `l`, `j`, `k`,
+`g`, and `G` over them. **The round changes no line of the screen**, and the
+Home view of the library `Books` inside tmux held the same characters before the
+round and after it. **The next round takes the round 2 of that road**, which is
+the render of the bands in the panel 4, the keys of `src/app.rs`, and the footer
+of the Home view: **it is the round that changes the screen of the user.**
+
+**The module keeps the program of today**, which is the decision 1 of the spec.
+`ABand { the_title, the_cells }` holds the name of the shelf and **the line of
+the flat list** of each cell, therefore the cursor of the view stays one number
+of that list and every key of a media reads it with no change.
+`the_place_of_the_line` gives the band and the cell of a line;
+`the_cell_at_the_left` and `the_cell_at_the_right` **stop at the two ends of the
+band**; `the_band_above` and `the_band_under` **go round**, and the cell keeps
+its number in the new band while the last cell of a shorter band takes it;
+`the_first_cell_of_the_band` and `the_last_cell_of_the_band` are the keys `g`
+and `G`; and `the_count_of_a_band(draws, holds)` gives `6 of 24` of the media
+that the program holds and never of the field `total` (T-118).
+
+**A line that stands in no band gives the first media of the view**, which is
+the rule of `home_view::first_line`: the cursor can stand on the line of a shelf
+after a refresh. **A media that stands under no title takes a band of its own**,
+of the name `A shelf with no name`: no answer of the server reaches that road,
+and a line that this function dropped would take the media of the user away
+(T-203).
+
+**The measurement of the sandbox of this round found the second shelf that gives
+no band.** The spec named the shelf `newest-authors` of a library of books
+(T-334). **The shelf `recently-added` of a library of podcasts holds the podcast
+and no `recentEpisode`**, therefore `group_home_pod` gives no line of it: the
+Home view of the library `Podcasts` says `4 Home [17 items]` and it holds three
+titles of a shelf, and **the bands of that library are three and not four**. The
+library `Books` says `4 Home [35 items]` of five titles, and the bands of it are
+5, 10, 3, 7, and 10 cells.
+
+**The build of the fault, of five rules removed one at a time**, made five tests
+fail. **The rule that the answer of the sandbox cannot measure is the `retain`
+of a band of no cell**: `group_home` drops a shelf of no line already, therefore
+the four tests of the real shape of the server passed with that rule away, and
+the unit test of lines of the hand alone found it. **A test of a real answer of
+a server measures no rule of a road that the server does not take**, and a
+module of this shape needs the two kinds of test together.
+
+**This round makes no release, and the version stays 0.8.167.** The road of the
+spec says one release for one round, and **the changelog of this program is a
+text for the user**: an entry that names a module of the bands says nothing to a
+user whose screen holds the same characters as before. The round 2 draws the
+bands, and the release of it carries the module of this round with it. The gates
+gave 1544 of 1544 in 3.4 seconds, and `cargo test -j 16 --no-fail-fast` passed
+two times.
+
 ## The prompt for the next session
 
 
@@ -25056,12 +25111,20 @@ standing with no change. **The next round takes the round 1 of that road.**
 >    `HomeRow`, the moves of the keys `h`, `l`, `j`, `k`, `g`, and `G` over
 >    them, and the count of a title, of pure functions and of no change of the
 >    screen, and **that round made no release** for the reason in its item.
->    **The next round of T-331 takes the round 2**: the render of the bands in
->    the panel 4 of the Home view, the keys of `src/app.rs`, and the footer of
->    that view, with the table of today for a panel that has no room for one
->    whole band. **It is the round that changes the screen of the user**,
->    therefore its release holds the two screens of its item and its entry of
->    the changelog says the new keys. **A round of T-331 reads that spec first,
+>    **The round 2 is done too** (T-336, of 2026-08-17, v0.8.168):
+>    `src/ui/the_panel_of_the_bands.rs` holds the arithmetic of the screen of
+>    the bands, `render_the_bands_of_the_panel_4` of `src/ui/tui.rs` draws
+>    them, `App::the_key_of_a_band_of_the_home_view` holds the keys, and
+>    `keys::the_footer_of_the_home_view` gives the footer of each of the two
+>    shapes. **That round changed the screen of the user**, and the two screens
+>    stand in its item.
+>    **The next round of T-331 takes the round 3**: the mouse of the bands —
+>    the click of a cell, the two clicks that play or open, the wheel over a
+>    band, and the click of the title of a band. **The round 3 needs the offset
+>    of a band in the state of the program**: the round 2 read that offset of
+>    the cursor alone, because no key of the user moves a band that holds no
+>    cursor, and the wheel is the first road that does. **A round of T-331
+>    reads that spec first,
 >    and it must not change a decision of it with no reason in its own item.** **The mockups of the two of them are
 >    written already** (`mockup-6` and `mockup-7`, of
 >    2026-08-16): **a round must not write in `docs/mockups/`.**
@@ -25108,58 +25171,52 @@ standing with no change. **The next round takes the round 1 of that road.**
 >    this shape found a fault in one hundred and eleven sessions of one hundred
 >    and twelve.
 >
-> **The session of the hundred and sixty-ninth turn took the round 1 of the road
-> of the spec of T-331** (T-335): `src/logic/the_bands_of_the_home.rs`, the bands
-> of the flat list of the Home view and the moves of the keys `h`, `l`, `j`, `k`,
-> `g`, and `G` over them. **The round changes no line of the screen**, and the
-> Home view of the library `Books` inside tmux held the same characters before the
-> round and after it. **The next round takes the round 2 of that road**, which is
-> the render of the bands in the panel 4, the keys of `src/app.rs`, and the footer
-> of the Home view: **it is the round that changes the screen of the user.**
+> **The session of the hundred and seventieth turn took the round 2 of the road
+> of the spec of T-331** (T-336, v0.8.168): the render of the bands of covers in
+> the panel 4 of the Home view, the keys of that view, and the footer of it.
+> **This is the round that changed the screen of the user.** The panel 4 of the
+> library `Books` of the sandbox at 160 columns and 45 rows held the table of the
+> title, the author, the length, and the mark of the end; it now holds four
+> bands, `Continue Listening 5 of 5`, `Recently Added 6 of 10 ›`,
+> `Recent Series 3 of 3`, and `Discover 6 of 7 ›`, of six cells of a picture in a
+> border each.
 >
-> **The module keeps the program of today**, which is the decision 1 of the spec.
-> `ABand { the_title, the_cells }` holds the name of the shelf and **the line of
-> the flat list** of each cell, therefore the cursor of the view stays one number
-> of that list and every key of a media reads it with no change.
-> `the_place_of_the_line` gives the band and the cell of a line;
-> `the_cell_at_the_left` and `the_cell_at_the_right` **stop at the two ends of the
-> band**; `the_band_above` and `the_band_under` **go round**, and the cell keeps
-> its number in the new band while the last cell of a shorter band takes it;
-> `the_first_cell_of_the_band` and `the_last_cell_of_the_band` are the keys `g`
-> and `G`; and `the_count_of_a_band(draws, holds)` gives `6 of 24` of the media
-> that the program holds and never of the field `total` (T-118).
+> **The arithmetic of the screen stands in `src/ui/the_panel_of_the_bands.rs`**,
+> of nine unit tests and of no `App` at all: `plan_the_bands` gives the bands, the
+> cells, and the areas of them, and `the_row_of_a_title` gives the row of the
+> name, of the count, and of the arrows. The panel 4 held 71 columns and 39 rows,
+> and a cell of ten columns of a font of ten by twenty gives six cells of a band
+> and a band of eight rows.
 >
-> **A line that stands in no band gives the first media of the view**, which is
-> the rule of `home_view::first_line`: the cursor can stand on the line of a shelf
-> after a refresh. **A media that stands under no title takes a band of its own**,
-> of the name `A shelf with no name`: no answer of the server reaches that road,
-> and a line that this function dropped would take the media of the user away
-> (T-203).
+> **The three decisions of this round that the spec did not hold.** The shape of
+> the panel lives in `App::the_bands_of_the_last_frame`, as the grid of the panel
+> 6 lives in `the_gallery_of_the_last_frame`: the handler of a key holds no area
+> of the screen. **The offset of a band comes of the cursor, and no band holds a
+> state of its own**, because the wheel of the mouse of the round 3 is the one
+> road that moves a band with no cursor in it. **The bands stand where the table
+> stands** (T-321), therefore a screen under 120 columns keeps the list of one
+> column that it had, and **the footer takes the rows of the longer of the two
+> texts**, so that a footer of a height of its own does not decide the shape that
+> names it (T-143).
 >
-> **The measurement of the sandbox of this round found the second shelf that gives
-> no band.** The spec named the shelf `newest-authors` of a library of books
-> (T-334). **The shelf `recently-added` of a library of podcasts holds the podcast
-> and no `recentEpisode`**, therefore `group_home_pod` gives no line of it: the
-> Home view of the library `Podcasts` says `4 Home [17 items]` and it holds three
-> titles of a shelf, and **the bands of that library are three and not four**. The
-> library `Books` says `4 Home [35 items]` of five titles, and the bands of it are
-> 5, 10, 3, 7, and 10 cells.
+> **The key `l` plays no media in this view**, and the key `Enter` does: the
+> measurement of tmux gave no playback of `l`, and the log of `Enter` said
+> `[play] the item e2b76945-… starts at 18025 seconds with 1 tracks`. **A screen
+> of 100 columns and a screen of 160 columns by 16 rows each kept the table of
+> today and its footer.**
 >
-> **The build of the fault, of five rules removed one at a time**, made five tests
-> fail. **The rule that the answer of the sandbox cannot measure is the `retain`
-> of a band of no cell**: `group_home` drops a shelf of no line already, therefore
-> the four tests of the real shape of the server passed with that rule away, and
-> the unit test of lines of the hand alone found it. **A test of a real answer of
-> a server measures no rule of a road that the server does not take**, and a
-> module of this shape needs the two kinds of test together.
+> **A rule of this round is not measurable by a test that can fail**: `the_rows
+> == 0` of a panel that is too short. The loop of the bands runs zero times with
+> that guard away, therefore the plan is empty either way, and the assertion of
+> the test stands as a rule that a later round cannot break. The three other
+> corrections each failed a test with the correction removed. The gates gave 1554
+> of 1554 in 3.1 seconds, `cargo test -j 16 --no-fail-fast` passed two times, and
+> `cargo nextest run --run-ignored all` gave 1580 of 1580.
 >
-> **This round makes no release, and the version stays 0.8.167.** The road of the
-> spec says one release for one round, and **the changelog of this program is a
-> text for the user**: an entry that names a module of the bands says nothing to a
-> user whose screen holds the same characters as before. The round 2 draws the
-> bands, and the release of it carries the module of this round with it. The gates
-> gave 1544 of 1544 in 3.4 seconds, and `cargo test -j 16 --no-fail-fast` passed
-> two times.
+> **The next round takes the round 3 of that road**: the mouse of the bands — the
+> click of a cell, the two clicks, the wheel over a band, and the click of a
+> title. **The round 3 needs the offset of a band in the state**, which the
+> decision above left to it.
 >
 >    **The turns before this one stand in `## The turns before the three
 >    newest ones` of this file**, above the heading of this prompt. **This item
@@ -25216,9 +25273,20 @@ standing with no change. **The next round takes the round 1 of that road.**
 > program holds more than one account (T-124). **The decisions of T-124 to
 > T-200 stand in `## The decisions of T-124 to T-200 that do not open again` of
 > `docs/HANDOVER.md`, outside this block, and each of them holds** (T-294).
-> And **the decisions of T-201 to T-335 stand in
-> `## The decisions of T-201 to T-335 that do not open again` of
+> And **the decisions of T-201 to T-336 stand in
+> `## The decisions of T-201 to T-336 that do not open again` of
 > `docs/HANDOVER.md`, outside this block, and each of them holds** (T-310).
+> **The bands of covers of the Home view stand where the table of the panel 4
+> stands**, therefore a screen under 120 columns keeps the list of one column
+> that it had, and a panel that has no room for one whole band keeps the table
+> of today with the keys and the footer of that table; **the shape of the last
+> frame lives in `App::the_bands_of_the_last_frame`**, because the handler of a
+> key holds no area of the screen; **the key `l` gives the cell at the right
+> and the key `Enter` plays or opens**, because a key of two meanings in one
+> view is a fault of its own and `Enter` is an alias of `l` in every other view
+> already; and **the footer of that view takes the rows of the longer of its
+> two texts**, because a footer of a height of its own would decide the shape
+> that names it (T-143 and T-336).
 > **The panels 2 and 3 of the stack hold the rows of the view of the key `f`
 > and no row of their own, and the authors, the series, the narrators, and the
 > tags stay in that view**: those rows come of a request that the start of the
@@ -25389,7 +25457,7 @@ standing with no change. **The next round takes the round 1 of that road.**
 > did the same work, and the block then held 98907 bytes with one turn in it —
 > **at the line of 99000**, therefore that round took the whole list of the
 > decisions of T-201 to T-311 out of the block and it put it in
-> `## The decisions of T-201 to T-335 that do not open again` of this file,
+> `## The decisions of T-201 to T-336 that do not open again` of this file,
 > with a pointer of three lines in its place: the block then held **66224**
 > bytes with one turn in it; the round of the hundred and fortieth found it at
 > 66685 bytes with one turn in it, and it did the same work, and the block then
@@ -25455,7 +25523,9 @@ standing with no change. **The next round takes the round 1 of that road.**
 > the line of 80000 — therefore it took the **two** of them out and it wrote its
 > own, and the block then held **87022** bytes with **one** turn in it; the
 > round of the hundred and sixty-ninth found it at 87900 bytes with one turn in
-> it, and it took that turn out and it wrote its own.
+> it, and it took that turn out and it wrote its own; the round of the hundred
+> and seventieth found it at 87801 bytes with one turn in it, and it did the
+> same work.
 > **A block that stands at 80000 bytes or under holds two
 > turns**, and the turn of the stage before this one names the parts of that
 > stage which stay open. **The list of the decisions

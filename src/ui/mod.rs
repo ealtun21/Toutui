@@ -14,6 +14,7 @@ pub mod the_bars_of_the_chapters;
 pub mod the_list_of_a_view;
 pub mod the_message_of_a_view;
 pub mod the_mouse;
+pub mod the_panel_of_the_bands;
 pub mod the_panel_of_the_cover;
 pub mod the_panel_of_the_gallery;
 pub mod the_panels_of_the_stack;
