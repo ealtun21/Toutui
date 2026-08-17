@@ -71,10 +71,15 @@ use toutui::ui::frame::{the_views, ThePanel, THE_VIEWS};
 /// Nothing listens on this port. See T-25.
 const NO_SERVER: &str = "http://127.0.0.1:1";
 
-/// The two views that a library of podcasts does not have. The program says the
-/// word of each of them already: `A library of podcasts has no author.` and
-/// `A library of podcasts has no narrator.` of `src/logic/authors.rs`.
-const THE_VIEWS_OF_A_BOOK: [&str; 2] = ["Authors", "Narrators"];
+/// The three views that a library of podcasts does not have. The program says
+/// the word of each of them already: `A library of podcasts has no author.` and
+/// `A library of podcasts has no narrator.` of `src/logic/authors.rs`, and
+/// `A library of podcasts has no series.` of the key `s` of `src/app.rs`.
+///
+/// **The view of the series came to this list with T-366**: the panel 1 named no
+/// series at all before that item, therefore the rule of this test reached the
+/// two views of an author alone.
+const THE_VIEWS_OF_A_BOOK: [&str; 3] = ["Series", "Authors", "Narrators"];
 
 /// The width of the stack of the panels, which is the width of the panel 1.
 const OF_THE_STACK: usize = 34;
@@ -277,8 +282,9 @@ async fn the_panel_of_the_views_names_no_view_of_a_book_in_a_library_of_podcasts
     }
 
     // **The sequence of the lines does not change with the library**: the panel
-    // of a library of podcasts is the panel of a library of books with two
-    // lines taken out, and the user of the two libraries reads one design.
+    // of a library of podcasts is the panel of a library of books with the
+    // lines of a book taken out, and the user of the two libraries reads one
+    // design.
     let of_the_names: Vec<&str> = the_views(false)
         .iter()
         .filter(|view| !view.of_a_library_of_books)

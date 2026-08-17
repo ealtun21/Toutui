@@ -41,6 +41,23 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.197",
+        date: "17/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The panel of the views names the series of the library.** The \
+             program holds the Series view, and the key `s` of the Home view \
+             and of the Library view opens it, but the panel 1 of the views \
+             named that view nowhere: the panel held fourteen lines, and the \
+             user of it read the key of the series in the list of every key \
+             alone. The panel now holds the line `Series s` at its third line, \
+             which is the line of the design, and the key `l` of that line \
+             opens the list of the series. A library of podcasts holds no \
+             series, therefore the panel of such a library names that view \
+             nowhere.",
+        ],
+    },
+    Entry {
         version: "0.8.196",
         date: "17/08/2026",
         body: &[

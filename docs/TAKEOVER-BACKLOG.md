@@ -35412,3 +35412,121 @@ item:**
 - Every candidate of the items before this one.
 
 **v0.8.196.**
+
+## T-366 — The panel of the views named no line of the Series view
+
+**The condition.** The real program v0.8.196 inside tmux, at 160 columns and 45
+rows, against the sandbox (podman on `:13399`), with `TOUTUI_AUDIO_DEVICE=null`.
+The library `Books` of the sandbox (35 items), which the account took with a
+`sqlite3` of `users.name_selected_lib` and `users.id_selected_lib` (the trap
+203), and the library `Podcasts` (17 items) as the control of the corrected
+program.
+
+**The fault.** The panel 1 of the stack held fourteen lines, and no line of them
+named the Series view:
+
+```text
+┌1 Views ────────────────────────┐
+│➤ Home                       Tab│
+│  Library                    Tab│
+│  Sequence and filter          f│
+│  Authors                      a│
+│  Narrators                    v│
+│  Collections                  c│
+```
+
+The other lines were Queue q, Downloads d, Chapters C, Bookmarks V, Sessions W,
+Statistics T, Settings S, and Every key ?. A `grep` of the word `Series` in the
+first 34 columns of the screen of that panel gave **0**.
+
+**The program holds that view.** The key `s` of the same screen gave the header
+`Series [3 items]` and the list `Depthless Hunger, Book [1 book]`,
+`Second Series [3 books]`, and `The Test Chronicles [3 books]`. The user of a
+library of books therefore read the key of that view in the list of every key
+alone (`src/ui/keys.rs`, the group "The views", the line
+`key("s", "The series of the library")`), and the panel of the views named the
+view nowhere.
+
+**Why.** The mockup names that line already: the third line of the panel 1 of
+`docs/mockups/mockup-1.txt` is `Series  s`, and the mockup is the design of the
+program since T-320. The comment of `THE_VIEWS` says "The views of the panel 1,
+in the sequence of the design." A library of podcasts holds no series: the key
+`s` of such a library says `A library of podcasts has no series.`
+(`src/app.rs`), and it gives no view at all. **The item T-365 named this gap
+itself, and it left it open.**
+
+**The correction, of one file of the source and two files of the tests.**
+
+- `src/ui/frame.rs`: a new `AView` of the name `Series`, the key `s`, the work
+  `TheWork::TheKey('s')`, and the mark `of_a_library_of_books: true`, at the
+  third line of `THE_VIEWS` — the line of the mockup. **The render, the keys of
+  the panel, and the map of the mouse read `the_views` already** (T-365),
+  therefore they take the new line with no change at all.
+- `tests/the_panel_of_the_views_names_no_view_of_a_book_in_a_library_of_podcasts.rs`:
+  the constant `THE_VIEWS_OF_A_BOOK` holds three names now,
+  `["Series", "Authors", "Narrators"]`.
+- The new gate `tests/the_panel_of_the_views_names_the_series_of_the_library.rs`.
+
+**The corrected program of the same harness.** The library `Books` gave a panel
+1 of fifteen lines whose third line is `Series s`:
+
+```text
+┌1 Views ────────────────────────┐
+│➤ Home                       Tab│
+│  Library                    Tab│
+│  Series                       s│
+│  Sequence and filter          f│
+│  Authors                      a│
+```
+
+The key `1`, two keys `j`, and the key `l` gave `Series [3 items]` with no
+message of a refusal at all, and the log grew by no line of a fault. The key `G`
+of that panel took the line `Every key`. A click of the row 6 of the screen took
+the line `Series`, and a click of the row 19, under the last line, moved no line
+and the program stood (`docs/harness/click.sh`). The library `Podcasts` gave a
+panel of twelve lines, and no line of them named the series: a `grep` of the word
+in the rows of that panel gave 0. **The account took the library `Books` back at
+the end** (the trap 198).
+
+**The gate.** The new test renders the real Library view into a `Buffer` of
+ratatui, and it reads **the rows of the panel 1 alone** — from the row of the
+title `1 Views` to the row of the foot — and not the first 34 columns of every
+row, because the panel 2 of the sequence of a library of books holds the row of
+the series of the sequence in those same columns. **Five builds of the fault, and
+each of them fails the gate**:
+
+1. a filter that takes the line of the series out of every library, which is the
+   program of v0.8.196 — the test of T-365 fails too, at its count of the lines;
+2. a line of the name and of no key at all;
+3. a line whose work is the key `f` and not the key `s`;
+4. a line with no mark of a library of books, which the panel of a library of
+   podcasts then names;
+5. a line at the last place of the list and not at the third one.
+
+**One hole of the first draft of that gate, and it is a fact of its own**: the
+name `Series` ends with the letter of its own key, therefore a rule of "the row
+ends with the key" passed for a row of no key at all. The build of the fault 2
+measured that hole, and the rule reads the part of the row **after** the name
+now.
+
+**The gates of the round.** Clippy and fmt clean, 1611 tests of nextest in 3.4
+seconds (1610 before this item), `cargo test -j 16 --no-fail-fast` three times
+with no failure, and `cargo nextest run --run-ignored all` with the sandbox up
+gave 1637 of 1637.
+
+**What this item leaves open, and each of them is a candidate and not an item.**
+
+- The panel 1 names no key of the next library (`Shift+Tab`) and no view of the
+  search (`/`), and the two of them stand in the group "The views" of the list of
+  every key.
+- The Series view holds no frame of the panels at all.
+- The keys `4`, `j`, `k`, and `l` of the panel 4 of a view with no line say
+  nothing, and the footer of that focus names none of them since T-359.
+- The footers of the panel 5 and of the panel 6 (T-354).
+- The rows of the band that does not fit (T-353).
+- The width of the panel 5 of a media with no cover.
+- The title of the panel of the view of the statistics and of the view of the
+  sessions (T-361).
+- Every candidate of the items before this one.
+
+**v0.8.197.**

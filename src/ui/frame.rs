@@ -339,8 +339,9 @@ pub struct AView {
     pub work: TheWork,
     /// The view of this line stands in a library of books alone.
     ///
-    /// **A library of podcasts holds no author and no narrator**, therefore the
-    /// two lines of those views carry this mark. See [`the_views`] and T-365.
+    /// **A library of podcasts holds no series, no author, and no narrator**,
+    /// therefore the three lines of those views carry this mark. See
+    /// [`the_views`], T-365, and T-366.
     pub of_a_library_of_books: bool,
 }
 
@@ -351,6 +352,11 @@ pub struct AView {
 /// key `c`, and the key `k` of this program moves a list one line up. A panel
 /// that names a key that the program does not hold is the fault of T-118, and a
 /// key of the panel that does nothing is the fault of T-79.
+///
+/// **The panel names the Series view of the mockup too** (T-366): a view that
+/// the program holds and that this list does not name reaches no line of the
+/// panel of the views at all, and the user then reads the key of it in the list
+/// of every key alone.
 pub const THE_VIEWS: &[AView] = &[
     AView {
         name: "Home",
@@ -363,6 +369,16 @@ pub const THE_VIEWS: &[AView] = &[
         key: "Tab",
         work: TheWork::TheLibraryView,
         of_a_library_of_books: false,
+    },
+    // **The mockup 1 gives the series the third line of this panel**
+    // (`docs/mockups/mockup-1.txt`), and a library of podcasts holds no series:
+    // the key `s` of such a library says "A library of podcasts has no series."
+    // and it gives no view at all. See T-366.
+    AView {
+        name: "Series",
+        key: "s",
+        work: TheWork::TheKey('s'),
+        of_a_library_of_books: true,
     },
     AView {
         name: "Sequence and filter",
@@ -657,18 +673,18 @@ mod tests {
         assert_eq!(the_lines_of_the_views(0, false).len(), THE_VIEWS.len());
         assert_eq!(the_lines_of_the_views(3, false).len(), THE_VIEWS.len());
 
-        // **A library of podcasts holds no author and no narrator** (T-365),
-        // therefore the panel of it names two views fewer, and the lines of it
-        // are the lines of `the_views` of that library.
+        // **A library of podcasts holds no series, no author, and no narrator**
+        // (T-365 and T-366), therefore the panel of it names three views fewer,
+        // and the lines of it are the lines of `the_views` of that library.
         let of_the_podcasts = the_lines_of_the_views(width, true);
 
-        assert_eq!(of_the_podcasts.len(), THE_VIEWS.len() - 2);
+        assert_eq!(of_the_podcasts.len(), THE_VIEWS.len() - 3);
         assert!(the_views(true)
             .iter()
             .all(|view| !view.of_a_library_of_books));
         assert_eq!(the_views(false).len(), THE_VIEWS.len());
 
-        for name in ["Authors", "Narrators"] {
+        for name in ["Series", "Authors", "Narrators"] {
             assert!(
                 the_views(false).iter().any(|view| view.name == name),
                 "a library of books must name the view {name:?}"

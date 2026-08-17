@@ -4706,8 +4706,9 @@ impl App {
         self.the_areas_of_the_mouse.the_lines_of_the_views = inner;
         self.the_areas_of_the_mouse.the_offset_of_the_views = of_the_render.offset();
         // **The click of a row reads the views of the library that stands**
-        // (T-365): a library of podcasts names two views fewer, and a count of
-        // the whole list would give the rows under the last line to a view.
+        // (T-365): a library of podcasts names the views of a book fewer, and a
+        // count of the whole list would give the rows under the last line to a
+        // view.
         self.the_areas_of_the_mouse.the_views = crate::ui::frame::the_views(self.is_podcast).len();
 
         work
