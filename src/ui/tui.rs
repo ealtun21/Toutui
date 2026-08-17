@@ -246,6 +246,50 @@ fn the_rows_around_the_work_of_a_view(
     [HEADER_HEIGHT.min(room), message, footer]
 }
 
+/// The place of the rows of the message of a frame: the first row, and the
+/// number of rows. See T-346.
+///
+/// **The message stands on the row above the footer, and it grows upward over
+/// the work of the view** (T-299 and the trap 39). The two numbers of that
+/// place are the rows of the header and the rows of the footer of **this**
+/// frame, and [`the_rows_around_the_work_of_a_view`] is the one function that
+/// holds them: `render_the_message` read `HEADER_HEIGHT` and the rows that the
+/// **text** of the footer wants, and the two of them disagree with the frame on
+/// a screen of three rows and fewer.
+///
+/// The measurement of 2026-08-17, of the real program v0.8.176 inside tmux in a
+/// terminal of 100 columns, of the message of the key `Ctrl+o`:
+///
+/// * At **3 rows** the message stood on the row 0, over the title
+///   `Home [20 items]` of the list, and the line of the list under it stayed:
+///   the footer keeps one row of such a screen and the message read two.
+/// * At **2 rows** and at **1 row** the program said **nothing at all**: the
+///   footer of two rows that the message read holds every row of the screen,
+///   therefore `the_place_of_a_message` gave `None`.
+///
+/// A screen of 6 rows and more holds the header, the row of the message, and
+/// the footer whole, therefore this rule reaches a terminal of 5 rows and fewer
+/// alone. At 5 rows and at 4 rows the header of the frame keeps no row, and the
+/// message therefore takes the rows of that header for the whole of its
+/// sentence: a message that the screen cuts says nothing (T-299), and the
+/// header is away already.
+fn the_place_of_the_message_of_a_frame(
+    area: Rect,
+    rows_of_the_footer: u16,
+    rows_that_it_needs: u16,
+) -> Option<(u16, u16)> {
+    let [rows_of_the_header, _, rows_that_the_footer_keeps] =
+        the_rows_around_the_work_of_a_view(area.height, rows_of_the_footer);
+
+    crate::logic::message::the_place_of_a_message(
+        area.y,
+        area.height,
+        rows_of_the_header,
+        rows_that_the_footer_keeps,
+        rows_that_it_needs,
+    )
+}
+
 /// The rows that the band of the player keeps on a screen of few rows. See
 /// T-343.
 ///
@@ -435,20 +479,13 @@ impl App {
             return;
         };
 
-        // The rows of the message stand above the two rows of the footer. A
-        // screen that holds no such row draws no message.
+        // The rows of the message stand above the rows of the footer. A screen
+        // that holds no such row draws no message.
         let rows_that_it_needs = crate::logic::message::the_rows_of_a_message(&text, area.width);
 
-        // **The footer of this frame stands on the rows that it needs**
-        // (T-302), therefore the message reads the number that the view wrote
-        // and not a fixed one.
-        let Some((y, rows)) = crate::logic::message::the_place_of_a_message(
-            area.y,
-            area.height,
-            HEADER_HEIGHT,
-            self.rows_of_the_footer.max(FOOTER_HEIGHT),
-            rows_that_it_needs,
-        ) else {
+        let Some((y, rows)) =
+            the_place_of_the_message_of_a_frame(area, self.rows_of_the_footer, rows_that_it_needs)
+        else {
             return;
         };
 
@@ -5180,6 +5217,100 @@ mod tests {
 
         // A media of no chapter gives no bar at all, at every number of rows.
         assert_eq!(the_rows_of_the_bars_of_the_chapters(45, false), 0);
+    }
+
+    /// **The row of the message of a frame stands above the footer of that same
+    /// frame** (T-346, and the decision of T-345).
+    ///
+    /// `render_the_message` read `HEADER_HEIGHT` and the rows that the **text**
+    /// of the footer wants, and [`the_rows_around_the_work_of_a_view`] gives the
+    /// rows that the screen gave them: the two numbers disagree at 3 rows and
+    /// fewer. The measurement of the real program v0.8.176 inside tmux, in a
+    /// terminal of 100 columns, of the message of the key `Ctrl+o`: at 3 rows
+    /// the message stood over the title `Home [20 items]` of the list while the
+    /// row above the footer stayed free, and **at 2 rows and at 1 row the
+    /// program said nothing at all**.
+    ///
+    /// **The parts of this test stay in one function.**
+    #[test]
+    fn the_row_of_the_message_stands_above_the_footer_of_the_frame() {
+        for rows_of_the_screen in 1..=45u16 {
+            let screen = Rect {
+                x: 0,
+                y: 0,
+                width: 100,
+                height: rows_of_the_screen,
+            };
+
+            let [_, _, _, message_area, footer_area] = the_five_areas(screen, 0, FOOTER_HEIGHT);
+
+            // **A screen of one row and more says the message of the program.**
+            let (y, rows) = the_place_of_the_message_of_a_frame(screen, FOOTER_HEIGHT, 1)
+                .unwrap_or_else(|| {
+                    panic!("a screen of {rows_of_the_screen} rows says no message at all")
+                });
+
+            assert!(rows >= 1, "a message of no row says nothing");
+
+            // The last row of the message stands right above the footer of this
+            // frame, and the footer keeps every row that the frame gave it.
+            assert_eq!(
+                y + rows,
+                footer_area.y,
+                "the message of a screen of {rows_of_the_screen} rows stands \
+                 {rows} rows at the row {y}, and the footer of it stands at the \
+                 row {}",
+                footer_area.y
+            );
+
+            // The message stays inside the screen, and it takes no row of the
+            // header of the frame.
+            assert!(y + rows <= rows_of_the_screen);
+
+            // A screen that holds the row of the message writes the message
+            // there and it grows no further while one row is enough.
+            if message_area.height == 1 {
+                assert_eq!(
+                    y, message_area.y,
+                    "a screen of {rows_of_the_screen} rows holds the row of the \
+                     message at {}, and the message stands at {y}",
+                    message_area.y
+                );
+            }
+        }
+
+        // A message of many rows grows upward over the work of the view, and it
+        // stops at the header of the frame. A screen of 45 rows holds the two
+        // rows of its header.
+        let tall = Rect {
+            x: 0,
+            y: 0,
+            width: 100,
+            height: 45,
+        };
+
+        assert_eq!(
+            the_place_of_the_message_of_a_frame(tall, FOOTER_HEIGHT, 4),
+            Some((39, 4))
+        );
+        assert_eq!(
+            the_place_of_the_message_of_a_frame(tall, FOOTER_HEIGHT, 100),
+            Some((HEADER_HEIGHT, 41))
+        );
+
+        // A footer of three rows (T-302) takes the same road: the message reads
+        // the rows of the footer of the frame and not the rows of a fixed one.
+        let short = Rect {
+            x: 0,
+            y: 0,
+            width: 100,
+            height: 5,
+        };
+
+        assert_eq!(
+            the_place_of_the_message_of_a_frame(short, 3, 1),
+            Some((1, 1))
+        );
     }
 
     /// **The header, the row of the message, and the footer go away before the

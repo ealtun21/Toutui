@@ -41,6 +41,24 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.177",
+        date: "17/08/2026",
+        body: &[
+            "Fixed:",
+            "- **A terminal of few rows says the messages of the program \
+             again.** The row of the message read the two rows that the text of \
+             the footer wants, and a terminal of 3 rows and fewer gives that \
+             footer fewer rows: a terminal of 2 rows and a terminal of 1 row \
+             therefore said nothing at all, and a terminal of 3 rows wrote the \
+             message over the title of the list while the row above the footer \
+             stayed free. The message reads the rows of the header and of the \
+             footer of the same frame now. A terminal of 4 rows and of 5 rows \
+             says the whole sentence of a message in the rows that its header \
+             no longer holds, and a terminal of 6 rows and more stands in the \
+             shape that it had.",
+        ],
+    },
+    Entry {
         version: "0.8.176",
         date: "17/08/2026",
         body: &[

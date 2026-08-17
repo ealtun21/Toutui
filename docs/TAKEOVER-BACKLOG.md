@@ -32809,3 +32809,89 @@ measurement):
   that the screen gave it**: the two numbers disagree at 3 rows and fewer alone,
   and a message of such a screen therefore stands one row above its place.
 - **Every candidate of the turns before this one stays open.**
+
+## T-346 — The row of the message of a frame stands above the footer of that same frame
+
+**The condition**: the real program v0.8.176 inside tmux, at 100 columns,
+against the sandbox on `:13399`, with the account `toutuitest` and the library
+`Large` of 2056 items, the Home view. The key `Ctrl+o` gives the message "The
+program does not read the mouse. You can select the text of your terminal
+again. Press Ctrl+o for the mouse." No proxy, no book of a harness, and no
+change of the sandbox at all. The harness started at 45 rows, and
+`tmux resize-window -t check -x 100 -y N` gave each size after it, with
+`Ctrl+o` pressed at each one.
+
+**The fault**, of v0.8.176, at 100 columns:
+
+- 8 rows and 6 rows: the message stands on the two rows above the footer,
+  whole.
+- 5 rows and 4 rows: the message stands on one row, and the screen cuts its
+  sentence with three points (`…`).
+- 3 rows: the message stands on the row 0, over the title `Home [20 items]` of
+  the list, cut to one row, and the line `➤ Large Book 0001` under it stays.
+  The footer of such a screen keeps one row, at the row 2, and the row above
+  it, the row 1, stayed free.
+- 2 rows: the screen held the title of the list and the line of it, and **no
+  message at all**.
+- 1 row: the screen held the title of the list alone, and **no message at
+  all**.
+
+**Why.** `render_the_message` of `src/ui/tui.rs` called
+`crate::logic::message::the_place_of_a_message` with `HEADER_HEIGHT` (2) and
+with `self.rows_of_the_footer.max(FOOTER_HEIGHT)`. `self.rows_of_the_footer`
+holds the rows that the TEXT of the footer wants
+(`crate::ui::keys::the_rows_of_a_footer`), and
+`the_rows_around_the_work_of_a_view` of T-345 gives the rows that the SCREEN
+gave the header and the footer. The two numbers disagree at 3 rows and fewer:
+at 3 rows the text wants 2 rows and the frame gives 1, and at 2 rows and at 1
+row the frame gives 0. `the_place_of_a_message` answers `None` while
+`height < footer + 1`, therefore a footer of two rows that no row of the
+screen holds took the whole message away. The turn of T-345 left this
+disagreement as a candidate already: "`self.rows_of_the_footer`, which
+`render_the_message` and the band of the player read, holds the rows that the
+text of the footer wants and not the rows that the screen gave it".
+
+The band of the player reads that same field, and a read of
+`the_area_of_the_band` shows that the band takes its area of `the_five_areas`
+with the same number that the view gave it, therefore the band and the render
+agree. The map of the mouse holds no area of the header, of the row of the
+message, or of the footer at all.
+
+**The correction.** One new pure function of `src/ui/tui.rs`:
+
+```rust
+fn the_place_of_the_message_of_a_frame(area: Rect, rows_of_the_footer: u16, rows_that_it_needs: u16) -> Option<(u16, u16)>
+```
+
+It takes the rows of the header and of the footer of
+`the_rows_around_the_work_of_a_view`, and it gives them to
+`the_place_of_a_message`. The message and the frame therefore read one
+function.
+
+**The corrected program**, of the same harness. At 8 rows and at 6 rows it is
+the screen of the program before it, character for character. At 5 rows, at 4
+rows, at 3 rows, and at 2 rows the message says its whole sentence on two
+rows; at 1 row it says the sentence on the one row of the screen, cut with
+three points, and the whole of it stands in the log. At 5 rows and at 4 rows
+the message takes the rows that the header of the frame no longer holds: a
+message that the screen cuts says nothing to the user (T-299), and the header
+of such a screen is away already.
+
+**The gate**: `the_row_of_the_message_stands_above_the_footer_of_the_frame` of
+the tests of `src/ui/tui.rs`. It walks every screen of 1 row to 45 rows, and
+it holds `y + rows == footer_area.y` of `the_five_areas` of that same screen.
+With the fault built back in (the two old numbers inside the new function) it
+said: `a screen of 1 rows says no message at all`.
+
+Version v0.8.177.
+
+**What this item leaves open** (each of them a candidate and not a
+measurement):
+
+- **A third reader of that same field**, `the_rows_of_the_band_of_a_screen`,
+  counts `HEADER_HEIGHT`, one row of a message, and the rows that the text of
+  the footer wants as the parts that stand before the band, therefore a screen
+  of few rows can take the band away sooner than the frame needs.
+- **The message of a screen of few rows in the views that hold no footer of
+  two rows.**
+- **Every candidate of the turns before this one stays open.**
