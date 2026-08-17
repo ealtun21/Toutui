@@ -99,8 +99,46 @@ pub const THE_SHARE_OF_THE_GALLERY: u16 = 50;
 /// a picture and no word of it**: the panel 5 holds the facts and the
 /// description of the media of the cursor, and those words are the answer of
 /// the question that a cover asks.
-pub const THE_SMALLEST_PANEL_OF_THE_COVER: u16 =
-    crate::ui::the_panel_of_the_cover::THE_SMALLEST_PANEL_OF_THE_WORDS + 2;
+///
+/// `a_picture_comes` is `false` for a media that the server holds with no cover
+/// at all (`crate::ui::cover::no_picture_comes`). That panel keeps no row for a
+/// picture (T-319 and T-349), therefore the gallery can stand under a panel of
+/// few rows.
+///
+/// `of_the_facts` is the number of the lines that the facts of **this** media
+/// take (`App::the_lines_of_the_facts_of_the_panel`), and not
+/// [`crate::ui::the_panel_of_the_cover::THE_ROWS_OF_THE_FACTS`], which is the
+/// number of the rows of the facts under the list.
+///
+/// **The rows of the facts come of the media and not of a constant** (T-350):
+/// the facts of the design take a line each (T-325), and a book of the sandbox
+/// gives nine of them. A gate of the constant 3 gave the panel 5 fifteen rows
+/// of a column of twenty-three, the facts of that book then lost four of their
+/// nine lines, and a screen of 28 rows said less about that media than a screen
+/// of 27 rows said.
+///
+/// The picture and the description keep their smallest number of rows, because
+/// each of them says its words in the rows that it has: the picture takes every
+/// row that stays (T-330.3), and the description scrolls with the keys `J` and
+/// `K`. **The facts hold no such rule**: a line of the facts stands whole, or
+/// the panel does not say it at all.
+///
+/// The function is pure, therefore a test of it needs no terminal and no server.
+pub fn the_whole_panel_of_the_cover(a_picture_comes: bool, of_the_facts: u16) -> u16 {
+    let of_the_picture = if a_picture_comes {
+        crate::ui::the_panel_of_the_cover::THE_SMALLEST_PICTURE
+    } else {
+        0
+    };
+
+    THE_ROWS_OF_THE_BORDER
+        .saturating_add(of_the_picture)
+        .saturating_add(of_the_facts)
+        .saturating_add(crate::ui::the_panel_of_the_cover::THE_ROWS_OF_A_DESCRIPTION)
+}
+
+/// The rows that the border of a panel takes, one at each end.
+const THE_ROWS_OF_THE_BORDER: u16 = 2;
 
 /// One media of the gallery, in the words that the screen holds already.
 ///
@@ -229,10 +267,20 @@ pub fn the_smallest_gallery(of_a_cell: u16, font: FontSize) -> u16 {
 /// **The gallery goes away before the panel 5 does**: a column that holds no
 /// room for the two panels gives every row to the panel 5, because the words of
 /// the media of the cursor say more than the covers of the media beside it.
-pub fn the_two_panels(column: Rect, of_a_cell: u16, font: FontSize) -> (Rect, Option<Rect>) {
+///
+/// `a_picture_comes` and `of_the_facts` say how many rows the panel 5 needs for
+/// the whole of its words. See [`the_whole_panel_of_the_cover`] and T-350.
+pub fn the_two_panels(
+    column: Rect,
+    of_a_cell: u16,
+    font: FontSize,
+    a_picture_comes: bool,
+    of_the_facts: u16,
+) -> (Rect, Option<Rect>) {
     let the_smallest = the_smallest_gallery(of_a_cell, font);
+    let of_the_cover = the_whole_panel_of_the_cover(a_picture_comes, of_the_facts);
 
-    if column.height < THE_SMALLEST_PANEL_OF_THE_COVER + the_smallest {
+    if column.height < of_the_cover.saturating_add(the_smallest) {
         return (column, None);
     }
 
@@ -247,7 +295,7 @@ pub fn the_two_panels(column: Rect, of_a_cell: u16, font: FontSize) -> (Rect, Op
 
     // The panel 5 keeps the rows that its words need, therefore a gallery of
     // more than one row goes back to one row before it takes them.
-    let of_the_gallery = if column.height - of_the_gallery < THE_SMALLEST_PANEL_OF_THE_COVER {
+    let of_the_gallery = if column.height - of_the_gallery < of_the_cover {
         the_smallest
     } else {
         of_the_gallery
@@ -372,7 +420,12 @@ mod tests {
         let column = Rect::new(110, 2, 50, 41);
         let of_a_cell = THE_WIDTHS_OF_A_CELL[THE_WIDTH_OF_THE_START];
 
-        let (cover, gallery) = the_two_panels(column, of_a_cell, FONT);
+        // The facts of a media of that measurement take three lines, which is
+        // the number that the rows under the list hold too.
+        let of_the_facts = crate::ui::the_panel_of_the_cover::THE_ROWS_OF_THE_FACTS;
+        let the_smallest_panel = the_whole_panel_of_the_cover(true, of_the_facts);
+
+        let (cover, gallery) = the_two_panels(column, of_a_cell, FONT, true, of_the_facts);
         let gallery = gallery.expect("a column of 41 rows holds the two panels");
 
         assert_eq!(cover.y, column.y);
@@ -383,8 +436,8 @@ mod tests {
 
         // The panel 5 keeps the rows that the words of the media need.
         assert!(
-            cover.height >= THE_SMALLEST_PANEL_OF_THE_COVER,
-            "the panel 5 holds {} rows and it needs {THE_SMALLEST_PANEL_OF_THE_COVER}",
+            cover.height >= the_smallest_panel,
+            "the panel 5 holds {} rows and it needs {the_smallest_panel}",
             cover.height
         );
         assert!(gallery.height >= the_smallest_gallery(of_a_cell, FONT));
@@ -392,8 +445,11 @@ mod tests {
         // **A column that holds no room for the two panels gives every row to
         // the panel 5**: the words of the media of the cursor say more than the
         // covers of the media beside it.
-        let short = Rect::new(110, 2, 50, THE_SMALLEST_PANEL_OF_THE_COVER + 1);
-        assert_eq!(the_two_panels(short, of_a_cell, FONT), (short, None));
+        let short = Rect::new(110, 2, 50, the_smallest_panel + 1);
+        assert_eq!(
+            the_two_panels(short, of_a_cell, FONT, true, of_the_facts),
+            (short, None)
+        );
 
         // A cell that is larger needs a taller column, therefore the same
         // column gives no gallery for the largest cell of the list.

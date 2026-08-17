@@ -33266,3 +33266,133 @@ test of this shape are the numbers of the measurement, and 5 is that number.
   takes the border of each panel into its arithmetic, and no measurement of
   tmux has driven it under 20 rows.
 - **Every candidate of the turns before this one stays open.**
+
+## T-350 — The gallery takes the rows of the facts of the panel of the cover, and a screen of one row more says less about the media
+
+**The condition**: the Home view or the Library view of a screen of 120 columns
+and more, where the frame of the panels stands and the panel 6 of the gallery
+can stand under the panel 5 of the cover (T-327). **This item is the third
+candidate that T-349 left open** — the panel 6 of the gallery under 20 rows,
+which no measurement of tmux had driven — and it needs no proxy and no change
+of the sandbox at all.
+
+**The measurement, of the real program v0.8.180 inside tmux**, of the library
+`Books` of the sandbox, in the Home view, at 160 columns, with
+`tmux resize-window -t check -x 160 -y N` after the first frame. The media of
+the cursor is `A Long Test Book`, and the facts of the design of it take
+**nine** lines. At 27 rows the panel said all of them:
+
+```text
+┌5 Cover ─────────────────────────────────┐
+│           ▀                             │
+│                                         │
+│Author    Long Author                    │
+│Narrator  A Test Narrator                │
+│Time      30m, 15m left                  │
+│Started   17 Aug 2026                    │
+│Genre     Fiction, Adventure             │
+│Files     1 file, 7.0 MB                 │
+│Ebook     epub                           │
+│Progress  50%, Not finished              │
+│█████████████████████░░░░░░░░░░░░░░░░░░░░│
+│No description available                 │
+└─────────────────────────────────────────┘
+```
+
+At 28 rows, one row **more** of the screen, the gallery stood and the panel
+said five lines of the nine:
+
+```text
+┌5 Cover ───────────────────────────────────┐
+│                                           │
+│Author    Long Author                      │
+│Narrator  A Test Narrator                  │
+│Time      30m, 15m left                    │
+│Started   17 Aug 2026                      │
+│Genre     Fiction, Adventure               │
+└───────────────────────────────────────────┘
+┌6 Gallery ─────────────────────────────────┐
+│┏━━━━━━━━┓ ┌────────┐ ┌────────┐ ┌────────┐│
+│┃        ┃ │A Second│ │A Book  │ │One     ││
+│┃        ┃ │Book Of │ │Of Many │ │Chapter ││
+│┃        ┃ │Many    │ │Hours   │ │Book    ││
+│┃        ┃ │Hours   │ │        │ │        ││
+│┗━━━━━━━━┛ └────────┘ └────────┘ └────────┘│
+└───────────────────────────────────────────┘
+```
+
+**The place of the user and the bar of the progress went away**, and T-325 says
+that the two of them always take a line. The files and the ebook went away with
+them. The same fault stood at 29 rows, where the panel said six of the nine
+lines. **A screen that is taller said less about the media.**
+
+**Why**: `the_panel_of_the_gallery::the_two_panels` read the constant
+`THE_SMALLEST_PANEL_OF_THE_COVER`, which is
+`the_panel_of_the_cover::THE_SMALLEST_PANEL_OF_THE_WORDS + 2`, and that number
+holds `THE_ROWS_OF_THE_FACTS`, which is **three**. Three is the number of the
+rows of the facts **under the list**, and the facts of the design of the panel
+5 take **a line each** (T-325). The column of a screen of 28 rows holds 23
+rows: the gallery took 8 of them and it left 15, `the_parts_of_the_panel` then
+gave the picture its smallest 8 rows of the 13 inside the border, and the five
+rows that stayed held five of the nine lines of the facts.
+
+**The other face of the same fault**: the library `Large` of the sandbox holds
+its media **with no cover at all**, and the facts of such a media take three
+lines. The panel 5 of it needs no row for a picture (T-319 and T-349),
+therefore seven rows say the whole of it, and the constant reserved fifteen. At
+27 rows the gallery went away, the panel said its three lines, and **twenty
+rows of that panel held no character at all** — which is the fault of T-319,
+in the panel that T-327 built to fill those rows:
+
+```text
+┌5 Cover ───────────────────────────────────────┐
+│Time      0m                                   │
+│Files     1 file, 0.0 MB                       │
+│No description available                       │
+│                                               │
+│                                … 20 rows …    │
+└───────────────────────────────────────────────┘
+```
+
+**The correction**: one pure function,
+`the_panel_of_the_gallery::the_whole_panel_of_the_cover(a_picture_comes,
+of_the_facts)`, gives the rows that the panel 5 needs for the whole of its
+words — the border, the picture of a media that has one, the lines of the facts
+of **that** media, and `THE_ROWS_OF_A_DESCRIPTION`. `the_two_panels` reads that
+function in its gate and in the road back of a gallery of more than one row,
+and the constant `THE_SMALLEST_PANEL_OF_THE_COVER` goes away. `render_covers`
+of `crate::ui::tui` counts the lines of the facts **before** it divides the
+column: the gallery divides the height alone, therefore the words of the panel
+wrap at the same width whether the gallery stands or not.
+
+**The picture and the description keep their smallest number of rows**, because
+each of them says its words in the rows that it has: the picture takes every
+row that stays (T-330.3), and the description scrolls with the keys `J` and
+`K`. **The facts hold no such rule**: a line of the facts stands whole, or the
+panel does not say it at all. That asymmetry is the reason that the facts take
+the number of the media and the other two take a constant.
+
+**The corrected program of the same harness**: at 29, 28, and 27 rows the panel
+5 of `A Long Test Book` says the nine lines of its facts, the bar of the
+progress, and `No description available`, character for character the same at
+each of the three, and no gallery stands. The gallery of that book comes back
+at 34 rows, where the column holds the 21 rows of the panel and the 8 of the
+gallery together. **The control is the library `Large`**: its gallery now
+stands at 27 rows, where it went away before, and at 22 rows, where 12 rows of
+the panel held nothing.
+
+**The test**:
+`tests/the_gallery_leaves_the_panel_of_the_cover_its_facts.rs`, of two
+functions. `the_whole_panel_of_the_cover(true, 9)` is 21, `(false, 3)` is 7,
+and `(true, 3)` is 15, which is the value that the constant held. The column of
+23 rows of a book of nine facts gives no gallery, and the column of 22 rows of
+a media of three facts with no cover gives a panel of 14 rows and a gallery of
+8. A sweep of every column of 1 row to 59, of the three media and of the four
+widths of a cell of the design, says that a gallery that stands leaves the
+panel 5 the rows of the whole of its words. **The numbers of the test are the
+numbers of the measurement and not the value of the function that it measures**
+(T-349): with the correction removed the two functions fail, the first with
+`left: 15, right: 21`, and the second with a gallery of 8 rows where the
+measurement says none.
+
+**v0.8.181.**

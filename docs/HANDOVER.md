@@ -25137,6 +25137,317 @@ before this one. **A media of the sandbox with no cover is data of a fault
 that needs no proxy and no change of the sandbox at all**, and the library
 `Large` is that data.
 
+## The session of the hundred and eighty-second turn of 2026-08-17: T-349, the height of the panel of a media with no cover, of the block of the prompt
+
+**The session of the hundred and eighty-second turn took the item 1 of the
+list of the work**, and it took **the first candidate that the turn before it
+left open**: T-348 corrected the width of the panel 5 of a media with no
+cover, and the height of that same panel held the same fault one gate later.
+
+**A `ps` of the machine at the start of the round found it clean**: no program
+of `toutui`, and no shell of a busy loop of the rounds before it. The tree of
+git was clean too, and `cargo clean` of the round before this one gave a cold
+build of `cargo build -j 16` in **21.65 seconds**, which is the measurement of
+T-64.
+
+**The fault, of the real program v0.8.179 inside tmux**, of the library
+`Large` of the sandbox, whose media the server holds **with no cover at all**
+(`GET /api/items/:id/cover` answers **404**), in the Home view, with
+`tmux resize-window -t check -x 160 -y N` after the first frame. At 13 rows
+the panel stood and the list named four media:
+
+```text
+│  Authors                      a│║    Large Book 0002    <1m  -│║ │Time      0m                │
+│  Narrators                    v│║    Large Book 0003    <1m  -│║ │Files     1 file, 0.0 MB    │
+│  Collections                  c│║    Large Book 0004    <1m  -│║ │No description available    │
+```
+
+At 12 rows, one row fewer, **the panel went away**, the list named **one**
+media, and the two rows under it said `Author: N/A - Year: N/A - Duration: 0m`
+and `Progress:  N/A%,   N/A`, which are the two lines of the program before
+the panel of T-325 stood — and which **say less than the panel said**. The
+fault stood at 12, 11, and 10 rows, and **it stood at 100 columns too**: the
+panel of 38 columns went away at 12 rows there, and the list fell from six
+media to three.
+
+**Why**: the gate of `cover::split_for_covers` reads
+`area.height < MIN_HEIGHT_FOR_COVER`, and that constant is the smallest height
+of a **picture** — `the_panel_of_the_cover::THE_SMALLEST_PICTURE` is the same
+number. **The limit of the height stands twice, and T-348 corrected one of
+them.**
+
+**The correction**: one pure function, `cover::the_smallest_panel_of_the_cover`.
+A panel that holds a picture keeps `MIN_HEIGHT_FOR_COVER`, and a panel that
+holds no picture takes the border of the panel and `THE_ROWS_OF_THE_FACTS` —
+**five rows** — because the facts are the value of that panel. The gate reads
+that function, and the views pass the `a_picture_comes` of T-348 already.
+
+**The corrected program of the same harness**: at 12, 11, and 10 rows the panel
+holds 48 columns and it says the three lines whole, which is the panel of the
+same media at 13 rows, character for character, and the list names three, two,
+and one media with no line of the program before T-325 under it. **The control
+is the library `Books`**, whose media hold a cover: its panel stood at 13 rows
+and it went away at 12, 11, and 10 rows, before the correction and after it,
+character for character. **v0.8.180.**
+
+**A test that takes its own bounds of the function that it measures cannot
+fail**, and this round paid for that: the first form of two tests of the item
+read `the_smallest_panel_of_the_cover(false)` for the start of their sweep of
+the rows, the fault made that value 8, the range `8..8` held no row at all, and
+**the two tests passed with the fault built in**. The numbers of a test of this
+shape are the numbers of the measurement, and 5 is that number. The second
+form failed with the fault and it passed without it.
+
+**What this round leaves open, and each of them is a candidate and not an
+item**: **the height of the panel 5 of a media that holds a picture**, where
+the gate compares the height of the whole panel with `MIN_HEIGHT_FOR_COVER`
+while `the_parts_of_the_panel` compares the height **inside** the border with
+`THE_SMALLEST_PICTURE`, which is the same number — the picture of the smallest
+panel therefore stands in 6 rows while the constant says 8; **the words of the
+panel 5 at a screen of 9 rows and fewer**, where the panel goes away and the
+row under the list says `Author: N/A - Year: N/A - Duration: 0m` alone; **the
+panel 6 of the gallery under 20 rows**, which no measurement of tmux has
+driven; and every candidate of the turns before this one.
+
+## The decisions of T-320 to T-350 that do not open again
+
+These decisions stood in the block of the prompt until the round of the
+hundred and eighty-third turn, which took them out because the block stood at
+98625 bytes with one turn in it and the limit of it is 100000 (T-284). **Each
+of them holds**, and no round opens one of them again.
+
+**The list of a view is the work of that view, and it goes away last**: the
+row of the item takes no row that the list needs for its border and one
+line, and a view of 4 rows and more keeps the two rows that it had, therefore
+that rule reaches a terminal of 8 rows and fewer alone (T-342).
+**The band of the player stands under the work of every view, and it goes
+away before that work**: fifteen views built the layout themselves and the
+band drew over their last six lines, therefore every view takes its areas of
+`the_areas_of_a_view` now and the fifteen hold the row of the message too;
+the band leaves the work of the view its border and one line and a band of
+fewer than three rows goes away; the two bars of the Chapters view take that
+same road; and the footer of the reader stands in the footer of the frame
+(T-343).
+**The panel of the item of a view is not the work of that view, and it goes
+away before the list**: seven views split the work of the view themselves with
+a `Constraint::Length` of 4 or of 5 for that panel and a `Constraint::Fill`
+for the list, therefore a terminal of few rows gave the panel its rows first
+and the Authors view of 8 rows said no title and no author at all; one pure
+function, `the_rows_of_the_panel_of_the_item`, holds the rule of T-342 and of
+T-344 now, and a view that held the whole panel keeps it; and **the panel
+needs no smallest size**, because it draws no border and every row that it
+keeps says a word (T-344).
+**The work of a view goes away after the three parts that stand around it**:
+the header, the row of the message, and the footer each took their rows of a
+screen of few rows first, therefore a terminal of 5 rows held the header and
+the footer alone with no title of the list and no line of it, a terminal of 3
+rows held the footer alone, and **a terminal of 1 row held no letter at all**;
+one pure function, `the_rows_around_the_work_of_a_view`, keeps the border and
+one line of the view before the three of them keep their rows; **the header
+goes away first**, because the settings screen and the view of the accounts
+say its values too; **the row of the message goes away after it**, because
+`render_the_message` writes the words over the work of the view already (the
+trap 39 and T-299) and that row is the room and not the voice; and **the
+footer goes away last**, because no other screen of this program names the
+keys of a view (T-345).
+**The row of the message of a frame stands above the footer of that same
+frame**: `render_the_message` read the number `HEADER_HEIGHT` and the rows
+that the **text** of the footer wants, and a screen of 3 rows and fewer gives
+that footer fewer rows, therefore a terminal of 2 rows and a terminal of 1
+row said nothing at all and a terminal of 3 rows wrote the message over the
+title of the list while the row above the footer stayed free; one pure
+function, `the_place_of_the_message_of_a_frame`, gives the message the rows
+of the header and of the footer of `the_rows_around_the_work_of_a_view`; and
+**a screen whose header keeps no row gives those rows to the whole sentence
+of a message**, because a message that the screen cuts says nothing to the
+user (T-299 and T-346).
+**The rows that the program keeps for the work of a view come of the border
+that the view draws**: `THE_SMALLEST_LIST` of 2 rows holds a border at the
+top and one line, and the panel 4 of the frame of the panels holds a border
+of four sides, therefore a screen of 120 columns and more held the two rows
+of that border and **no line of the list at all** at 6 rows and fewer, and
+at 8 rows it gave a row to the panel of the item while the list had none;
+one pure function, `the_smallest_work_of_a_view`, gives 3 rows to the frame
+and 2 to every other view, and **no function of the rows of a screen reads
+`THE_SMALLEST_LIST` by itself now**; and **a sweep of the rows of a screen
+belongs at 160 columns and at 100 columns together**, because the two views
+of the frame are the two views whose width decides the shape of their work,
+and the five rounds of T-342 to T-346 each ran at 100 columns alone (T-347).
+**The width of the panel of the cover comes of the picture that stands in
+it, and a panel that holds no picture takes no limit of its height**: the
+limit of `width_that_the_height_can_use` is the limit of a picture (T-50),
+and a media that the server holds with no cover gives every row of that
+panel to the words (T-319), therefore a screen of 160 columns and 16 rows
+gave that panel 22 columns and it cut `Files     1 file, 0.0 MB` after `0.`
+while the same panel of the same media at 30 rows took 48 columns; the
+layout therefore reads `cover::no_picture_comes` before the render, which
+is the **same** value that `the_parts_of_the_panel` reads for the rows of
+that panel; **a panel that holds a picture keeps the limit that it had**,
+and the library `Books` of the sandbox is the control of it; and **a media
+of the sandbox with no cover is data of a fault that needs no proxy and no
+change of the sandbox at all** (T-348).
+**The height of the panel of the cover comes of the picture that stands in it
+too, and the gate of that height stands twice**: `MIN_HEIGHT_FOR_COVER` is
+the smallest height of a picture and `THE_SMALLEST_PICTURE` is the same
+number, therefore a screen of 160 columns and 12 rows took that panel away
+from a media with no cover, the list of it named one media where the same
+list of 13 rows named four, and the two rows under it said `Author: N/A -
+Year: N/A - Duration: 0m` and `Progress:  N/A%,   N/A`, which say less than
+the panel said; **the smallest panel of the words is the border of the panel
+and `THE_ROWS_OF_THE_FACTS`**, which is five rows, because the facts are the
+value of that panel and a panel that says fewer facts than the row under the
+list says takes the columns of the list for nothing; **a panel that holds a
+picture keeps the height that it had**; and **a test that takes its own
+bounds of the function that it measures cannot fail**, therefore the numbers
+of such a test are the numbers of the measurement (T-349).
+**The rows that the panel 6 of the gallery leaves the panel 5 come of the
+facts of the media and not of a constant**: `the_two_panels` read
+`THE_ROWS_OF_THE_FACTS`, which is the number of the rows of the facts under
+the list, while the facts of the design of the panel 5 take a line each
+(T-325), therefore a screen of 160 columns and 28 rows lost the place of the
+user, the bar of the progress, the files, and the ebook of a book of nine
+facts, while the same screen of 27 rows said all of them; **the picture and
+the description keep their smallest number of rows**, because each of them
+says its words in the rows that it has, and a line of the facts stands whole
+or the panel does not say it at all; and **a media that the server holds with
+no cover keeps no row for a picture there either**, therefore the gallery of
+such a media stands in a column of 15 rows where it needed 23 before (T-350).
+**The bands of covers of the Home view stand where the table of the panel 4
+stands**, therefore a screen under 120 columns keeps the list of one column
+that it had, and a panel that has no room for one whole band keeps the table
+of today with the keys and the footer of that table; **the shape of the last
+frame lives in `App::the_bands_of_the_last_frame`**, because the handler of a
+key holds no area of the screen; **the key `l` gives the cell at the right
+and the key `Enter` plays or opens**, because a key of two meanings in one
+view is a fault of its own and `Enter` is an alias of `l` in every other view
+already; and **the footer of that view takes the rows of the longer of its
+two texts**, because a footer of a height of its own would decide the shape
+that names it (T-143 and T-336).
+**The panels 2 and 3 of the stack hold the rows of the view of the key `f`
+and no row of their own, and the authors, the series, the narrators, and the
+tags stay in that view**: those rows come of a request that the start of the
+program does not make (T-318). **The key `l` of a row of a series opens
+`AppView::SeriesBook`, and that road stands since T-22**, therefore a round
+that reads "a series opens into no book" measures the program before it
+believes it (T-318).
+**The panel 5 of the cover holds the picture, the facts of the media, and the
+description of it, and the words of that panel leave the column of the
+list**; **a media that the server holds with no cover gives every row of that
+panel to the words**, and **a picture that the program did not ask for yet is
+not such a media** — `cover::no_picture_comes` reads the two states of the
+store that no second request asks for, and no other value (T-319).
+**The band of the player holds no number of a panel and no focus**, because
+every key of the player works in every view of this program already; **the bar
+of the seek and the click of it are exact opposites**, and the second of a
+click therefore goes up; and **the row of the buttons keeps the words of
+today**, because a `[ ]` of the design that no click reads promises a function
+that the program does not have (T-322).
+**The frame of the panels is not the stack of the panels**: the key `z` hides
+the panels 1, 2, and 3 alone, and the panel 4 of the list and the panel 5 of
+the cover keep their border, their digit, their footer, and their click while
+the stack is away — `App::the_frame_of_the_panels_stands` holds the first rule
+and `App::the_stack_of_the_panels_stands` holds the second, and no round joins
+them again. **The mode is not the mode of the start**, a refresh keeps it, and
+**a screen under 120 columns takes no key `z`**, as it takes no digit of a
+panel (T-323).
+**The day of the start of the media comes of the box of the places of the
+account and of no request of its own**, because `GET /api/me` runs at the
+start of the program for the permissions already (T-110 and T-127); **it
+stands after the three values of that box**, therefore every reader that
+stood before T-328 reads the same three values; **it comes in the time of
+the machine of the user**, because the user reads the day when they started
+the media and not the day of the server; **a media that the user never
+started takes no line at all**, which is the rule of T-325; and **the line
+takes no road of T-239 and of T-240**, because a live message of the server
+names no day of a start (T-328).
+**The bar of the book of the Chapters view holds no mark while a chapter of
+it holds fewer than two cells of its own**, because the marks then stand
+beside each other and the bar and the marks are one noise — the rule of 40
+columns of `docs/mockups/mockup-7.md` reads the width alone, and a wide bar
+of many chapters passes it; **the bar of the chapter is the chapter of the
+cursor and the place of the user is clamped inside it**, therefore a chapter
+that the playback passed says 100% and a chapter that it did not reach says
+0%; **a media of no chapter keeps the row of the second bar** with the name
+`Ch -` and no percent at all (T-91); and **a playback that stopped gives no
+bar**, because the engine keeps the length and the place of the media that
+played last (T-330.5).
+**The columns of the times of the table of the Chapters view take the width
+of the widest value that they hold**, because a book of eight hours gives
+`7:59:12` in seven columns and a book of 30 minutes gives `29:12` in five;
+**the length of a chapter names the second under one hour (`7m50s`) and the
+minute over it (`1h02m`)**, because `convert_seconds` rounds to the minute
+and every chapter of less than 30 seconds then says `0m`; **the title of a
+chapter takes every column that the others leave**, which is the rule of the
+table of the panel 4 (T-321); **a row that keeps fewer than 20 columns for
+the title holds no table at all** and the line of today stands in its place,
+because that line says the start already and a text that the row cuts says
+nothing to the user (T-91); **a book of no chapter gives no row of a
+header**; and **the row of the header takes one row of the panel**, therefore
+the bar of the scroll and the map of the mouse read the rows that stay
+(T-330.5).
+**A click of a row of the Chapters view plays that chapter**, and that view
+is the fourth list of this program whose row opens at one click — the panel 1
+of the views, the panel 2 of the sequence, and the panel 3 of the filter are
+the other three — because a row of it is no media of the library and the rule
+of T-316 therefore does not hold for it; **the click takes the road of the
+key `l` of that row**, therefore the two say the same words; and **the render
+of that view gives the line of the user itself and not a copy of it**,
+because ratatui writes the offset of the list into the state while it draws
+it and the map of the mouse reads that offset after the render (T-330.5).
+**A click of the bar of the book of the Chapters view moves the media to
+that place**, because that bar is the bar of the seek of the view: it takes
+the arithmetic and the words of the bar of the band of the player, therefore
+the wheel over it moves the media by ten seconds too; **the bar of the
+chapter under it takes no click at all**, because a bar of a chapter of two
+minutes gives one cell of the screen to about a second of the media, which
+is a control that no user can aim at; **the area of that bar goes away
+before the view of every frame draws**, because the Chapters view is the one
+view that draws it and the areas of the mouse are the areas of the last
+frame; and **the click moves the cursor of the list nowhere**, because the
+mark of the row of the chapter that plays follows the playback by itself
+(T-333).
+**The words of the sequence and of the filter of the status bar keep the
+middle of the row while the middle is free**, therefore every screen that
+stood before T-329 stands in the same shape; **they stand beside the part at
+the left with a gap of two columns** when the middle is not free, and two
+columns is the gap that the row of 80 columns held already; and **a row that
+has no room for the whole of them holds none of them**, because a text that
+the row cuts says nothing to the user (T-91) and the view of the key `f`
+holds those two values at every width of the screen already (T-329).
+**The panel 6 of the gallery holds whole rows of its grid alone**, because a
+panel of a part of a row holds rows of the screen that no cell uses; **the
+rows of a picture of a cell come of the `FontSize` of the picker and not of
+the mockup**, whose boxes hold one row of a picture that no cover can use;
+**a row of the list that names no media gives no cell**, therefore
+`AMediaOfTheGallery::the_line` carries the line of the list; **the gallery
+stands in the Home view and in the Library view of a screen of 120 columns
+and more and in no other view**, because it belongs to the frame of the
+panels; **the panel 6 stands under the panel 5 and not beside it**; and **the
+title of it says `6 Gallery` and no button of the design**, for the reason of
+T-322 (T-327).
+**The facts of the design of the panel 5 reach the Home view and the Library
+view, and no other view of this program**: the two of them draw the panel 4
+of the list and the panel 5 of the cover (T-320), and the answer of the
+personalized view holds the same six facts as the answer of the items; the
+view of a search, the view of a collection, and the view of the episodes of
+a podcast keep the two lines of today, because their lists of a row hold no
+narrator, no genre, and no ebook. **A shelf that holds no media gives no row
+of the facts**, because `media_entities` is the one sequence of the lists of
+the Home view (T-326).
+**The facts of the design of the panel 5 stand under the picture and not
+beside it**, because a picture of half the width is a picture of a quarter of
+the cells; **a fact that the server did not give takes no line at all**,
+because a row that says `Narrator  N/A` costs a row of the screen and it
+tells the user nothing; and **the length of the media and the place of the
+user always take a line**, with the bar of the progress under them (T-325).
+**The mode of the whole library lives in the process and not in the row of
+the account**, because `App::keep_the_state_of_the_application_before` runs
+after `App::new_with_the_engine` writes the request of the items; **the row
+`Every book of a series` stands in the panel 2 and in the view of the key
+`f` of a library of books alone**, because a library of podcasts holds no
+series; and **the mark says the state and the words do not**, because a line
+of the panel 2 holds 30 columns (T-324).
+
 ## The prompt for the next session
 
 
@@ -26159,75 +26470,90 @@ that needs no proxy and no change of the sandbox at all**, and the library
 
 >
 >
-> **The session of the hundred and eighty-second turn took the item 1 of the
-> list of the work**, and it took **the first candidate that the turn before it
-> left open**: T-348 corrected the width of the panel 5 of a media with no
-> cover, and the height of that same panel held the same fault one gate later.
+> **The session of the hundred and eighty-third turn took the item 1 of the
+> list of the work**, and it took **the third candidate that the turn before it
+> left open**: the panel 6 of the gallery under 20 rows, which no measurement of
+> tmux had driven.
 >
 > **A `ps` of the machine at the start of the round found it clean**: no program
-> of `toutui`, and no shell of a busy loop of the rounds before it. The tree of
-> git was clean too, and `cargo clean` of the round before this one gave a cold
-> build of `cargo build -j 16` in **21.65 seconds**, which is the measurement of
-> T-64.
+> of `toutui`, and no shell of a busy loop. The tree of git was clean, the disk
+> held 446 gigabytes, and the `cargo clean` of the round before this one gave a
+> cold build of `cargo build -j 16` in **18.38 seconds**.
 >
-> **The fault, of the real program v0.8.179 inside tmux**, of the library
-> `Large` of the sandbox, whose media the server holds **with no cover at all**
-> (`GET /api/items/:id/cover` answers **404**), in the Home view, with
-> `tmux resize-window -t check -x 160 -y N` after the first frame. At 13 rows
-> the panel stood and the list named four media:
+> **The fault, of the real program v0.8.180 inside tmux**, of the library
+> `Books` of the sandbox, in the Home view, at 160 columns, with
+> `tmux resize-window -t check -x 160 -y N` after the first frame. The media of
+> the cursor is `A Long Test Book`, and the facts of the design of it take
+> **nine** lines. At 27 rows the panel 5 said all nine of them, the bar of the
+> progress, and `No description available`, and no gallery stood. At **28 rows,
+> one row more of the screen**, the gallery stood and the panel said five lines
+> of the nine:
 >
 > ```text
-> │  Authors                      a│║    Large Book 0002    <1m  -│║ │Time      0m                │
-> │  Narrators                    v│║    Large Book 0003    <1m  -│║ │Files     1 file, 0.0 MB    │
-> │  Collections                  c│║    Large Book 0004    <1m  -│║ │No description available    │
+> │Author    Long Author                      │
+> │Narrator  A Test Narrator                  │
+> │Time      30m, 15m left                    │
+> │Started   17 Aug 2026                      │
+> │Genre     Fiction, Adventure               │
+> └───────────────────────────────────────────┘
+> ┌6 Gallery ─────────────────────────────────┐
 > ```
 >
-> At 12 rows, one row fewer, **the panel went away**, the list named **one**
-> media, and the two rows under it said `Author: N/A - Year: N/A - Duration: 0m`
-> and `Progress:  N/A%,   N/A`, which are the two lines of the program before
-> the panel of T-325 stood — and which **say less than the panel said**. The
-> fault stood at 12, 11, and 10 rows, and **it stood at 100 columns too**: the
-> panel of 38 columns went away at 12 rows there, and the list fell from six
-> media to three.
+> **The place of the user and the bar of the progress went away**, and T-325
+> says that the two of them always take a line. The same fault stood at 29 rows,
+> with six of the nine lines. **A screen that is taller said less about the
+> media.**
 >
-> **Why**: the gate of `cover::split_for_covers` reads
-> `area.height < MIN_HEIGHT_FOR_COVER`, and that constant is the smallest height
-> of a **picture** — `the_panel_of_the_cover::THE_SMALLEST_PICTURE` is the same
-> number. **The limit of the height stands twice, and T-348 corrected one of
-> them.**
+> **Why**: `the_two_panels` of `the_panel_of_the_gallery` read the constant
+> `THE_SMALLEST_PANEL_OF_THE_COVER`, which holds `THE_ROWS_OF_THE_FACTS`, and
+> that number is **three**. Three is the number of the rows of the facts **under
+> the list**, and the facts of the design of the panel 5 take **a line each**
+> (T-325). The column of a screen of 28 rows holds 23 rows: the gallery took 8
+> and it left 15, the picture then kept its smallest 8 of the 13 inside the
+> border, and the five rows that stayed held five of the nine lines.
 >
-> **The correction**: one pure function, `cover::the_smallest_panel_of_the_cover`.
-> A panel that holds a picture keeps `MIN_HEIGHT_FOR_COVER`, and a panel that
-> holds no picture takes the border of the panel and `THE_ROWS_OF_THE_FACTS` —
-> **five rows** — because the facts are the value of that panel. The gate reads
-> that function, and the views pass the `a_picture_comes` of T-348 already.
+> **The other face of the same fault**: the media of the library `Large`, which
+> the server holds with no cover at all, need no row for a picture (T-319 and
+> T-349), therefore seven rows say the whole of such a panel while the constant
+> reserved fifteen. At 27 rows the gallery went away, the panel said its three
+> lines, and **twenty rows of that panel held no character at all** — the fault
+> of T-319, in the panel that T-327 built to fill those rows.
 >
-> **The corrected program of the same harness**: at 12, 11, and 10 rows the panel
-> holds 48 columns and it says the three lines whole, which is the panel of the
-> same media at 13 rows, character for character, and the list names three, two,
-> and one media with no line of the program before T-325 under it. **The control
-> is the library `Books`**, whose media hold a cover: its panel stood at 13 rows
-> and it went away at 12, 11, and 10 rows, before the correction and after it,
-> character for character. **v0.8.180.**
+> **The correction**: one pure function,
+> `the_whole_panel_of_the_cover(a_picture_comes, of_the_facts)`, gives the rows
+> that the panel 5 needs for the whole of its words — the border, the picture of
+> a media that has one, the lines of the facts of **that** media, and
+> `THE_ROWS_OF_A_DESCRIPTION`. `the_two_panels` reads that function, and the
+> constant goes away. `render_covers` counts the lines of the facts **before**
+> it divides the column: the gallery divides the height alone, therefore the
+> words wrap at the same width whether the gallery stands or not.
 >
-> **A test that takes its own bounds of the function that it measures cannot
-> fail**, and this round paid for that: the first form of two tests of the item
-> read `the_smallest_panel_of_the_cover(false)` for the start of their sweep of
-> the rows, the fault made that value 8, the range `8..8` held no row at all, and
-> **the two tests passed with the fault built in**. The numbers of a test of this
-> shape are the numbers of the measurement, and 5 is that number. The second
-> form failed with the fault and it passed without it.
+> **The picture and the description keep their smallest number of rows**,
+> because each of them says its words in the rows that it has: the picture takes
+> every row that stays (T-330.3), and the description scrolls with the keys `J`
+> and `K`. **The facts hold no such rule**: a line of the facts stands whole, or
+> the panel does not say it at all.
+>
+> **The corrected program of the same harness**: at 29, 28, and 27 rows the
+> panel 5 of that book says its nine lines, the bar, and the description,
+> character for character the same at each of the three, and no gallery stands;
+> the gallery of that book comes back at 34 rows. **The control is the library
+> `Large`**: its gallery now stands at 27 rows, where it went away before, and
+> at 22 rows, where 12 rows of the panel held nothing. **v0.8.181.**
 >
 > **What this round leaves open, and each of them is a candidate and not an
 > item**: **the height of the panel 5 of a media that holds a picture**, where
-> the gate compares the height of the whole panel with `MIN_HEIGHT_FOR_COVER`
-> while `the_parts_of_the_panel` compares the height **inside** the border with
-> `THE_SMALLEST_PICTURE`, which is the same number — the picture of the smallest
-> panel therefore stands in 6 rows while the constant says 8; **the words of the
-> panel 5 at a screen of 9 rows and fewer**, where the panel goes away and the
-> row under the list says `Author: N/A - Year: N/A - Duration: 0m` alone; **the
-> panel 6 of the gallery under 20 rows**, which no measurement of tmux has
-> driven; and every candidate of the turns before this one.
+> `split_for_covers` compares the height of the whole panel with
+> `MIN_HEIGHT_FOR_COVER` while `the_parts_of_the_panel` compares the height
+> **inside** the border with `THE_SMALLEST_PICTURE`, which is the same number —
+> the picture of the smallest panel therefore stands in 6 rows while the
+> constant says 8, and a panel of 8 rows says the picture alone and no word of
+> the media; **the words of the panel 5 at a screen of 9 rows and fewer**, where
+> the panel goes away and the row under the list says `Author: N/A - Year: N/A -
+> Duration: 0m` alone; **the width of the panel 5 of a media with no cover under
+> the gallery**, which `split_for_covers` gives `PANEL_MAX_WIDTH` while the
+> gallery under it takes the same columns for cells of ten; and every candidate
+> of the turns before this one.
 >
 >    **The turns before this one stand in `## The turns before the three
 >    newest ones` of this file**, above the heading of this prompt. **This item
@@ -26287,225 +26613,9 @@ that needs no proxy and no change of the sandbox at all**, and the library
 > And **the decisions of T-201 to T-343 stand in
 > `## The decisions of T-201 to T-343 that do not open again` of
 > `docs/HANDOVER.md`, outside this block, and each of them holds** (T-310).
-> **The list of a view is the work of that view, and it goes away last**: the
-> row of the item takes no row that the list needs for its border and one
-> line, and a view of 4 rows and more keeps the two rows that it had, therefore
-> that rule reaches a terminal of 8 rows and fewer alone (T-342).
-> **The band of the player stands under the work of every view, and it goes
-> away before that work**: fifteen views built the layout themselves and the
-> band drew over their last six lines, therefore every view takes its areas of
-> `the_areas_of_a_view` now and the fifteen hold the row of the message too;
-> the band leaves the work of the view its border and one line and a band of
-> fewer than three rows goes away; the two bars of the Chapters view take that
-> same road; and the footer of the reader stands in the footer of the frame
-> (T-343).
-> **The panel of the item of a view is not the work of that view, and it goes
-> away before the list**: seven views split the work of the view themselves with
-> a `Constraint::Length` of 4 or of 5 for that panel and a `Constraint::Fill`
-> for the list, therefore a terminal of few rows gave the panel its rows first
-> and the Authors view of 8 rows said no title and no author at all; one pure
-> function, `the_rows_of_the_panel_of_the_item`, holds the rule of T-342 and of
-> T-344 now, and a view that held the whole panel keeps it; and **the panel
-> needs no smallest size**, because it draws no border and every row that it
-> keeps says a word (T-344).
-> **The work of a view goes away after the three parts that stand around it**:
-> the header, the row of the message, and the footer each took their rows of a
-> screen of few rows first, therefore a terminal of 5 rows held the header and
-> the footer alone with no title of the list and no line of it, a terminal of 3
-> rows held the footer alone, and **a terminal of 1 row held no letter at all**;
-> one pure function, `the_rows_around_the_work_of_a_view`, keeps the border and
-> one line of the view before the three of them keep their rows; **the header
-> goes away first**, because the settings screen and the view of the accounts
-> say its values too; **the row of the message goes away after it**, because
-> `render_the_message` writes the words over the work of the view already (the
-> trap 39 and T-299) and that row is the room and not the voice; and **the
-> footer goes away last**, because no other screen of this program names the
-> keys of a view (T-345).
-> **The row of the message of a frame stands above the footer of that same
-> frame**: `render_the_message` read the number `HEADER_HEIGHT` and the rows
-> that the **text** of the footer wants, and a screen of 3 rows and fewer gives
-> that footer fewer rows, therefore a terminal of 2 rows and a terminal of 1
-> row said nothing at all and a terminal of 3 rows wrote the message over the
-> title of the list while the row above the footer stayed free; one pure
-> function, `the_place_of_the_message_of_a_frame`, gives the message the rows
-> of the header and of the footer of `the_rows_around_the_work_of_a_view`; and
-> **a screen whose header keeps no row gives those rows to the whole sentence
-> of a message**, because a message that the screen cuts says nothing to the
-> user (T-299 and T-346).
-> **The rows that the program keeps for the work of a view come of the border
-> that the view draws**: `THE_SMALLEST_LIST` of 2 rows holds a border at the
-> top and one line, and the panel 4 of the frame of the panels holds a border
-> of four sides, therefore a screen of 120 columns and more held the two rows
-> of that border and **no line of the list at all** at 6 rows and fewer, and
-> at 8 rows it gave a row to the panel of the item while the list had none;
-> one pure function, `the_smallest_work_of_a_view`, gives 3 rows to the frame
-> and 2 to every other view, and **no function of the rows of a screen reads
-> `THE_SMALLEST_LIST` by itself now**; and **a sweep of the rows of a screen
-> belongs at 160 columns and at 100 columns together**, because the two views
-> of the frame are the two views whose width decides the shape of their work,
-> and the five rounds of T-342 to T-346 each ran at 100 columns alone (T-347).
-> **The width of the panel of the cover comes of the picture that stands in
-> it, and a panel that holds no picture takes no limit of its height**: the
-> limit of `width_that_the_height_can_use` is the limit of a picture (T-50),
-> and a media that the server holds with no cover gives every row of that
-> panel to the words (T-319), therefore a screen of 160 columns and 16 rows
-> gave that panel 22 columns and it cut `Files     1 file, 0.0 MB` after `0.`
-> while the same panel of the same media at 30 rows took 48 columns; the
-> layout therefore reads `cover::no_picture_comes` before the render, which
-> is the **same** value that `the_parts_of_the_panel` reads for the rows of
-> that panel; **a panel that holds a picture keeps the limit that it had**,
-> and the library `Books` of the sandbox is the control of it; and **a media
-> of the sandbox with no cover is data of a fault that needs no proxy and no
-> change of the sandbox at all** (T-348).
-> **The height of the panel of the cover comes of the picture that stands in it
-> too, and the gate of that height stands twice**: `MIN_HEIGHT_FOR_COVER` is
-> the smallest height of a picture and `THE_SMALLEST_PICTURE` is the same
-> number, therefore a screen of 160 columns and 12 rows took that panel away
-> from a media with no cover, the list of it named one media where the same
-> list of 13 rows named four, and the two rows under it said `Author: N/A -
-> Year: N/A - Duration: 0m` and `Progress:  N/A%,   N/A`, which say less than
-> the panel said; **the smallest panel of the words is the border of the panel
-> and `THE_ROWS_OF_THE_FACTS`**, which is five rows, because the facts are the
-> value of that panel and a panel that says fewer facts than the row under the
-> list says takes the columns of the list for nothing; **a panel that holds a
-> picture keeps the height that it had**; and **a test that takes its own
-> bounds of the function that it measures cannot fail**, therefore the numbers
-> of such a test are the numbers of the measurement (T-349).
-> **The bands of covers of the Home view stand where the table of the panel 4
-> stands**, therefore a screen under 120 columns keeps the list of one column
-> that it had, and a panel that has no room for one whole band keeps the table
-> of today with the keys and the footer of that table; **the shape of the last
-> frame lives in `App::the_bands_of_the_last_frame`**, because the handler of a
-> key holds no area of the screen; **the key `l` gives the cell at the right
-> and the key `Enter` plays or opens**, because a key of two meanings in one
-> view is a fault of its own and `Enter` is an alias of `l` in every other view
-> already; and **the footer of that view takes the rows of the longer of its
-> two texts**, because a footer of a height of its own would decide the shape
-> that names it (T-143 and T-336).
-> **The panels 2 and 3 of the stack hold the rows of the view of the key `f`
-> and no row of their own, and the authors, the series, the narrators, and the
-> tags stay in that view**: those rows come of a request that the start of the
-> program does not make (T-318). **The key `l` of a row of a series opens
-> `AppView::SeriesBook`, and that road stands since T-22**, therefore a round
-> that reads "a series opens into no book" measures the program before it
-> believes it (T-318).
-> **The panel 5 of the cover holds the picture, the facts of the media, and the
-> description of it, and the words of that panel leave the column of the
-> list**; **a media that the server holds with no cover gives every row of that
-> panel to the words**, and **a picture that the program did not ask for yet is
-> not such a media** — `cover::no_picture_comes` reads the two states of the
-> store that no second request asks for, and no other value (T-319).
-> **The band of the player holds no number of a panel and no focus**, because
-> every key of the player works in every view of this program already; **the bar
-> of the seek and the click of it are exact opposites**, and the second of a
-> click therefore goes up; and **the row of the buttons keeps the words of
-> today**, because a `[ ]` of the design that no click reads promises a function
-> that the program does not have (T-322).
-> **The frame of the panels is not the stack of the panels**: the key `z` hides
-> the panels 1, 2, and 3 alone, and the panel 4 of the list and the panel 5 of
-> the cover keep their border, their digit, their footer, and their click while
-> the stack is away — `App::the_frame_of_the_panels_stands` holds the first rule
-> and `App::the_stack_of_the_panels_stands` holds the second, and no round joins
-> them again. **The mode is not the mode of the start**, a refresh keeps it, and
-> **a screen under 120 columns takes no key `z`**, as it takes no digit of a
-> panel (T-323).
-> **The day of the start of the media comes of the box of the places of the
-> account and of no request of its own**, because `GET /api/me` runs at the
-> start of the program for the permissions already (T-110 and T-127); **it
-> stands after the three values of that box**, therefore every reader that
-> stood before T-328 reads the same three values; **it comes in the time of
-> the machine of the user**, because the user reads the day when they started
-> the media and not the day of the server; **a media that the user never
-> started takes no line at all**, which is the rule of T-325; and **the line
-> takes no road of T-239 and of T-240**, because a live message of the server
-> names no day of a start (T-328).
-> **The bar of the book of the Chapters view holds no mark while a chapter of
-> it holds fewer than two cells of its own**, because the marks then stand
-> beside each other and the bar and the marks are one noise — the rule of 40
-> columns of `docs/mockups/mockup-7.md` reads the width alone, and a wide bar
-> of many chapters passes it; **the bar of the chapter is the chapter of the
-> cursor and the place of the user is clamped inside it**, therefore a chapter
-> that the playback passed says 100% and a chapter that it did not reach says
-> 0%; **a media of no chapter keeps the row of the second bar** with the name
-> `Ch -` and no percent at all (T-91); and **a playback that stopped gives no
-> bar**, because the engine keeps the length and the place of the media that
-> played last (T-330.5).
-> **The columns of the times of the table of the Chapters view take the width
-> of the widest value that they hold**, because a book of eight hours gives
-> `7:59:12` in seven columns and a book of 30 minutes gives `29:12` in five;
-> **the length of a chapter names the second under one hour (`7m50s`) and the
-> minute over it (`1h02m`)**, because `convert_seconds` rounds to the minute
-> and every chapter of less than 30 seconds then says `0m`; **the title of a
-> chapter takes every column that the others leave**, which is the rule of the
-> table of the panel 4 (T-321); **a row that keeps fewer than 20 columns for
-> the title holds no table at all** and the line of today stands in its place,
-> because that line says the start already and a text that the row cuts says
-> nothing to the user (T-91); **a book of no chapter gives no row of a
-> header**; and **the row of the header takes one row of the panel**, therefore
-> the bar of the scroll and the map of the mouse read the rows that stay
-> (T-330.5).
-> **A click of a row of the Chapters view plays that chapter**, and that view
-> is the fourth list of this program whose row opens at one click — the panel 1
-> of the views, the panel 2 of the sequence, and the panel 3 of the filter are
-> the other three — because a row of it is no media of the library and the rule
-> of T-316 therefore does not hold for it; **the click takes the road of the
-> key `l` of that row**, therefore the two say the same words; and **the render
-> of that view gives the line of the user itself and not a copy of it**,
-> because ratatui writes the offset of the list into the state while it draws
-> it and the map of the mouse reads that offset after the render (T-330.5).
-> **A click of the bar of the book of the Chapters view moves the media to
-> that place**, because that bar is the bar of the seek of the view: it takes
-> the arithmetic and the words of the bar of the band of the player, therefore
-> the wheel over it moves the media by ten seconds too; **the bar of the
-> chapter under it takes no click at all**, because a bar of a chapter of two
-> minutes gives one cell of the screen to about a second of the media, which
-> is a control that no user can aim at; **the area of that bar goes away
-> before the view of every frame draws**, because the Chapters view is the one
-> view that draws it and the areas of the mouse are the areas of the last
-> frame; and **the click moves the cursor of the list nowhere**, because the
-> mark of the row of the chapter that plays follows the playback by itself
-> (T-333).
-> **The words of the sequence and of the filter of the status bar keep the
-> middle of the row while the middle is free**, therefore every screen that
-> stood before T-329 stands in the same shape; **they stand beside the part at
-> the left with a gap of two columns** when the middle is not free, and two
-> columns is the gap that the row of 80 columns held already; and **a row that
-> has no room for the whole of them holds none of them**, because a text that
-> the row cuts says nothing to the user (T-91) and the view of the key `f`
-> holds those two values at every width of the screen already (T-329).
-> **The panel 6 of the gallery holds whole rows of its grid alone**, because a
-> panel of a part of a row holds rows of the screen that no cell uses; **the
-> rows of a picture of a cell come of the `FontSize` of the picker and not of
-> the mockup**, whose boxes hold one row of a picture that no cover can use;
-> **a row of the list that names no media gives no cell**, therefore
-> `AMediaOfTheGallery::the_line` carries the line of the list; **the gallery
-> stands in the Home view and in the Library view of a screen of 120 columns
-> and more and in no other view**, because it belongs to the frame of the
-> panels; **the panel 6 stands under the panel 5 and not beside it**; and **the
-> title of it says `6 Gallery` and no button of the design**, for the reason of
-> T-322 (T-327).
-> **The facts of the design of the panel 5 reach the Home view and the Library
-> view, and no other view of this program**: the two of them draw the panel 4
-> of the list and the panel 5 of the cover (T-320), and the answer of the
-> personalized view holds the same six facts as the answer of the items; the
-> view of a search, the view of a collection, and the view of the episodes of
-> a podcast keep the two lines of today, because their lists of a row hold no
-> narrator, no genre, and no ebook. **A shelf that holds no media gives no row
-> of the facts**, because `media_entities` is the one sequence of the lists of
-> the Home view (T-326).
-> **The facts of the design of the panel 5 stand under the picture and not
-> beside it**, because a picture of half the width is a picture of a quarter of
-> the cells; **a fact that the server did not give takes no line at all**,
-> because a row that says `Narrator  N/A` costs a row of the screen and it
-> tells the user nothing; and **the length of the media and the place of the
-> user always take a line**, with the bar of the progress under them (T-325).
-> **The mode of the whole library lives in the process and not in the row of
-> the account**, because `App::keep_the_state_of_the_application_before` runs
-> after `App::new_with_the_engine` writes the request of the items; **the row
-> `Every book of a series` stands in the panel 2 and in the view of the key
-> `f` of a library of books alone**, because a library of podcasts holds no
-> series; and **the mark says the state and the words do not**, because a line
-> of the panel 2 holds 30 columns (T-324).
+> And **the decisions of T-320 to T-350 stand in
+> `## The decisions of T-320 to T-350 that do not open again` of
+> `docs/HANDOVER.md`, outside this block, and each of them holds** (T-350).
 >
 > **This block has a limit of size, and the driver dies above it.** `toutui-loop`
 > sends the whole block to the program of the next round in one command, and a
@@ -26645,7 +26755,14 @@ that needs no proxy and no change of the sandbox at all**, and the library
 > at 95969 bytes with one turn in it, and it did the same work, and the block
 > then held **94214** bytes with **one** turn in it; the round of the hundred
 > and eighty-second found it at 96015 bytes with one turn in it, and it did the
-> same work, and the block then held **96726** bytes with **one** turn in it.
+> same work, and the block then held **96726** bytes with **one** turn in it;
+> the round of the hundred and eighty-third found it at 96905 bytes with one
+> turn in it, it took that turn out and it wrote its own, and the block then
+> held **98625** bytes — at the line of 99000 — therefore that round took the
+> whole list of the decisions of T-320 to T-350 out of the block and it put it
+> in `## The decisions of T-320 to T-350 that do not open again` of this file,
+> with a pointer of three lines in its place: the block then held **82253**
+> bytes with **one** turn in it.
 > **A block that stands at 80000 bytes or under holds two
 > turns**, and the turn of the stage before this one names the parts of that
 > stage which stay open. **The list of the decisions

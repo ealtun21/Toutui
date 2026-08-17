@@ -1149,6 +1149,27 @@ impl App {
         // (T-327), and it belongs to the frame of the panels: the Home view and
         // the Library view are the two views that hold that frame, therefore
         // every other view keeps the column that it had.
+        let (playing, selected) = self.the_media_of_the_panel_of_the_cover();
+
+        // **A picture that never comes must take no row of the screen**
+        // (T-319): the server holds some media with no cover at all, and the
+        // panel of those media held 50 columns and 41 rows of nothing.
+        let a_picture_comes = Self::a_picture_comes_of(&playing, &selected);
+
+        // **The facts of the design take the rows that they need** (T-325): the
+        // panel of a book of the Library view says one fact of one line, and
+        // three rows hold no such list.
+        //
+        // **The gallery reads this number too** (T-350), therefore the panel 5
+        // keeps the rows of the whole of its facts before the panel 6 takes
+        // any. The width of the panel comes of `split_for_covers` and the
+        // gallery divides the height alone, therefore the words of the panel
+        // wrap at this width whether the gallery stands or not.
+        let of_the_facts = self
+            .the_lines_of_the_facts_of_the_panel(column.width.saturating_sub(2))
+            .map(|lines| lines.len() as u16)
+            .unwrap_or(crate::ui::the_panel_of_the_cover::THE_ROWS_OF_THE_FACTS);
+
         let of_a_cell = crate::ui::the_panel_of_the_gallery::THE_WIDTHS_OF_A_CELL
             [self.the_size_of_a_cell_of_the_gallery];
         let (panel, gallery) = if self.the_frame_of_the_panels_stands() {
@@ -1156,6 +1177,8 @@ impl App {
                 column,
                 of_a_cell,
                 cover::picker().font_size(),
+                a_picture_comes,
+                of_the_facts,
             )
         } else {
             (column, None)
@@ -1173,8 +1196,6 @@ impl App {
 
         self.the_areas_of_the_mouse.the_panel_of_the_cover = panel;
 
-        let (playing, selected) = self.the_media_of_the_panel_of_the_cover();
-
         // The large cover takes the form of its own picture. Therefore a cover
         // that is higher than it is wide takes the whole height of the panel.
         // See T-50.
@@ -1182,19 +1203,6 @@ impl App {
             .as_deref()
             .or(selected.first().map(|id| id.as_str()))
             .and_then(|id| self.covers.form_of(id));
-
-        // **A picture that never comes must take no row of the screen**
-        // (T-319): the server holds some media with no cover at all, and the
-        // panel of those media held 50 columns and 41 rows of nothing.
-        let a_picture_comes = Self::a_picture_comes_of(&playing, &selected);
-
-        // **The facts of the design take the rows that they need** (T-325): the
-        // panel of a book of the Library view says one fact of one line, and
-        // three rows hold no such list.
-        let of_the_facts = self
-            .the_lines_of_the_facts_of_the_panel(inside.width)
-            .map(|lines| lines.len() as u16)
-            .unwrap_or(crate::ui::the_panel_of_the_cover::THE_ROWS_OF_THE_FACTS);
 
         // **The picture takes every row that the facts and the description
         // leave** (T-330.3), therefore the panel needs the rows of the text of

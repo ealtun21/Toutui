@@ -41,6 +41,28 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.181",
+        date: "17/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The gallery of the covers takes no row that the facts of the \
+             media need.** The panel of the gallery stands under the panel of \
+             the cover, and it kept three rows for the facts of that panel. \
+             The facts take a line each, and a book can give nine of them: a \
+             terminal of 160 columns and 28 rows therefore lost the place of \
+             the user, the bar of the progress, and two lines more, while the \
+             same terminal of 27 rows said all of them. The gallery goes away \
+             before the panel of the cover cuts a line now.",
+            "- **The gallery stands in more terminals for a media that has no \
+             cover.** The rows that the gallery kept for the panel of the \
+             cover held a picture always. A media that the server holds with \
+             no cover at all needs no such row: the panel of it said its \
+             three facts over three rows, twenty rows of it held nothing, and \
+             no gallery stood under it. The gallery reads the rows that the \
+             panel needs now.",
+        ],
+    },
+    Entry {
         version: "0.8.180",
         date: "17/08/2026",
         body: &[

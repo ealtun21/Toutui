@@ -60,7 +60,7 @@ use ratatui::layout::Rect;
 use ratatui_image::FontSize;
 use toutui::ui::frame::ThePanel;
 use toutui::ui::keys::the_footer_of_a_panel;
-use toutui::ui::the_panel_of_the_cover::THE_SMALLEST_PANEL_OF_THE_WORDS;
+use toutui::ui::the_panel_of_the_cover::{THE_ROWS_OF_THE_FACTS, THE_SMALLEST_PANEL_OF_THE_WORDS};
 use toutui::ui::the_panel_of_the_gallery::{
     plan_the_gallery, the_rows_of_a_box, the_smallest_gallery, the_two_panels,
     THE_WIDTHS_OF_A_CELL, THE_WIDTH_OF_THE_START,
@@ -86,7 +86,7 @@ fn the_column_holds_the_two_panels_and_no_row_that_no_part_uses() {
     let column = Rect::new(111, 2, 50, 41);
     let of_a_cell = THE_WIDTHS_OF_A_CELL[THE_WIDTH_OF_THE_START];
 
-    let (cover, gallery) = the_two_panels(column, of_a_cell, FONT);
+    let (cover, gallery) = the_two_panels(column, of_a_cell, FONT, true, THE_ROWS_OF_THE_FACTS);
     let gallery = gallery.expect("a column of 41 rows holds the panel 5 and the panel 6");
 
     // The panel 5 stands above the panel 6, and the two of them use every row.
@@ -117,7 +117,10 @@ fn the_column_holds_the_two_panels_and_no_row_that_no_part_uses() {
     // panel 5**: the words of the media of the cursor say more than the covers
     // of the media beside it.
     let short = Rect::new(111, 2, 50, THE_SMALLEST_PANEL_OF_THE_WORDS + 2);
-    assert_eq!(the_two_panels(short, of_a_cell, FONT), (short, None));
+    assert_eq!(
+        the_two_panels(short, of_a_cell, FONT, true, THE_ROWS_OF_THE_FACTS),
+        (short, None)
+    );
 
     // Every width of a cell of the design gives a panel of whole rows of the
     // grid, and a cell that is larger needs more rows.
@@ -131,7 +134,9 @@ fn the_column_holds_the_two_panels_and_no_row_that_no_part_uses() {
         );
         before = the_smallest;
 
-        if let (_, Some(gallery)) = the_two_panels(column, of_a_cell, FONT) {
+        if let (_, Some(gallery)) =
+            the_two_panels(column, of_a_cell, FONT, true, THE_ROWS_OF_THE_FACTS)
+        {
             let of_a_row = the_rows_of_a_box(of_a_cell, FONT);
             assert_eq!((gallery.height - 2) % of_a_row, 0);
         }
@@ -146,7 +151,7 @@ fn the_column_holds_the_two_panels_and_no_row_that_no_part_uses() {
 fn the_grid_holds_the_media_around_the_cursor_of_the_list() {
     let column = Rect::new(111, 2, 50, 41);
     let of_a_cell = THE_WIDTHS_OF_A_CELL[THE_WIDTH_OF_THE_START];
-    let (_, gallery) = the_two_panels(column, of_a_cell, FONT);
+    let (_, gallery) = the_two_panels(column, of_a_cell, FONT, true, THE_ROWS_OF_THE_FACTS);
     let inside = {
         let gallery = gallery.expect("a column of 41 rows holds the panel 6");
         Rect::new(

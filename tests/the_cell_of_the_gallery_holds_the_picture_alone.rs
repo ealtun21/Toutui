@@ -67,6 +67,7 @@ use toutui::api::client::endpoint::{Endpoint, EndpointPool};
 use toutui::api::client::ApiClient;
 use toutui::app::{App, AppView};
 use toutui::db::database_struct::User;
+use toutui::ui::the_panel_of_the_cover::THE_ROWS_OF_THE_FACTS;
 use toutui::ui::the_panel_of_the_gallery::{
     plan_the_gallery, the_rows_of_a_box, the_smallest_gallery, the_two_panels,
     THE_WIDTHS_OF_A_CELL, THE_WIDTH_OF_THE_START,
@@ -348,7 +349,7 @@ fn the_column_of_the_measurement_holds_one_row_of_the_grid_more() {
     let column = Rect::new(111, 2, 50, 41);
     let of_a_cell = THE_WIDTHS_OF_A_CELL[THE_WIDTH_OF_THE_START];
 
-    let (cover, gallery) = the_two_panels(column, of_a_cell, FONT);
+    let (cover, gallery) = the_two_panels(column, of_a_cell, FONT, true, THE_ROWS_OF_THE_FACTS);
     let gallery = gallery.expect("a column of 41 rows holds the panel 5 and the panel 6");
 
     // The panel 6 holds whole rows of the grid alone (T-327).
