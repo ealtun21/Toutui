@@ -27769,12 +27769,59 @@ each stand under 36 columns and fit a terminal of 40 — the sweep of this
 round measured the four of them, and they are no candidates now; and every
 candidate of the turns before this one.
 
+## The session of the two hundred and eighth turn of 2026-08-17: T-375, the key l of a search with no hit, of the block of the prompt
+
+**The session of the two hundred and eighth turn shipped T-375**: the key
+`l` of a search with no hit says why now, and it opens no view. **The
+candidate came of T-374**, which left "the key `l` of a search of a podcast
+with such a stale cursor" open. The cursor of the view of the search stands
+at the first line from the birth of the application (`App::new`,
+`src/app.rs:1973`), and no code of the program sets it back to nothing: a
+search with no hit therefore holds a cursor over a line that the view does
+not have.
+
+**The fault**, of v0.8.205 inside tmux against the sandbox: the library
+`Podcasts`, the key `/`, the words `zzqxzzqx`, and `Enter` gave
+`Search result [0 items]`, and the key `l` then gave `Episodes [0 items]`
+with the words `The program gets the episodes of this podcast…` — the words
+of a request that the program never made (`ids_library_pod_search.get(0)`
+gives nothing, therefore `ask_the_server_for_the_episodes` never ran, and
+the log held no line), and they stood for ever. The same key of the same
+search of the library `Books` did nothing and said nothing (the log
+26 -> 26). The arm `AppView::SearchBook` of the key (`src/app.rs:4656`)
+checked `if let Some(index)` alone, filled every list of the view of the
+episodes with `.get(index).cloned().unwrap_or_default()`, and set the view.
+
+**The correction is one guard** at the top of that arm: a cursor over no
+line of `titles_search_book` (one row for each line, for the two kinds of a
+library) says `This line holds no media.` and it stays in the view of the
+search. **v0.8.206.** The control of the same binary: the search `Letters`
+gave `Search result [1 item]`, and the key `l` of it gave
+`Episodes [57 items]` with the full panel of `Letters of Two Brides`. The
+build of the fault — the guard disabled — failed the new test
+`tests/the_key_l_of_a_search_with_no_hit_says_why.rs`.
+
+**What this round leaves open, and each of them is a candidate and not an
+item**: the other keys of the view of the search over a cursor with no
+line, which each read `.get` and speak already or take a silent road that
+no measurement has reached; the cursor of an empty list at large — the nine
+sibling views whose `select_next` gives `Some(0)` for a list of no line and
+whose bare `select_previous` gives `Some(usize::MAX)`
+(`src/app.rs:10805-10922`), and every read absorbs it with `.get` today;
+the titles of `render_the_reason` and of `render_the_message`, where a `\n`
+of a title of the server glues the words together, because a `Span` drops a
+control character — the title of the bookmarks and of the episodes holds
+the name of a media (`src/logic/bookmarks.rs:168`), therefore the data of
+the fault is a `PATCH` of a title of two lines; a fact value of an East
+Asian language in the panel 5, and no media of the sandbox holds one; and
+every candidate of the turns before this one.
+
 ## The prompt for the next session
 
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.204**; `Cargo.toml` is at 0.8.204. The
+> AlbanDAVID/Toutui. Newest release **v0.8.207**; `Cargo.toml` is at 0.8.207. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -28785,51 +28832,55 @@ candidate of the turns before this one.
 >    holds three decisions that a round must not take alone. Read it first.
 >
 > 1. **A condition of the program that no measurement has reached.** A sweep of
->    this shape found a fault in one hundred and seventeen sessions of one
->    hundred and eighteen.
-> **The session of the two hundred and eighth turn shipped T-375**: the key
-> `l` of a search with no hit says why now, and it opens no view. **The
-> candidate came of T-374**, which left "the key `l` of a search of a podcast
-> with such a stale cursor" open. The cursor of the view of the search stands
-> at the first line from the birth of the application (`App::new`,
-> `src/app.rs:1973`), and no code of the program sets it back to nothing: a
-> search with no hit therefore holds a cursor over a line that the view does
-> not have.
+>    this shape found a fault in one hundred and eighteen sessions of one
+>    hundred and nineteen.
+> **The session of the two hundred and ninth turn shipped T-375 and
+> T-376.** **T-375 stood finished and uncommitted at the start** (the rule
+> of the memory: read git status first): this round ran the gates and
+> shipped it as v0.8.206 before it took an item.
 >
-> **The fault**, of v0.8.205 inside tmux against the sandbox: the library
-> `Podcasts`, the key `/`, the words `zzqxzzqx`, and `Enter` gave
-> `Search result [0 items]`, and the key `l` then gave `Episodes [0 items]`
-> with the words `The program gets the episodes of this podcast…` — the words
-> of a request that the program never made (`ids_library_pod_search.get(0)`
-> gives nothing, therefore `ask_the_server_for_the_episodes` never ran, and
-> the log held no line), and they stood for ever. The same key of the same
-> search of the library `Books` did nothing and said nothing (the log
-> 26 -> 26). The arm `AppView::SearchBook` of the key (`src/app.rs:4656`)
-> checked `if let Some(index)` alone, filled every list of the view of the
-> episodes with `.get(index).cloned().unwrap_or_default()`, and set the view.
+> **The item of this round is T-376**: the title of a view whose name holds
+> an end of a line stands in one row now. **The candidate came of T-375**
+> ("the titles of `render_the_reason` and of `render_the_message`, where a
+> `\n` of a title of the server glues the words together"). The three sinks
+> of a title of a view — `render_the_table_of_a_panel`
+> (`src/ui/the_list_of_a_view.rs:242`), `render_the_reason`
+> (`src/ui/tui.rs:3140`), and `render_the_message`
+> (`src/ui/the_message_of_a_view.rs:60`) — each made the title with
+> `in_one_row` alone, which gives a text that stands in the width back
+> unchanged, with its `\n` in it, and a `Span` draws no control character.
 >
-> **The correction is one guard** at the top of that arm: a cursor over no
-> line of `titles_search_book` (one row for each line, for the two kinds of a
-> library) says `This line holds no media.` and it stays in the view of the
-> search. **v0.8.206.** The control of the same binary: the search `Letters`
-> gave `Search result [1 item]`, and the key `l` of it gave
-> `Episodes [57 items]` with the full panel of `Letters of Two Brides`. The
-> build of the fault — the guard disabled — failed the new test
-> `tests/the_key_l_of_a_search_with_no_hit_says_why.rs`.
+> **The fault**, of v0.8.206 inside tmux against the sandbox:
+> `PATCH /api/items/:id/media` gave `A Long Test Book` the title
+> `Alpha\nOMEGAEND` (a JSON string carries a literal end of a line, and the
+> XML normalization of T-313 belongs to an EPUB alone), and one bookmark
+> stood on it. The search `Alpha` gave the row `Alpha OMEGAEND` — the road
+> of the lines collapses already (T-374) — and the key `V` of that row gave
+> `The bookmarks of "AlphaOMEGAEND" [1 item]`: the two words glued, with no
+> space and no mark at all.
+>
+> **The correction is one collapse at the top of `in_one_row`**
+> (`src/logic/message.rs`): `in_one_line(text)` first, and the cut then
+> reads a text of one row. Every caller of a title takes it together, and
+> the facts panel of T-374, which composes the two functions itself, keeps
+> its work. **v0.8.207.** The control of the same binary and the same data:
+> the key `V` gave `The bookmarks of "Alpha OMEGAEND" [1 item]`. The build
+> of the fault — the collapse removed — fails the new test
+> `tests/a_title_of_a_name_of_two_lines_stands_in_one_row.rs`. The sandbox
+> holds the title `A Long Test Book`, no bookmark, and no session of the
+> title `Alpha` again.
 >
 > **What this round leaves open, and each of them is a candidate and not an
-> item**: the other keys of the view of the search over a cursor with no
-> line, which each read `.get` and speak already or take a silent road that
-> no measurement has reached; the cursor of an empty list at large — the nine
-> sibling views whose `select_next` gives `Some(0)` for a list of no line and
-> whose bare `select_previous` gives `Some(usize::MAX)`
-> (`src/app.rs:10805-10922`), and every read absorbs it with `.get` today;
-> the titles of `render_the_reason` and of `render_the_message`, where a `\n`
-> of a title of the server glues the words together, because a `Span` drops a
-> control character — the title of the bookmarks and of the episodes holds
-> the name of a media (`src/logic/bookmarks.rs:168`), therefore the data of
-> the fault is a `PATCH` of a title of two lines; a fact value of an East
-> Asian language in the panel 5, and no media of the sandbox holds one; and
+> item**: the truncation of the spans of the band of the player
+> (`src/ui/player_tui.rs:160-192`, T-369), where a span whose content holds
+> an end of a line and that stands in the room keeps that end, and the line
+> of the band holds the title, the author, and the chapter of the server;
+> `the_columns_of`, which counts an end of a line as a character of no
+> width, therefore a cut of a text of many lines that no caller collapses
+> reads columns that the screen does not draw; the cursor of an empty list
+> at large — the nine sibling views of `src/app.rs:10805-10922`, and every
+> read absorbs it with `.get` today; a fact value of an East Asian language
+> in the panel 5, and no media of the sandbox holds one; and
 > every candidate of the turns before this one.
 >    **The turns before this one stand in `## The turns before the three
 >    newest ones` of this file**, above the heading of this prompt. **This item
@@ -29097,7 +29148,7 @@ candidate of the turns before this one.
 > and it held **88074** bytes with **one** turn in it. The round of the two
 > hundred and fifth found it at 88308 bytes with one turn in it, and it did the
 > same work: the block held **81281** bytes with no turn at all after the
-> removal, and it held **85713** bytes with **one** turn in it. The round of the two hundred and sixth found it at 85713 bytes with one turn in it, and it did the same work: it holds about **86000** bytes with **one** turn in it now. The round of the two hundred and seventh found it at 85815 bytes with one turn in it, and it did the same work. The round of the two hundred and eighth found it at 85404 bytes with one turn in it, and it did the same work.
+> removal, and it held **85713** bytes with **one** turn in it. The round of the two hundred and sixth found it at 85713 bytes with one turn in it, and it did the same work: it holds about **86000** bytes with **one** turn in it now. The round of the two hundred and seventh found it at 85815 bytes with one turn in it, and it did the same work. The round of the two hundred and eighth found it at 85404 bytes with one turn in it, and it did the same work. The round of the two hundred and ninth found it at 85391 bytes with one turn in it, and it did the same work.
 > **A block that stands at 80000 bytes or under holds two
 > turns**, and the turn of the stage before this one names the parts of that
 > stage which stay open. **The list of the decisions

@@ -41,6 +41,22 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.207",
+        date: "18/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The title of a view whose name holds an end of a line stands \
+             in one row.** A title of the server can hold an end of a line, \
+             and the screen draws no such character: the words of the two \
+             lines glued together in the title of a view, with no space \
+             between them — a book of the title \"Alpha\", an end of a line, \
+             and \"OMEGAEND\" gave the view `The bookmarks of \
+             \"AlphaOMEGAEND\"`, while the row of the same book in the list \
+             said `Alpha OMEGAEND`. Every title of a view now takes one \
+             space for each end of a line, as the rows of the lists do.",
+        ],
+    },
+    Entry {
         version: "0.8.206",
         date: "17/08/2026",
         body: &[

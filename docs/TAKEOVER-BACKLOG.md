@@ -36481,3 +36481,74 @@ item.**
   `select_previous` gives `Some(usize::MAX)`; every read of them absorbs the
   index with `.get` today.
 - Every candidate of the turns before this one stays open.
+
+## T-376 — The title of a view whose name holds an end of a line stands in one row
+
+**The candidate of T-375.** That item left this line: "the titles of
+`render_the_reason` and of `render_the_message`, where a `\n` of a title of
+the server glues the words together, because a `Span` drops a control
+character — the title of the bookmarks and of the episodes holds the name of
+a media (`src/logic/bookmarks.rs:168`), therefore the data of the fault is a
+`PATCH` of a title of two lines."
+
+**The root.** The three sinks of a title of a view —
+`render_the_table_of_a_panel` (`src/ui/the_list_of_a_view.rs:242`),
+`render_the_reason` (`src/ui/tui.rs:3140`), and `render_the_message`
+(`src/ui/the_message_of_a_view.rs:60`) — each made the title with
+`crate::logic::message::in_one_row` alone, and that function gave a text that
+stands in the width back unchanged, with its `\n` in it. A ratatui `Span`
+draws no control character, therefore the words of the two lines glued
+together on the screen. The rows of the lists collapse an end of a line
+already (`in_one_line`, T-374): the two roads of one name said two names.
+
+**The measurement of the fault, of the real program v0.8.206 inside tmux at
+160x45 against the sandbox on `:13399`, library `Books`.** The data:
+`POST /api/me/item/:id/bookmark` gave `A Long Test Book`
+(`9a671047-6146-4003-8510-d215db074a9c`) one bookmark at 60 seconds, and
+`PATCH /api/items/:id/media` with `{"metadata":{"title":"Alpha\nOMEGAEND"}}`
+gave it a title of two lines (a JSON string carries a literal end of a line;
+the XML normalization of T-313 belongs to an EPUB alone). The key `/`, the
+words `Alpha`, and `Enter` gave `Search result [1 item]` with the row
+`Alpha OMEGAEND` — the road of the lines said the name with a space. The key
+`V` of that row gave the title `The bookmarks of "AlphaOMEGAEND" [1 item]` —
+**the two words glued, with no space and no mark at all**. The control of the
+same run: the row of the bookmark (`A mark of the measurement  (01:00)`) and
+the footer stood whole.
+
+**The correction, v0.8.207.** One collapse at the top of `in_one_row`
+(`src/logic/message.rs`): `in_one_line(text)` first, and the cut of the
+columns then reads a text of one row. The correction stands in the shared
+function, therefore every caller of a title — the three sinks above, the
+reader, the band names of the Home view, the cells of the table — takes it
+together, and the facts panel of T-374, which composes the two functions
+itself, keeps its work (the collapse is idempotent).
+
+**The control of the correction, of the same binary and the same data.** The
+key `V` of the same row gave `The bookmarks of "Alpha OMEGAEND" [1 item]` —
+the space stands.
+
+**The test.** `tests/a_title_of_a_name_of_two_lines_stands_in_one_row.rs`:
+`in_one_row("Alpha\nOMEGAEND", 80)` gives `Alpha OMEGAEND`, a `\r\n` takes
+one space together, and a text of two lines that is wider than the width
+collapses first and cuts after. The build of the fault — the collapse
+removed — fails the first assertion.
+
+**The road back of the sandbox.** The `PATCH` gave the title
+`A Long Test Book` back, `DELETE /api/me/item/:id/bookmark/60` took the
+bookmark away, and `GET /api/sessions` held no session of the title `Alpha`
+(no playback ran).
+
+**What this round leaves open, and each of them is a candidate and not an
+item:**
+
+- The truncation of the spans of the band of the player
+  (`src/ui/player_tui.rs:160-192`, T-369): a span whose content holds an end
+  of a line and that stands in the room keeps that end, and the `Span` then
+  glues its words. The line of the band holds the title, the author, and the
+  chapter of the media of the server.
+- `the_columns_of` counts an end of a line as a character of no width,
+  therefore a cut of a text of many lines that this round did not collapse
+  reads columns that the screen does not draw.
+- The candidates of T-375: the cursor of an empty list at large (the nine
+  sibling views of `src/app.rs:10805-10922`), a fact value of an East Asian
+  language in the panel 5, and every candidate of the turns before it.

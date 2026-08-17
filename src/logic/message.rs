@@ -557,7 +557,19 @@ pub fn in_one_line(text: &str) -> Cow<'_, str> {
 ///
 /// A width of 0 gives no character at all, and a width of 1 gives the three
 /// points alone. The function is pure, therefore a test needs no screen.
+///
+/// **A text of one row holds no end of a line** (T-376): a ratatui `Span`
+/// draws no control character, therefore a text of two lines that stands in
+/// the width glued its words on the screen — a title of the server of
+/// `Alpha\nOMEGAEND` gave the title `The bookmarks of "AlphaOMEGAEND"`, and
+/// the row of the same book in the list said `Alpha OMEGAEND`, because the
+/// road of the lines takes [`in_one_line`] already (T-374). Every end of a
+/// line therefore takes one space here first, and the cut then reads the
+/// columns of one row.
 pub fn in_one_row(text: &str, width: u16) -> String {
+    let text = in_one_line(text);
+    let text = text.as_ref();
+
     if width == 0 {
         return String::new();
     }
