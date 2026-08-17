@@ -41,6 +41,24 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.176",
+        date: "17/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The work of a view no longer goes away before the header, the \
+             row of the message, and the footer.** A terminal of 5 rows held \
+             the two rows of the header, one blank row, and the two rows of \
+             the footer, and it held no title of the list and no line of it at \
+             all; a terminal of 3 rows held the footer alone; and a terminal \
+             of 1 row held no letter at all. The three parts that stand around \
+             a view give way now, in the sequence of what they say to the \
+             user: the header first, the row of the message after it, and the \
+             footer last. The work of the view keeps its border and one line, \
+             therefore a terminal of 2 rows shows the list of the view. A \
+             screen of 7 rows and more stands in the shape that it had.",
+        ],
+    },
+    Entry {
         version: "0.8.175",
         date: "17/08/2026",
         body: &[

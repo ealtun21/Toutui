@@ -24699,6 +24699,92 @@ the item T-323 of `docs/TAKEOVER-BACKLOG.md` names every region of the map
 of the mouse that no stage reached; **each of them is a candidate and not an
 item.**
 
+## The session of the hundred and seventy-seventh turn of 2026-08-17: T-344, the panel of the item of seven views
+
+**The session of the hundred and seventy-seventh turn took the item 1 of the
+list of the work**: a condition of the program that no measurement has
+reached. The turn before this one left a candidate in its own words: "the
+seven views of a row of the item hold that row as a `Constraint::Length` of 4
+or of 5 and they call no `the_areas_of_a_list`, therefore the fault of T-342
+stands in them". This round measured that candidate, and it is a fault. It
+needed no proxy, no book of a harness, and no change of the sandbox at all: a
+terminal of few rows and a library that holds a list are the whole of the
+data.
+
+**The fault, of the real program v0.8.174 inside tmux at 100 columns and 8
+rows**, of the library `Books` of the sandbox, which holds nine authors. The
+key `a` of the Home view:
+
+```text
+👋 Connected as toutuitest                📖 Books (book)                         🦜 Toutui v0.8.174
+🔗 localhost:13399
+No description available
+
+
+
+               j/k: move  l: the books of this author  h: back  ?: every key  Q: quit
+```
+
+**That one line is the whole of the work of the view.** No title stands in its
+border, and no one of the nine authors stands under it. At 10 rows and at 11
+rows the border keeps `The authors [9 items]` and no author stands under it;
+at 12 rows the title and two authors; at 45 rows every one of the nine. **The
+control of the same screen** is the Home view, which T-342 corrected already:
+at 100 columns and 8 rows it says `Home [20 items]`, the line
+`➤     Large Book 0001`, and the row of the item under it.
+
+**Why**: seven render functions of `src/ui/tui.rs` take the three areas of
+`the_areas_of_a_view` (T-343), and they then split the work of the view
+themselves with `Layout::vertical([Constraint::Fill(1), Constraint::Length(4)])`
+— the list is the `Fill`, and the panel of the item is the `Length`. **A
+`Length` stands before a `Fill` in the solver of ratatui**, therefore the panel
+took its four rows first and the list took what stayed. The seven are the
+Authors view, the view of the lists that take a media, the view of the devices
+of an e-reader, the view of the downloads of the server, the view of the
+ebooks of a media, the view of a new podcast, and the settings of the reader,
+which holds a `Constraint::Length(5)`. **None of the seven calls
+`the_areas_of_a_list`**, which holds the rule of T-342 for the eight views of
+the frame of the panels.
+
+**The correction**: one new pure function of `src/ui/tui.rs`,
+`the_rows_of_the_panel_of_the_item(rows_of_the_view, rows_that_it_wants)`,
+which gives
+`rows_of_the_view.saturating_sub(THE_SMALLEST_LIST).min(rows_that_it_wants)`.
+`the_rows_of_the_row_of_the_item` of T-342 calls it with 2, therefore **the two
+rules are one rule now**, and the seven views call it with 4 and with 5. The
+panel needs no rule of a smallest size like `THE_SMALLEST_BAND` of the band,
+because `render_a_description` draws a `Paragraph` with no border and every row
+that the panel keeps says a word.
+
+**The corrected program of the same harness**: at 100 columns and 8 rows the
+Authors view says `The authors [9 items]`, the line `➤ Big Author [2 book(s)]`,
+and `No description available` under it; at 12 rows two authors, at 13 rows
+three, and at 45 rows the screen of the program before it, character for
+character. The settings of the reader at 100 columns and 9 rows says
+`The cache of the ebooks — 512 MB now` and the line `➤ ✓ 512 MB`, and at 45
+rows it too is the screen of the program before it.
+
+The correction failed its gate with the fault built back in: the body of the
+pure function became `rows_that_it_wants` alone, and
+`the_list_of_the_seven_views_keeps_its_line_before_the_panel_of_the_item` then
+said `left: 4, right: 3`. **v0.8.175.**
+
+**What this round leaves open, and each of them is a candidate and not an
+item**: a screen of 5 rows and fewer holds the header, the row of the message,
+and the footer, and no round has decided which of those parts gives way first;
+a band of 3, 4, or 5 rows loses its buttons, its bars, and its seek in that
+sequence, and **no measurement of tmux of a terminal of 10, 11, or 12 rows
+ran**; the map of the mouse of a band that is not whole; and **five of the
+seven views were not driven in tmux** — the Authors view and the settings of
+the reader were, and the five others hold the same three lines of code.
+
+The next round takes the item 1 again. **The parts of a stage of the road of
+the panels that stay open** stand in the section
+`### 0. The road of the panels (T-316 to T-323)` of `## What is open`, and
+the item T-323 of `docs/TAKEOVER-BACKLOG.md` names every region of the map
+of the mouse that no stage reached; **each of them is a candidate and not an
+item.**
+
 ## The prompt for the next session
 
 
@@ -25711,82 +25797,80 @@ item.**
 >
 
 >
-> **The session of the hundred and seventy-seventh turn took the item 1 of the
-> list of the work**: a condition of the program that no measurement has
-> reached. The turn before this one left a candidate in its own words: "the
-> seven views of a row of the item hold that row as a `Constraint::Length` of 4
-> or of 5 and they call no `the_areas_of_a_list`, therefore the fault of T-342
-> stands in them". This round measured that candidate, and it is a fault. It
-> needed no proxy, no book of a harness, and no change of the sandbox at all: a
-> terminal of few rows and a library that holds a list are the whole of the
-> data.
 >
-> **The fault, of the real program v0.8.174 inside tmux at 100 columns and 8
-> rows**, of the library `Books` of the sandbox, which holds nine authors. The
-> key `a` of the Home view:
+> **The session of the hundred and seventy-eighth turn took the item 1 of the
+> list of the work**: a condition of the program that no measurement has
+> reached. The three turns before this one each left the same candidate in the
+> same words: "a screen of 5 rows and fewer holds the header, the row of the
+> message, and the footer, and no round has decided which of those parts gives
+> way first". This round measured that candidate, and it is a fault. It needed
+> no proxy, no book of a harness, and no change of the sandbox at all: the size
+> of the terminal is the whole of the data, and `tmux resize-window -t check -x
+> 100 -y N` after the first frame of `docs/harness/drive.sh` gave each size.
+>
+> **The fault, of the real program v0.8.175 inside tmux at 100 columns**, of the
+> library `Large` of 2056 items, in the Home view. At 5 rows:
 >
 > ```text
-> 👋 Connected as toutuitest                📖 Books (book)                         🦜 Toutui v0.8.174
-> 🔗 localhost:13399
-> No description available
+> 👋 Connected as toutuitest                📖 Large (book)                         🦜 Toutui v0.8.175
+> 🔗 localhost:13399            ⇅ The sequence of the server ▣ No filter
 >
->
->
->                j/k: move  l: the books of this author  h: back  ?: every key  Q: quit
+>   j/k: move  l: play or open  Tab: home/library  S-Tab: the next library  /: search  R: refresh  ?:
+>                                          every key  Q: quit
 > ```
 >
-> **That one line is the whole of the work of the view.** No title stands in its
-> border, and no one of the nine authors stands under it. At 10 rows and at 11
-> rows the border keeps `The authors [9 items]` and no author stands under it;
-> at 12 rows the title and two authors; at 45 rows every one of the nine. **The
-> control of the same screen** is the Home view, which T-342 corrected already:
-> at 100 columns and 8 rows it says `Home [20 items]`, the line
-> `➤     Large Book 0001`, and the row of the item under it.
+> No title of the list, and no line of the 20 media of that view. At 6 rows the
+> border keeps `Home [20 items]` and no line stands under it; at 4 rows the
+> first row of the header and the footer alone; at 3 rows the footer alone; at 2
+> rows one blank row and one row of the footer that ends with `…`; and **at 1
+> row the screen holds no letter at all**.
 >
-> **Why**: seven render functions of `src/ui/tui.rs` take the three areas of
-> `the_areas_of_a_view` (T-343), and they then split the work of the view
-> themselves with `Layout::vertical([Constraint::Fill(1), Constraint::Length(4)])`
-> — the list is the `Fill`, and the panel of the item is the `Length`. **A
-> `Length` stands before a `Fill` in the solver of ratatui**, therefore the panel
-> took its four rows first and the list took what stayed. The seven are the
-> Authors view, the view of the lists that take a media, the view of the devices
-> of an e-reader, the view of the downloads of the server, the view of the
-> ebooks of a media, the view of a new podcast, and the settings of the reader,
-> which holds a `Constraint::Length(5)`. **None of the seven calls
-> `the_areas_of_a_list`**, which holds the rule of T-342 for the eight views of
-> the frame of the panels.
+> **Why**: `the_five_areas` of `src/ui/tui.rs` holds the five parts of the
+> screen of a view, and the header was a `Constraint::Length(2)`, the row of the
+> message a `Constraint::Length(1)`, and the footer a
+> `Constraint::Length(rows_of_the_footer)`, while the work of the view was the
+> `Constraint::Fill(1)`. **A `Length` stands before a `Fill` in the solver of
+> ratatui**, therefore the three parts took their five rows first and the view
+> took what stayed. T-342, T-343, and T-344 gave that rule to the row of the
+> item, to the panel of the item, to the band of the player, and to the two bars
+> of the Chapters view, and the three parts around the view kept the rows that
+> they had.
 >
 > **The correction**: one new pure function of `src/ui/tui.rs`,
-> `the_rows_of_the_panel_of_the_item(rows_of_the_view, rows_that_it_wants)`,
-> which gives
-> `rows_of_the_view.saturating_sub(THE_SMALLEST_LIST).min(rows_that_it_wants)`.
-> `the_rows_of_the_row_of_the_item` of T-342 calls it with 2, therefore **the two
-> rules are one rule now**, and the seven views call it with 4 and with 5. The
-> panel needs no rule of a smallest size like `THE_SMALLEST_BAND` of the band,
-> because `render_a_description` draws a `Paragraph` with no border and every row
-> that the panel keeps says a word.
+> `the_rows_around_the_work_of_a_view(rows_of_the_screen, rows_of_the_footer)`,
+> which gives the rows of the header, of the row of the message, and of the
+> footer. It takes `THE_SMALLEST_LIST` of the screen for the work of the view
+> first, and it gives what stays to the footer, to the row of the message, and
+> to the header, in that sequence. **The header goes away first**, because the
+> settings screen and the view of the accounts say its values too; **the row of
+> the message after it**, because `render_the_message` writes the words over the
+> work of the view already (the trap 39 and T-299) and that row is the room and
+> not the voice; and **the footer last**, because no other screen of this
+> program names the keys of a view.
 >
-> **The corrected program of the same harness**: at 100 columns and 8 rows the
-> Authors view says `The authors [9 items]`, the line `➤ Big Author [2 book(s)]`,
-> and `No description available` under it; at 12 rows two authors, at 13 rows
-> three, and at 45 rows the screen of the program before it, character for
-> character. The settings of the reader at 100 columns and 9 rows says
-> `The cache of the ebooks — 512 MB now` and the line `➤ ✓ 512 MB`, and at 45
-> rows it too is the screen of the program before it.
+> **The corrected program of the same harness**: at 5 rows the border
+> `Home [20 items]`, the line `➤     Large Book 0001`, one blank row, and the
+> footer of two rows; at 4 rows the border, the line, and the footer; at 3 rows
+> the border, the line, and one row of the footer; at 2 rows the border and the
+> line; at 1 row the border alone. **At 7 rows and at 8 rows it is the screen of
+> the program before it, character for character.**
 >
-> The correction failed its gate with the fault built back in: the body of the
-> pure function became `rows_that_it_wants` alone, and
-> `the_list_of_the_seven_views_keeps_its_line_before_the_panel_of_the_item` then
-> said `left: 4, right: 3`. **v0.8.175.**
+> The correction failed its gate with the fault built back in:
+> `rows_of_the_screen.saturating_sub(THE_SMALLEST_LIST)` became
+> `rows_of_the_screen` alone, and
+> `the_work_of_a_view_goes_away_after_the_parts_around_it` then said
+> `left: [2, 1, 2], right: [1, 1, 2]`. **v0.8.176.**
 >
 > **What this round leaves open, and each of them is a candidate and not an
-> item**: a screen of 5 rows and fewer holds the header, the row of the message,
-> and the footer, and no round has decided which of those parts gives way first;
-> a band of 3, 4, or 5 rows loses its buttons, its bars, and its seek in that
-> sequence, and **no measurement of tmux of a terminal of 10, 11, or 12 rows
-> ran**; the map of the mouse of a band that is not whole; and **five of the
-> seven views were not driven in tmux** — the Authors view and the settings of
-> the reader were, and the five others hold the same three lines of code.
+> item**: a band of 3, 4, or 5 rows loses its buttons, its bars, and its seek in
+> that sequence, and **no measurement of tmux of a terminal of 10, 11, or 12
+> rows ran**; the map of the mouse of a band that is not whole; **the map of the
+> mouse of a screen of few rows**, where a click of the row 0 of a screen of 5
+> rows reaches the work of the view now; five of the seven views of T-344 were
+> not driven in tmux; and **`self.rows_of_the_footer`, which
+> `render_the_message` and the band of the player read, holds the rows that the
+> text of the footer wants and not the rows that the screen gave it** — the two
+> numbers disagree at 3 rows and fewer alone.
 >
 > The next round takes the item 1 again. **The parts of a stage of the road of
 > the panels that stay open** stand in the section
@@ -25874,6 +25958,19 @@ item.**
 > T-344 now, and a view that held the whole panel keeps it; and **the panel
 > needs no smallest size**, because it draws no border and every row that it
 > keeps says a word (T-344).
+> **The work of a view goes away after the three parts that stand around it**:
+> the header, the row of the message, and the footer each took their rows of a
+> screen of few rows first, therefore a terminal of 5 rows held the header and
+> the footer alone with no title of the list and no line of it, a terminal of 3
+> rows held the footer alone, and **a terminal of 1 row held no letter at all**;
+> one pure function, `the_rows_around_the_work_of_a_view`, keeps the border and
+> one line of the view before the three of them keep their rows; **the header
+> goes away first**, because the settings screen and the view of the accounts
+> say its values too; **the row of the message goes away after it**, because
+> `render_the_message` writes the words over the work of the view already (the
+> trap 39 and T-299) and that row is the room and not the voice; and **the
+> footer goes away last**, because no other screen of this program names the
+> keys of a view (T-345).
 > **The bands of covers of the Home view stand where the table of the panel 4
 > stands**, therefore a screen under 120 columns keeps the list of one column
 > that it had, and a panel that has no room for one whole band keeps the table
@@ -26138,7 +26235,9 @@ item.**
 > held **88980** bytes with **one** turn in it; the round of the hundred and
 > seventy-sixth found it at 88980 bytes with one turn in it, and it did the
 > same work, and the block then held about **91100** bytes with **one** turn in
-> it.
+> it; the round of the hundred and seventy-seventh found it at 91100 bytes with
+> one turn in it, and it did the same work, and the block then held **92250**
+> bytes with **one** turn in it.
 > **A block that stands at 80000 bytes or under holds two
 > turns**, and the turn of the stage before this one names the parts of that
 > stage which stay open. **The list of the decisions

@@ -186,18 +186,64 @@ fn the_area_of_the_band(area: Rect, rows_of_the_player: u16, rows_of_the_footer:
 /// The five areas of the screen of a view: the header, the work of the view,
 /// the band of the player, the row of the message, and the footer.
 fn the_five_areas(area: Rect, rows_of_the_player: u16, rows_of_the_footer: u16) -> [Rect; 5] {
+    let [rows_of_the_header, rows_of_the_message, rows_that_the_footer_keeps] =
+        the_rows_around_the_work_of_a_view(area.height, rows_of_the_footer);
+
     Layout::vertical([
-        Constraint::Length(HEADER_HEIGHT),
+        Constraint::Length(rows_of_the_header),
         Constraint::Fill(1),
         Constraint::Length(the_rows_of_the_band_of_a_screen(
             area.height,
             rows_of_the_player,
             rows_of_the_footer,
         )),
-        Constraint::Length(1),
-        Constraint::Length(rows_of_the_footer),
+        Constraint::Length(rows_of_the_message),
+        Constraint::Length(rows_that_the_footer_keeps),
     ])
     .areas(area)
+}
+
+/// The rows of the header, of the row of the message, and of the footer of a
+/// screen of few rows. See T-345.
+///
+/// **The work of a view goes away last** (T-342, T-343, and T-344): the row of
+/// the item, the panel of the item, the band of the player, and the two bars of
+/// the Chapters view give way before it already. The three parts that stand
+/// around the view took their rows of the screen first, because each of them is
+/// a `Constraint::Length` and the work of the view is the `Constraint::Fill`:
+/// the measurement of 2026-08-17, of the real program v0.8.175 in a terminal of
+/// 100 columns, read the header and the footer alone at 5 rows, the footer
+/// alone at 3 rows, and **a screen with no letter at all at 1 row**.
+///
+/// The three parts give way in the sequence of what they say to the user:
+///
+/// 1. **The header goes away first**, one row at a time. It says the account,
+///    the address of the server, the library, and the name of the program, and
+///    the settings screen and the view of the accounts say those values too.
+/// 2. **The row of the message goes away after it.** A message of the program
+///    still reaches the user: `render_the_message` writes it over the work of
+///    the view (the trap 39 and T-299), therefore this row is the room that the
+///    message does not take away from the view, and not the voice itself.
+/// 3. **The footer goes away last**, because it names the keys of the view and
+///    no other screen of this program names them.
+///
+/// A screen of 7 rows and more holds the three of them whole, therefore this
+/// rule reaches a terminal of 6 rows and fewer alone.
+fn the_rows_around_the_work_of_a_view(
+    rows_of_the_screen: u16,
+    rows_of_the_footer: u16,
+) -> [u16; 3] {
+    // The work of the view keeps its border and one line before every part
+    // that stands around it.
+    let mut room = rows_of_the_screen.saturating_sub(THE_SMALLEST_LIST);
+
+    let footer = rows_of_the_footer.min(room);
+    room -= footer;
+
+    let message = 1.min(room);
+    room -= message;
+
+    [HEADER_HEIGHT.min(room), message, footer]
 }
 
 /// The rows that the band of the player keeps on a screen of few rows. See
@@ -4900,9 +4946,11 @@ mod tests {
 
         // The areas themselves, of a screen of 100 columns. A screen of 8 rows
         // gives the work of a view 3 rows: the header takes 2, the row of the
-        // message takes 1, and the footer takes 2.
+        // message takes 1, and the footer takes 2. **A screen of 6 rows gives
+        // that work 2 rows** (T-345): the header of such a screen keeps one row
+        // alone, therefore the list holds its border and one line there too.
         for (rows_of_the_screen, rows_of_the_list) in
-            [(8u16, 2u16), (7, 2), (6, 1), (12, 5), (13, 6)]
+            [(8u16, 2u16), (7, 2), (6, 2), (12, 5), (13, 6)]
         {
             let screen = Rect {
                 x: 0,
@@ -5132,6 +5180,105 @@ mod tests {
 
         // A media of no chapter gives no bar at all, at every number of rows.
         assert_eq!(the_rows_of_the_bars_of_the_chapters(45, false), 0);
+    }
+
+    /// **The header, the row of the message, and the footer go away before the
+    /// work of a view** (T-345, and the decision of T-342).
+    ///
+    /// The measurement of the real program v0.8.175 inside tmux, in a terminal
+    /// of 100 columns: at 5 rows the Home view held the two rows of the header,
+    /// one blank row, and the two rows of the footer, and **no title of the list
+    /// and no line of it at all**; at 3 rows it held the footer alone; and at 1
+    /// row it held **no letter at all**.
+    ///
+    /// **The parts of this test stay in one function.**
+    #[test]
+    fn the_work_of_a_view_goes_away_after_the_parts_around_it() {
+        // A screen of 7 rows and more keeps the three parts whole, therefore
+        // every screen that stood before T-345 stands in the same shape.
+        for rows_of_the_screen in 7..=45u16 {
+            assert_eq!(
+                the_rows_around_the_work_of_a_view(rows_of_the_screen, FOOTER_HEIGHT),
+                [HEADER_HEIGHT, 1, FOOTER_HEIGHT],
+                "a screen of {rows_of_the_screen} rows must keep the three parts"
+            );
+        }
+
+        // The header goes away first, one row at a time; the row of the message
+        // after it; and the footer last.
+        assert_eq!(
+            the_rows_around_the_work_of_a_view(6, FOOTER_HEIGHT),
+            [1, 1, 2]
+        );
+        assert_eq!(
+            the_rows_around_the_work_of_a_view(5, FOOTER_HEIGHT),
+            [0, 1, 2]
+        );
+        assert_eq!(
+            the_rows_around_the_work_of_a_view(4, FOOTER_HEIGHT),
+            [0, 0, 2]
+        );
+        assert_eq!(
+            the_rows_around_the_work_of_a_view(3, FOOTER_HEIGHT),
+            [0, 0, 1]
+        );
+        assert_eq!(
+            the_rows_around_the_work_of_a_view(2, FOOTER_HEIGHT),
+            [0, 0, 0]
+        );
+        assert_eq!(
+            the_rows_around_the_work_of_a_view(1, FOOTER_HEIGHT),
+            [0, 0, 0]
+        );
+        assert_eq!(
+            the_rows_around_the_work_of_a_view(0, FOOTER_HEIGHT),
+            [0, 0, 0]
+        );
+
+        // A footer of three rows takes the same road: it keeps its rows while
+        // the work of the view holds its border and one line.
+        assert_eq!(the_rows_around_the_work_of_a_view(8, 3), [2, 1, 3]);
+        assert_eq!(the_rows_around_the_work_of_a_view(5, 3), [0, 0, 3]);
+        assert_eq!(the_rows_around_the_work_of_a_view(4, 3), [0, 0, 2]);
+
+        // The areas themselves: the work of every view keeps its border and one
+        // line while the screen holds two rows at all.
+        for rows_of_the_screen in 0..=45u16 {
+            let screen = Rect {
+                x: 0,
+                y: 0,
+                width: 100,
+                height: rows_of_the_screen,
+            };
+
+            let [_, main_area, _] = the_areas_of_a_view(screen, PLAYER_HEIGHT, FOOTER_HEIGHT);
+
+            assert!(
+                main_area.height >= THE_SMALLEST_LIST.min(rows_of_the_screen),
+                "a screen of {rows_of_the_screen} rows gives the work of the view \
+                 {} rows",
+                main_area.height
+            );
+        }
+
+        // The rows of the work of a view of the smallest screens.
+        for (rows_of_the_screen, rows_of_the_view) in
+            [(1, 1), (2, 2), (3, 2), (4, 2), (5, 2), (6, 2)]
+        {
+            let screen = Rect {
+                x: 0,
+                y: 0,
+                width: 100,
+                height: rows_of_the_screen,
+            };
+
+            let [_, main_area, _] = the_areas_of_a_view(screen, PLAYER_HEIGHT, FOOTER_HEIGHT);
+
+            assert_eq!(
+                main_area.height, rows_of_the_view,
+                "the work of a view of a screen of {rows_of_the_screen} rows"
+            );
+        }
     }
 
     /// **The footer of a view stands on the rows that it needs** (T-302).

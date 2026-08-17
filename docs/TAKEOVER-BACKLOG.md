@@ -32681,3 +32681,131 @@ measurement):
   settings of the reader were, and the five others hold the same three lines of
   code.
 - **Every candidate of the turns before this one stays open.**
+
+## T-345 — The work of a view goes away before the header, the row of the message, and the footer
+
+**The condition**: the real program v0.8.175 inside tmux, of the harness
+`docs/harness/drive.sh`, at 100 columns, against the sandbox on `:13399`, with
+the account `toutuitest` and the library `Large` of 2056 items, the Home view.
+No proxy, no book of a harness, and no change of the sandbox at all: the size of
+the terminal is the data of the fault (T-301, T-340, T-342, T-343, and T-344).
+The harness started at 45 rows, and `tmux resize-window -t check -x 100 -y N`
+gave each size after it.
+
+**The fault**, of v0.8.175, at 100 columns:
+
+- 6 rows: the header of two rows, the border `Home [20 items]`, and the footer
+  of two rows. The list holds its title and **no line at all**.
+- 5 rows: the header of two rows, one blank row, and the footer of two rows. No
+  title of the list, and no line.
+
+```text
+👋 Connected as toutuitest                📖 Large (book)                         🦜 Toutui v0.8.175
+🔗 localhost:13399            ⇅ The sequence of the server ▣ No filter
+
+  j/k: move  l: play or open  Tab: home/library  S-Tab: the next library  /: search  R: refresh  ?:
+                                         every key  Q: quit
+```
+
+- 4 rows: the first row of the header
+  (`👋 Connected as toutuitest … 🦜 Toutui v0.8.175`) and the footer of two rows.
+- 3 rows: the footer of two rows alone.
+- 2 rows: one blank row, and one row of the footer that ends with `…`.
+- 1 row: **no letter at all** — the screen is empty.
+
+**Why.** `the_five_areas` of `src/ui/tui.rs` holds the five parts of the screen
+of a view: the header, the work of the view, the band of the player, the row of
+the message, and the footer. The header was a
+`Constraint::Length(HEADER_HEIGHT)` of 2, the row of the message a
+`Constraint::Length(1)`, and the footer a
+`Constraint::Length(rows_of_the_footer)`, and the work of the view was the
+`Constraint::Fill(1)`. **A `Length` stands before a `Fill` in the solver of
+ratatui**, therefore the three parts took their five rows of the screen first
+and the view took what stayed. T-342, T-343, and T-344 gave that same rule to
+the row of the item, to the panel of the item, to the band of the player, and to
+the two bars of the Chapters view, and the three parts that stand around a view
+kept the rows that they had.
+
+**The correction.** One new pure function of `src/ui/tui.rs`:
+
+```rust
+fn the_rows_around_the_work_of_a_view(rows_of_the_screen: u16, rows_of_the_footer: u16) -> [u16; 3]
+```
+
+It gives the rows of the header, of the row of the message, and of the footer.
+It takes `THE_SMALLEST_LIST` (2) of the screen for the work of the view first,
+and it then gives what stays to the footer, to the row of the message, and to
+the header, in that sequence. `the_five_areas` calls it in the place of the
+three fixed numbers.
+
+**The sequence, and the reason of each part**:
+
+1. **The header goes away first**, one row at a time. It says the account, the
+   address of the server, the library, and the name of the program, and the
+   settings screen and the view of the accounts say those values too.
+2. **The row of the message goes away after it.** A message of the program still
+   reaches the user, because `render_the_message` writes it over the work of the
+   view (the trap 39 and T-299): that row is the room that the message does not
+   take away from the view, and it is not the voice of the program itself.
+3. **The footer goes away last**, because it names the keys of the view and no
+   other screen of this program names them.
+
+**The corrected program**, of the same harness and the same widths. At 100
+columns and 5 rows:
+
+```text
+──────────────────────────────────────────Home [20 items]───────────────────────────────────────────
+➤     Large Book 0001                                                                              █
+
+  j/k: move  l: play or open  Tab: home/library  S-Tab: the next library  /: search  R: refresh  ?:
+                                         every key  Q: quit
+```
+
+- 6 rows: the first row of the header, the border, the line
+  `➤     Large Book 0001`, one blank row, and the footer of two rows.
+- 4 rows: the border, the line, and the footer of two rows.
+- 3 rows: the border, the line, and one row of the footer that ends with `…`.
+- 2 rows: the border and the line.
+- 1 row: the border `Home [20 items]`.
+- 7 rows and 8 rows: **the screens of the program before it, character for
+  character.**
+
+**The gate**: `the_work_of_a_view_goes_away_after_the_parts_around_it` of the
+tests of `src/ui/tui.rs`. It reads the pure function for the screens of 0 to 45
+rows, with a footer of two rows and with a footer of three rows; it reads the
+areas of a screen of 100 columns of 0 to 45 rows, where the work of the view
+keeps `THE_SMALLEST_LIST` rows while the screen holds two rows at all; and it
+reads the rows of the work of a view of the screens of 1 to 6 rows: 1, 2, 2, 2,
+2, and 2. **The parts of this test stay in one function.** The test of T-342,
+`the_list_of_a_view_keeps_its_line_before_the_row_of_the_item`, changed one
+number: a screen of 6 rows gives the list 2 rows now, and it gave it 1.
+
+The correction failed its gate with the fault built back in:
+`rows_of_the_screen.saturating_sub(THE_SMALLEST_LIST)` became
+`rows_of_the_screen` alone, and the test then said
+`left: [2, 1, 2], right: [1, 1, 2]` for a screen of 6 rows.
+
+**v0.8.176.**
+
+**The decision of this round: the work of a view keeps its border and one line
+before the three parts around it keep theirs, and the header goes away first,
+the row of the message after it, and the footer last.** A screen of 7 rows and
+more holds the three of them whole, therefore this rule reaches a terminal of 6
+rows and fewer alone.
+
+**What this item leaves open** (each of them a candidate and not a
+measurement):
+
+- **A band of 3, 4, or 5 rows loses its buttons, its bars, and its seek in that
+  sequence**, and no measurement of tmux of a terminal of 10, 11, or 12 rows
+  ran.
+- **The map of the mouse of a band that is not whole.**
+- **The map of the mouse of a screen of few rows**, where the header and the
+  footer hold no row: a click of the row 0 of a screen of 5 rows reaches the
+  work of the view now, and no measurement of such a click ran.
+- **Five of the seven views of T-344 were not driven in tmux.**
+- **`self.rows_of_the_footer`, which `render_the_message` and the band of the
+  player read, holds the rows that the text of the footer wants and not the rows
+  that the screen gave it**: the two numbers disagree at 3 rows and fewer alone,
+  and a message of such a screen therefore stands one row above its place.
+- **Every candidate of the turns before this one stays open.**
