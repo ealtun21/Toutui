@@ -36027,3 +36027,138 @@ each time, and `cargo nextest run --run-ignored all` with the sandbox up gave
   view hold no frame of the panels at all.** **That is the work of a stage of
   the road of the panels and not the work of a fault.**
 - Every candidate of the turns before this one stays open.
+
+## T-371 — A line of the screen of the start that the screen cuts says that the screen cut it
+
+**The candidate of T-370.** That item gave the lines of the panel 5 of the facts
+the rule of one row, and it left this line: "`src/ui/loading.rs:96` draws
+`🔗 {the address of the server}` in a box of at most 72 columns with no `wrap`
+and no cut". **The box of that screen holds four texts of the program beside the
+address**, and the advice of a wait that is long is longer than the box at every
+width under 56 columns.
+
+**The measurement, of the real program v0.8.201 inside tmux.** **The data of this
+fault is the size of the terminal** (T-301), and the wait comes of
+`docs/harness/blackhole.py`, which is a port that takes a connection and that
+answers nothing at all (the trap 112). The account of the sandbox takes
+`http://127.0.0.1:13500` in `users.server_address` of its database (the trap
+129), a copy of that file gives the address of the sandbox back at the end, and
+`start_the_program` of `docs/harness/drive.sh` waits for the marker `🔗` of that
+screen, which comes after 205 milliseconds. The screen of the second 11, at four
+widths of `COLUMNS_OF_THE_SCREEN`:
+
+```text
+=== 40 columns, where the box holds 38 inside ===
+│               🦜 Toutui              │
+│       🔗 http://127.0.0.1:13500      │
+│ ⠼ the libraries of the server — 11 s │
+│The server is slow. The program waits │
+│          Q: stop the program         │
+=== 50 columns, where the box holds 48 inside ===
+│The server is slow. The program waits for the an│
+```
+
+**ratatui draws no mark of that cut at all**, and the cut takes the centering of
+the line away with it: the user reads a sentence that stops in the middle of a
+word.
+
+**The control of the same run** is the four other texts of that same box — the
+name of the program, the address of the server, the step that runs with the sign
+that turns, and the key `Q` — which stood whole at 40, at 50, at 56, and at 60
+columns, and the two screens of 56 and of 60 columns, which held the advice whole
+and which did not change at all.
+
+**The one text that no terminal at all can hold.** The advice of a server that
+does not answer is `The server does not answer. The program will show the media
+of the disk. Press Q to stop.` of 89 columns, and the box of `render` takes
+`area.width.min(72)`, therefore it holds at most 70 columns inside at **every**
+width of the terminal. The words `Press Q to stop.` of it reached no screen of a
+user. **The real program of the sandbox reaches no such wait**: `REQUEST_TIMEOUT`
+of `src/api/client/mod.rs` is 15 seconds, the start holds two rounds of requests
+(T-129), and the program of the blackhole went to the offline mode at the second
+19 of a lock of the first round. `docs/harness/slow.py` with a delay of 14
+seconds gave the same second 19, therefore the advice of the second 30 stands on
+the arithmetic of the box alone, and the gate of this item reads it.
+
+**Why.** `render` of `src/ui/loading.rs` made a `Line` of each text and it drew
+them with `Paragraph::new(lines).alignment(Alignment::Center)` and **no** `wrap`:
+a `Paragraph` of ratatui with no `wrap` cuts every line at the width of its area,
+and the centering of a line that is wider than the area gives the column 0. The
+width of the box came **after** the lines, therefore no text of that box could
+read it.
+
+**The correction is one file.** `the_rows_of_the_box` is a new pure function of
+`src/ui/loading.rs`: it gives the rows of the box and the style of each of them,
+and every text of it goes through `crate::logic::message::the_parts_of_a_wrap`
+with the columns inside the border. `render` reads the width of the box first, it
+gives that width to the function, and the height of the box then comes of the
+rows that the wrap gave. **A wrap keeps every word**, and
+`the_parts_of_one_word` of that same module takes a word that is longer than the
+box over the rows under it, therefore an address of a name that is longer than
+the box keeps every letter too: a screen that cuts an address says an address
+that the user does not have (the head of `crate::ui::the_row_of_the_header`).
+**v0.8.202.**
+
+**The corrected program of the same harness**, at the same second 11:
+
+```text
+=== 40 columns ===
+│               🦜 Toutui              │
+│       🔗 http://127.0.0.1:13500      │
+│ ⠼ the libraries of the server — 11 s │
+│ The server is slow. The program waits│
+│            for the answer.           │
+│          Q: stop the program         │
+=== 50 columns ===
+│  The server is slow. The program waits for the │
+│                     answer.                    │
+```
+
+**The control of the same run**: the four other texts did not change at any
+width, the screens of 56 and of 60 columns did not change at all, and the box of
+40 and of 50 columns stands one row higher, because it holds one row more.
+
+**Two builds of the fault, and each of them fails the gate**: `vec![text]` in the
+place of the wrap, which is the program of v0.8.201 and which gave
+`the row "The server is slow. The program waits for the answer." is wider than
+the box`; and `in_one_row` in the place of the wrap, which cuts the line and
+which writes the mark of the cut, and which gave
+`"The server is slow. The program waits…"` for a box that holds every word of
+that sentence in two rows.
+
+**The gate** is
+`a_text_that_is_wider_than_the_box_goes_over_more_than_one_row` of
+`src/ui/loading.rs`. It reads `the_rows_of_the_box` at the width of the
+measurement, and it holds four rules: no row of the box is wider than the box,
+the advice of a slow server stands whole in the rows, the advice of a server that
+does not answer keeps its `Press Q to stop.` in a box of 70 columns, and an
+address that is longer than the box keeps every letter of it. It is pure,
+therefore it needs no terminal and no server.
+
+**The gates**: clippy and fmt clean, 1619 tests of nextest in 2.8 seconds,
+`cargo test -j 16 --no-fail-fast` three times with exit 0, and
+`cargo nextest run --run-ignored all` with the sandbox up gave 1645 of 1645.
+
+**What this item leaves open, and each of them is a candidate and not an item.**
+
+- **The box of the screen of the start holds no rule of the rows of the screen**:
+  `render` gives it `height.min(area.height)`, therefore a terminal of few rows
+  loses the rows at the foot of the box, and a wrap of a narrow terminal gives it
+  more rows to lose. The measurement of this round read 45 rows alone.
+- **The advice of 89 columns still takes two rows of every terminal**, because
+  the box takes at most 72 columns of a terminal of 200. A box that grows with
+  the terminal is the work of a design and not the work of a fault.
+- `src/ui/player_tui.rs:325` draws the row of the seek with no `wrap` and no
+  cut, and `src/ui/the_bars_of_the_chapters.rs:48` pads the name of a chapter to
+  a number of columns and it never cuts it. **The name of a bar of the chapters
+  is `Book` or `Ch 12`**, and `the_columns_of_the_name` gives it the columns of
+  the count of the chapters, therefore that line holds no fault of this shape.
+- **The header of the screen and the table of a panel each hold the rule
+  already**: `the_places_of_a_row` of `src/ui/the_row_of_the_header.rs` takes a
+  part away that has no room (T-340), and `of_the_width` of
+  `src/ui/the_table_of_a_view.rs` gives every column of the table
+  `in_one_row`. The candidate of T-368, the row of the header of the columns of a
+  list, is therefore closed.
+- **A value of a fact that holds an end of a line** stays open (T-370), and no
+  media of the sandbox holds such a value.
+- Every candidate of the turns before this one stays open.

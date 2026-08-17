@@ -41,6 +41,27 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.202",
+        date: "17/08/2026",
+        body: &[
+            "Fixed:",
+            "- **A line of the screen of the start that the screen cuts says \
+             that the screen cut it.** That screen names the program, the \
+             address of the server, the step that runs, and an advice for a \
+             wait that is long, and each of them took a line of its own with no \
+             wrap at all. A line that was wider than the box lost its end with \
+             no mark: a terminal of 40 columns said `The server is slow. The \
+             program waits ` and no word after it, and a terminal of 50 columns \
+             said `The server is slow. The program waits for the an`. The advice \
+             of a server that does not answer holds 89 columns, and the box \
+             holds at most 70 of them: the words `Press Q to stop.` of it \
+             therefore reached no terminal at all. Every line of that screen now \
+             goes over the rows under it, and it keeps every word. An address \
+             that is longer than the box takes that same rule, because a screen \
+             that cuts an address says an address that the user does not have.",
+        ],
+    },
+    Entry {
         version: "0.8.201",
         date: "17/08/2026",
         body: &[
