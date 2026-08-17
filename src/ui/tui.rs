@@ -2540,9 +2540,10 @@ impl App {
         if lines.is_empty() {
             self.the_bands_of_the_last_frame = Default::default();
             App::render_footer(footer_area, buf, &of_the_table);
-            App::render_the_reason(
+            self.render_the_reason(
                 main_area,
                 buf,
+                &render_list_title,
                 &crate::ui::keys::the_text_of_the_home_view_with_no_line(
                     self.is_offline,
                     crate::logic::the_requests_of_the_start::the_fault_of(
@@ -2844,15 +2845,37 @@ impl App {
     ///
     /// Every view of the program that can hold no line says why, and this
     /// function holds the shape of that screen in one place.
-    fn render_the_reason(area: Rect, buf: &mut Buffer, text: &str) {
+    ///
+    /// **The panel 4 of a view with no line is a panel of the frame still**
+    /// (T-355): the sentence stood under a bare line of `Borders::TOP` beside
+    /// the panels 1, 2, and 3 of the stack, therefore that panel had no border,
+    /// no number, and no name, and the focus of it was invisible. A user who
+    /// cannot read the number of a panel cannot press the digit of it, and the
+    /// title of the panel says how many lines the view holds.
+    ///
+    /// The title comes of the caller, because it is the title of the panel 4 of
+    /// the same view with its lines: `render_the_list_of_the_panel_4` draws that
+    /// same block, and the two roads of one view must not say two titles.
+    fn render_the_reason(&self, area: Rect, buf: &mut Buffer, title: &str, text: &str) {
+        // **The frame stands in the Home view and in the Library view alone**,
+        // and a terminal under 120 columns holds no frame at all: the sentence
+        // of such a screen keeps the block of one border at the top that it had.
+        let block = if self.the_frame_of_the_panels_stands() {
+            crate::ui::frame::a_panel(
+                crate::ui::frame::ThePanel::TheList.the_number(),
+                title,
+                self.the_panel_of_the_focus == crate::ui::frame::ThePanel::TheList,
+            )
+        } else {
+            Block::new()
+                .borders(Borders::TOP)
+                .border_style(Style::new().fg(Color::DarkGray))
+        };
+
         Paragraph::new(text)
             .centered()
             .wrap(Wrap { trim: true })
-            .block(
-                Block::new()
-                    .borders(Borders::TOP)
-                    .border_style(Style::new().fg(Color::DarkGray)),
-            )
+            .block(block)
             .render(area, buf);
     }
 
@@ -2956,9 +2979,10 @@ impl App {
         // **A filter that hides every media is not a library with no media**,
         // and a server that does not answer is neither. See T-103 and T-91.
         if lines.is_empty() {
-            App::render_the_reason(
+            self.render_the_reason(
                 main_area,
                 buf,
+                &render_list_title,
                 &crate::ui::keys::the_text_of_the_library_view_with_no_line(
                     self.is_offline,
                     self.the_media_of_the_disk_did_not_come,
@@ -3029,7 +3053,12 @@ impl App {
                 .as_deref(),
             );
 
-            App::render_the_reason(main_area, buf, &text);
+            // **The Series view holds no frame of the panels** (T-320): the
+            // frame stands in the Home view and in the Library view alone,
+            // therefore this title reaches no screen of today. It stays with
+            // the title of the same view with its lines, for the day when a
+            // stage of the road of the panels gives the Series view a panel.
+            self.render_the_reason(main_area, buf, "Series", &text);
             return;
         }
 

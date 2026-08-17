@@ -41,6 +41,24 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.186",
+        date: "17/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The panel of the list of a view with no line keeps its \
+             border, its number, and its name.** A view that holds no line \
+             says why, and that sentence stood under one line at the top with \
+             no border around it: the panels of the stack at the left of it \
+             each said their number and their name, and the panel of the list \
+             said neither. A user who cannot read the number of a panel \
+             cannot press the digit of it, and the key of the focus then gave \
+             a panel that the screen did not show. The sentence stands inside \
+             the panel of the list now, with the title of that panel and with \
+             the border of its focus, and a terminal that holds no frame of \
+             the panels keeps the line at the top that it had.",
+        ],
+    },
+    Entry {
         version: "0.8.185",
         date: "17/08/2026",
         body: &[

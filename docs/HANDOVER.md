@@ -4,8 +4,9 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.8.185.** The item T-354 belongs to this
+**The newest release is v0.8.186.** The item T-355 belongs to this
 session. The
+item T-354 belongs to the session before it. The
 item T-353 belongs to the session before it. The
 item T-352 belongs to the session before it. The
 item T-351 belongs to the session before it. The
@@ -25776,12 +25777,82 @@ rows and 22 columns; **the words of the panel 5 at a screen of 9 rows and
 fewer**, where the panel goes away; and every candidate of the turns before
 this one.
 
+## The session of the hundred and eighty-seventh turn of 2026-08-17: T-354, a view with no line and the two panels of the covers
+
+**The session of the hundred and eighty-seventh turn took the item 1 of the
+list of the work**, and it found a condition that no round of this fork had
+reached: a **view that holds no line at all**.
+
+**A `ps` of the machine at the start of the round found it clean**: no program
+of `toutui`, and no shell of a busy loop. The tree of git was clean, the disk
+held 446 gigabytes, and the `cargo clean` of the round before this one gave a
+cold build of `cargo build -j 16` in **18.47 seconds**.
+
+**The fault, of the real program v0.8.184 inside tmux**, at 160 columns and 45
+rows, of the library `Empty` of the sandbox. That library holds no media at
+all, therefore the Library view and the Home view of it hold no line, and each
+of them says its reason with `App::render_the_reason` (T-91 and T-103). **The
+two panels of the covers stood beside that reason with no character in them**:
+the panel 5 of the cover held **8** rows, the panel 6 of the gallery held
+**32**, the two of them took **50 columns** of the work of the view, and the
+reason said its two lines in the **75** columns that stayed.
+
+**Why**: `render_library` and `render_home` cut the area with
+`cover::split_for_covers` **before** they read the lines of the view, and the
+guard of that function reads the width of the screen, the height of the area,
+and whether a picture comes (T-50, T-348, and T-349) — **none of the three says
+that the view holds no media at all**. **This is the fourth face of the fault
+of T-319**: T-348, T-349, T-352, and T-353 each read a media that the server
+holds with no cover, and each of them holds a media. A view with no line holds
+none, therefore no row of those panels can hold anything at any width and at
+any height.
+
+**The correction**:
+`cover::the_panels_of_the_covers_stand(the_lines_of_the_view, a_media_of_the_panel_comes)`,
+and the two views of the frame of the panels read the lines of their list
+before they cut the area. **A media that plays keeps the two panels** (T-23),
+therefore the rule reads the media of the panel
+(`App::a_media_of_the_panel_of_the_cover_comes`) and not the lines alone, and
+that answer is **not** `a_picture_comes_in_the_panel_of_the_cover`: a media
+with no cover is a media of the panel, and the words of it stand there.
+
+**The corrected program of the same harness**, of the same screen: no panel 5,
+no panel 6, and the reason of the view centred in the **126** columns of the
+work. The test of the gate renders the two views of a `TestBackend` of 160
+columns and 45 rows, and **the control of the same run is a view of one line**,
+which keeps the two panels: a correction that takes the panels away for every
+view fails it. **v0.8.185.**
+
+**A picture of one colour draws no character at all** (the trap 247). The round
+read a panel 5 of a **series** row of 13 rows that held nothing, and it took
+that screen for a fault of the layout: the same capture with `the_screen -e`
+held `48;2;1;255;255` and `48;2;255;0;254` of twelve columns each. The covers
+of the books of the series of the sandbox are WEBP of 400 by 400 pixels **of
+one colour**, and the half blocks of such a picture are cells of a background
+colour with no character in them. **A measurement of a picture of this program
+needs `the_screen -e`**, and `tmux capture-pane -p` with no `-e` says that
+every such panel holds nothing.
+
+**What this round leaves open, and each of them is a candidate and not an
+item**: **the panel 4 of a view with no line has no border, no number, and no
+name**, because the two views call `render_the_reason` and they then come back
+before `render_the_list_of_the_panel_4` draws the block of that panel — the
+reason stands under a bare line of `Borders::TOP`, and no key and no click of
+the user can name the panel that holds it, which is the fault that the frame of
+T-320 corrected for the panel of the covers of T-23; **the rows of the band
+that does not fit** of T-353, where the measurement of this round says why the
+gallery cannot take them (a column of 40 rows whose panel 5 needs 9 gives the
+gallery 31 rows, and four bands of six rows and the two rows of the border take
+26 of them, therefore 5 rows go back to the panel 5 where they hold nothing);
+**the width of the panel 5 of a media with no cover**; and every candidate of
+the turns before this one.
+
 ## The prompt for the next session
 
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.185**; `Cargo.toml` is at 0.8.185. The
+> AlbanDAVID/Toutui. Newest release **v0.8.186**; `Cargo.toml` is at 0.8.186. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -26612,7 +26683,7 @@ this one.
 > makes no request: a measurement of two roads of the header needs a key of a
 > fresh request, and the key `R` alone forgets the state of a view.
 > Verify with a second program: `curl`, `podman logs abs-test`, or a browser.
-> Write the measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-354 and
+> Write the measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-356 and
 > up), and name that item in the commit.
 >
 > **`String::find` gives the index of a byte and not the column of the screen**
@@ -26799,73 +26870,73 @@ this one.
 >
 >
 >
-> **The session of the hundred and eighty-seventh turn took the item 1 of the
-> list of the work**, and it found a condition that no round of this fork had
-> reached: a **view that holds no line at all**.
+> **The session of the hundred and eighty-eighth turn took the item 1 of the
+> list of the work**, and it took the **first candidate that the round before it
+> left**: the panel 4 of a view with no line.
 >
 > **A `ps` of the machine at the start of the round found it clean**: no program
-> of `toutui`, and no shell of a busy loop. The tree of git was clean, the disk
-> held 446 gigabytes, and the `cargo clean` of the round before this one gave a
-> cold build of `cargo build -j 16` in **18.47 seconds**.
+> of `toutui`, and no shell of a busy loop. The tree of git was clean, every
+> commit and every tag of the round before it stood at the remote, and the disk
+> held 446 gigabytes. The `cargo clean` of that round gave a cold build, and
+> `cargo nextest run` of the gate then needed 33.52 seconds for the 224 binaries
+> of the tests.
 >
-> **The fault, of the real program v0.8.184 inside tmux**, at 160 columns and 45
+> **The fault, of the real program v0.8.185 inside tmux**, at 160 columns and 45
 > rows, of the library `Empty` of the sandbox. That library holds no media at
 > all, therefore the Library view and the Home view of it hold no line, and each
 > of them says its reason with `App::render_the_reason` (T-91 and T-103). **The
-> two panels of the covers stood beside that reason with no character in them**:
-> the panel 5 of the cover held **8** rows, the panel 6 of the gallery held
-> **32**, the two of them took **50 columns** of the work of the view, and the
-> reason said its two lines in the **75** columns that stayed.
+> three panels of the stack at the left each stood with their border, their
+> number, and their name, and the panel 4 stood with none of the three**: the
+> sentence of the reason said its two lines under a bare line of `Borders::TOP`.
 >
-> **Why**: `render_library` and `render_home` cut the area with
-> `cover::split_for_covers` **before** they read the lines of the view, and the
-> guard of that function reads the width of the screen, the height of the area,
-> and whether a picture comes (T-50, T-348, and T-349) — **none of the three says
-> that the view holds no media at all**. **This is the fourth face of the fault
-> of T-319**: T-348, T-349, T-352, and T-353 each read a media that the server
-> holds with no cover, and each of them holds a media. A view with no line holds
-> none, therefore no row of those panels can hold anything at any width and at
-> any height.
+> **The key `4` gave that panel the focus, and the screen said nothing at all.**
+> The focus of this program is the shape of a border and not a colour alone (the
+> section (c) of `docs/mockups/mockup-1.md`), therefore a panel of no border can
+> hold the focus and show it nowhere: the same key of the same view with its
+> lines gave `╔4 Library [18 items] ═══…═╗`, and the empty view gave the same
+> screen before the key and after it.
 >
-> **The correction**:
-> `cover::the_panels_of_the_covers_stand(the_lines_of_the_view, a_media_of_the_panel_comes)`,
-> and the two views of the frame of the panels read the lines of their list
-> before they cut the area. **A media that plays keeps the two panels** (T-23),
-> therefore the rule reads the media of the panel
-> (`App::a_media_of_the_panel_of_the_cover_comes`) and not the lines alone, and
-> that answer is **not** `a_picture_comes_in_the_panel_of_the_cover`: a media
-> with no cover is a media of the panel, and the words of it stand there.
+> **Why**: `render_library` and `render_home` call `App::render_the_reason` and
+> they then come back, therefore `render_the_list_of_the_panel_4` never draws the
+> block of that panel. `render_the_reason` held the shape of the screen of T-103,
+> which is older than the frame of the panels of T-320: one border at the top,
+> and no title at all. **That is the fault that the frame of T-320 corrected for
+> the panel of the covers of T-23.**
 >
-> **The corrected program of the same harness**, of the same screen: no panel 5,
-> no panel 6, and the reason of the view centred in the **126** columns of the
-> work. The test of the gate renders the two views of a `TestBackend` of 160
-> columns and 45 rows, and **the control of the same run is a view of one line**,
-> which keeps the two panels: a correction that takes the panels away for every
-> view fails it. **v0.8.185.**
+> **The correction**: `App::render_the_reason` takes the title of the panel of
+> the caller, and it draws the sentence inside
+> `crate::ui::frame::a_panel(4, the title, the focus)` while
+> `the_frame_of_the_panels_stands` gives `true`. The title is the title of the
+> panel 4 of the same view with its lines (`render_list_title`), therefore the
+> two roads of one view say one title, and that title says how many lines the
+> view holds. **A terminal that holds no frame of the panels keeps the block of
+> one border at the top that it had.**
 >
-> **A picture of one colour draws no character at all** (the trap 247). The round
-> read a panel 5 of a **series** row of 13 rows that held nothing, and it took
-> that screen for a fault of the layout: the same capture with `the_screen -e`
-> held `48;2;1;255;255` and `48;2;255;0;254` of twelve columns each. The covers
-> of the books of the series of the sandbox are WEBP of 400 by 400 pixels **of
-> one colour**, and the half blocks of such a picture are cells of a background
-> colour with no character in them. **A measurement of a picture of this program
-> needs `the_screen -e`**, and `tmux capture-pane -p` with no `-e` says that
-> every such panel holds nothing.
+> **The corrected program of the same harness**, of the same screen:
+> `╔4 Library [0 items] ═══…═╗` around the sentence, `┌4 Home [0 items] ───…───┐`
+> after the key `1`, and a terminal of **100** columns of the same library gave
+> the line at the top and no panel at all. The test of the gate renders the two
+> views of a `TestBackend` of 160 columns and 45 rows with two panels of the
+> focus, and **the control of the same run is a terminal of 100 columns**, which
+> holds no frame: a correction that gives every screen a panel 4 fails it.
+> **v0.8.186.**
+>
+> **The gates**: clippy and fmt clean, 1587 tests of nextest in 3.65 seconds,
+> `cargo test -j 16 --no-fail-fast` twice with no failure, and
+> `cargo nextest run --run-ignored all` gave **1613 of 1613** in 60.8 seconds
+> with the sandbox up.
 >
 > **What this round leaves open, and each of them is a candidate and not an
-> item**: **the panel 4 of a view with no line has no border, no number, and no
-> name**, because the two views call `render_the_reason` and they then come back
-> before `render_the_list_of_the_panel_4` draws the block of that panel — the
-> reason stands under a bare line of `Borders::TOP`, and no key and no click of
-> the user can name the panel that holds it, which is the fault that the frame of
-> T-320 corrected for the panel of the covers of T-23; **the rows of the band
-> that does not fit** of T-353, where the measurement of this round says why the
-> gallery cannot take them (a column of 40 rows whose panel 5 needs 9 gives the
-> gallery 31 rows, and four bands of six rows and the two rows of the border take
-> 26 of them, therefore 5 rows go back to the panel 5 where they hold nothing);
-> **the width of the panel 5 of a media with no cover**; and every candidate of
-> the turns before this one.
+> item**: **the areas of the mouse of the panel 4 are the areas of the frame
+> before a view with no line**, because `the_areas_of_the_list_of_the_mouse`
+> stands inside `render_the_list_of_the_panel_4` alone — a user who goes from a
+> library of many books to a library of no media with `Shift+Tab` keeps the rect
+> of the list of the library before it, and a click inside the panel 4 of the
+> empty view then reads a line of a list that the view does not hold; **the
+> Series view holds no frame of the panels**, therefore the title `"Series"` of
+> its reason reaches no screen of today; **the rows of the band that does not
+> fit** of T-353; **the width of the panel 5 of a media with no cover**; and
+> every candidate of the turns before this one.
 >
 >
 >    **The turns before this one stand in `## The turns before the three
@@ -27087,7 +27158,9 @@ this one.
 > The round of the hundred and eighty-sixth found it at 82574 bytes with one
 > turn in it, and it did the same work: the block held **78045** bytes with no
 > turn at all after the removal, and it holds about **82000** bytes with
-> **one** turn in it now.
+> **one** turn in it now. The round of the hundred and eighty-eighth found it
+> at 82778 bytes with one turn in it, and it did the same work, and the block
+> then held **82820** bytes with **one** turn in it.
 > **A block that stands at 80000 bytes or under holds two
 > turns**, and the turn of the stage before this one names the parts of that
 > stage which stay open. **The list of the decisions

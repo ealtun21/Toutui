@@ -33790,3 +33790,92 @@ panels: a correction that takes the panels away for every view would fail it.
 - Every candidate of the items before this one.
 
 **v0.8.185.**
+
+## T-355 — The panel 4 of a view with no line has no border, no number, and no name
+
+**The condition.** The real program v0.8.185 inside tmux, at 160 columns and 45
+rows, of the library `Empty` of the sandbox (the section 5 of
+`docs/TEST-SERVER.md`). That library holds no media at all, therefore the
+Library view and the Home view of it hold no line, and each of them says its
+reason with `App::render_the_reason` (T-91 and T-103). The correction of T-354
+takes the panels 5 and 6 away in that view already, therefore the reason takes
+the whole width of the work.
+
+**The fault.** The three panels of the stack at the left each stood with their
+border, their number, and their name, and **the panel 4 stood with none of the
+three**: the sentence of the reason said its two lines under a bare line of
+`Borders::TOP`.
+
+```text
+┌1 Views ────────────────────────┐──────────────────────────────────────────────────────────
+│➤ Home                       Tab│                    This library holds no media.
+│  Library                    Tab│         Press L to tell the server to examine the library.
+│  Sequence and filter          f│
+```
+
+**The key `4` gave that panel the focus, and the screen said nothing at all.**
+The focus of this program is the shape of a border and not a colour alone (the
+section (c) of `docs/mockups/mockup-1.md`), therefore a panel of no border can
+hold the focus and show it nowhere: the same key of the same view with its lines
+gives `╔4 Library [18 items] ═══…═╗`, and the empty view gave the same screen
+before the key and after it.
+
+**Why.** `render_library` and `render_home` of `src/ui/tui.rs` call
+`App::render_the_reason` and they then come back, therefore
+`render_the_list_of_the_panel_4` never draws the block of that panel.
+`render_the_reason` held the shape of the screen of T-103, which is older than
+the frame of the panels of T-320: one border at the top, and no title at all.
+**That is the fault that the frame of T-320 corrected for the panel of the
+covers of T-23**, and it stood in the panel 4 until this item.
+
+**A user who cannot read the number of a panel cannot press the digit of it**
+(the decision 1 of the road of the panels): the digits 1 to 6 move the focus,
+and the number of a panel stands at the start of its title alone.
+
+**The correction.** `App::render_the_reason` takes the title of the panel of the
+caller, and it draws the sentence inside `crate::ui::frame::a_panel(4, the
+title, the focus)` when `the_frame_of_the_panels_stands` gives `true`. The title
+is the title of the panel 4 of the same view with its lines
+(`render_list_title`), therefore the two roads of one view say one title, and
+that title says how many lines the view holds. **A terminal that holds no frame
+of the panels keeps the block of one border at the top that it had**: the frame
+stands at 120 columns and up, in the Home view and in the Library view alone
+(T-320).
+
+**The corrected program of the same harness**, of the same screen:
+
+```text
+┌1 Views ────────────────────────┐╔4 Library [0 items] ═════════════════════════════════════╗
+│➤ Home                       Tab│║                  This library holds no media.            ║
+│  Library                    Tab│║       Press L to tell the server to examine the library. ║
+```
+
+and the key `1` of the same run gave `┌4 Home [0 items] ───…───┐` with the light
+border of a panel that holds no focus. A terminal of **100** columns of the same
+library gave the line at the top and no panel at all.
+
+**The build of the fault**: the guard of `render_the_reason` becomes
+`if self.the_frame_of_the_panels_stands() && false`, and
+`the_panel_of_a_view_with_no_line_keeps_its_border` of
+`tests/the_panel_of_a_view_with_no_line_keeps_its_border.rs` then says "the
+panel 4 of a Library view with no line says its number and its name". That test
+renders the two views of a `TestBackend` of 160 columns and 45 rows with two
+panels of the focus, and the **control of the same run** is a terminal of 100
+columns, which holds no frame: a correction that gives every screen a panel 4
+would fail it.
+
+**What this item leaves open, and each of them is a candidate and not an item:**
+
+- **The areas of the mouse of the panel 4 are the areas of the frame before a
+  view with no line.** `the_areas_of_the_list_of_the_mouse` stands inside
+  `render_the_list_of_the_panel_4` alone, therefore a view with no line writes no
+  area at all: a user who goes from a library of many books to a library of no
+  media with `Shift+Tab` keeps the rect of the list of the library before it, and
+  a click inside the panel 4 of the empty view then reads a line of a list that
+  the view does not hold. **The number of the lines of those areas stays too.**
+- **The Series view holds no frame of the panels**, therefore the title
+  `"Series"` of its reason reaches no screen of today. A stage of the road of the
+  panels that gives that view a panel must measure it.
+- Every candidate of the items before this one.
+
+**v0.8.186.**
