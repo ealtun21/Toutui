@@ -31448,3 +31448,104 @@ mouse; the covers; and the panel 6 with the terminal that draws no pictures.
 
 **This round wrote no code**, therefore the version of the program does not
 change and no entry of the changelog comes with it.
+
+## T-335 — The bands of the Home view, of the data of the flat list
+
+**The round 1 of the road of T-331**, of the spec
+`docs/superpowers/specs/2026-08-17-the-home-view-of-the-bands-of-covers-design.md`
+(T-334). That round gives the module of the bands and the moves of the keys over
+them, and **it changes no line of the screen**: the render of the Home view
+comes in the round 2.
+
+**The screen of the program before this round and after it, of the real program
+inside tmux** of 160 columns and 45 rows, of the library `Books` of the sandbox
+(`start_the_program "TOUTUI_AUDIO_DEVICE=null"`, and a `sqlite3` of
+`name_selected_lib` before the start, the trap 203):
+
+```text
+╔4 Home [35 items] ═══════════════════════════════════════════════════════╗
+║    Title                                Author               Time  Done ║
+║  ▌ Continue Listening                                                  █║
+║➤   A Long Test Book                     Long Author           30m   50%█║
+║    A Book Of Many Hours                 Many Hours Author    8h00   55%█║
+║    One Chapter Book                     Test Author           <1m   20%█║
+║    A Big Book Of A Scan                 Big Author            <1m   90%█║
+║    The Test Chronicles Volume 2         Series Author         <1m   41%█║
+║  ▌ Recently Added                                                      █║
+```
+
+**The two screens hold the same characters**, which is the measurement of this
+round: a module that no view calls changes no view.
+
+**The measurement of the sandbox of 2026-08-17**, of
+`GET /api/libraries/<id>/personalized` and of the Home view of the real program
+of the same libraries:
+
+| The library | The shelves of the server | The Home view of the program |
+|---|---|---|
+| `Books` | `continue-listening` (5), `recently-added` (10 of 22), `recent-series` (3), `discover` (7), `listen-again` (10), `newest-authors` (9) | `4 Home [35 items]`, five titles, and no title of the authors |
+| `Podcasts` | `continue-listening` (4), `newest-episodes` (10 of 68), `recently-added` (2), `listen-again` (3) | `4 Home [17 items]`, three titles, and no title of Recently Added |
+
+**A shelf that gives no line gives no band, and each of the two libraries holds
+one such shelf.** The spec named the shelf `newest-authors` of a library of
+books already (T-334, the fact 2). **This round measured the second one**: the
+shelf `recently-added` of a library of podcasts holds the **podcast** and no
+`recentEpisode`, therefore `group_home_pod` gives no line of it and the Home
+view of the library `Podcasts` holds three titles and 17 lines. **The bands of
+that library are therefore three and not four.**
+
+**The module** is `src/logic/the_bands_of_the_home.rs`, of pure functions:
+
+| The function | What it gives |
+|---|---|
+| `the_bands(&[HomeRow])` | The bands: `ABand { the_title, the_cells }`, and a cell is **the line of the flat list** |
+| `the_place_of_the_line` | The band and the cell of a line, and `None` for the line of a title |
+| `the_cell_at_the_left`, `the_cell_at_the_right` | The keys `h` and `l`. **The move stops at the two ends of the band** |
+| `the_band_above`, `the_band_under` | The keys `k` and `j`. **The move goes round**, and the cell keeps its number in the new band |
+| `the_first_cell_of_the_band`, `the_last_cell_of_the_band` | The keys `g` and `G` |
+| `the_count_of_a_band(draws, holds)` | The count of the title: `6 of 24`, of the media that the program holds and never of the field `total` (T-118) |
+
+**A line that stands in no band gives the first media of the view**, which is
+the rule of `home_view::first_line`: the cursor of the flat list can stand on
+the line of a shelf after a refresh (the trap of the spec), and every move of
+the bands then starts at the first cell of the first band.
+
+**A media that stands under no title takes a band of its own**, of the name `A
+shelf with no name` of `home_view::the_name_of_the_shelf`. No answer of the
+server reaches that road, because `group_home` names the shelf above its media;
+a line that this function dropped would take the media of the user away from the
+screen, and a line that stays is the safe road (T-203).
+
+**The build of the fault**, of five rules removed one at a time, with
+`cargo test --lib the_bands_of_the_home`:
+
+| The rule that went away | The test that failed |
+|---|---|
+| `bands.retain(!the_cells.is_empty())` | `a_shelf_of_no_media_gives_no_band` |
+| The key `l` goes round in a band | `the_moves_of_a_band_stop_at_its_two_ends` |
+| The key `h` goes round in a band | `the_moves_of_a_band_stop_at_its_two_ends` |
+| The cell of the cursor takes no last cell of a shorter band | `the_cell_of_the_cursor_keeps_its_number_in_the_new_band` |
+| The count says a number that the band does not hold | `the_count_of_a_title_says_the_media_of_the_program` |
+
+**The `retain` of the first row of that table is the rule that the answer of the
+sandbox cannot measure**: `group_home` drops a shelf of no line already,
+therefore the four tests of
+`tests/the_bands_of_the_home_hold_the_shelves_of_the_server.rs` passed with that
+rule away, and the unit test of the lines of the hand alone found it. **A test
+of a real answer of a server measures no rule of a road that the server does not
+take.**
+
+**The gates**: `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`,
+and `cargo nextest run` of **1544 of 1544** in 3.4 seconds.
+
+**What the round 2 takes**: the render of the bands in the panel 4, the keys of
+`src/app.rs`, and the footer of the Home view of `src/ui/keys.rs`. **The round 2
+is the round that changes the screen of the user.**
+
+**This round makes no release, and the version stays 0.8.167.** The road of the
+spec says one release for one round, and **the changelog of this program is a
+text for the user**: an entry that names a module of the bands says nothing to a
+user whose screen holds the same characters as before. The round 2 draws the
+bands, and the release of it carries the module of this round with it. That is
+the rule of T-334 for a round that gives the user nothing to see, and the entry
+of the round 2 says the new keys.

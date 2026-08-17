@@ -12306,7 +12306,7 @@ rounds**:
 
 | The round | What it gives |
 |---|---|
-| 1 | `src/logic/the_bands_of_the_home.rs`: the bands of the flat list of `HomeRow`, the moves of `h`, `l`, `j`, `k`, `g`, and `G`, and the count of a title. Pure functions, and no change of the screen. |
+| 1 | `src/logic/the_bands_of_the_home.rs`: the bands of the flat list of `HomeRow`, the moves of `h`, `l`, `j`, `k`, `g`, and `G`, and the count of a title. Pure functions, and no change of the screen. — **done, T-335 of 2026-08-17, and no release** |
 | 2 | The render of the bands in the panel 4 of the Home view, the keys, and the footer of its own. **This round changes the screen of the user.** |
 | 3 | The mouse: a click of a cell, two clicks, the wheel over a band, and a click of the title of a band. |
 | 4 | The covers: the limit of the new requests of one frame, with the number of the requests measured against the sandbox. |
@@ -12317,6 +12317,22 @@ the lines of `src/logic/home_view.rs` stays the data, and the bands are a shape
 of the render. Every key of a media, the panel 5 of the facts, and the target
 of a click therefore do not change. **A round of T-331 reads the spec first**,
 and it must not change a decision of it with no reason in its own item.
+
+**The round 1 is done, T-335 of 2026-08-17**, and the next round of T-331 is
+the round 2. **That round 1 made no release**, and the version of the program
+stays at 0.8.167: the road of the spec says one release for one round, and the
+changelog of this program is a text for the user — an entry that names a module
+of the bands says nothing to a user whose screen holds the same characters as
+before. **The round 2 draws the bands, and the release of it carries the module
+of the round 1 with it.**
+
+**The measurement of the round 1 found the second shelf of the server that
+gives no band.** The spec named the shelf `newest-authors` of a library of
+books; the shelf `recently-added` of a library of **podcasts** holds the podcast
+and no `recentEpisode`, therefore `group_home_pod` gives no line of it and the
+Home view of the library `Podcasts` of the sandbox says `4 Home [17 items]` with
+three titles of a shelf. **The bands of a library of podcasts of the sandbox are
+three and not four.**
 
 **The mockups are written already**, on 2026-08-16, outside the loop:
 `docs/mockups/mockup-6.txt`, `mockup-6.md`, `mockup-7.txt`, `mockup-7.md`, and
@@ -22683,7 +22699,7 @@ the real program.
   and not the panel**, therefore a gate of the words of one panel takes the
   columns of that panel out of the row first.
 
-## The decisions of T-201 to T-327 that do not open again
+## The decisions of T-201 to T-335 that do not open again
 
 These decisions stood in the block of the prompt of the next session until the
 round of the hundred and thirty-ninth turn, and that block met its limit of
@@ -23183,6 +23199,25 @@ program counted nine rows back from the end of the screen, and the two numbers
 of one row cannot agree for every footer. And **the row of the buttons keeps the
 words of today**, because a `[ ]` of the design that no click reads is a text
 that promises a function that the program does not have (T-118).
+
+
+**The five decisions of T-335, the bands of the data of the Home view.** They
+come of the spec of T-334, and the round 1 of that road measured them. **A cell
+of a band holds the line of the flat list of `home_view`**, and never the number
+of the media: `HomeRow::Media` and `HomeRow::Series` each take a cell, therefore
+the cursor of the view stays one number of that flat list and every key of a
+media keeps its work. **The keys `h` and `l` stop at the two ends of a band**,
+because the move inside a band is a move of a picture and a jump to the other
+end of a shelf of covers says nothing to the user; **the keys `j` and `k` go
+round**, which is the rule of `home_view::next_line` of today. **The count of a
+title says the media that the program holds**, and never the field `total` of
+the shelf (T-118). **A line that stands in no band gives the first media of the
+view**, which is the rule of `home_view::first_line`, because the cursor can
+stand on the line of a shelf after a refresh. And **a round that gives the user
+nothing to see makes no release**: the changelog of this program is a text for
+the user, and an entry that names a module says nothing to a user whose screen
+holds the same characters as before — the round that draws the bands carries
+that module with it.
 
 
 ## The session of the hundred and forty-seventh turn of 2026-08-16: the mouse, the capture, and a click of a row, of the block of the prompt
@@ -23976,6 +24011,72 @@ a text and not the columns of the screen** (the trap 245), therefore a title
 of a chapter that holds a letter of two columns moves every column of the row
 after it. `crate::logic::message::the_columns_of` with a pad of spaces is the
 road, and one test of the gate holds it with a title of `あああ`.
+
+
+## The session of the hundred and sixty-eighth turn of 2026-08-17: the spec of the Home view of the bands of covers, of the block of the prompt
+
+**The session of the hundred and sixty-eighth turn wrote the spec of T-331**
+(T-334), which is the one work of the second report of the maintainer that
+stays. **T-331 starts at a spec and not at code**, therefore this round wrote
+no line of `src/`, it changed no version, and it made no release. The spec is
+`docs/superpowers/specs/2026-08-17-the-home-view-of-the-bands-of-covers-design.md`,
+and the item T-334 of `docs/TAKEOVER-BACKLOG.md` holds the measurement behind
+it. **The mockups of the maintainer keep every decision that they hold**: the
+spec answers the parts that `mockup-6.md` does not say.
+
+**The measurement of the sandbox of 2026-08-17**,
+`GET /api/libraries/<id>/personalized` of the five libraries, gives three
+facts that decide parts of the design. **A shelf holds ten entities at the
+most, and the field `total` of it says a number that no key of the user can
+reach**: `recently-added` of the library `Large` holds 10 entities and it says
+`total: 2056`, therefore the count in the title of a band says the media that
+the program holds and never that field (T-118). **A shelf of the type
+`authors` gives no media at all** (`newest-authors`, 9 of 9 of the library
+`Books`), and `group_home` drops it today: the band of the authors stays
+outside the design, because the picture of an author stands at
+`GET /api/authors/:id/image`, a path that this program never asked for. **A
+library of no shelf gives no band** (the library `Empty`).
+
+**The decision of the spec that keeps the program of today.** The flat list of
+the lines of `src/logic/home_view.rs` stays the data, and **the bands are a
+shape of the render**: a new `src/logic/the_bands_of_the_home.rs` makes the
+bands of `&[HomeRow]`, and the cursor of the view stays one line of that flat
+list. Every key of a media (`D`, `X`, `n`, `m`, `@`, `e`, and `V`), the panel
+5 of the facts, the message of a media that went away, and the target
+`TheTarget::TheListOfTheView` of a click therefore do not change, and the 23
+tests of `mod tests` of `home_view.rs` keep standing.
+
+**The seven decisions beside it**, each with its reason in the spec: `Enter`
+plays or opens and `l` moves to the right, because a key of two meanings in
+one view is a fault of its own and `Enter` is an alias of `l` in every other
+view already; `h` and `l` stop at the two ends of a band and `j` and `k` go
+round; the count says the media that the program holds; **a panel of no room
+for one whole band draws the table of today**, which is the rule of T-321 and
+not a second shape of the design, because this fork measures 40 columns as its
+narrowest screen (T-301); **the frame keeps the 120 and the 84 columns of
+T-320** and not the 100 columns of the mockup, because a Home view of a width
+of its own would give two rules of one frame; the cell of a series draws the
+cover of the first book of it; and **one frame asks for eight new covers at
+the most**, because `cover::request` puts no limit on the number of the ids
+and a frame of 30 new cells gives 30 tasks of tokio of one moment.
+
+**The road of the spec holds five rounds**, and each of them is one item, one
+commit, and one release: the bands of the data (a module of pure functions,
+and no screen changes); the render of the bands and the keys and the footer;
+the mouse of a click of a cell, of two clicks, of the wheel over a band, and
+of a click of a title; the covers, with the number of the requests of the
+first frame measured with the log of `docs/harness/one_path_fails.py`; and the
+panel 6 of the shelf of the cursor with the terminal that draws no pictures.
+**The round 2 is the round that changes the screen of the user.**
+
+**The sweep of the tests of this round** names the five files that need a new
+measurement — `tests/the_mouse_of_the_program_reaches_its_panels.rs`,
+`tests/the_panel_of_the_gallery_shows_the_media_of_the_list.rs`,
+`tests/the_table_of_the_panel_4_holds_its_columns.rs`,
+`tests/the_panel_of_the_cover_of_the_home_view_says_the_facts.rs`, and the
+footer `FOOTER_OF_A_LIBRARY_OF_BOOKS` of `src/ui/keys.rs:511`, which is the
+footer of the Home view **and** of the Library view — and the files that keep
+standing with no change. **The next round takes the round 1 of that road.**
 
 
 ## The prompt for the next session
@@ -24800,7 +24901,7 @@ road, and one test of the gate holds it with a title of `あああ`.
 > makes no request: a measurement of two roads of the header needs a key of a
 > fresh request, and the key `R` alone forgets the state of a view.
 > Verify with a second program: `curl`, `podman logs abs-test`, or a browser.
-> Write the measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-329 and
+> Write the measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-336 and
 > up), and name that item in the commit.
 >
 > **`String::find` gives the index of a byte and not the column of the screen**
@@ -24950,11 +25051,18 @@ road, and one test of the gate holds it with a title of `あああ`.
 >    `docs/superpowers/specs/2026-08-17-the-home-view-of-the-bands-of-covers-design.md`
 >    holds the eight decisions, the parts that the mockup does not say, the
 >    sweep of the tests that measure the table of today, and **a road of five
->    rounds**. **The next round of T-331 takes the round 1 of that road**: the
->    module `src/logic/the_bands_of_the_home.rs` of the bands of the flat list
->    of `HomeRow`, of pure functions and of no change of the screen. **A round
->    of T-331 reads that spec first, and it must not change a decision of it
->    with no reason in its own item.** **The mockups of the two of them are
+>    rounds**. **The round 1 of that road is done** (T-335, of 2026-08-17):
+>    `src/logic/the_bands_of_the_home.rs` holds the bands of the flat list of
+>    `HomeRow`, the moves of the keys `h`, `l`, `j`, `k`, `g`, and `G` over
+>    them, and the count of a title, of pure functions and of no change of the
+>    screen, and **that round made no release** for the reason in its item.
+>    **The next round of T-331 takes the round 2**: the render of the bands in
+>    the panel 4 of the Home view, the keys of `src/app.rs`, and the footer of
+>    that view, with the table of today for a panel that has no room for one
+>    whole band. **It is the round that changes the screen of the user**,
+>    therefore its release holds the two screens of its item and its entry of
+>    the changelog says the new keys. **A round of T-331 reads that spec first,
+>    and it must not change a decision of it with no reason in its own item.** **The mockups of the two of them are
 >    written already** (`mockup-6` and `mockup-7`, of
 >    2026-08-16): **a round must not write in `docs/mockups/`.**
 >
@@ -25000,68 +25108,58 @@ road, and one test of the gate holds it with a title of `あああ`.
 >    this shape found a fault in one hundred and eleven sessions of one hundred
 >    and twelve.
 >
-> **The session of the hundred and sixty-eighth turn wrote the spec of T-331**
-> (T-334), which is the one work of the second report of the maintainer that
-> stays. **T-331 starts at a spec and not at code**, therefore this round wrote
-> no line of `src/`, it changed no version, and it made no release. The spec is
-> `docs/superpowers/specs/2026-08-17-the-home-view-of-the-bands-of-covers-design.md`,
-> and the item T-334 of `docs/TAKEOVER-BACKLOG.md` holds the measurement behind
-> it. **The mockups of the maintainer keep every decision that they hold**: the
-> spec answers the parts that `mockup-6.md` does not say.
+> **The session of the hundred and sixty-ninth turn took the round 1 of the road
+> of the spec of T-331** (T-335): `src/logic/the_bands_of_the_home.rs`, the bands
+> of the flat list of the Home view and the moves of the keys `h`, `l`, `j`, `k`,
+> `g`, and `G` over them. **The round changes no line of the screen**, and the
+> Home view of the library `Books` inside tmux held the same characters before the
+> round and after it. **The next round takes the round 2 of that road**, which is
+> the render of the bands in the panel 4, the keys of `src/app.rs`, and the footer
+> of the Home view: **it is the round that changes the screen of the user.**
 >
-> **The measurement of the sandbox of 2026-08-17**,
-> `GET /api/libraries/<id>/personalized` of the five libraries, gives three
-> facts that decide parts of the design. **A shelf holds ten entities at the
-> most, and the field `total` of it says a number that no key of the user can
-> reach**: `recently-added` of the library `Large` holds 10 entities and it says
-> `total: 2056`, therefore the count in the title of a band says the media that
-> the program holds and never that field (T-118). **A shelf of the type
-> `authors` gives no media at all** (`newest-authors`, 9 of 9 of the library
-> `Books`), and `group_home` drops it today: the band of the authors stays
-> outside the design, because the picture of an author stands at
-> `GET /api/authors/:id/image`, a path that this program never asked for. **A
-> library of no shelf gives no band** (the library `Empty`).
+> **The module keeps the program of today**, which is the decision 1 of the spec.
+> `ABand { the_title, the_cells }` holds the name of the shelf and **the line of
+> the flat list** of each cell, therefore the cursor of the view stays one number
+> of that list and every key of a media reads it with no change.
+> `the_place_of_the_line` gives the band and the cell of a line;
+> `the_cell_at_the_left` and `the_cell_at_the_right` **stop at the two ends of the
+> band**; `the_band_above` and `the_band_under` **go round**, and the cell keeps
+> its number in the new band while the last cell of a shorter band takes it;
+> `the_first_cell_of_the_band` and `the_last_cell_of_the_band` are the keys `g`
+> and `G`; and `the_count_of_a_band(draws, holds)` gives `6 of 24` of the media
+> that the program holds and never of the field `total` (T-118).
 >
-> **The decision of the spec that keeps the program of today.** The flat list of
-> the lines of `src/logic/home_view.rs` stays the data, and **the bands are a
-> shape of the render**: a new `src/logic/the_bands_of_the_home.rs` makes the
-> bands of `&[HomeRow]`, and the cursor of the view stays one line of that flat
-> list. Every key of a media (`D`, `X`, `n`, `m`, `@`, `e`, and `V`), the panel
-> 5 of the facts, the message of a media that went away, and the target
-> `TheTarget::TheListOfTheView` of a click therefore do not change, and the 23
-> tests of `mod tests` of `home_view.rs` keep standing.
+> **A line that stands in no band gives the first media of the view**, which is
+> the rule of `home_view::first_line`: the cursor can stand on the line of a shelf
+> after a refresh. **A media that stands under no title takes a band of its own**,
+> of the name `A shelf with no name`: no answer of the server reaches that road,
+> and a line that this function dropped would take the media of the user away
+> (T-203).
 >
-> **The seven decisions beside it**, each with its reason in the spec: `Enter`
-> plays or opens and `l` moves to the right, because a key of two meanings in
-> one view is a fault of its own and `Enter` is an alias of `l` in every other
-> view already; `h` and `l` stop at the two ends of a band and `j` and `k` go
-> round; the count says the media that the program holds; **a panel of no room
-> for one whole band draws the table of today**, which is the rule of T-321 and
-> not a second shape of the design, because this fork measures 40 columns as its
-> narrowest screen (T-301); **the frame keeps the 120 and the 84 columns of
-> T-320** and not the 100 columns of the mockup, because a Home view of a width
-> of its own would give two rules of one frame; the cell of a series draws the
-> cover of the first book of it; and **one frame asks for eight new covers at
-> the most**, because `cover::request` puts no limit on the number of the ids
-> and a frame of 30 new cells gives 30 tasks of tokio of one moment.
+> **The measurement of the sandbox of this round found the second shelf that gives
+> no band.** The spec named the shelf `newest-authors` of a library of books
+> (T-334). **The shelf `recently-added` of a library of podcasts holds the podcast
+> and no `recentEpisode`**, therefore `group_home_pod` gives no line of it: the
+> Home view of the library `Podcasts` says `4 Home [17 items]` and it holds three
+> titles of a shelf, and **the bands of that library are three and not four**. The
+> library `Books` says `4 Home [35 items]` of five titles, and the bands of it are
+> 5, 10, 3, 7, and 10 cells.
 >
-> **The road of the spec holds five rounds**, and each of them is one item, one
-> commit, and one release: the bands of the data (a module of pure functions,
-> and no screen changes); the render of the bands and the keys and the footer;
-> the mouse of a click of a cell, of two clicks, of the wheel over a band, and
-> of a click of a title; the covers, with the number of the requests of the
-> first frame measured with the log of `docs/harness/one_path_fails.py`; and the
-> panel 6 of the shelf of the cursor with the terminal that draws no pictures.
-> **The round 2 is the round that changes the screen of the user.**
+> **The build of the fault, of five rules removed one at a time**, made five tests
+> fail. **The rule that the answer of the sandbox cannot measure is the `retain`
+> of a band of no cell**: `group_home` drops a shelf of no line already, therefore
+> the four tests of the real shape of the server passed with that rule away, and
+> the unit test of lines of the hand alone found it. **A test of a real answer of
+> a server measures no rule of a road that the server does not take**, and a
+> module of this shape needs the two kinds of test together.
 >
-> **The sweep of the tests of this round** names the five files that need a new
-> measurement — `tests/the_mouse_of_the_program_reaches_its_panels.rs`,
-> `tests/the_panel_of_the_gallery_shows_the_media_of_the_list.rs`,
-> `tests/the_table_of_the_panel_4_holds_its_columns.rs`,
-> `tests/the_panel_of_the_cover_of_the_home_view_says_the_facts.rs`, and the
-> footer `FOOTER_OF_A_LIBRARY_OF_BOOKS` of `src/ui/keys.rs:511`, which is the
-> footer of the Home view **and** of the Library view — and the files that keep
-> standing with no change. **The next round takes the round 1 of that road.**
+> **This round makes no release, and the version stays 0.8.167.** The road of the
+> spec says one release for one round, and **the changelog of this program is a
+> text for the user**: an entry that names a module of the bands says nothing to a
+> user whose screen holds the same characters as before. The round 2 draws the
+> bands, and the release of it carries the module of this round with it. The gates
+> gave 1544 of 1544 in 3.4 seconds, and `cargo test -j 16 --no-fail-fast` passed
+> two times.
 >
 >    **The turns before this one stand in `## The turns before the three
 >    newest ones` of this file**, above the heading of this prompt. **This item
@@ -25118,8 +25216,8 @@ road, and one test of the gate holds it with a title of `あああ`.
 > program holds more than one account (T-124). **The decisions of T-124 to
 > T-200 stand in `## The decisions of T-124 to T-200 that do not open again` of
 > `docs/HANDOVER.md`, outside this block, and each of them holds** (T-294).
-> And **the decisions of T-201 to T-328 stand in
-> `## The decisions of T-201 to T-327 that do not open again` of
+> And **the decisions of T-201 to T-335 stand in
+> `## The decisions of T-201 to T-335 that do not open again` of
 > `docs/HANDOVER.md`, outside this block, and each of them holds** (T-310).
 > **The panels 2 and 3 of the stack hold the rows of the view of the key `f`
 > and no row of their own, and the authors, the series, the narrators, and the
@@ -25291,7 +25389,7 @@ road, and one test of the gate holds it with a title of `あああ`.
 > did the same work, and the block then held 98907 bytes with one turn in it —
 > **at the line of 99000**, therefore that round took the whole list of the
 > decisions of T-201 to T-311 out of the block and it put it in
-> `## The decisions of T-201 to T-327 that do not open again` of this file,
+> `## The decisions of T-201 to T-335 that do not open again` of this file,
 > with a pointer of three lines in its place: the block then held **66224**
 > bytes with one turn in it; the round of the hundred and fortieth found it at
 > 66685 bytes with one turn in it, and it did the same work, and the block then
@@ -25355,7 +25453,9 @@ road, and one test of the gate holds it with a title of `あああ`.
 > bytes with two turns in it, and it did the same work; the round of the
 > hundred and sixty-eighth found it at 91712 bytes with two turns in it — above
 > the line of 80000 — therefore it took the **two** of them out and it wrote its
-> own, and the block then held **87022** bytes with **one** turn in it.
+> own, and the block then held **87022** bytes with **one** turn in it; the
+> round of the hundred and sixty-ninth found it at 87900 bytes with one turn in
+> it, and it took that turn out and it wrote its own.
 > **A block that stands at 80000 bytes or under holds two
 > turns**, and the turn of the stage before this one names the parts of that
 > stage which stay open. **The list of the decisions
