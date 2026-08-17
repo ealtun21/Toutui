@@ -573,14 +573,34 @@ pub fn in_one_row(text: &str, width: u16) -> String {
     }
 
     // The three points take one column of the row.
-    let room = width - 1;
+    let room = u16::try_from(width - 1).unwrap_or(u16::MAX);
+
+    format!("{}…", the_start_of_a_row(text, room).trim_end())
+}
+
+/// Gives the start of a text that stands in a width of columns, **with no mark
+/// of a cut at all**.
+///
+/// [`in_one_row`] makes the text of one row of one text, and it says the cut
+/// with three points. A caller that holds **more than one text of one row** —
+/// the row of the media of the band of the player is a line of a title, of an
+/// author, and of a chapter, and each of the three carries a style of its own
+/// (T-369) — cannot use it: the three points belong at the end of the **line**
+/// and not at the end of each text of it. Such a caller takes the start of the
+/// text that meets the last column here, and it writes the three points itself.
+///
+/// **The width is a number of columns and not a number of characters** (T-305):
+/// a character of two columns that meets the last column stays outside the row.
+/// The function is pure, therefore a test needs no screen.
+pub fn the_start_of_a_row(text: &str, width: u16) -> String {
+    let width = usize::from(width);
     let mut kept = String::new();
     let mut columns = 0usize;
 
     for letter in text.chars() {
         let of_the_letter = unicode_width::UnicodeWidthChar::width(letter).unwrap_or(0);
 
-        if columns + of_the_letter > room {
+        if columns + of_the_letter > width {
             break;
         }
 
@@ -588,7 +608,7 @@ pub fn in_one_row(text: &str, width: u16) -> String {
         columns += of_the_letter;
     }
 
-    format!("{}…", kept.trim_end())
+    kept
 }
 
 /// The name of the variable of the environment that carries a sentence over a
@@ -901,5 +921,32 @@ mod tests {
         // A cut that ends at a space gives that space away.
         assert_eq!(in_one_row("one two three", 8), "one two\u{2026}");
         assert_eq!(in_one_row("one two three", 5), "one\u{2026}");
+    }
+
+    /// The start of a text of a width of columns holds no mark of a cut. See
+    /// T-369.
+    ///
+    /// **The parts of this test stay in one function.**
+    #[test]
+    fn the_start_of_a_row_holds_no_mark_of_a_cut() {
+        let long = "Chapter 2 of 3: The hours of the middle";
+
+        // The text that stands in the width, and no three points at all: the
+        // caller of more than one text of one row writes that mark itself.
+        assert_eq!(the_start_of_a_row(long, 15), "Chapter 2 of 3:");
+        assert!(!the_start_of_a_row(long, 15).contains('\u{2026}'));
+
+        // A text that stands loses nothing, and a width of no column gives
+        // nothing.
+        assert_eq!(the_start_of_a_row(long, 39), long);
+        assert_eq!(the_start_of_a_row(long, 200), long);
+        assert_eq!(the_start_of_a_row(long, 0), "");
+
+        // **The width is a number of columns and not a number of characters**
+        // (T-305): a character of two columns that meets the last column stays
+        // outside the row, and the row then holds one column fewer.
+        assert_eq!(the_start_of_a_row("日本語", 4), "日本");
+        assert_eq!(the_start_of_a_row("日本語", 5), "日本");
+        assert_eq!(the_start_of_a_row("日本語", 6), "日本語");
     }
 }

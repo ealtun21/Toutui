@@ -35760,3 +35760,155 @@ gave 1639 of 1639.
 - The footers of the panel 5 and of the panel 6 (T-354), the rows of the band
   that does not fit (T-353), the width of the panel 5 of a media with no cover,
   and every candidate of the items before this one.
+
+## T-369 — A row of the band of the player that the screen cuts says that the screen cut it
+
+**The candidate of T-368.** That item gave every **line of a list** the rule of
+one row, and it left this line: "Every widget of a fixed number of rows and
+every `Paragraph` with no `wrap` is a candidate of that width" (T-301). **The
+band of the player is such a widget**, and two of its four rows lost the columns
+of their end with no mark at all.
+
+**The measurement, of the real program v0.8.199 inside tmux against the
+sandbox** with the account `toutuitest`. **The data of this fault is the size of
+the terminal** (T-301) **and the text of the server**, therefore it needs no
+proxy, no book of a harness, and no change of the sandbox at all: the book of
+eight hours `A Book Of Many Hours` of the library `Books`, the key `Enter` of
+the Home view, the key `C`, and then `tmux resize-window` of each width. The
+two rows of the band said:
+
+```text
+=== 160 ===
+│ ▶ A Book Of Many Hours  Many Hours Author  Chapter 2 of 3: The hours of the middle       Speed 1.00x │
+│              Spc: pause/play | p/u: +/−10s | P/U: nxt/prev ch. | O/I: spd +/− | o/i: vol +/− | t: sleep | Y: quit              │
+=== 100 ===
+│ ▶ A Book Of Many Hours  Many Hours Author  Chapter 2 of 3: The hours of t  Speed 1.00x │
+=== 80 ===
+│ ▶ A Book Of Many Hours  Many Hours Author  Chapter 69 of  Speed 1.00x │
+│Spc: pause/play | p/u: +/−10s | P/U: nxt/prev ch. | O/I: spd +/− | o/i: vol +/│
+=== 60 ===
+│ ▶ A Second Book Of Many Hours  Many Hours A  Speed 1.00x │
+│Spc: pause/play | p/u: +/−10s | P/U: nxt/prev ch. | O/I: s│
+=== 40 ===
+│ ▶ A Second Book Of Many  Speed 1.00x │
+│Spc: pause/play | p/u: +/−10s | P/U: n│
+```
+
+**The row of the keys of the player holds 99 columns**, therefore **every
+terminal under 102 columns loses its end**. At 80 columns it said
+`o/i: vol +/`, which is a key and **no word of its work**: the `−` of
+`vol +/−` went away with the rest, and the keys `t: sleep` and `Y: quit` of that
+row stood on the screen **in no form at all**. At 60 columns it said `O/I: s`,
+which is a key and one letter of a word.
+
+**The row of the words said an author that the media does not have.** At 60
+columns it said `Many Hours A` for an author of the name `Many Hours Author`,
+and at 80 columns `Chapter 69 of ` for a chapter of the name
+`Chapter 69 of 70`. **ratatui draws no mark of that cut at all.**
+
+**The control of the same run** is the same band at 160 and at 120 columns,
+which gave the whole of the two rows, and the same program at 4, 6, 12, and 20
+columns, which stood at every one of them and gave no panic.
+
+**Why.** `render_the_band` of `src/ui/player_tui.rs` draws the row of the keys
+through `Paragraph::new(Span::styled(THE_KEYS_OF_THE_PLAYER, …))` with **no**
+`wrap` and no rule of one row, and `render_the_words` draws the row of the media
+through `Paragraph::new(Line::from(of_the_media))` in the columns that the
+settings of the playback leave. Each of the four spans of that line takes
+`in_one_line` already (the rule of the row of T-312), **and none of them takes
+`in_one_row`** (T-304): the two rules are not the same one, and the band held
+the first and not the second.
+
+**The decision of the row of the media: the three points belong at the end of
+the line and not at the end of each text of it.** That row holds four texts of
+four styles — the mark of the playback, the title, the author, and the chapter —
+therefore `in_one_row` of each span would give a line of four marks of a cut,
+and a mark on a text that the row holds whole says a cut that the row does not
+have. The spans that stand keep their style, the span that meets the last column
+keeps its start, and the spans after it go away: `in_one_row_of_spans` of
+`src/ui/player_tui.rs` is that rule, and it is pure.
+
+**The one place of the start of a text stays one place.** `in_one_row` of
+`src/logic/message.rs` held the loop that keeps the characters of a width of
+columns, and the new caller needs that same loop **with no mark**: the loop
+therefore moves out into the new pure `the_start_of_a_row`, and `in_one_row` is
+one call of it and the three points after it.
+
+**The correction is two files.** `src/logic/message.rs` holds
+`the_start_of_a_row`, and `in_one_row` calls it. `src/ui/player_tui.rs` holds
+`in_one_row_of_spans`, the row of the media calls it with the columns that the
+settings leave, and the row of the keys calls
+`crate::logic::message::in_one_row` with `parts.the_buttons.width`.
+
+**The corrected program of the same harness** (v0.8.200) said:
+
+```text
+=== 160 ===
+│ ▶ A Book Of Many Hours  Many Hours Author  Chapter 2 of 3: The hours of the middle       Speed 1.00x │
+│              Spc: pause/play | p/u: +/−10s | P/U: nxt/prev ch. | O/I: spd +/− | o/i: vol +/− | t: sleep | Y: quit              │
+=== 100 ===
+│ ▶ A Book Of Many Hours  Many Hours Author  Chapter 2 of 3: The hours of the middle   Speed 1.00x │
+│Spc: pause/play | p/u: +/−10s | P/U: nxt/prev ch. | O/I: spd +/− | o/i: vol +/− | t: sleep | Y: q…│
+=== 80 ===
+│ ▶ A Book Of Many Hours  Many Hours Author  Chapter 2 of 3: The…  Speed 1.00x │
+│Spc: pause/play | p/u: +/−10s | P/U: nxt/prev ch. | O/I: spd +/− | o/i: vol +…│
+=== 60 ===
+│ ▶ A Book Of Many Hours  Many Hours Author…   Speed 1.00x │
+│ Spc: pause/play | p/u: +/−10s | P/U: nxt/prev ch. | O/I:…│
+=== 40 ===
+│ ▶ A Book Of Many Hours…  Speed 1.00x │
+│ Spc: pause/play | p/u: +/−10s | P/U:…│
+```
+
+**The row of 160 and of 120 columns did not change**, which is the control of
+that run, and the program stood at 20, 12, 6, and 4 columns again.
+
+**The gate.** `tests/the_band_of_the_player_says_that_the_screen_cut_it.rs` of
+two tests draws the real `render_the_band` into a `Buffer` of ratatui (T-256)
+and it reads the rows **inside the border of the band**: a row that holds the
+border would end with the `│` of it and never with the three points. It holds
+the control of 160 columns, the width of 100 where the row of the keys is cut
+and the row of the words is not, the four widths of the measurement, and the
+widths of 3 to 30 for the panic that a subtraction of a width can give. Two
+pure tests stand beside the two new functions:
+`the_start_of_a_row_holds_no_mark_of_a_cut` of `src/logic/message.rs`, and
+`a_line_of_spans_that_is_too_wide_says_that_it_was_cut` of
+`src/ui/player_tui.rs`, which reads **every** width from 1 to 83 of the line of
+the measurement.
+
+**Three builds of the fault, and each of them fails the gate**:
+
+1. the row of the keys with `u16::MAX` in the place of `parts.the_buttons.width`,
+   which is the program of v0.8.199;
+2. the row of the words with `u16::MAX` in the place of `of_the_row`, which gave
+   the row of the measurement back verbatim:
+   `▶ A Book Of Many Hours  Many Hours Author  Chapter 2 of 3: The   Speed 1.00x`;
+3. `in_one_row_of_spans` that cuts the spans and that writes no mark of the cut,
+   which the render test and the pure test each catch.
+
+**The gates of the round.** Clippy and fmt clean, **1617** tests of nextest in
+2.9 seconds (1613 before this item), `cargo test -j 16 --no-fail-fast` three
+times with exit 0 and 238 blocks of `ok` each time (237 before this item), and
+`cargo nextest run --run-ignored all` with the sandbox up gave **1643 of 1643**.
+
+**What this item leaves open, and each of them is a candidate and not an item.**
+
+- **The row of the seek and the row of the two bars of the band hold no rule of
+  one row either.** Each of them measures its own parts and writes them in the
+  columns of those parts, therefore no measurement of this round reached a cut
+  of them; the widths of 3 to 30 of the gate say that they stand inside the
+  band, and they say nothing of a text that goes away.
+- **The row of the header of the columns of a list holds no rule of one row**
+  (the candidate of T-368, which stays open): `the_header_of_the_columns` of
+  `TheContentOfAPanel` draws through `Line::raw` in an area of its own. The
+  Chapters view is the one caller of it, and the measurement of this round found
+  that a terminal of 40 columns gives that view **no table at all**, therefore
+  the road to a header that is wider than its panel stays unmeasured.
+- **The panel 5 of the facts and the panel 6 of the gallery draw texts of a
+  fixed number of rows**, and no measurement of this round read them at a narrow
+  width.
+- **The Series view, the Collections view, the Authors view, and the Bookmarks
+  view hold no frame of the panels at all**: the measurement of this round found
+  the frame of T-320 in the Home view and in the Library view alone. **That is
+  the work of a stage of the road of the panels and not the work of a fault.**
+- Every candidate of the turns before this one stays open.

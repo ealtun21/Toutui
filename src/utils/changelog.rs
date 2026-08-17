@@ -41,6 +41,24 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.200",
+        date: "17/08/2026",
+        body: &[
+            "Fixed:",
+            "- **A row of the band of the player that the screen cuts says that \
+             the screen cut it.** The row of the media and the row of the keys \
+             of the player each lost the columns of their end with no mark at \
+             all: a terminal of 60 columns said `Many Hours A` for an author of \
+             the name `Many Hours Author`, and a terminal of 80 columns said \
+             `o/i: vol +/`, which is a key and no word of its work. The row of \
+             the keys holds 99 columns, therefore every terminal under 102 \
+             columns lost the keys `t: sleep` and `Y: quit` of it, and no user \
+             read them in any form. The two rows now keep their start and they \
+             take three points for the end that the band cannot hold, which is \
+             the rule of the title of a panel and of a line of a list already.",
+        ],
+    },
+    Entry {
         version: "0.8.199",
         date: "17/08/2026",
         body: &[

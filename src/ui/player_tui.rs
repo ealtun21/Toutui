@@ -114,12 +114,81 @@ pub fn render_the_band(
     render_the_bars(parts, buf, words);
 
     if words.the_buttons_stand && parts.the_buttons.width > 0 {
-        Paragraph::new(Span::styled(THE_KEYS_OF_THE_PLAYER, theme::a_quiet_text()))
-            .alignment(Alignment::Center)
-            .render(parts.the_buttons, buf);
+        // **A row of the band that the screen cuts says that the screen cut
+        // it** (T-369, and the rule of T-304 and of T-368). This row holds 99
+        // columns, therefore every terminal under 102 columns loses its end:
+        // the measurement of a terminal of 80 columns gave
+        // `o/i: vol +/`, which is a key and no word of its work, and the keys
+        // `t` and `Y` of that row stood on the screen in no form at all.
+        Paragraph::new(Span::styled(
+            crate::logic::message::in_one_row(THE_KEYS_OF_THE_PLAYER, parts.the_buttons.width),
+            theme::a_quiet_text(),
+        ))
+        .alignment(Alignment::Center)
+        .render(parts.the_buttons, buf);
     }
 
     the_bar
+}
+
+/// Makes the spans of a line that must stand in a width of columns.
+///
+/// **A line of spans that is wider than its area loses the columns of its end**
+/// (T-369): ratatui draws no mark of that cut, and the row 1 of the band of a
+/// terminal of 60 columns therefore said `Many Hours A` for an author of the
+/// name `Many Hours Author`.
+///
+/// [`crate::logic::message::in_one_row`] holds that rule for one text of one
+/// style. This row holds four texts of four styles — the mark of the playback,
+/// the title, the author, and the chapter — therefore the three points belong
+/// at the end of the **line** and not at the end of each text of it: the spans
+/// that stand keep their style, the span that meets the last column keeps its
+/// start, and the spans after it go away.
+///
+/// The function is pure, therefore a test needs no screen.
+fn in_one_row_of_spans<'a>(spans: Vec<Span<'a>>, width: u16) -> Vec<Span<'a>> {
+    let whole: usize = spans
+        .iter()
+        .map(|span| crate::logic::message::the_columns_of(&span.content))
+        .sum();
+
+    if whole <= usize::from(width) {
+        return spans;
+    }
+
+    if width == 0 {
+        return Vec::new();
+    }
+
+    // The three points take one column of the row, and they take the style of
+    // the span that they cut.
+    let room = usize::from(width) - 1;
+    let mut kept: Vec<Span<'a>> = Vec::with_capacity(spans.len() + 1);
+    let mut columns = 0usize;
+    let mut of_the_end = theme::a_quiet_text();
+
+    for span in spans {
+        let of_the_span = crate::logic::message::the_columns_of(&span.content);
+        of_the_end = span.style;
+
+        if columns + of_the_span <= room {
+            columns += of_the_span;
+            kept.push(span);
+            continue;
+        }
+
+        let start = crate::logic::message::the_start_of_a_row(
+            &span.content,
+            u16::try_from(room - columns).unwrap_or(u16::MAX),
+        );
+
+        kept.push(Span::styled(start.trim_end().to_string(), span.style));
+        break;
+    }
+
+    kept.push(Span::styled("…", of_the_end));
+
+    kept
 }
 
 /// Draws the row 1 of the band: the media at the left, and the settings of the
@@ -206,7 +275,11 @@ fn render_the_words(
         parts.the_words.width
     };
 
-    Paragraph::new(Line::from(of_the_media))
+    // **The words of the media that the row cannot hold say that the row cut
+    // them** (T-369): the title, the author, and the chapter come of the
+    // server, and a row that is too narrow for the three of them lost the end
+    // of the last one with no mark at all.
+    Paragraph::new(Line::from(in_one_row_of_spans(of_the_media, of_the_row)))
         .alignment(Alignment::Left)
         .render(
             Rect::new(parts.the_words.x, parts.the_words.y, of_the_row, 1),
@@ -375,4 +448,93 @@ fn the_words_of_a_bar(name: &str, width: u16, done: u32, whole: u32) -> Vec<Span
         ),
         Span::styled(format!("{played:>4}%  "), theme::a_quiet_text()),
     ]
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// The columns of a line of spans, of the crate that ratatui measures with.
+    fn the_columns_of_the_spans(spans: &[Span]) -> usize {
+        spans
+            .iter()
+            .map(|span| crate::logic::message::the_columns_of(&span.content))
+            .sum()
+    }
+
+    /// The text of a line of spans.
+    fn the_text_of_the_spans(spans: &[Span]) -> String {
+        spans.iter().map(|span| span.content.as_ref()).collect()
+    }
+
+    /// The spans of the row 1 of the band of the measurement of T-369.
+    fn the_spans_of_the_row() -> Vec<Span<'static>> {
+        vec![
+            Span::styled(
+                " \u{25b6} ",
+                Style::default().fg(theme::AN_END_THAT_IS_GOOD),
+            ),
+            Span::styled(
+                "A Book Of Many Hours".to_string(),
+                Style::default().add_modifier(Modifier::BOLD),
+            ),
+            Span::styled("  Many Hours Author".to_string(), theme::a_quiet_text()),
+            Span::styled(
+                "  Chapter 2 of 3: The hours of the middle".to_string(),
+                theme::a_quiet_text(),
+            ),
+        ]
+    }
+
+    /// A line of spans that is wider than its row keeps its start, and the three
+    /// points say that the row cut it. See T-369.
+    ///
+    /// **The parts of this test stay in one function.**
+    #[test]
+    fn a_line_of_spans_that_is_too_wide_says_that_it_was_cut() {
+        let whole = the_columns_of_the_spans(&the_spans_of_the_row());
+        assert_eq!(whole, 83);
+
+        // The control: a row that holds the whole line keeps every span of it,
+        // with no mark of a cut at all.
+        let of_the_control = in_one_row_of_spans(the_spans_of_the_row(), 83);
+        assert_eq!(of_the_control.len(), 4);
+        assert!(!the_text_of_the_spans(&of_the_control).contains('\u{2026}'));
+        assert_eq!(
+            the_text_of_the_spans(&in_one_row_of_spans(the_spans_of_the_row(), 200)),
+            the_text_of_the_spans(&the_spans_of_the_row())
+        );
+
+        // **The line stands inside its row, and it says the cut**, at every
+        // width of the measurement and at every width between them.
+        for width in 1..=83u16 {
+            let cut = in_one_row_of_spans(the_spans_of_the_row(), width);
+            let text = the_text_of_the_spans(&cut);
+
+            assert!(
+                the_columns_of_the_spans(&cut) <= usize::from(width),
+                "a line of {width} columns holds {} columns: {text:?}",
+                the_columns_of_the_spans(&cut)
+            );
+
+            if width < 83 {
+                assert!(
+                    text.ends_with('\u{2026}'),
+                    "a line of {width} columns says no cut: {text:?}"
+                );
+            }
+        }
+
+        // **The spans that stand keep their style**: the title of the media is
+        // bold, and the author and the chapter are quiet.
+        let cut = in_one_row_of_spans(the_spans_of_the_row(), 40);
+        assert_eq!(
+            the_text_of_the_spans(&cut),
+            " \u{25b6} A Book Of Many Hours  Many Hours Aut\u{2026}"
+        );
+        assert!(cut[1].style.add_modifier.contains(Modifier::BOLD));
+
+        // A width of no column gives no span at all.
+        assert!(in_one_row_of_spans(the_spans_of_the_row(), 0).is_empty());
+    }
 }
