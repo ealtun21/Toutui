@@ -183,6 +183,80 @@ test function.
 **Two runs of `cargo nextest run` under the load of 24 loops of a shell
 gave 1200 of 1200 at v0.8.49 too** (T-220).
 
+## The session of the hundred and sixty-eighth turn of 2026-08-17: the spec of the Home view of the bands of covers
+
+**The item: T-334**, the spec of T-331. **This round wrote no line of `src/`**,
+therefore the version of the program stays at **v0.8.167**, no entry of the
+changelog came with it, and no tag went to the server.
+
+**The reason of a round of no code.** T-331 is the one work of the second
+report of the maintainer that stays, and `docs/HANDOVER.md` says that it starts
+at a spec and not at code: it changes the meaning of the keys `h` and `l` of a
+view, it takes the table of the Home view away, and the tests of many items
+from T-316 to T-329 measure that table. **A round that began at the code would
+take those decisions one at a time, in five rounds, with no road at all.**
+
+**The spec is
+`docs/superpowers/specs/2026-08-17-the-home-view-of-the-bands-of-covers-design.md`**,
+and the item T-334 of `docs/TAKEOVER-BACKLOG.md` holds the measurement behind
+it.
+
+### The measurements of this round
+
+**The screen of today**, of the real program v0.8.167 inside tmux of 160
+columns and 45 rows, of the library `Large`: the Home view is one table of the
+columns `Title`, `Author`, `Time`, and `Done`, of the two shelves `Recently
+Added` and `Discover` of ten media each, and the covers of those media stand in
+the panel 6 of the gallery alone.
+
+**The shelves of the sandbox**, `GET /api/libraries/<id>/personalized` of the
+five libraries, with `curl` and a token of `POST /login`:
+
+| The library | The shelves, in the sequence of the server |
+|---|---|
+| `Books` | `continue-listening` (book, 5 of 5), `recently-added` (book, 10 of 22), `recent-series` (series, 3 of 3), `discover` (book, 7 of 7), `listen-again` (book, 10 of 10), `newest-authors` (authors, 9 of 9) |
+| `Large` | `recently-added` (book, 10 of 2056), `discover` (book, 10 of 2056) |
+| `Podcasts` | `continue-listening` (episode, 4 of 4), `newest-episodes` (episode, 10 of 68), `recently-added` (podcast, 2 of 2), `listen-again` (episode, 3 of 3) |
+| `ManyPods` | `newest-episodes` (episode, 10 of 520), `recently-added` (podcast, 10 of 520), `listen-again` (episode, 2 of 2) |
+| `Empty` | no shelf at all |
+
+**Three facts of that measurement decide parts of the design.** A shelf holds
+ten entities at the most and the field `total` says a number that no key of the
+user can reach (10 of 2056), therefore the count in the title of a band says
+the media that the program holds (T-118). A shelf of the type `authors` gives
+no media at all, and `group_home` drops it today. A library of no shelf gives
+no band.
+
+**The store of the covers** (`src/ui/cover.rs`) holds one request of one id at
+a time and **no limit on the number of the ids**: a frame of 30 new cells gives
+30 tasks of tokio of one moment. **The sweep of the tests** names the files
+that measure the table of today, and the five that need a new measurement.
+
+### The decisions of the spec
+
+**The flat list of the lines of `src/logic/home_view.rs` stays the data, and
+the bands are a shape of the render.** A new `src/logic/the_bands_of_the_home.rs`
+makes the bands of `&[HomeRow]`, and the cursor of the view stays one line of
+that flat list: every key of a media (`D`, `X`, `n`, `m`, `@`, `e`, and `V`),
+the panel 5 of the facts, the message of a media that went away, and the target
+`TheTarget::TheListOfTheView` of a click therefore do not change, and the 23
+tests of `mod tests` of `home_view.rs` keep standing.
+
+The seven decisions beside it, with the reason of each in the spec: `Enter`
+plays or opens and `l` moves to the right; `h` and `l` stop at the two ends of
+a band and `j` and `k` go round; the count says the media that the program
+holds; a panel of no room for one whole band draws the table of today (T-321
+and T-301); the frame keeps the 120 and the 84 columns of T-320 and not the 100
+columns of the mockup; the cell of a series draws the cover of the first book
+of it; and one frame asks for eight new covers at the most, which the round 4
+of the road measures.
+
+### The gates
+
+`cargo clippy --all-targets -- -D warnings` and `cargo fmt --check` gave no
+word. **No test changed and no line of `src/` changed**, therefore the tree of
+the tests is the tree of v0.8.167, which gave 1519 of 1519.
+
 ## The session of the hundred and sixty-sixth turn of 2026-08-17: a click of a row of the view of the chapters plays that chapter
 
 **The item: T-330, the part 5, the click of a row**, and the release
@@ -12223,6 +12297,27 @@ the Home view away, and the tests of every item from T-316 to T-329 that
 measure that table each need a new measurement. The four questions that the
 spec must answer stand in the item T-331 of `docs/TAKEOVER-BACKLOG.md`.
 
+**The spec stands, of 2026-08-17** (T-334):
+`docs/superpowers/specs/2026-08-17-the-home-view-of-the-bands-of-covers-design.md`.
+It answers the four questions, and it holds the measurement of the shelves of
+the five libraries of the sandbox, eight decisions with the reason of each, the
+sweep of the tests that measure the table of today, and **a road of five
+rounds**:
+
+| The round | What it gives |
+|---|---|
+| 1 | `src/logic/the_bands_of_the_home.rs`: the bands of the flat list of `HomeRow`, the moves of `h`, `l`, `j`, `k`, `g`, and `G`, and the count of a title. Pure functions, and no change of the screen. |
+| 2 | The render of the bands in the panel 4 of the Home view, the keys, and the footer of its own. **This round changes the screen of the user.** |
+| 3 | The mouse: a click of a cell, two clicks, the wheel over a band, and a click of the title of a band. |
+| 4 | The covers: the limit of the new requests of one frame, with the number of the requests measured against the sandbox. |
+| 5 | The panel 6 of the gallery of the shelf of the cursor, and the terminal that draws no pictures. |
+
+**The decision of the spec that keeps the program of today**: the flat list of
+the lines of `src/logic/home_view.rs` stays the data, and the bands are a shape
+of the render. Every key of a media, the panel 5 of the facts, and the target
+of a click therefore do not change. **A round of T-331 reads the spec first**,
+and it must not change a decision of it with no reason in its own item.
+
 **The mockups are written already**, on 2026-08-16, outside the loop:
 `docs/mockups/mockup-6.txt`, `mockup-6.md`, `mockup-7.txt`, `mockup-7.md`, and
 the two lines of `docs/mockups/README.md`. **A round of T-330 or of T-331 must
@@ -14620,6 +14715,163 @@ start needs `ls target/debug/toutui` before every other diagnosis** (with the
   **The next round takes the part 5 of T-330**, the Chapters view of the two
   bars and of the table of the times of `docs/mockups/mockup-7.txt`.
 
+
+### The turn of the hundred and sixty-sixth: a click of a row of the view of the chapters plays that chapter (T-330.5)
+
+  **The session of the hundred and sixty-sixth turn took the click of a row of
+  the part 5 of the second report of the maintainer** (T-330.5, v0.8.166). **The
+  part 5 held three rounds**: the two bars (v0.8.164), the table of the times
+  (v0.8.165), and the click of a row. **This round took the last of them, and
+  the five parts of T-330 are therefore finished.**
+
+  **The first fault.** The map of the mouse of `docs/mockups/mockup-7.md` says
+  "A click on a row — Plays that chapter", and the key `l` of a row did that
+  work already: `App::go_to_the_chapter` sends `SeekTo(chapter.start)` and it
+  says `The playback goes to "<the title>".` **A click of a row of the Chapters
+  view moved the cursor and it did nothing else**, therefore that click held
+  half of the work of its key.
+
+  **The second fault, which the first one hid.** The map of the mouse of this
+  view read the offset 0 at every frame: `render_chapters` gave the render
+  `&mut self.list_state_chapters.clone()` and the map of the mouse
+  `&self.list_state_chapters.clone()`, and **ratatui writes the offset of the
+  list into the state while it draws it**. The copy took that offset to nowhere,
+  and `App::the_areas_of_the_list_of_the_mouse` then wrote the offset of the
+  state before the render, which no key of this view changes. **A click that
+  plays a chapter of a wrong number is worse than a click that does nothing**,
+  therefore the two corrections belong to one round. The other two callers of
+  that function give it a `&mut ListState` of the caller, therefore no other
+  view held this fault.
+
+  **The data of this part is the program itself and the sandbox as it stands**:
+  no proxy, no book of a harness, and no change of a media. The account takes
+  the library `Books` with a `sqlite3` of `name_selected_lib` and of
+  `id_selected_lib` (the trap 203 and the trap 204), and the library of the
+  start comes back at the end (the trap 198).
+
+  **The real program v0.8.165 inside tmux**, of 160 columns and 45 rows, with
+  "A Second Book Of Many Hours" and its 70 chapters at 3:00:08 of its eight
+  hours. The click of the row 12 of the screen, which is the chapter 5:
+
+  ```text
+  ➤    5  Chapter 5 of the second book                     19:08   6m02s
+  ```
+
+  The playback stood at 3:00:43 and the row of the message said nothing. The key
+  `l` of that same row then said `The playback goes to "Chapter 5 of the second
+  book".` and the playback stood at 19:34. The key `G` gave the rows 35 to 70 of
+  the list, and a click of the row 9 of that screen, which is the chapter 36,
+  gave the **chapter 2**.
+
+  **The corrected program of the same harness.** The click of the row 12 gave
+  the chapter 5, the mark `▶` moved to it, the playback stood at 19:38, and the
+  message said the words of the key. The key `G` and a click of the row 9 then
+  gave the chapter 36 and the playback at 4:00:28:
+
+  ```text
+  ➤ ▶ 36  Chapter 36 of the second book                   3:59:58   4m31s
+  ```
+
+  **The control of the same run**: a click of a row of the Home view moved the
+  cursor of that list and it opened no media at all, which is the rule of T-316.
+
+  **The correction is three files.** `src/ui/the_mouse.rs` takes the pure
+  function `the_click_of_a_row_opens_it(the_view: AppView) -> bool`, which is
+  true for `AppView::Chapters` alone; `src/app.rs` calls it in the arm
+  `TheTarget::TheListOfTheView` of `App::handle_the_mouse`, after the move of
+  the cursor, and it then calls `self.go_to_the_chapter()`; `src/ui/tui.rs`
+  takes the line of the user out of the application with `std::mem::take` for
+  the render, and it gives it back after the map of the mouse read the offset
+  that the render wrote.
+
+  **The gate is `tests/the_click_of_a_chapter_plays_that_chapter.rs`, of 6
+  tests.** One of them names every one of the 28 views of `AppView`, and one
+  draws a list of 70 lines into a `Buffer` of a panel of ten rows with the
+  cursor at the line 69 and it reads the offset that the render wrote. **The
+  build of the fault** (the trap 147), of three edits of one line each that keep
+  every other line, made **3** of the 6 tests fail.
+
+  **The trap of this part.** **The absence of the copy is not the rule**: a
+  render that gave the map of the mouse the state of `self` beside a state of
+  its own would hold no `clone` at all and it would keep the same fault.
+  Therefore the test of the source names the sequence — the take of the state,
+  the map of the mouse, and the road back, in that order.
+
+  **What stays of the map of the mouse of that note**: a click on the bar of the
+  book moves the media to that place. **The two bars of the Chapters view stand
+  in no area of `TheAreasOfTheMouse` at all**, therefore that line is a round of
+  its own, and it is a candidate and not an item until a round measures it.
+
+### The turn of the hundred and sixty-seventh: a click of the bar of the book of the view of the chapters moves the media (T-333)
+
+  **The session of the hundred and sixty-seventh turn took the last line of the
+  map of the mouse of `docs/mockups/mockup-7.md`** (T-333, v0.8.167). **That map
+  holds three lines**: a click on a row, the wheel over the table, and a click on
+  the bar of the book. The round of T-330.5 took the first two, and it left the
+  third one as a candidate. **This round measured it, and the map of the mouse of
+  the Chapters view is therefore finished, and T-330 with it.**
+
+  **The fault.** **The two bars of the Chapters view stood in no area of
+  `TheAreasOfTheMouse` at all**, therefore `the_target_of_a_point` gave
+  `TheTarget::Nothing` for every cell of them.
+
+  **The data of this round is the program itself and the sandbox as it stands**:
+  no proxy, no book of a harness, and no change of a media. The account takes the
+  library `Books` with a `sqlite3` of `name_selected_lib` and of
+  `id_selected_lib` (the trap 203 and the trap 204), and the library of the start
+  comes back at the end (the trap 198).
+
+  **The real program v0.8.166 inside tmux**, of 160 columns and 45 rows, with "A
+  Second Book Of Many Hours" and its 70 chapters. The bar of the book stands on
+  the row 3 of the screen, and its cells stand from the column 8 to the column
+  154. A click of the column 40 of that row, with the playback at 3:19:53, said
+  nothing at all and it moved the media nowhere: the playback went on to 3:21:22
+  with the time of the machine alone.
+
+  **The corrected program of the same harness**, with the playback in pause at
+  5:13:34 of its eight hours. The column 40 gave 1:44:30, the column 154 gave
+  7:56:45, the column 8 gave 0:00, and the column 100 gave 5:00:25 with the
+  message `The playback goes to 5:00:25.`:
+
+  ```text
+   Book  ████████████████████████████████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░  21%
+   Ch 46 ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░   0%
+  ```
+
+  **The controls of the same run.** A click of the column 3 of the row 3, which
+  is the name `Book` of the bar, moved the media nowhere, and a click of the
+  column 40 of the row 4, which is the bar of the chapter, moved it nowhere
+  either.
+
+  **The correction is four files.** `src/ui/the_mouse.rs` takes the field
+  `the_bar_of_the_book` and the variant `TheTarget::TheBarOfTheBook`, and
+  `the_target_of_a_point` reads that area with `the_second_of_a_column`, which is
+  the arithmetic of the bar of the seek of the band (T-322);
+  `src/ui/the_bars_of_the_chapters.rs` takes `the_area_of_the_bar_of_the_book`,
+  and `render` gives the area of the cells of the first bar back;
+  `src/ui/tui.rs` takes that area away before the view of **every** frame draws,
+  and `render_chapters` writes it again; `src/app.rs` gives the new variant the
+  arm of the bar of the seek, for the click and for the wheel.
+
+  **The gate is `tests/the_click_of_the_bar_of_the_book_moves_the_media.rs`, of 8
+  tests.** Seven of them are pure, and the eighth draws the two bars into a
+  `Buffer` and it reads the columns that hold a cell of a bar, because **a gate
+  of the arithmetic alone says nothing of the render** (the shape of T-256).
+  **The build of the fault** (the trap 147), of five edits of one line each that
+  keep every other line, made **3** of the 8 tests fail.
+
+  **The trap of this part.** **An area of the mouse that no frame takes away is
+  an area of the frame before it**: the Chapters view is the one view that draws
+  this bar, therefore the road back of the area belongs to the render of the
+  frame itself, above the `match self.view_state`, and not to the view. One test
+  of the gate reads that sequence of the source.
+
+  **The maintainer asked on 2026-08-17 for a `cargo clean` at the end of each
+  session**, and the paragraph of the disk of this block holds that rule now: it
+  is the last command of a round, after the commit, the tag, and the push. **It
+  takes the road of the trap 150 and of the trap 244 away**, and it costs the
+  round after it a cold build of the dependencies, which T-64 measures at about
+  21 seconds for `cargo test --no-run -j 16`.
 ## The session of the hundred and forty-ninth turn of 2026-08-16: the panels 2 and 3 of the sequence and of the filter, of the block of the prompt
 
   **The session of the hundred and forty-ninth turn took a part of the
@@ -24693,8 +24945,17 @@ road, and one test of the gate holds it with a title of `あああ`.
 >    that stays.**
 >    T-331 is the new Home view
 >    of the bands of covers of `docs/mockups/mockup-6.txt`, **and it starts at
->    a spec in `docs/superpowers/specs/` and not at code**. **The mockups of
->    the two of them are written already** (`mockup-6` and `mockup-7`, of
+>    a spec in `docs/superpowers/specs/` and not at code**. **The spec is
+>    written** (T-334, of 2026-08-17):
+>    `docs/superpowers/specs/2026-08-17-the-home-view-of-the-bands-of-covers-design.md`
+>    holds the eight decisions, the parts that the mockup does not say, the
+>    sweep of the tests that measure the table of today, and **a road of five
+>    rounds**. **The next round of T-331 takes the round 1 of that road**: the
+>    module `src/logic/the_bands_of_the_home.rs` of the bands of the flat list
+>    of `HomeRow`, of pure functions and of no change of the screen. **A round
+>    of T-331 reads that spec first, and it must not change a decision of it
+>    with no reason in its own item.** **The mockups of the two of them are
+>    written already** (`mockup-6` and `mockup-7`, of
 >    2026-08-16): **a round must not write in `docs/mockups/`.**
 >
 > 0. **The four items that the maintainer gave on 2026-08-16** (T-316 to
@@ -24739,158 +25000,68 @@ road, and one test of the gate holds it with a title of `あああ`.
 >    this shape found a fault in one hundred and eleven sessions of one hundred
 >    and twelve.
 >
-> **The session of the hundred and sixty-seventh turn took the last line of the
-> map of the mouse of `docs/mockups/mockup-7.md`** (T-333, v0.8.167). **That map
-> holds three lines**: a click on a row, the wheel over the table, and a click on
-> the bar of the book. The round of T-330.5 took the first two, and it left the
-> third one as a candidate. **This round measured it, and the map of the mouse of
-> the Chapters view is therefore finished, and T-330 with it.**
+> **The session of the hundred and sixty-eighth turn wrote the spec of T-331**
+> (T-334), which is the one work of the second report of the maintainer that
+> stays. **T-331 starts at a spec and not at code**, therefore this round wrote
+> no line of `src/`, it changed no version, and it made no release. The spec is
+> `docs/superpowers/specs/2026-08-17-the-home-view-of-the-bands-of-covers-design.md`,
+> and the item T-334 of `docs/TAKEOVER-BACKLOG.md` holds the measurement behind
+> it. **The mockups of the maintainer keep every decision that they hold**: the
+> spec answers the parts that `mockup-6.md` does not say.
 >
-> **The fault.** **The two bars of the Chapters view stood in no area of
-> `TheAreasOfTheMouse` at all**, therefore `the_target_of_a_point` gave
-> `TheTarget::Nothing` for every cell of them.
+> **The measurement of the sandbox of 2026-08-17**,
+> `GET /api/libraries/<id>/personalized` of the five libraries, gives three
+> facts that decide parts of the design. **A shelf holds ten entities at the
+> most, and the field `total` of it says a number that no key of the user can
+> reach**: `recently-added` of the library `Large` holds 10 entities and it says
+> `total: 2056`, therefore the count in the title of a band says the media that
+> the program holds and never that field (T-118). **A shelf of the type
+> `authors` gives no media at all** (`newest-authors`, 9 of 9 of the library
+> `Books`), and `group_home` drops it today: the band of the authors stays
+> outside the design, because the picture of an author stands at
+> `GET /api/authors/:id/image`, a path that this program never asked for. **A
+> library of no shelf gives no band** (the library `Empty`).
 >
-> **The data of this round is the program itself and the sandbox as it stands**:
-> no proxy, no book of a harness, and no change of a media. The account takes the
-> library `Books` with a `sqlite3` of `name_selected_lib` and of
-> `id_selected_lib` (the trap 203 and the trap 204), and the library of the start
-> comes back at the end (the trap 198).
+> **The decision of the spec that keeps the program of today.** The flat list of
+> the lines of `src/logic/home_view.rs` stays the data, and **the bands are a
+> shape of the render**: a new `src/logic/the_bands_of_the_home.rs` makes the
+> bands of `&[HomeRow]`, and the cursor of the view stays one line of that flat
+> list. Every key of a media (`D`, `X`, `n`, `m`, `@`, `e`, and `V`), the panel
+> 5 of the facts, the message of a media that went away, and the target
+> `TheTarget::TheListOfTheView` of a click therefore do not change, and the 23
+> tests of `mod tests` of `home_view.rs` keep standing.
 >
-> **The real program v0.8.166 inside tmux**, of 160 columns and 45 rows, with "A
-> Second Book Of Many Hours" and its 70 chapters. The bar of the book stands on
-> the row 3 of the screen, and its cells stand from the column 8 to the column
-> 154. A click of the column 40 of that row, with the playback at 3:19:53, said
-> nothing at all and it moved the media nowhere: the playback went on to 3:21:22
-> with the time of the machine alone.
+> **The seven decisions beside it**, each with its reason in the spec: `Enter`
+> plays or opens and `l` moves to the right, because a key of two meanings in
+> one view is a fault of its own and `Enter` is an alias of `l` in every other
+> view already; `h` and `l` stop at the two ends of a band and `j` and `k` go
+> round; the count says the media that the program holds; **a panel of no room
+> for one whole band draws the table of today**, which is the rule of T-321 and
+> not a second shape of the design, because this fork measures 40 columns as its
+> narrowest screen (T-301); **the frame keeps the 120 and the 84 columns of
+> T-320** and not the 100 columns of the mockup, because a Home view of a width
+> of its own would give two rules of one frame; the cell of a series draws the
+> cover of the first book of it; and **one frame asks for eight new covers at
+> the most**, because `cover::request` puts no limit on the number of the ids
+> and a frame of 30 new cells gives 30 tasks of tokio of one moment.
 >
-> **The corrected program of the same harness**, with the playback in pause at
-> 5:13:34 of its eight hours. The column 40 gave 1:44:30, the column 154 gave
-> 7:56:45, the column 8 gave 0:00, and the column 100 gave 5:00:25 with the
-> message `The playback goes to 5:00:25.`:
+> **The road of the spec holds five rounds**, and each of them is one item, one
+> commit, and one release: the bands of the data (a module of pure functions,
+> and no screen changes); the render of the bands and the keys and the footer;
+> the mouse of a click of a cell, of two clicks, of the wheel over a band, and
+> of a click of a title; the covers, with the number of the requests of the
+> first frame measured with the log of `docs/harness/one_path_fails.py`; and the
+> panel 6 of the shelf of the cursor with the terminal that draws no pictures.
+> **The round 2 is the round that changes the screen of the user.**
 >
-> ```text
->  Book  ████████████████████████████████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░  21%
->  Ch 46 ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░   0%
-> ```
->
-> **The controls of the same run.** A click of the column 3 of the row 3, which
-> is the name `Book` of the bar, moved the media nowhere, and a click of the
-> column 40 of the row 4, which is the bar of the chapter, moved it nowhere
-> either.
->
-> **The correction is four files.** `src/ui/the_mouse.rs` takes the field
-> `the_bar_of_the_book` and the variant `TheTarget::TheBarOfTheBook`, and
-> `the_target_of_a_point` reads that area with `the_second_of_a_column`, which is
-> the arithmetic of the bar of the seek of the band (T-322);
-> `src/ui/the_bars_of_the_chapters.rs` takes `the_area_of_the_bar_of_the_book`,
-> and `render` gives the area of the cells of the first bar back;
-> `src/ui/tui.rs` takes that area away before the view of **every** frame draws,
-> and `render_chapters` writes it again; `src/app.rs` gives the new variant the
-> arm of the bar of the seek, for the click and for the wheel.
->
-> **The gate is `tests/the_click_of_the_bar_of_the_book_moves_the_media.rs`, of 8
-> tests.** Seven of them are pure, and the eighth draws the two bars into a
-> `Buffer` and it reads the columns that hold a cell of a bar, because **a gate
-> of the arithmetic alone says nothing of the render** (the shape of T-256).
-> **The build of the fault** (the trap 147), of five edits of one line each that
-> keep every other line, made **3** of the 8 tests fail.
->
-> **The trap of this part.** **An area of the mouse that no frame takes away is
-> an area of the frame before it**: the Chapters view is the one view that draws
-> this bar, therefore the road back of the area belongs to the render of the
-> frame itself, above the `match self.view_state`, and not to the view. One test
-> of the gate reads that sequence of the source.
->
-> **The maintainer asked on 2026-08-17 for a `cargo clean` at the end of each
-> session**, and the paragraph of the disk of this block holds that rule now: it
-> is the last command of a round, after the commit, the tag, and the push. **It
-> takes the road of the trap 150 and of the trap 244 away**, and it costs the
-> round after it a cold build of the dependencies, which T-64 measures at about
-> 21 seconds for `cargo test --no-run -j 16`.
->
-> **The session of the hundred and sixty-sixth turn took the click of a row of
-> the part 5 of the second report of the maintainer** (T-330.5, v0.8.166). **The
-> part 5 held three rounds**: the two bars (v0.8.164), the table of the times
-> (v0.8.165), and the click of a row. **This round took the last of them, and
-> the five parts of T-330 are therefore finished.**
->
-> **The first fault.** The map of the mouse of `docs/mockups/mockup-7.md` says
-> "A click on a row — Plays that chapter", and the key `l` of a row did that
-> work already: `App::go_to_the_chapter` sends `SeekTo(chapter.start)` and it
-> says `The playback goes to "<the title>".` **A click of a row of the Chapters
-> view moved the cursor and it did nothing else**, therefore that click held
-> half of the work of its key.
->
-> **The second fault, which the first one hid.** The map of the mouse of this
-> view read the offset 0 at every frame: `render_chapters` gave the render
-> `&mut self.list_state_chapters.clone()` and the map of the mouse
-> `&self.list_state_chapters.clone()`, and **ratatui writes the offset of the
-> list into the state while it draws it**. The copy took that offset to nowhere,
-> and `App::the_areas_of_the_list_of_the_mouse` then wrote the offset of the
-> state before the render, which no key of this view changes. **A click that
-> plays a chapter of a wrong number is worse than a click that does nothing**,
-> therefore the two corrections belong to one round. The other two callers of
-> that function give it a `&mut ListState` of the caller, therefore no other
-> view held this fault.
->
-> **The data of this part is the program itself and the sandbox as it stands**:
-> no proxy, no book of a harness, and no change of a media. The account takes
-> the library `Books` with a `sqlite3` of `name_selected_lib` and of
-> `id_selected_lib` (the trap 203 and the trap 204), and the library of the
-> start comes back at the end (the trap 198).
->
-> **The real program v0.8.165 inside tmux**, of 160 columns and 45 rows, with
-> "A Second Book Of Many Hours" and its 70 chapters at 3:00:08 of its eight
-> hours. The click of the row 12 of the screen, which is the chapter 5:
->
-> ```text
-> ➤    5  Chapter 5 of the second book                     19:08   6m02s
-> ```
->
-> The playback stood at 3:00:43 and the row of the message said nothing. The key
-> `l` of that same row then said `The playback goes to "Chapter 5 of the second
-> book".` and the playback stood at 19:34. The key `G` gave the rows 35 to 70 of
-> the list, and a click of the row 9 of that screen, which is the chapter 36,
-> gave the **chapter 2**.
->
-> **The corrected program of the same harness.** The click of the row 12 gave
-> the chapter 5, the mark `▶` moved to it, the playback stood at 19:38, and the
-> message said the words of the key. The key `G` and a click of the row 9 then
-> gave the chapter 36 and the playback at 4:00:28:
->
-> ```text
-> ➤ ▶ 36  Chapter 36 of the second book                   3:59:58   4m31s
-> ```
->
-> **The control of the same run**: a click of a row of the Home view moved the
-> cursor of that list and it opened no media at all, which is the rule of T-316.
->
-> **The correction is three files.** `src/ui/the_mouse.rs` takes the pure
-> function `the_click_of_a_row_opens_it(the_view: AppView) -> bool`, which is
-> true for `AppView::Chapters` alone; `src/app.rs` calls it in the arm
-> `TheTarget::TheListOfTheView` of `App::handle_the_mouse`, after the move of
-> the cursor, and it then calls `self.go_to_the_chapter()`; `src/ui/tui.rs`
-> takes the line of the user out of the application with `std::mem::take` for
-> the render, and it gives it back after the map of the mouse read the offset
-> that the render wrote.
->
-> **The gate is `tests/the_click_of_a_chapter_plays_that_chapter.rs`, of 6
-> tests.** One of them names every one of the 28 views of `AppView`, and one
-> draws a list of 70 lines into a `Buffer` of a panel of ten rows with the
-> cursor at the line 69 and it reads the offset that the render wrote. **The
-> build of the fault** (the trap 147), of three edits of one line each that keep
-> every other line, made **3** of the 6 tests fail.
->
-> **The trap of this part.** **The absence of the copy is not the rule**: a
-> render that gave the map of the mouse the state of `self` beside a state of
-> its own would hold no `clone` at all and it would keep the same fault.
-> Therefore the test of the source names the sequence — the take of the state,
-> the map of the mouse, and the road back, in that order.
->
-> **What stays of the map of the mouse of that note**: a click on the bar of the
-> book moves the media to that place. **The two bars of the Chapters view stand
-> in no area of `TheAreasOfTheMouse` at all**, therefore that line is a round of
-> its own, and it is a candidate and not an item until a round measures it.
+> **The sweep of the tests of this round** names the five files that need a new
+> measurement — `tests/the_mouse_of_the_program_reaches_its_panels.rs`,
+> `tests/the_panel_of_the_gallery_shows_the_media_of_the_list.rs`,
+> `tests/the_table_of_the_panel_4_holds_its_columns.rs`,
+> `tests/the_panel_of_the_cover_of_the_home_view_says_the_facts.rs`, and the
+> footer `FOOTER_OF_A_LIBRARY_OF_BOOKS` of `src/ui/keys.rs:511`, which is the
+> footer of the Home view **and** of the Library view — and the files that keep
+> standing with no change. **The next round takes the round 1 of that road.**
 >
 >    **The turns before this one stand in `## The turns before the three
 >    newest ones` of this file**, above the heading of this prompt. **This item
@@ -25181,7 +25352,10 @@ road, and one test of the gate holds it with a title of `あああ`.
 > hundred and sixty-sixth found it at 88440 bytes with two turns in it, and it
 > did the same work, and the block then held about **88700** bytes with **two**
 > turns in it; the round of the hundred and sixty-seventh found it at 88710
-> bytes with two turns in it, and it did the same work.
+> bytes with two turns in it, and it did the same work; the round of the
+> hundred and sixty-eighth found it at 91712 bytes with two turns in it — above
+> the line of 80000 — therefore it took the **two** of them out and it wrote its
+> own, and the block then held **87022** bytes with **one** turn in it.
 > **A block that stands at 80000 bytes or under holds two
 > turns**, and the turn of the stage before this one names the parts of that
 > stage which stay open. **The list of the decisions

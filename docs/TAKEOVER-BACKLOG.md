@@ -31379,3 +31379,72 @@ keep every other line, made **3** of the 8 tests fail.
 **What stays of the map of the mouse of `mockup-7.md`: nothing.** The three
 lines of that note are done, and T-330 and the mouse of the Chapters view are
 therefore finished.
+
+## T-334 — The spec of the Home view of the bands of covers
+
+**T-331 starts at a spec and not at code**, and this item holds the measurement
+that the spec stands on. The spec is
+`docs/superpowers/specs/2026-08-17-the-home-view-of-the-bands-of-covers-design.md`.
+**The mockups of the maintainer keep every decision that they hold**
+(`docs/mockups/mockup-6.txt` and `mockup-6.md`): this spec holds the parts that
+the mockup does not say.
+
+**The screen of today, of the real program v0.8.167 inside tmux**, of 160
+columns and 45 rows, of the library `Large`: the Home view is one table of the
+columns `Title`, `Author`, `Time`, and `Done`, of two shelves of ten media each,
+and the covers of those media stand in the panel 6 alone.
+
+**The measurement of the sandbox of 2026-08-17**, `GET
+/api/libraries/<id>/personalized` of the five libraries, gives the shelves of
+the table of the spec. **Three facts of it decide parts of the design.**
+
+1. **A shelf holds ten entities at the most, and the field `total` says a number
+   that no key of the user can reach**: `recently-added` of the library `Large`
+   holds 10 entities and it says `total: 2056`. The count in the title of a band
+   therefore says the media that the program holds (T-118).
+2. **A shelf of the type `authors` gives no media at all** (`newest-authors`, 9
+   of 9 in the library `Books`), and `group_home` of `src/logic/home_view.rs:69`
+   drops it today. The band of the authors stays outside the design, and the
+   picture of an author stands at `GET /api/authors/:id/image`, a path that this
+   program never asked for.
+3. **A library of no shelf gives no band** (the library `Empty`).
+
+**The decision of the spec that keeps the program of today.** The flat list of
+the lines of `home_view.rs` stays the data, and **the bands are a shape of the
+render**: `src/logic/the_bands_of_the_home.rs` makes the bands of
+`&[HomeRow]`, and the cursor of the view stays one line of that flat list.
+Every key of a media (`D`, `X`, `n`, `m`, `@`, `e`, and `V`), the panel 5 of the
+facts, the message of a media that went away, and the target
+`TheTarget::TheListOfTheView` of a click therefore do not change, and the 23
+tests of `mod tests` of `src/logic/home_view.rs` keep standing.
+
+**The seven decisions beside it**, each with its reason in the spec: `Enter`
+plays or opens and `l` moves to the right; `h` and `l` stop at the two ends of a
+band and `j` and `k` go round; the count says the media that the program holds;
+a panel of no room for one whole band draws the table of today (the rule of
+T-321, and this fork measures 40 columns as its narrowest screen, T-301); the
+frame keeps the 120 and the 84 columns of T-320 and not the 100 columns of the
+mockup; the cell of a series draws the cover of the first book of it; and one
+frame asks for eight new covers at the most.
+
+**The store of the covers puts no limit on the number of the ids** (the
+measurement of `src/ui/cover.rs`): `request` holds one request of one id at a
+time, and a frame of 30 new cells gives 30 tasks of tokio of one moment. The
+round of the covers of the road of the spec measures that number with the log of
+`docs/harness/one_path_fails.py` and a `grep -c '/cover'` of it.
+
+**The sweep of the tests of 2026-08-17** names the five files that need a new
+measurement — `tests/the_mouse_of_the_program_reaches_its_panels.rs`,
+`tests/the_panel_of_the_gallery_shows_the_media_of_the_list.rs`,
+`tests/the_table_of_the_panel_4_holds_its_columns.rs`,
+`tests/the_panel_of_the_cover_of_the_home_view_says_the_facts.rs`, and the
+footer `FOOTER_OF_A_LIBRARY_OF_BOOKS` of `src/ui/keys.rs:511`, which is the
+footer of the Home view **and** of the Library view — and the files that keep
+standing with no change.
+
+**The road of the spec holds five rounds**, and each of them is one item, one
+commit, and one release: the bands of the data; the render and the keys; the
+mouse; the covers; and the panel 6 with the terminal that draws no pictures.
+
+**This round wrote no code**, therefore the version of the program does not
+change and no entry of the changelog comes with it.
