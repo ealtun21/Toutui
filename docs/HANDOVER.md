@@ -4,8 +4,9 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.8.189.** The item T-358 belongs to this
+**The newest release is v0.8.190.** The item T-359 belongs to this
 session. The
+item T-358 belongs to the session before it. The
 item T-357 belongs to the session before it. The
 item T-356 belongs to the session before it. The
 item T-355 belongs to the session before it. The
@@ -15022,6 +15023,84 @@ the item T-323 of `docs/TAKEOVER-BACKLOG.md` names every region of the map
 of the mouse that no stage reached; **each of them is a candidate and not an
 item.**
 
+### The turn of the hundred and ninety-first round
+
+**The session of the hundred and ninety-first turn took the item 1 of the list
+of the work**, and it took the **second candidate that the round before it
+left**: the sentence of the six views outside the frame of the panels stands
+under a rule that says no name of the list at all.
+
+**A `ps` of the machine at the start of the round found it clean**: no program
+of `toutui`, and no shell of a busy loop. The tree of git was clean, the load
+average was 4, and the disk held 445 gigabytes. The `cargo clean` of the round
+before it gave a cold build of 16 seconds for `cargo build -j 16`.
+
+**The fault, of the real program v0.8.188 inside tmux**, at 160 columns and 45
+rows, of the library `Empty` of the sandbox, which holds no media, no
+collection, and no playlist. The key `c` gave the Collections view, and the
+rule at the top of that view held **160 columns and no word at all** over
+`This library has no collection and no playlist.` The key `s` of the same run
+gave the Series view, and it drew the same bare rule over `This library has no
+series.` The Episodes view of the podcast `Letters of Two Brides`, with
+`one_path_fails.py 13500 13399` on the path of its item and the account at
+`http://127.0.0.1:13500` (the trap 129), drew it over `The server did not give
+the episodes of this podcast: The server reported a fault. Status 500.`
+**Three views, and no word of any of the three screens said which list is
+empty.**
+
+**The three controls of the same run**, of the library `Books`: the Collections
+view of two lines drew that same rule with `Collections and playlists [2
+items]` in the middle of it, the Series view drew `Series [3 items]`, and the
+search of the word `book` drew `Search result [14 items]`. **A view of lines
+names its list already**, therefore the two roads of one view said two
+different things.
+
+**Why**: `render_list` of `src/ui/the_list_of_a_view.rs` gives the rule of a
+view outside the frame of the panels the title of its caller, and the **three**
+widgets of a view with no line did not. `App::render_the_reason` of
+`src/ui/tui.rs` takes a title and it gives it to `crate::ui::frame::a_panel` in
+the arm of the frame of the panels alone; the other arm dropped it, and the
+frame stands in the Home view and in the Library view alone (T-320) — the
+comment of `render_series` said that its title "reaches no screen of today"
+already. `render_lists` built a `Paragraph` of its own with **no title at
+all**, and it made its `render_list_title` after the `return` of that road.
+`crate::ui::the_message_of_a_view::render_the_message` took no title at all.
+
+**The correction**, of three sites: the arm of the screen with no frame of
+`render_the_reason` takes `.title(Line::raw(title).centered())`, which is the
+block of `render_list`; `render_the_message` takes a title before its text, and
+`render_pod_ep` gives it the title of the list of its own road;
+and `render_lists` gives its `Paragraph` away and it calls `render_the_reason`,
+**which writes the area of the mouse of its panel too** (T-356) — that is the
+candidate 2 of T-357, and it closes with this correction. `render_series` gives
+the title `Series [0 items]` in the place of the bare word `Series`.
+
+**The corrected program of the same harness**, of the same screens and of the
+same road: the Collections view of `Empty` drew `Collections and playlists [0
+items]` in its rule, the Series view drew `Series [0 items]`, and the Episodes
+view of the podcast that fails drew `Episodes [0 items]`, each above the
+sentence of its reason. **The three controls of the library `Books` stayed as
+they were.** **v0.8.189.**
+
+**The gates**: clippy and fmt clean, 1590 tests of nextest in 3.0 seconds,
+`cargo test -j 16 --no-fail-fast` four times with no failure, and
+`cargo nextest run --run-ignored all` with the sandbox up gave 1616 of 1616.
+
+**What this round leaves open, and each of them is a candidate and not an
+item**: **the search view of a library with no hit puts its reason in the place
+of the name** — the rule of that view held `The server found nothing for
+"zzzznohitatall". Press / to write other words.` where the same view of hits
+holds `Search result [14 items]`, which is the same trade in the other
+direction; **the footer of a view with no line names the keys of a line** — the
+Collections view of `Empty` said `j/k: move  l: the media  r/D: a
+name/description  X: remove`, and no line of that view holds a media, a name,
+or a description, which is the rule of T-143 for the six views; **the panel 4
+of a view with no line takes the focus of a click and it says no word of its
+own** of T-356; **the rows of the band that does not fit** of T-353; **the
+width of the panel 5 of a media with no cover**; and every candidate of the
+turns before this one.
+
+
 ## The session of the hundred and forty-ninth turn of 2026-08-16: the panels 2 and 3 of the sequence and of the filter, of the block of the prompt
 
   **The session of the hundred and forty-ninth turn took a part of the
@@ -26901,7 +26980,7 @@ with no cover**; and every candidate of the turns before this one.
 > makes no request: a measurement of two roads of the header needs a key of a
 > fresh request, and the key `R` alone forgets the state of a view.
 > Verify with a second program: `curl`, `podman logs abs-test`, or a browser.
-> Write the measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-357 and
+> Write the measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-360 and
 > up), and name that item in the commit.
 >
 > **`String::find` gives the index of a byte and not the column of the screen**
@@ -26914,8 +26993,8 @@ with no cover**; and every candidate of the turns before this one.
 > `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`, and
 > `cargo nextest run` with `ALSA_CONFIG_PATH` pointing at a null asound file of
 > two lines (`pcm.!default { type null }` and `ctl.!default { type null }`).
-> Baseline: **1589 tests in 3.0 seconds of nextest**, and `cargo nextest run --run-ignored
-> all` gives **1615 of 1615** with the sandbox up, in about 60 seconds. **Run that
+> Baseline: **1591 tests in 3.0 seconds of nextest**, and `cargo nextest run --run-ignored
+> all` gives **1617 of 1617** with the sandbox up, in about 60 seconds. **Run that
 > second command at the end of the session too**: it found T-132 and T-111.
 > **And `cargo clean` is the last command of the round**, after the push: the
 > maintainer asked for it on 2026-08-17, and the paragraph of the disk above
@@ -27088,80 +27167,105 @@ with no cover**; and every candidate of the turns before this one.
 >
 >
 >
-> **The session of the hundred and ninety-first turn took the item 1 of the list
-> of the work**, and it took the **second candidate that the round before it
-> left**: the sentence of the six views outside the frame of the panels stands
-> under a rule that says no name of the list at all.
+> **The session of the hundred and ninety-second turn took the item 1 of the list
+> of the work**, and it took the **third candidate that the round before it
+> left**: the footer of a view with no line names the keys of a line.
 >
 > **A `ps` of the machine at the start of the round found it clean**: no program
 > of `toutui`, and no shell of a busy loop. The tree of git was clean, the load
-> average was 4, and the disk held 445 gigabytes. The `cargo clean` of the round
+> average was 7, and the disk held 445 gigabytes. The `cargo clean` of the round
 > before it gave a cold build of 16 seconds for `cargo build -j 16`.
 >
-> **The fault, of the real program v0.8.188 inside tmux**, at 160 columns and 45
+> **The fault, of the real program v0.8.189 inside tmux**, at 160 columns and 45
 > rows, of the library `Empty` of the sandbox, which holds no media, no
-> collection, and no playlist. The key `c` gave the Collections view, and the
-> rule at the top of that view held **160 columns and no word at all** over
-> `This library has no collection and no playlist.` The key `s` of the same run
-> gave the Series view, and it drew the same bare rule over `This library has no
-> series.` The Episodes view of the podcast `Letters of Two Brides`, with
-> `one_path_fails.py 13500 13399` on the path of its item and the account at
-> `http://127.0.0.1:13500` (the trap 129), drew it over `The server did not give
-> the episodes of this podcast: The server reported a fault. Status 500.`
-> **Three views, and no word of any of the three screens said which list is
-> empty.**
+> collection, and no playlist. The key `c` gave the Collections view of no line,
+> whose rule says `Collections and playlists [0 items]` after T-358, and the
+> footer of it said `j/k: move  l: the media  r/D: a name/description  X: remove
+> h: back  ?: every key  Q: quit`. **No line of that view holds a media, a name,
+> or a description**, therefore four of the seven parts of that footer named a key
+> that does nothing. The keys of the same run gave the same fault in six other
+> views: the Series view said `j/k: move  l: take the line  …`, the Authors view
+> said `j/k: move  l: the books of this author  …`, the Narrators view said
+> `j/k: move  l: the books of this narrator  …`, the Chapters view of a program
+> that plays nothing said `j/k: move  l: go to the chapter  …`, the Queue view of
+> an empty queue said `j/k: move  l: play it now  X: take it out  …`, and the Home
+> view of that library said `j/k: move  l: play or open  …` over
+> `The server gave no shelf for this library.`
 >
-> **The three controls of the same run**, of the library `Books`: the Collections
-> view of two lines drew that same rule with `Collections and playlists [2
-> items]` in the middle of it, the Series view drew `Series [3 items]`, and the
-> search of the word `book` drew `Search result [14 items]`. **A view of lines
-> names its list already**, therefore the two roads of one view said two
-> different things.
+> **The controls of the same run**, of the library `Books`: the Collections view
+> of two lines kept its four keys of a line, the Series view of three series kept
+> `l: take the line`, the Authors view of nine authors and the Narrators view of
+> two narrators each kept their key `l`, and the Home view of it kept
+> `j/k: a shelf  h/l: a cover  Enter: play or open`. **A view of lines holds every
+> one of those keys**, therefore the two roads of one view promised the same keys
+> and one of the two could not keep the promise.
 >
-> **Why**: `render_list` of `src/ui/the_list_of_a_view.rs` gives the rule of a
-> view outside the frame of the panels the title of its caller, and the **three**
-> widgets of a view with no line did not. `App::render_the_reason` of
-> `src/ui/tui.rs` takes a title and it gives it to `crate::ui::frame::a_panel` in
-> the arm of the frame of the panels alone; the other arm dropped it, and the
-> frame stands in the Home view and in the Library view alone (T-320) — the
-> comment of `render_series` said that its title "reaches no screen of today"
-> already. `render_lists` built a `Paragraph` of its own with **no title at
-> all**, and it made its `render_list_title` after the `return` of that road.
-> `crate::ui::the_message_of_a_view::render_the_message` took no title at all.
+> **Why**: the footer of a view is a constant of `src/ui/keys.rs`, and the number
+> of the lines of the view reaches none of them. Every one of those views builds
+> its footer at the head of its render function, before it reads its own list:
+> `render_lists` writes the footer at the line 3279 of `src/ui/tui.rs` and it
+> reads `self.lists.is_empty()` at the line 3281. The `is_empty()` of each of them
+> changes the words of the panel and it never changes the footer. **The Home view
+> held one part of the rule already** (T-336): its footer takes the shape of the
+> table for a shelf of no line, because such a shelf gives no band.
 >
-> **The correction**, of three sites: the arm of the screen with no frame of
-> `render_the_reason` takes `.title(Line::raw(title).centered())`, which is the
-> block of `render_list`; `render_the_message` takes a title before its text, and
-> `render_pod_ep` gives it the title of the list of its own road;
-> and `render_lists` gives its `Paragraph` away and it calls `render_the_reason`,
-> **which writes the area of the mouse of its panel too** (T-356) — that is the
-> candidate 2 of T-357, and it closes with this correction. `render_series` gives
-> the title `Series [0 items]` in the place of the bare word `Series`.
+> **The correction**, of two pure functions and of eleven views:
+> `keys::the_footer_of_a_view_with_no_line` cuts a footer at the two spaces
+> between its parts, it takes out every part whose key stands in
+> `THE_KEYS_THAT_NEED_A_LINE` (`j/k`, `l`, `l/Enter`, `l/→`, `X`, `r/D`, `</>`,
+> `Enter`, `h/l`, and `+/-`), and it joins what stays; **the key of a part stands
+> before the first `": "` of that part**, therefore `h: back` keeps its `h` and
+> `h/l: a cover` goes away, and a footer that loses every part becomes
+> `FOOTER_OF_A_FAULT` (T-52). `keys::the_footer_of_a_list` gives that text for a
+> count of 0 and the text of the view for every other count. The eleven views: the
+> six of T-357, the Authors view and the Narrators view, the Queue view, the
+> Chapters view, and the Home view and the Library view. **The filter takes its
+> parts out of the footer of the view and not of the footer of the panel that
+> holds the focus** (T-320): the keys `j`, `k`, and `l` of the panels 1, 2, and 3
+> move the lines of that panel, and those lines stand while the list of the view
+> holds none. **The rows of the footer of the two views of the frame come of the
+> text with every part in it**, as the two shapes of the Home view do (T-336).
 >
 > **The corrected program of the same harness**, of the same screens and of the
-> same road: the Collections view of `Empty` drew `Collections and playlists [0
-> items]` in its rule, the Series view drew `Series [0 items]`, and the Episodes
-> view of the podcast that fails drew `Episodes [0 items]`, each above the
-> sentence of its reason. **The three controls of the library `Books` stayed as
-> they were.** **v0.8.189.**
+> same road: the Collections view, the Authors view, the Narrators view, the
+> Chapters view, and the Queue view each said `h: back  ?: every key  Q: quit`,
+> the Series view said `h: back  Tab: home  R: refresh  ?: every key  Q: quit`,
+> and the Home view said `Tab: home/library  S-Tab: the next library  /: search
+> R: refresh  ?: every key  Q: quit  f: sequence  1/Ctrl+h: the panels  z: hide
+> them`. **The controls of the library `Books` of the same run stayed as they
+> were.** **v0.8.190.**
 >
-> **The gates**: clippy and fmt clean, 1590 tests of nextest in 3.0 seconds,
+> **Three builds of the fault, and each of them fails
+> `tests/the_footer_of_a_view_with_no_line.rs`**: `if the_lines == 0 && false` of
+> `the_footer_of_a_list` gives "the Series view with no line must not name the key
+> of the part `j/k: move`" and it keeps the correction of the two views of the
+> frame; a `the_footer_of_a_view_with_no_line` that gives its argument back gives
+> the two texts of the assertion of the pure function; and a function of the two
+> calls of the Home view and of the Library view that gives its argument back
+> gives "the Home view with no line must not name the key of the part `j/k:
+> move`".
+>
+> **The gates**: clippy and fmt clean, 1591 tests of nextest in 3.0 seconds,
 > `cargo test -j 16 --no-fail-fast` four times with no failure, and
-> `cargo nextest run --run-ignored all` with the sandbox up gave 1616 of 1616.
+> `cargo nextest run --run-ignored all` with the sandbox up gave 1617 of 1617.
 >
 > **What this round leaves open, and each of them is a candidate and not an
-> item**: **the search view of a library with no hit puts its reason in the place
-> of the name** — the rule of that view held `The server found nothing for
-> "zzzznohitatall". Press / to write other words.` where the same view of hits
-> holds `Search result [14 items]`, which is the same trade in the other
-> direction; **the footer of a view with no line names the keys of a line** — the
-> Collections view of `Empty` said `j/k: move  l: the media  r/D: a
-> name/description  X: remove`, and no line of that view holds a media, a name,
-> or a description, which is the rule of T-143 for the six views; **the panel 4
-> of a view with no line takes the focus of a click and it says no word of its
-> own** of T-356; **the rows of the band that does not fit** of T-353; **the
-> width of the panel 5 of a media with no cover**; and every candidate of the
-> turns before this one.
+> item**: **eight views of a list took no rule of this item** — the statistics,
+> the sessions, the devices of an e-reader, the downloads of the server, the
+> ebooks of a media, the bookmarks, the lists that take a media, and the words of
+> a new podcast, each of which holds a road with no line and whose count stands
+> after the footer of its render function (the bookmarks view reads
+> `take_the_bookmarks_again()` before its state); **the footer of the panel 5 and
+> of the panel 6 names `l: play or open` and `+/-: the size of a cell`** while the
+> view holds no media of a cell, which T-357 makes a road that no frame of this
+> round reached; **the search view of a library with no hit puts its reason in the
+> place of the name** of T-358; **the panel 4 of a view with no line takes the
+> focus of a click and it says no word of its own** of T-356, whose keys `j` and
+> `k` still stand while the footer of that focus now names neither; **the rows of
+> the band that does not fit** of T-353; **the width of the panel 5 of a media
+> with no cover**; and every candidate of the turns before this one.
+>
+>
 >
 >    **The turns before this one stand in `## The turns before the three
 >    newest ones` of this file**, above the heading of this prompt. **This item
@@ -27391,7 +27495,9 @@ with no cover**; and every candidate of the turns before this one.
 > in it, and it did the same work, and the block then held about **83400** bytes
 > with **one** turn in it. The round of the hundred and ninety-first found it at
 > 83478 bytes with one turn in it, and it did the same work, and the block then
-> held **83776** bytes with **one** turn in it.
+> held **83776** bytes with **one** turn in it. The round of the hundred and
+> ninety-second found it at 83954 bytes with one turn in it, and it did the same
+> work, and the block then held **85749** bytes with **one** turn in it.
 > **A block that stands at 80000 bytes or under holds two
 > turns**, and the turn of the stage before this one names the parts of that
 > stage which stay open. **The list of the decisions

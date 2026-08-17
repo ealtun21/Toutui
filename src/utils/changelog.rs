@@ -41,6 +41,25 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.190",
+        date: "17/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The footer of a view with no line names no key of a line.** \
+             The footer of the view of the collections and the playlists of a \
+             library with no collection said `j/k: move  l: the media  r/D: a \
+             name/description  X: remove`, and no line of that view holds a \
+             media, a name, or a description: four of the seven keys of that \
+             footer did nothing at all. The view of the series, the view of the \
+             authors, the view of the narrators, the view of the chapters of a \
+             program that plays nothing, the view of an empty queue, and the \
+             two views of the library each said the same. The footer of a view \
+             with no line now names the keys of that view alone, for example \
+             `h: back  ?: every key  Q: quit`, and the footer of a view of one \
+             line or more keeps every key that it held before.",
+        ],
+    },
+    Entry {
         version: "0.8.189",
         date: "17/08/2026",
         body: &[

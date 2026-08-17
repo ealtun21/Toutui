@@ -678,6 +678,55 @@ pub const FOOTER_OF_A_FAULT: &str = "h/Esc: back  ?: every key  Q: quit";
 pub const FOOTER_OF_A_LIST_OF_MEDIA: &str =
     "j/k: move  l: play  h: back  Tab: home  R: refresh  ?: every key  Q: quit";
 
+/// The two spaces that stand between two parts of a footer.
+const BETWEEN_TWO_PARTS_OF_A_FOOTER: &str = "  ";
+
+/// The keys of a footer that need a line of the list under it.
+///
+/// **A footer must not promise a key that the view does not hold** (T-143), and
+/// a view with no line holds none of these: the key `l` opens no media, the key
+/// `X` removes no line, the keys `r` and `D` write the name of no list, and the
+/// keys `j` and `k` move a cursor of nothing. See T-359.
+///
+/// The key of a part of a footer stands before the first `": "` of that part,
+/// therefore `h/l: a cover` of the bands gives the key `h/l` and `h: back`
+/// gives the key `h`, which stays.
+const THE_KEYS_THAT_NEED_A_LINE: &[&str] = &[
+    "j/k", "l", "l/Enter", "l/→", "X", "r/D", "</>", "Enter", "h/l", "+/-",
+];
+
+/// Gives the footer of a view that holds no line: the text of the view with
+/// every part that names a key of a line taken out. See T-359.
+///
+/// **The footer of a view that holds no key at all is the footer of a fault**
+/// (T-52): a screen that names no key looks like a program that stopped.
+pub fn the_footer_of_a_view_with_no_line(of_the_view: &str) -> String {
+    let the_parts: Vec<&str> = of_the_view
+        .split(BETWEEN_TWO_PARTS_OF_A_FOOTER)
+        .filter(|part| {
+            let the_key = part.split_once(": ").map(|(key, _)| key).unwrap_or(part);
+            !THE_KEYS_THAT_NEED_A_LINE.contains(&the_key)
+        })
+        .collect();
+
+    if the_parts.is_empty() {
+        return FOOTER_OF_A_FAULT.to_string();
+    }
+
+    the_parts.join(BETWEEN_TWO_PARTS_OF_A_FOOTER)
+}
+
+/// Gives the footer of a view of a list: the text of the view when the list
+/// holds a line, and the text of `the_footer_of_a_view_with_no_line` when it
+/// holds none. See T-359.
+pub fn the_footer_of_a_list(of_the_view: &str, the_lines: usize) -> String {
+    if the_lines == 0 {
+        the_footer_of_a_view_with_no_line(of_the_view)
+    } else {
+        of_the_view.to_string()
+    }
+}
+
 /// The footer of a view that holds one line for each media, and that a key of
 /// its own opens: the queue, the bookmarks, and the chapters.
 pub fn footer_with(what_l_does: &str, what_x_does: Option<&str>) -> String {

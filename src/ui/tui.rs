@@ -1753,8 +1753,18 @@ impl App {
         // The view holds the authors or the narrators, and the title says which
         // list it holds. See T-73.
         let kind = crate::logic::authors::kind();
-        let text_render_footer =
-            crate::ui::keys::footer_with(kind.work_of_the_key_that_opens(), None);
+        // **The footer of a view with no line names no key of a line** (T-359).
+        // The state of the request holds the lines of this view: the road of a
+        // wait, the road of a fault, and the road of a list of nothing each give
+        // no line at all.
+        let the_lines = match crate::logic::authors::state() {
+            crate::logic::authors::State::Ready(all) => all.len(),
+            _ => 0,
+        };
+        let text_render_footer = crate::ui::keys::the_footer_of_a_list(
+            &crate::ui::keys::footer_with(kind.work_of_the_key_that_opens(), None),
+            the_lines,
+        );
         let rows_of_the_footer = self.the_rows_of_the_footer(&text_render_footer, area);
 
         let [header_area, work_area, footer_area] =
@@ -2254,14 +2264,19 @@ impl App {
     fn render_queue(&mut self, area: Rect, buf: &mut Buffer) {
         // **The footer stands on the rows that it needs** (T-302): the
         // number of its rows is the number that the wrap of its text needs.
-        let text_render_footer = crate::ui::keys::footer_with("play it now", Some("take it out"));
+        // **The footer of a view with no line names no key of a line** (T-359),
+        // therefore the number of the lines of this view stands before the text
+        // of the footer.
+        let queue = crate::logic::queue::snapshot();
+        let lines = self.queue_lines(queue.entries());
+        let text_render_footer = crate::ui::keys::the_footer_of_a_list(
+            &crate::ui::keys::footer_with("play it now", Some("take it out")),
+            lines.len(),
+        );
         let rows_of_the_footer = self.the_rows_of_the_footer(&text_render_footer, area);
 
         let [header_area, main_area, footer_area] =
             self.the_areas_of_this_view(area, rows_of_the_footer);
-
-        let queue = crate::logic::queue::snapshot();
-        let lines = self.queue_lines(queue.entries());
 
         let title = if lines.is_empty() {
             "The queue is empty. Press n on a media to put it in the queue.".to_string()
@@ -2287,13 +2302,21 @@ impl App {
     fn render_chapters(&mut self, area: Rect, buf: &mut Buffer) {
         // **The footer stands on the rows that it needs** (T-302): the
         // number of its rows is the number that the wrap of its text needs.
-        let text_render_footer = crate::ui::keys::footer_with("go to the chapter", None);
+        // **The footer of a view with no line names no key of a line** (T-359),
+        // therefore the number of the lines of this view stands before the text
+        // of the footer.
+        // **The lines of this view need the width of the area** and the area
+        // needs the rows of the footer, therefore the number of the chapters of
+        // the player is the number that stands before the layout.
+        let state = self.player.state();
+        let text_render_footer = crate::ui::keys::the_footer_of_a_list(
+            &crate::ui::keys::footer_with("go to the chapter", None),
+            state.chapters.len(),
+        );
         let rows_of_the_footer = self.the_rows_of_the_footer(&text_render_footer, area);
 
         let [header_area, main_area, footer_area] =
             self.the_areas_of_this_view(area, rows_of_the_footer);
-
-        let state = self.player.state();
 
         // **The two bars stand over the table** (T-330.5, and the note of
         // `docs/mockups/mockup-7.md`): the bar of the whole book, with a mark at
@@ -2577,7 +2600,23 @@ impl App {
         // no media drew an empty list and no word at all. See T-103 and T-91.
         if lines.is_empty() {
             self.the_bands_of_the_last_frame = Default::default();
-            App::render_footer(footer_area, buf, &of_the_table);
+            // **The footer of a view with no line names no key of a line**
+            // (T-359), and the filter takes its parts out of the footer of the
+            // **view** and not of the footer of the panel that holds the focus
+            // (T-320): the shape of the table stands here, because a shelf of
+            // no line gives no band.
+            App::render_footer(
+                footer_area,
+                buf,
+                &crate::ui::keys::the_footer_of_a_panel(
+                    &crate::ui::keys::the_footer_of_a_view_with_no_line(
+                        crate::ui::keys::the_footer_of_the_home_view(self.is_podcast, false),
+                    ),
+                    the_frame_stands,
+                    the_stack_stands,
+                    the_focus,
+                ),
+            );
             self.render_the_reason(
                 main_area,
                 buf,
@@ -3039,7 +3078,30 @@ impl App {
         );
 
         self.render_header(header_area, buf);
-        App::render_footer(footer_area, buf, text_render_footer);
+
+        // **The footer of a view with no line names no key of a line** (T-359),
+        // and the filter takes its parts out of the footer of the **view** and
+        // not of the footer of the panel that holds the focus: the keys `j`,
+        // `k`, and `l` of the panel 1, of the panel 2, and of the panel 3 move
+        // the lines of that panel, and those lines stand there while the list of
+        // the view holds none (T-320).
+        //
+        // **The rows of the footer come of the text with every part in it**, as
+        // they do for the two shapes of the Home view (T-336): a footer of a
+        // height of its own would give the panel 4 one row more for a library
+        // with no media than for the same library with one book in it, and the
+        // shape of that panel comes of its own height.
+        let text_render_footer = if lines.is_empty() {
+            crate::ui::keys::the_footer_of_a_panel(
+                &crate::ui::keys::the_footer_of_a_view_with_no_line(of_the_view),
+                self.the_frame_of_the_panels_stands(),
+                self.the_stack_of_the_panels_stands(),
+                self.the_panel_of_the_focus,
+            )
+        } else {
+            text_render_footer.to_string()
+        };
+        App::render_footer(footer_area, buf, &text_render_footer);
 
         // **A filter that hides every media is not a library with no media**,
         // and a server that does not answer is neither. See T-103 and T-91.
@@ -3079,7 +3141,14 @@ impl App {
     fn render_series(&mut self, area: Rect, buf: &mut Buffer) {
         // **The footer stands on the rows that it needs** (T-302): the
         // number of its rows is the number that the wrap of its text needs.
-        let text_render_footer = crate::ui::keys::FOOTER_OF_A_LIST;
+        // **The footer of a view with no line names no key of a line** (T-359),
+        // therefore the number of the lines of this view stands before the text
+        // of the footer.
+        let text_render_footer = crate::ui::keys::the_footer_of_a_list(
+            crate::ui::keys::FOOTER_OF_A_LIST,
+            self.series.len(),
+        );
+        let text_render_footer = text_render_footer.as_str();
         let rows_of_the_footer = self.the_rows_of_the_footer(text_render_footer, area);
         let [header_area, main_area, footer_area] =
             self.the_areas_of_this_view(area, rows_of_the_footer);
@@ -3168,7 +3237,14 @@ impl App {
     fn render_series_book(&mut self, area: Rect, buf: &mut Buffer) {
         // **The footer stands on the rows that it needs** (T-302): the
         // number of its rows is the number that the wrap of its text needs.
-        let text_render_footer = crate::ui::keys::FOOTER_OF_A_LIST_OF_MEDIA;
+        // **The footer of a view with no line names no key of a line** (T-359),
+        // therefore the number of the lines of this view stands before the text
+        // of the footer.
+        let text_render_footer = crate::ui::keys::the_footer_of_a_list(
+            crate::ui::keys::FOOTER_OF_A_LIST_OF_MEDIA,
+            self.series_book_lines().len(),
+        );
+        let text_render_footer = text_render_footer.as_str();
         let rows_of_the_footer = self.the_rows_of_the_footer(text_render_footer, area);
         let [header_area, main_area, footer_area] =
             self.the_areas_of_this_view(area, rows_of_the_footer);
@@ -3253,7 +3329,14 @@ impl App {
     fn render_lists(&mut self, area: Rect, buf: &mut Buffer) {
         // **The footer stands on the rows that it needs** (T-302): the
         // number of its rows is the number that the wrap of its text needs.
-        let text_render_footer = crate::ui::keys::FOOTER_OF_THE_LISTS;
+        // **The footer of a view with no line names no key of a line** (T-359),
+        // therefore the number of the lines of this view stands before the text
+        // of the footer.
+        let text_render_footer = crate::ui::keys::the_footer_of_a_list(
+            crate::ui::keys::FOOTER_OF_THE_LISTS,
+            self.lists.len(),
+        );
+        let text_render_footer = text_render_footer.as_str();
         let rows_of_the_footer = self.the_rows_of_the_footer(text_render_footer, area);
         let [header_area, main_area, footer_area] =
             self.the_areas_of_this_view(area, rows_of_the_footer);
@@ -3355,7 +3438,14 @@ impl App {
     fn render_list_entries(&mut self, area: Rect, buf: &mut Buffer) {
         // **The footer stands on the rows that it needs** (T-302): the
         // number of its rows is the number that the wrap of its text needs.
-        let text_render_footer = crate::ui::keys::FOOTER_OF_THE_MEDIA_OF_A_LIST;
+        // **The footer of a view with no line names no key of a line** (T-359),
+        // therefore the number of the lines of this view stands before the text
+        // of the footer.
+        let text_render_footer = crate::ui::keys::the_footer_of_a_list(
+            crate::ui::keys::FOOTER_OF_THE_MEDIA_OF_A_LIST,
+            self.list_entry_lines().len(),
+        );
+        let text_render_footer = text_render_footer.as_str();
         let rows_of_the_footer = self.the_rows_of_the_footer(text_render_footer, area);
         let [header_area, main_area, footer_area] =
             self.the_areas_of_this_view(area, rows_of_the_footer);
@@ -3634,7 +3724,14 @@ impl App {
     fn render_search_book(&mut self, area: Rect, buf: &mut Buffer) {
         // **The footer stands on the rows that it needs** (T-302): the
         // number of its rows is the number that the wrap of its text needs.
-        let text_render_footer = crate::ui::keys::FOOTER_OF_THE_SEARCH;
+        // **The footer of a view with no line names no key of a line** (T-359),
+        // therefore the number of the lines of this view stands before the text
+        // of the footer.
+        let text_render_footer = crate::ui::keys::the_footer_of_a_list(
+            crate::ui::keys::FOOTER_OF_THE_SEARCH,
+            self.titles_search_book.len(),
+        );
+        let text_render_footer = text_render_footer.as_str();
         let rows_of_the_footer = self.the_rows_of_the_footer(text_render_footer, area);
         let [header_area, main_area, footer_area] =
             self.the_areas_of_this_view(area, rows_of_the_footer);
@@ -3831,7 +3928,14 @@ impl App {
     fn render_pod_ep(&mut self, area: Rect, buf: &mut Buffer) {
         // **The footer stands on the rows that it needs** (T-302): the
         // number of its rows is the number that the wrap of its text needs.
-        let text_render_footer = crate::ui::keys::FOOTER_OF_A_LIST_OF_MEDIA;
+        // **The footer of a view with no line names no key of a line** (T-359),
+        // therefore the number of the lines of this view stands before the text
+        // of the footer.
+        let text_render_footer = crate::ui::keys::the_footer_of_a_list(
+            crate::ui::keys::FOOTER_OF_A_LIST_OF_MEDIA,
+            self.the_lines_of_the_episodes_of_this_view(),
+        );
+        let text_render_footer = text_render_footer.as_str();
         let rows_of_the_footer = self.the_rows_of_the_footer(text_render_footer, area);
         let [header_area, main_area, footer_area] =
             self.the_areas_of_this_view(area, rows_of_the_footer);

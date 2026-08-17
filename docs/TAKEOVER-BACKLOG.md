@@ -34267,3 +34267,188 @@ item:**
 - Every candidate of the items before this one.
 
 **v0.8.189.**
+
+## T-359 — The footer of a view with no line names the keys of a line
+
+**The condition.** The real program v0.8.189 inside tmux, at 160 columns and 45
+rows, of the library `Empty` of the sandbox (the section 5 of
+`docs/TEST-SERVER.md`), which holds no media, no collection, and no playlist.
+The account took `Empty` in `name_selected_lib` and in `id_selected_lib` (the
+traps 203 and 204), `is_offline` was `false`, and no request came back with a
+fault. The correction of T-357 took the panel of the cover of such a view away
+and the correction of T-358 gave the rule of it the name of its list, therefore
+the screen of a view with no line now says which list is empty and how many
+lines it holds. **It still names the keys of a line.**
+
+**The fault.** The key `c` gave the Collections view of that library, and the
+footer of it said:
+
+```text
+──────────────────────Collections and playlists [0 items]───────────────────────
+                 This library has no collection and no playlist.
+                               Press h to go back.
+
+     j/k: move  l: the media  r/D: a name/description  X: remove  h: back
+                            ?: every key  Q: quit
+```
+
+**No line of that view holds a media, a name, or a description**, therefore
+four of the seven parts of that footer named a key that does nothing. The keys
+of the same run, of the same library, gave the same fault in six other views:
+
+| The key | The view | The footer |
+|---|---|---|
+| `c` | Collections | `j/k: move  l: the media  r/D: a name/description  X: remove  …` |
+| `s` | Series | `j/k: move  l: take the line  …` |
+| `a` | Authors | `j/k: move  l: the books of this author  …` |
+| `v` | Narrators | `j/k: move  l: the books of this narrator  …` |
+| `C` | Chapters | `j/k: move  l: go to the chapter  …` |
+| `q` | Queue | `j/k: move  l: play it now  X: take it out  …` |
+| — | Home | `j/k: move  l: play or open  …` |
+
+The Home view of that library said `4 Home [0 items]` and
+`The server gave no shelf for this library.` over that footer, and the Library
+view of it said `4 Library [0 items]` and `This library holds no media.`
+
+**The controls of the same run**, of the library `Books` of the sandbox: the
+Collections view of two lines kept
+`j/k: move  l: the media  r/D: a name/description  X: remove  h: back  ?: every
+key  Q: quit`, the Series view of three series kept
+`j/k: move  l: take the line  …`, the Authors view of nine authors kept
+`j/k: move  l: the books of this author  …`, the Narrators view of two
+narrators kept `j/k: move  l: the books of this narrator  …`, and the Home view
+of it kept `j/k: a shelf  h/l: a cover  Enter: play or open  …` **A view of
+lines holds every one of those keys**, therefore the two roads of one view
+promised the same keys and one of the two could not keep the promise.
+
+**Why.** **The footer of a view is a constant of `src/ui/keys.rs`**, and the
+number of the lines of the view reaches none of them. Every one of the views
+above builds its footer at the head of its render function, before it reads its
+own list at all: `render_lists` writes the footer at the line 3279 of
+`src/ui/tui.rs` and it reads `self.lists.is_empty()` at the line 3281,
+`render_series` writes it before `self.series.is_empty()`, and `render_pod_ep`
+writes it before the two roads of its episodes. The `is_empty()` of each of them
+changes the words of the panel and it never changes the footer.
+
+**The Home view held one part of the rule already** (T-336): its footer takes
+the shape of the table when `lines.is_empty()`, because a shelf of no line gives
+no band. That branch names the keys of the shape and not the keys of a line.
+
+**This is the rule of T-143 for a view with no line.** T-143 read a key that one
+view forgot to hold; T-118 and T-79 hold that a footer must not promise a
+function that the program does not have, and that a key which does nothing is a
+fault of its own. **A view with no line is the largest class of that fault**,
+because every list view of the program has that road.
+
+**The correction**, of two pure functions of `src/ui/keys.rs` and of eleven
+views of `src/ui/tui.rs`:
+
+- `the_footer_of_a_view_with_no_line(of_the_view)` cuts the footer at the two
+  spaces that stand between two parts of it, it takes out every part whose key
+  stands in `THE_KEYS_THAT_NEED_A_LINE` (`j/k`, `l`, `l/Enter`, `l/→`, `X`,
+  `r/D`, `</>`, `Enter`, `h/l`, and `+/-`), and it joins what stays. **The key
+  of a part stands before the first `": "` of that part**, therefore `h: back`
+  keeps its `h` and `h/l: a cover` of the bands of the covers goes away.
+  **A footer that loses every part becomes `FOOTER_OF_A_FAULT`** (T-52): a
+  screen that names no key looks like a program that stopped.
+- `the_footer_of_a_list(of_the_view, the_lines)` gives that text for `the_lines`
+  of 0 and the text of the view itself for every other number.
+
+The eleven views: the Series view (`self.series.len()`), the books of a series
+(`self.series_book_lines().len()`), the Collections view (`self.lists.len()`),
+the media of a collection (`self.list_entry_lines().len()`), the search
+(`self.titles_search_book.len()`), the episodes of a podcast
+(`self.the_lines_of_the_episodes_of_this_view()`, of T-357), the Authors view
+and the Narrators view (the state of the request, whose road of a wait, road of
+a fault, and road of a list of nothing each give no line), the Queue view (the
+lines of the snapshot), the Chapters view (`state.chapters.len()`, because the
+lines of that view need the width of the area and the area needs the rows of the
+footer), and the Home view and the Library view.
+
+**The filter takes its parts out of the footer of the view and not of the
+footer of the panel that holds the focus** (T-320). `the_footer_of_a_panel`
+gives the panel 1, the panel 2, and the panel 3 a footer of their own, and the
+keys `j`, `k`, and `l` of those panels move the lines of the panel: those lines
+stand there while the list of the view holds none. The Home view and the
+Library view therefore filter `of_the_view` and they give the result to
+`the_footer_of_a_panel`, and not the other way.
+
+**The rows of the footer of the Home view and of the Library view come of the
+text with every part in it**, as the two shapes of the Home view do already
+(T-336): a footer of a height of its own would give the panel 4 one row more
+for a library with no media than for the same library with one book in it, and
+the shape of that panel comes of its own height. The nine other views build the
+filtered text before the rows, because their lines need no area.
+
+**The corrected program of the same harness**, of the same screens and of the
+same road:
+
+```text
+the key c   →  h: back  ?: every key  Q: quit
+the key s   →  h: back  Tab: home  R: refresh  ?: every key  Q: quit
+the key a   →  h: back  ?: every key  Q: quit
+the key v   →  h: back  ?: every key  Q: quit
+the key C   →  h: back  ?: every key  Q: quit
+the key q   →  h: back  ?: every key  Q: quit
+the Home    →  Tab: home/library  S-Tab: the next library  /: search
+               R: refresh  ?: every key  Q: quit  f: sequence
+               1/Ctrl+h: the panels  z: hide them
+```
+
+**The controls of the same run stayed as they were**: the Collections view of
+the library `Books` kept its four keys of a line, the Series view kept
+`l: take the line`, the Authors view kept `l: the books of this author`, the
+Narrators view kept `l: the books of this narrator`, and the Home view of it
+kept `j/k: a shelf  h/l: a cover  Enter: play or open`.
+
+**Three builds of the fault, and each of them fails
+`the_footer_of_a_view_with_no_line` of
+`tests/the_footer_of_a_view_with_no_line.rs`:**
+
+1. `if the_lines == 0 && false` of `the_footer_of_a_list` — the test says "the
+   Series view with no line must not name the key of the part `j/k: move`". That
+   build keeps the correction of the Home view and of the Library view, because
+   those two call the pure function itself.
+2. `the_footer_of_a_view_with_no_line` gives its argument back with no change —
+   the test says
+   `left: "j/k: move  l: the media  r/D: a name/description  X: remove  h: back
+   ?: every key  Q: quit"`, `right: "h: back  ?: every key  Q: quit"`.
+3. The two calls of the Home view and of the Library view take a function that
+   gives its argument back — the test says "the Home view with no line must not
+   name the key of the part `j/k: move`".
+
+That test holds the pure function with no screen at all, and it then renders the
+**eleven** views of an `App::new` application on a `TestBackend` of 160 columns
+and 45 rows: an application of that shape holds no shelf, no media of the
+library, no series, no list, no result of a search, no episode, no chapter, and
+no media of the queue. **The control of the same run** is the Collections view
+of one collection of one media and the view of the media of that collection: a
+correction that took the keys of a line away from every view would fail it.
+**The test reads the whole screen and not one row of it** (the trap 149 and
+T-302), because the wrap of a footer of many parts gives more than one row.
+
+**What this item leaves open, and each of them is a candidate and not an item:**
+
+- **Eight views of a list took no rule of this item**: the statistics, the
+  sessions, the devices of an e-reader, the downloads of the server, the ebooks
+  of a media, the bookmarks, the lists that take a media, and the words of a new
+  podcast. Each of them holds a road with no line, and the count of each stands
+  after the footer of its render function: the bookmarks view reads
+  `take_the_bookmarks_again()` before its state, therefore a round of those
+  eight moves the count of each above the rows of its footer.
+- **The footer of the panel 5 of the cover and of the panel 6 of the gallery
+  names `l: play or open` and `+/-: the size of a cell`** (T-327), and a view
+  with no line holds no media of a cell: T-357 takes the two panels away for
+  such a view, therefore the focus reaches them at no frame that this round
+  measured, and a measurement of that road is the work of a round of its own.
+- **The search view of a library with no hit puts its reason in the place of the
+  name** of T-358.
+- **The panel 4 of a view with no line takes the focus of a click and it says no
+  word of its own** of T-356, and the keys `j` and `k` of that focus then move a
+  cursor of no line — **the footer of that focus now names no such key**, and
+  the keys themselves still stand.
+- **The rows of the band that does not fit** of T-353, and **the width of the
+  panel 5 of a media with no cover**.
+- Every candidate of the items before this one.
+
+**v0.8.190.**
