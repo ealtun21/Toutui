@@ -4,7 +4,7 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.8.167.** The item T-333 belongs to this
+**The newest release is v0.8.175.** The item T-344 belongs to this
 session. The
 items T-330.5, T-330.5, and T-330.5 belong to the three sessions before it. The
 item T-330.4 belongs to the session before them. The
@@ -22855,6 +22855,94 @@ the real program.
   item T-323 of `docs/TAKEOVER-BACKLOG.md` names every region of the map of the
   mouse that no stage reached; **each of them is a candidate and not an item.**
 
+### The turn of the hundred and seventy-sixth session (T-343)
+
+**The session of the hundred and seventy-sixth turn took the item 1 of the
+list of the work**: a condition of the program that no measurement has
+reached. The turn before this one named the reader of an ebook and the view
+of the chapters as the two views that no round had measured at a terminal of
+few rows, and the measurement of them found a fault of **every** terminal.
+It needed no proxy, no book of a harness, and no change of the sandbox at
+all: a media that plays and a view of many lines are the whole of the data.
+
+**The fault, of the real program v0.8.173 inside tmux at 160 columns and 45
+rows**, with "A Second Book Of Many Hours" of the sandbox in a playback. The
+key `e` of `Alice in Wonderland`:
+
+```text
+suddenly, thump! thump! down she came upon a heap of sticks and dry leaves, and the fall was over.
+┌ Player ──────────────────────────────────────────────────────────┐
+│ ▶ A Second Book Of Many Hours  Many Hours Author  Chapter 23 of 70│
+│ … the four rows of the band …                                     │
+└───────────────────────────────────────────────────────────────────┘
+herself in a long, low hall, which was lit up by a row of lamps hanging from the roof.
+```
+
+**The user of that screen reads a paragraph, then six lines that the band
+holds, and then the text of the book again**, and nothing says that six lines
+are away. The view of every key gave the same shape, with the border `│` of
+its panel at the right of the row under the band and the line
+`D  Make a copy on the disk` in it; the Chapters view gave the chapters 1 to
+29, then the band, then the chapter 36.
+
+**Why**: `the_five_areas` of `src/ui/tui.rs` holds the header, the work of
+the view, the band of the player, the row of the message, and the footer, and
+**fifteen views built that layout themselves** with the header, the work, and
+the footer alone. The work of those views therefore reached the footer, and
+`render_the_band_of_the_player`, which runs after the view, drew its six rows
+over the last six lines of it. **The rule of T-322 says this already**: "The
+band takes the area of the layout of the view now, and the two of them cannot
+disagree." The views of the frame of the panels took `the_areas_of_a_view`
+already, and the Library view of that same measurement is the control.
+
+**The correction, of three parts.** Every view takes its areas of
+`the_areas_of_a_view`: the seven views of a row of the item under their list
+split the work of the view after it, and the reader of an ebook reads the
+keys of its footer before the layout and gives the area of the book and the
+area of the footer to `reader_tui::render` as two arguments. **The band of
+the player goes away before the work of a view**, which is the decision of
+T-342 for the row of the item: `the_rows_of_the_band_of_a_screen` leaves the
+view its border and one line (`THE_SMALLEST_LIST`), and a band of fewer than
+`THE_SMALLEST_BAND` rows goes away, because a band of 2 rows holds its border
+and it says no media and no place. **The two bars of the Chapters view take
+that same road** with `the_rows_of_the_bars_of_the_chapters`.
+
+**The decisions**: the work of a view goes away last, and the band and the
+bars are two more parts that give way before it; the fifteen views take the
+row of the message of every other view, therefore the reader holds one line
+of the book fewer and a message covers no word of the page; and the footer of
+the reader stands in the footer of the frame, because a footer of its own and
+the band of the player cannot agree.
+
+**The corrected program of the same harness**: the text of the page ends
+above the band, the view of the keys ends at `▌ The media` above it, and the
+Library view is the screen of the program before it, character for character.
+At 100 columns and 8 rows, the Chapters view of the program before this round
+said `The chapters of "A Second Book Of Many Hours" [70 items]` and it showed
+no one of them, with three rows of the band above it; the corrected program
+gives the band no row, one row to the bar of the book, and the line
+`➤ ▶ 57  Chapter 57 of the second book` to the table.
+
+Each of the three corrections failed its gate with the fault built back in.
+**v0.8.174.**
+
+**What this round leaves open, and each of them is a candidate and not an
+item**: the seven views of a row of the item hold that row as a
+`Constraint::Length` of 4 or of 5 and they call no
+`the_areas_of_a_list`, therefore the fault of T-342 stands in them; a band of
+3, 4, or 5 rows loses its buttons, its bars, and its seek in that sequence,
+and **no measurement of tmux of a terminal of 10, 11, or 12 rows ran**; and a
+screen of 5 rows and fewer holds the header, the row of the message, and the
+footer, and no round has decided which of those parts gives way first.
+
+The next round takes the item 1 again. **The parts of a stage of the road of
+the panels that stay open** stand in the section
+`### 0. The road of the panels (T-316 to T-323)` of `## What is open`, and
+the item T-323 of `docs/TAKEOVER-BACKLOG.md` names every region of the map
+of the mouse that no stage reached; **each of them is a candidate and not an
+item.**
+
+
 ## The decisions of T-201 to T-343 that do not open again
 
 These decisions stood in the block of the prompt of the next session until the
@@ -24616,7 +24704,7 @@ item.**
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.174**; `Cargo.toml` is at 0.8.174. The
+> AlbanDAVID/Toutui. Newest release **v0.8.175**; `Cargo.toml` is at 0.8.175. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -25451,8 +25539,8 @@ item.**
 > `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`, and
 > `cargo nextest run` with `ALSA_CONFIG_PATH` pointing at a null asound file of
 > two lines (`pcm.!default { type null }` and `ctl.!default { type null }`).
-> Baseline: **1569 tests in 20.4 seconds**, and `cargo nextest run --run-ignored
-> all` gives **1595 of 1595** with the sandbox up, in about 84 seconds. **Run that
+> Baseline: **1570 tests in 29.2 seconds**, and `cargo nextest run --run-ignored
+> all` gives **1596 of 1596** with the sandbox up, in about 81 seconds. **Run that
 > second command at the end of the session too**: it found T-132 and T-111.
 > **And `cargo clean` is the last command of the round**, after the push: the
 > maintainer asked for it on 2026-08-17, and the paragraph of the disk above
@@ -25623,83 +25711,82 @@ item.**
 >
 
 >
-> **The session of the hundred and seventy-sixth turn took the item 1 of the
+> **The session of the hundred and seventy-seventh turn took the item 1 of the
 > list of the work**: a condition of the program that no measurement has
-> reached. The turn before this one named the reader of an ebook and the view
-> of the chapters as the two views that no round had measured at a terminal of
-> few rows, and the measurement of them found a fault of **every** terminal.
-> It needed no proxy, no book of a harness, and no change of the sandbox at
-> all: a media that plays and a view of many lines are the whole of the data.
+> reached. The turn before this one left a candidate in its own words: "the
+> seven views of a row of the item hold that row as a `Constraint::Length` of 4
+> or of 5 and they call no `the_areas_of_a_list`, therefore the fault of T-342
+> stands in them". This round measured that candidate, and it is a fault. It
+> needed no proxy, no book of a harness, and no change of the sandbox at all: a
+> terminal of few rows and a library that holds a list are the whole of the
+> data.
 >
-> **The fault, of the real program v0.8.173 inside tmux at 160 columns and 45
-> rows**, with "A Second Book Of Many Hours" of the sandbox in a playback. The
-> key `e` of `Alice in Wonderland`:
+> **The fault, of the real program v0.8.174 inside tmux at 100 columns and 8
+> rows**, of the library `Books` of the sandbox, which holds nine authors. The
+> key `a` of the Home view:
 >
 > ```text
-> suddenly, thump! thump! down she came upon a heap of sticks and dry leaves, and the fall was over.
-> ┌ Player ──────────────────────────────────────────────────────────┐
-> │ ▶ A Second Book Of Many Hours  Many Hours Author  Chapter 23 of 70│
-> │ … the four rows of the band …                                     │
-> └───────────────────────────────────────────────────────────────────┘
-> herself in a long, low hall, which was lit up by a row of lamps hanging from the roof.
+> 👋 Connected as toutuitest                📖 Books (book)                         🦜 Toutui v0.8.174
+> 🔗 localhost:13399
+> No description available
+>
+>
+>
+>                j/k: move  l: the books of this author  h: back  ?: every key  Q: quit
 > ```
 >
-> **The user of that screen reads a paragraph, then six lines that the band
-> holds, and then the text of the book again**, and nothing says that six lines
-> are away. The view of every key gave the same shape, with the border `│` of
-> its panel at the right of the row under the band and the line
-> `D  Make a copy on the disk` in it; the Chapters view gave the chapters 1 to
-> 29, then the band, then the chapter 36.
+> **That one line is the whole of the work of the view.** No title stands in its
+> border, and no one of the nine authors stands under it. At 10 rows and at 11
+> rows the border keeps `The authors [9 items]` and no author stands under it;
+> at 12 rows the title and two authors; at 45 rows every one of the nine. **The
+> control of the same screen** is the Home view, which T-342 corrected already:
+> at 100 columns and 8 rows it says `Home [20 items]`, the line
+> `➤     Large Book 0001`, and the row of the item under it.
 >
-> **Why**: `the_five_areas` of `src/ui/tui.rs` holds the header, the work of
-> the view, the band of the player, the row of the message, and the footer, and
-> **fifteen views built that layout themselves** with the header, the work, and
-> the footer alone. The work of those views therefore reached the footer, and
-> `render_the_band_of_the_player`, which runs after the view, drew its six rows
-> over the last six lines of it. **The rule of T-322 says this already**: "The
-> band takes the area of the layout of the view now, and the two of them cannot
-> disagree." The views of the frame of the panels took `the_areas_of_a_view`
-> already, and the Library view of that same measurement is the control.
+> **Why**: seven render functions of `src/ui/tui.rs` take the three areas of
+> `the_areas_of_a_view` (T-343), and they then split the work of the view
+> themselves with `Layout::vertical([Constraint::Fill(1), Constraint::Length(4)])`
+> — the list is the `Fill`, and the panel of the item is the `Length`. **A
+> `Length` stands before a `Fill` in the solver of ratatui**, therefore the panel
+> took its four rows first and the list took what stayed. The seven are the
+> Authors view, the view of the lists that take a media, the view of the devices
+> of an e-reader, the view of the downloads of the server, the view of the
+> ebooks of a media, the view of a new podcast, and the settings of the reader,
+> which holds a `Constraint::Length(5)`. **None of the seven calls
+> `the_areas_of_a_list`**, which holds the rule of T-342 for the eight views of
+> the frame of the panels.
 >
-> **The correction, of three parts.** Every view takes its areas of
-> `the_areas_of_a_view`: the seven views of a row of the item under their list
-> split the work of the view after it, and the reader of an ebook reads the
-> keys of its footer before the layout and gives the area of the book and the
-> area of the footer to `reader_tui::render` as two arguments. **The band of
-> the player goes away before the work of a view**, which is the decision of
-> T-342 for the row of the item: `the_rows_of_the_band_of_a_screen` leaves the
-> view its border and one line (`THE_SMALLEST_LIST`), and a band of fewer than
-> `THE_SMALLEST_BAND` rows goes away, because a band of 2 rows holds its border
-> and it says no media and no place. **The two bars of the Chapters view take
-> that same road** with `the_rows_of_the_bars_of_the_chapters`.
+> **The correction**: one new pure function of `src/ui/tui.rs`,
+> `the_rows_of_the_panel_of_the_item(rows_of_the_view, rows_that_it_wants)`,
+> which gives
+> `rows_of_the_view.saturating_sub(THE_SMALLEST_LIST).min(rows_that_it_wants)`.
+> `the_rows_of_the_row_of_the_item` of T-342 calls it with 2, therefore **the two
+> rules are one rule now**, and the seven views call it with 4 and with 5. The
+> panel needs no rule of a smallest size like `THE_SMALLEST_BAND` of the band,
+> because `render_a_description` draws a `Paragraph` with no border and every row
+> that the panel keeps says a word.
 >
-> **The decisions**: the work of a view goes away last, and the band and the
-> bars are two more parts that give way before it; the fifteen views take the
-> row of the message of every other view, therefore the reader holds one line
-> of the book fewer and a message covers no word of the page; and the footer of
-> the reader stands in the footer of the frame, because a footer of its own and
-> the band of the player cannot agree.
+> **The corrected program of the same harness**: at 100 columns and 8 rows the
+> Authors view says `The authors [9 items]`, the line `➤ Big Author [2 book(s)]`,
+> and `No description available` under it; at 12 rows two authors, at 13 rows
+> three, and at 45 rows the screen of the program before it, character for
+> character. The settings of the reader at 100 columns and 9 rows says
+> `The cache of the ebooks — 512 MB now` and the line `➤ ✓ 512 MB`, and at 45
+> rows it too is the screen of the program before it.
 >
-> **The corrected program of the same harness**: the text of the page ends
-> above the band, the view of the keys ends at `▌ The media` above it, and the
-> Library view is the screen of the program before it, character for character.
-> At 100 columns and 8 rows, the Chapters view of the program before this round
-> said `The chapters of "A Second Book Of Many Hours" [70 items]` and it showed
-> no one of them, with three rows of the band above it; the corrected program
-> gives the band no row, one row to the bar of the book, and the line
-> `➤ ▶ 57  Chapter 57 of the second book` to the table.
->
-> Each of the three corrections failed its gate with the fault built back in.
-> **v0.8.174.**
+> The correction failed its gate with the fault built back in: the body of the
+> pure function became `rows_that_it_wants` alone, and
+> `the_list_of_the_seven_views_keeps_its_line_before_the_panel_of_the_item` then
+> said `left: 4, right: 3`. **v0.8.175.**
 >
 > **What this round leaves open, and each of them is a candidate and not an
-> item**: the seven views of a row of the item hold that row as a
-> `Constraint::Length` of 4 or of 5 and they call no
-> `the_areas_of_a_list`, therefore the fault of T-342 stands in them; a band of
-> 3, 4, or 5 rows loses its buttons, its bars, and its seek in that sequence,
-> and **no measurement of tmux of a terminal of 10, 11, or 12 rows ran**; and a
-> screen of 5 rows and fewer holds the header, the row of the message, and the
-> footer, and no round has decided which of those parts gives way first.
+> item**: a screen of 5 rows and fewer holds the header, the row of the message,
+> and the footer, and no round has decided which of those parts gives way first;
+> a band of 3, 4, or 5 rows loses its buttons, its bars, and its seek in that
+> sequence, and **no measurement of tmux of a terminal of 10, 11, or 12 rows
+> ran**; the map of the mouse of a band that is not whole; and **five of the
+> seven views were not driven in tmux** — the Authors view and the settings of
+> the reader were, and the five others hold the same three lines of code.
 >
 > The next round takes the item 1 again. **The parts of a stage of the road of
 > the panels that stay open** stand in the section
@@ -25778,6 +25865,15 @@ item.**
 > fewer than three rows goes away; the two bars of the Chapters view take that
 > same road; and the footer of the reader stands in the footer of the frame
 > (T-343).
+> **The panel of the item of a view is not the work of that view, and it goes
+> away before the list**: seven views split the work of the view themselves with
+> a `Constraint::Length` of 4 or of 5 for that panel and a `Constraint::Fill`
+> for the list, therefore a terminal of few rows gave the panel its rows first
+> and the Authors view of 8 rows said no title and no author at all; one pure
+> function, `the_rows_of_the_panel_of_the_item`, holds the rule of T-342 and of
+> T-344 now, and a view that held the whole panel keeps it; and **the panel
+> needs no smallest size**, because it draws no border and every row that it
+> keeps says a word (T-344).
 > **The bands of covers of the Home view stand where the table of the panel 4
 > stands**, therefore a screen under 120 columns keeps the list of one column
 > that it had, and a panel that has no room for one whole band keeps the table

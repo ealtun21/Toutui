@@ -338,7 +338,29 @@ const THE_SMALLEST_LIST: u16 = 2;
 fn the_rows_of_the_row_of_the_item(rows_of_the_view: u16) -> u16 {
     // The row of the item takes two rows, because its text wraps in a terminal
     // of 80 columns. See T-94.
-    rows_of_the_view.saturating_sub(THE_SMALLEST_LIST).min(2)
+    the_rows_of_the_panel_of_the_item(rows_of_the_view, 2)
+}
+
+/// The rows of the panel of the item under a list of few rows. See T-344.
+///
+/// **The list of a view is the work of that view, and it goes away last**
+/// (T-342). Seven views of this program hold the panel of the item under their
+/// list as a `Constraint::Length` of 4 or of 5 with the list as a
+/// `Constraint::Fill`, therefore the solver of ratatui gave that panel its rows
+/// first and the list took what stayed. The measurement of 2026-08-17, of the
+/// real program v0.8.174 in a terminal of 100 columns and 8 rows: the Authors
+/// view of a library of nine authors said `No description available` and
+/// **nothing else** — no title, and no author at all.
+///
+/// The panel says the words of the line of the cursor, and **it says nothing at
+/// all while the list holds no line**, because the cursor then stands on no
+/// line that the user sees: it therefore takes the rows that it wants out of
+/// what the list does not need. A view that held the whole panel keeps it,
+/// therefore this rule reaches a terminal of few rows alone.
+fn the_rows_of_the_panel_of_the_item(rows_of_the_view: u16, rows_that_it_wants: u16) -> u16 {
+    rows_of_the_view
+        .saturating_sub(THE_SMALLEST_LIST)
+        .min(rows_that_it_wants)
 }
 
 impl App {
@@ -1452,8 +1474,14 @@ impl App {
         let [header_area, work_area, footer_area] =
             the_areas_of_a_view(area, self.the_rows_of_the_band(), rows_of_the_footer);
 
-        let [main_area, item_area] =
-            Layout::vertical([Constraint::Fill(1), Constraint::Length(4)]).areas(work_area);
+        // **The list of a view goes away last** (T-342 and T-344): the panel
+        // of the item takes no row that the list needs for its border and one
+        // line.
+        let [main_area, item_area] = Layout::vertical([
+            Constraint::Fill(1),
+            Constraint::Length(the_rows_of_the_panel_of_the_item(work_area.height, 4)),
+        ])
+        .areas(work_area);
 
         let state = crate::logic::authors::state();
 
@@ -1516,8 +1544,14 @@ impl App {
         let [header_area, work_area, footer_area] =
             the_areas_of_a_view(area, self.the_rows_of_the_band(), rows_of_the_footer);
 
-        let [main_area, item_area] =
-            Layout::vertical([Constraint::Fill(1), Constraint::Length(4)]).areas(work_area);
+        // **The list of a view goes away last** (T-342 and T-344): the panel
+        // of the item takes no row that the list needs for its border and one
+        // line.
+        let [main_area, item_area] = Layout::vertical([
+            Constraint::Fill(1),
+            Constraint::Length(the_rows_of_the_panel_of_the_item(work_area.height, 4)),
+        ])
+        .areas(work_area);
 
         // A library holds no list until a user makes the first one. The title
         // says that condition, and it names the two keys that make a list:
@@ -1573,8 +1607,14 @@ impl App {
         let [header_area, work_area, footer_area] =
             the_areas_of_a_view(area, self.the_rows_of_the_band(), rows_of_the_footer);
 
-        let [main_area, item_area] =
-            Layout::vertical([Constraint::Fill(1), Constraint::Length(4)]).areas(work_area);
+        // **The list of a view goes away last** (T-342 and T-344): the panel
+        // of the item takes no row that the list needs for its border and one
+        // line.
+        let [main_area, item_area] = Layout::vertical([
+            Constraint::Fill(1),
+            Constraint::Length(the_rows_of_the_panel_of_the_item(work_area.height, 4)),
+        ])
+        .areas(work_area);
 
         let book = self
             .the_book_of_the_send
@@ -1651,8 +1691,14 @@ impl App {
         let [header_area, work_area, footer_area] =
             the_areas_of_a_view(area, self.the_rows_of_the_band(), rows_of_the_footer);
 
-        let [main_area, item_area] =
-            Layout::vertical([Constraint::Fill(1), Constraint::Length(4)]).areas(work_area);
+        // **The list of a view goes away last** (T-342 and T-344): the panel
+        // of the item takes no row that the list needs for its border and one
+        // line.
+        let [main_area, item_area] = Layout::vertical([
+            Constraint::Fill(1),
+            Constraint::Length(the_rows_of_the_panel_of_the_item(work_area.height, 4)),
+        ])
+        .areas(work_area);
 
         let (title, lines) = match crate::logic::the_downloads::state() {
             crate::logic::the_downloads::State::Ready(all) if all.is_empty() => (
@@ -1703,8 +1749,14 @@ impl App {
         let [header_area, work_area, footer_area] =
             the_areas_of_a_view(area, self.the_rows_of_the_band(), rows_of_the_footer);
 
-        let [main_area, item_area] =
-            Layout::vertical([Constraint::Fill(1), Constraint::Length(4)]).areas(work_area);
+        // **The list of a view goes away last** (T-342 and T-344): the panel
+        // of the item takes no row that the list needs for its border and one
+        // line.
+        let [main_area, item_area] = Layout::vertical([
+            Constraint::Fill(1),
+            Constraint::Length(the_rows_of_the_panel_of_the_item(work_area.height, 4)),
+        ])
+        .areas(work_area);
 
         let (title, lines) = match crate::logic::the_ebooks::state() {
             crate::logic::the_ebooks::State::Ready(all) if all.is_empty() => {
@@ -1757,8 +1809,14 @@ impl App {
         let [header_area, work_area, footer_area] =
             the_areas_of_a_view(area, self.the_rows_of_the_band(), rows_of_the_footer);
 
-        let [main_area, item_area] =
-            Layout::vertical([Constraint::Fill(1), Constraint::Length(4)]).areas(work_area);
+        // **The list of a view goes away last** (T-342 and T-344): the panel
+        // of the item takes no row that the list needs for its border and one
+        // line.
+        let [main_area, item_area] = Layout::vertical([
+            Constraint::Fill(1),
+            Constraint::Length(the_rows_of_the_panel_of_the_item(work_area.height, 4)),
+        ])
+        .areas(work_area);
 
         let state = crate::logic::new_podcast::state();
 
@@ -3013,8 +3071,14 @@ impl App {
         let [header_area, work_area, footer_area] =
             the_areas_of_a_view(area, self.the_rows_of_the_band(), rows_of_the_footer);
 
-        let [main_area, item_area] =
-            Layout::vertical([Constraint::Fill(1), Constraint::Length(5)]).areas(work_area);
+        // **The list of a view goes away last** (T-342 and T-344): the panel
+        // of the item takes no row that the list needs for its border and one
+        // line.
+        let [main_area, item_area] = Layout::vertical([
+            Constraint::Fill(1),
+            Constraint::Length(the_rows_of_the_panel_of_the_item(work_area.height, 5)),
+        ])
+        .areas(work_area);
 
         let now = self.megabytes_of_the_cache();
 
@@ -4866,6 +4930,103 @@ mod tests {
             assert_eq!(
                 list.height + of_the_item.height,
                 main_area.height,
+                "the two parts must hold every row of the work of the view"
+            );
+        }
+    }
+
+    /// **The panel of the item of the seven views goes away before the list**
+    /// (T-344).
+    ///
+    /// The measurement of the real program v0.8.174 inside tmux, in a terminal
+    /// of 100 columns and 8 rows, of the library `Books` of nine authors: the
+    /// Authors view of the key `a` said `No description available` and
+    /// **nothing else** — no title of its border, and no author at all. At 10
+    /// rows and at 11 rows it said `The authors [9 items]` and no author. The
+    /// Home view of the same screen kept its title and one line, because
+    /// T-342 corrected it already.
+    ///
+    /// Seven views hold that panel as a `Constraint::Length` of 4 or of 5:
+    /// the Authors view, the view of the lists that take a media, the view of
+    /// the devices of an e-reader, the view of the downloads of the server,
+    /// the view of the ebooks of a media, the view of a new podcast, and the
+    /// settings of the reader.
+    ///
+    /// **The parts of this test stay in one function.**
+    #[test]
+    fn the_list_of_the_seven_views_keeps_its_line_before_the_panel_of_the_item() {
+        // A view of 6 rows and more keeps the four rows that it had, therefore
+        // every screen that stood before T-344 stands in the same shape.
+        for rows_of_the_view in 6..=40u16 {
+            assert_eq!(
+                the_rows_of_the_panel_of_the_item(rows_of_the_view, 4),
+                4,
+                "the view of {rows_of_the_view} rows must keep the panel of the item"
+            );
+        }
+
+        // A view of fewer rows gives the list its border and one line first.
+        assert_eq!(the_rows_of_the_panel_of_the_item(5, 4), 3);
+        assert_eq!(the_rows_of_the_panel_of_the_item(4, 4), 2);
+        assert_eq!(the_rows_of_the_panel_of_the_item(3, 4), 1);
+        assert_eq!(the_rows_of_the_panel_of_the_item(2, 4), 0);
+        assert_eq!(the_rows_of_the_panel_of_the_item(1, 4), 0);
+        assert_eq!(the_rows_of_the_panel_of_the_item(0, 4), 0);
+
+        // The settings of the reader hold a panel of five rows, and that panel
+        // takes the same road.
+        assert_eq!(the_rows_of_the_panel_of_the_item(7, 5), 5);
+        assert_eq!(the_rows_of_the_panel_of_the_item(6, 5), 4);
+        assert_eq!(the_rows_of_the_panel_of_the_item(3, 5), 1);
+        assert_eq!(the_rows_of_the_panel_of_the_item(2, 5), 0);
+
+        // The rule of T-342 is the same rule with two rows.
+        for rows_of_the_view in 0..=40u16 {
+            assert_eq!(
+                the_rows_of_the_row_of_the_item(rows_of_the_view),
+                the_rows_of_the_panel_of_the_item(rows_of_the_view, 2),
+                "the row of the item of {rows_of_the_view} rows takes the same road"
+            );
+        }
+
+        // The areas themselves, of a screen of 100 columns. A screen of 8 rows
+        // gives the work of a view 3 rows: the header takes 2, the row of the
+        // message takes 1, and the footer takes 2. The list of every one of
+        // them keeps its border and one line.
+        for (rows_of_the_screen, rows_of_the_list) in
+            [(8u16, 2u16), (9, 2), (10, 2), (11, 2), (12, 3), (13, 4)]
+        {
+            let screen = Rect {
+                x: 0,
+                y: 0,
+                width: 100,
+                height: rows_of_the_screen,
+            };
+
+            let [_, work_area, _] = the_areas_of_a_view(screen, 0, FOOTER_HEIGHT);
+
+            let [list, of_the_item] = Layout::vertical([
+                Constraint::Fill(1),
+                Constraint::Length(the_rows_of_the_panel_of_the_item(work_area.height, 4)),
+            ])
+            .areas(work_area);
+
+            assert_eq!(
+                list.height, rows_of_the_list,
+                "a screen of {rows_of_the_screen} rows must give the list \
+                 {rows_of_the_list} rows, and it gives {}",
+                list.height
+            );
+            assert!(
+                list.height >= THE_SMALLEST_LIST || list.height == work_area.height,
+                "a screen of {rows_of_the_screen} rows gives the list \
+                 {} rows of the {} rows of the work of the view",
+                list.height,
+                work_area.height
+            );
+            assert_eq!(
+                list.height + of_the_item.height,
+                work_area.height,
                 "the two parts must hold every row of the work of the view"
             );
         }

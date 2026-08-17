@@ -41,6 +41,25 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.175",
+        date: "17/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The list of seven views no longer goes away before the panel \
+             under it.** The Authors view, the view of the lists that take a \
+             media, the view of the devices of an e-reader, the view of the \
+             downloads of the server, the view of the ebooks of a media, the \
+             view of a new podcast, and the settings of the reader each gave \
+             that panel four or five rows of a fixed number, therefore a \
+             terminal of few rows gave the panel its rows first and the list \
+             took what stayed: at 100 columns and 8 rows the Authors view of a \
+             library of nine authors said `No description available` and \
+             nothing else — no title, and no author at all. The panel takes no \
+             row that the list needs for its border and one line now, and a \
+             screen that held the whole panel keeps it.",
+        ],
+    },
+    Entry {
         version: "0.8.174",
         date: "17/08/2026",
         body: &[

@@ -32540,3 +32540,144 @@ measurement):
   gives `Rect::default()` for a row of no room, and no measurement of a click
   of such a screen ran.
 - **Every candidate of the turns before this one stays open.**
+
+## T-344 — The panel of the item of seven views goes away before the list
+
+**The condition**: the real program v0.8.174 inside tmux, of the harness
+`docs/harness/drive.sh`, against the sandbox on `:13399`, with the account
+`toutuitest`. The library `Books` of nine authors held the measurement — the
+account row `name_selected_lib` and `id_selected_lib` was pointed at it, and
+given back at the end. The key `a` of the Home view opens the Authors view.
+
+**The fault, of the Authors view.** At 100 columns and 8 rows:
+
+```text
+👋 Connected as toutuitest                📖 Books (book)                         🦜 Toutui v0.8.174
+🔗 localhost:13399
+No description available
+
+
+
+               j/k: move  l: the books of this author  h: back  ?: every key  Q: quit
+```
+
+**That one line is the whole of the work of the view.** No title stands in its
+border, and no one of the nine authors stands under it.
+
+At 10 rows and at 11 rows, the border keeps its title, and no author stands
+under it:
+
+```text
+───────────────────────────────────────The authors [9 items]────────────────────────────────────────
+No description available
+```
+
+At 12 rows the screen holds the title and two authors; at 13 rows the title
+and three; at 45 rows every one of the nine.
+
+**The control of the same screen**, of the Home view at 100 columns and 8
+rows:
+
+```text
+──────────────────────────────────────────Home [20 items]───────────────────────────────────────────
+➤     Large Book 0001                                                                              █
+Author: N/A - Year: N/A - Duration: 0m
+```
+
+T-342 corrected that view already, and it keeps its title, its line of the
+cursor, and its row of the item at 8 rows.
+
+A second measurement, of the library `Large`, which has no author, showed the
+same shape with the words `This library has no author.` in the place of the
+title. At 8 rows and at 9 rows, even that title went away.
+
+**Why.** Seven render functions of `src/ui/tui.rs` take the three areas of
+`the_areas_of_a_view` (T-343), and then split the work of the view themselves
+with `Layout::vertical([Constraint::Fill(1), Constraint::Length(4)])`: the list
+is the `Fill`, and the panel of the item is the `Length`. **A `Length` stands
+before a `Fill` in the solver of ratatui**, therefore the panel took its four
+rows of the screen first, and the list took what stayed. The seven, with the
+`AppView` of each: `render_authors` (`AppView::Authors`),
+`render_put_in_a_list` (`AppView::PutInAList`),
+`render_the_devices_of_an_ereader` (`AppView::SendToEreader`),
+`render_the_downloads` (`AppView::Downloads`), `render_the_ebooks`
+(`AppView::Ebooks`), `render_new_podcast` (`AppView::NewPodcast`), and
+`render_settings_reader` (`AppView::SettingsReader`, a
+`Constraint::Length(5)`). **None of the seven calls `the_areas_of_a_list`**,
+which holds the rule of T-342 for the eight views of the frame of the panels.
+
+**The correction.** `src/ui/tui.rs`: a new pure function
+
+```rust
+fn the_rows_of_the_panel_of_the_item(rows_of_the_view: u16, rows_that_it_wants: u16) -> u16
+```
+
+that gives
+`rows_of_the_view.saturating_sub(THE_SMALLEST_LIST).min(rows_that_it_wants)`.
+`the_rows_of_the_row_of_the_item` of T-342 calls it with 2, therefore **the two
+rules are one rule now**. The seven views call it with 4, and the settings of
+the reader with 5.
+
+`THE_SMALLEST_LIST` is 2: the list of every view stands in a `Block` of
+`Borders::TOP`, therefore a list of one line needs two rows.
+`render_a_description` draws a `Paragraph` with no border, therefore every row
+that the panel keeps says a word, and **the panel needs no rule of a smallest
+size**, unlike `THE_SMALLEST_BAND` of the band of the player.
+
+**The corrected program**, of the same harness. At 100 columns and 8 rows, the
+Authors view:
+
+```text
+───────────────────────────────────────The authors [9 items]────────────────────────────────────────
+➤ Big Author [2 book(s)]                                                                           █
+No description available
+```
+
+At 10 rows and at 11 rows the screen holds the same shape; at 12 rows it holds
+two authors; at 13 rows three; **at 45 rows it is the screen of the program
+before it, character for character.**
+
+The settings of the reader at 100 columns and 9 rows:
+
+```text
+────────────────────────────────The cache of the ebooks — 512 MB now────────────────────────────────
+➤ ✓ 512 MB                                                                                         █
+The program keeps the ebook of a media on the disk, therefore a second visit needs no request and
+the reader works with no server.
+```
+
+At 45 rows it too is the screen of the program before it.
+
+**The gate**:
+`the_list_of_the_seven_views_keeps_its_line_before_the_panel_of_the_item` of the
+tests of `src/ui/tui.rs`. It reads the pure function for 0 to 40 rows with 4 and
+with 5; it reads that `the_rows_of_the_row_of_the_item` agrees with it for every
+number of rows; and it builds the areas of a screen of 100 columns of 8, 9, 10,
+11, 12, and 13 rows, and it reads the rows of the list of each: 2, 2, 2, 2, 3,
+and 4. **The parts of this test stay in one function.**
+
+The correction failed its gate with the fault built back in: the body of the
+pure function became `rows_that_it_wants` alone, and the test then failed with
+`left: 4, right: 3`. The correction came back at once.
+
+**The decision of this round: the panel of the item of a view is not the work of
+that view, and it goes away before the list.** The seven views that split the
+work of the view themselves take the same rule as the eight views of
+`the_areas_of_a_list`, therefore one pure function holds the rule of T-342 and
+of T-344. A view that held the whole panel keeps it, therefore this rule reaches
+a terminal of few rows alone. And the panel needs no smallest size, because it
+draws no border, and every row that it keeps says a word.
+
+**What this item leaves open** (each of them a candidate and not a
+measurement):
+
+- **A screen of 5 rows and fewer holds the header, the row of the message, and
+  the footer**, and no round has decided which of those parts gives way first.
+- **A band of 3, 4, or 5 rows loses its buttons, its bars, and its seek in that
+  sequence**, and no measurement of tmux of a terminal of 10, 11, or 12 rows
+  ran.
+- **The map of the mouse of a band that is not whole.**
+- **Five of the seven views were not driven in tmux**: the Authors view and the
+  settings of the reader were, and the five others hold the same three lines of
+  code.
+- **Every candidate of the turns before this one stays open.**
