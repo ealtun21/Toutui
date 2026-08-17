@@ -41,6 +41,25 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.206",
+        date: "17/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The key l of a search with no hit says why, and it opens no \
+             view.** The cursor of the view of the search stands at the \
+             first line from the start of the program, therefore a search \
+             with no hit held a cursor over a line that the view does not \
+             have. The key l of such a search of a library of podcasts \
+             opened the view of the episodes of no podcast at all, and that \
+             view said \"The program gets the episodes of this podcast…\" \
+             for a request that the program never made: the words stood for \
+             ever. The same key of a library of books did nothing and said \
+             nothing. The key now says \"This line holds no media.\" and it \
+             stays in the view of the search, and a search with a hit keeps \
+             the work of the key.",
+        ],
+    },
+    Entry {
         version: "0.8.205",
         date: "17/08/2026",
         body: &[

@@ -4654,7 +4654,23 @@ impl App {
                         }
                     }
                     AppView::SearchBook => {
-                        if self.is_podcast {
+                        // **The cursor of this view stands at the first line
+                        // from its birth** (T-375): a search with no hit
+                        // therefore holds a line that the view does not have.
+                        // This key then opened the view of the episodes of no
+                        // podcast at all, and that view said "The program gets
+                        // the episodes of this podcast…" for a request that
+                        // the program never made. The line of a book took the
+                        // silent road of the same shape. The titles hold one
+                        // row for each line of the view, for the two kinds of
+                        // a library.
+                        if selected_search_book
+                            .is_none_or(|index| self.titles_search_book.get(index).is_none())
+                        {
+                            crate::logic::message::say(
+                                self.words_of_a_line_with_no_media("This line holds no media."),
+                            );
+                        } else if self.is_podcast {
                             self.is_from_search_pod = true;
                             if let Some(index) = selected_search_book {
                                 // The lists of this view come from the place of

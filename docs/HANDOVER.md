@@ -27722,6 +27722,53 @@ of a fact that holds an end of a line (T-370); the keys `4`, `j`, `k`, and
 the panel 6 (T-354); the rows of the band that does not fit (T-353); and
 every candidate of the turns before this one.
 
+**The session of the two hundred and seventh turn shipped T-374**: a fact of
+the panel of the cover whose value holds an end of a line stands in one row
+now, and the bar of the progress stays in the panel. **The candidate came of
+T-370**, which left "a value of a fact that holds an end of a line" open, and
+the round made the media of the fault itself: `PATCH /api/items/:id/media`
+gave `A Long Test Book` of the sandbox the genre `Alpha\nOMEGAEND`, and it
+gave the genres of the start back at the end, with a `GET` that confirmed
+them.
+
+**The fault**: `the_lines_of_the_facts` of
+`src/logic/the_facts_of_a_media.rs` passes each line through `in_one_row`
+alone, `the_columns_of` gives a `\n` zero columns, and the `Paragraph` of
+the panel 5 draws `lines.join("\n")`: the value took a second row with no
+label, and the budget of the rows (`of_the_facts` of `src/ui/tui.rs`,
+`lines.len()`) then stood one row short — the last row of the panel, the bar
+of the progress of T-325, fell out of it. The measurement, of v0.8.204
+inside tmux at 160x45: the panel said `Genre     Alpha`, a label-less
+`OMEGAEND, Adventure` under it, and no bar for a book of 50 percent. **The
+control of the same binary**: `One Chapter Book`, of a clean genre and of 20
+percent, held its bar under its `Progress` row.
+
+**The correction is one call**: `in_one_line` (the T-311 rule of a row) now
+wraps the line before `in_one_row` at the one push site of
+`the_lines_of_the_facts`. The corrected program of the same data of the
+server said `Genre     Alpha OMEGAEND, Adventure` in one row, and the bar
+stood in the panel again. **v0.8.205.** The build of the fault — the
+correction removed — failed the new pure test
+`a_value_of_an_end_of_a_line_stands_in_one_row` of that module.
+
+**What this round leaves open, and each of them is a candidate and not an
+item**: the titles of `render_the_reason` and of `render_the_message`, where
+a `\n` glues the words of a title together, because a `Span` drops a control
+character — no lost row, and a name that the library does not hold; the
+cursor of an empty list, which `select_next` of the Bookmarks view and of
+eight sibling views sets to `Some(0)` and a bare `select_previous` sets to
+`Some(usize::MAX)`, and which no render heals, because a view of no line
+draws its reason and every render takes a clone of the state — every read
+absorbs it with `.get(index)` today, therefore it is silent and it does not
+stop the program; the key `l` of a search of a podcast with such a stale
+cursor, which can open `AppView::PodcastEpisode` with every field empty; a
+fact value of an East Asian language in the panel 5, and no media of the
+sandbox holds one; the static titles of a `Block` (`sessions_tui.rs`,
+`stats_tui.rs`, `reader_tui.rs`, and the reader with no book of `tui.rs`)
+each stand under 36 columns and fit a terminal of 40 — the sweep of this
+round measured the four of them, and they are no candidates now; and every
+candidate of the turns before this one.
+
 ## The prompt for the next session
 
 
@@ -28740,52 +28787,50 @@ every candidate of the turns before this one.
 > 1. **A condition of the program that no measurement has reached.** A sweep of
 >    this shape found a fault in one hundred and seventeen sessions of one
 >    hundred and eighteen.
-> **The session of the two hundred and seventh turn shipped T-374**: a fact of
-> the panel of the cover whose value holds an end of a line stands in one row
-> now, and the bar of the progress stays in the panel. **The candidate came of
-> T-370**, which left "a value of a fact that holds an end of a line" open, and
-> the round made the media of the fault itself: `PATCH /api/items/:id/media`
-> gave `A Long Test Book` of the sandbox the genre `Alpha\nOMEGAEND`, and it
-> gave the genres of the start back at the end, with a `GET` that confirmed
-> them.
+> **The session of the two hundred and eighth turn shipped T-375**: the key
+> `l` of a search with no hit says why now, and it opens no view. **The
+> candidate came of T-374**, which left "the key `l` of a search of a podcast
+> with such a stale cursor" open. The cursor of the view of the search stands
+> at the first line from the birth of the application (`App::new`,
+> `src/app.rs:1973`), and no code of the program sets it back to nothing: a
+> search with no hit therefore holds a cursor over a line that the view does
+> not have.
 >
-> **The fault**: `the_lines_of_the_facts` of
-> `src/logic/the_facts_of_a_media.rs` passes each line through `in_one_row`
-> alone, `the_columns_of` gives a `\n` zero columns, and the `Paragraph` of
-> the panel 5 draws `lines.join("\n")`: the value took a second row with no
-> label, and the budget of the rows (`of_the_facts` of `src/ui/tui.rs`,
-> `lines.len()`) then stood one row short — the last row of the panel, the bar
-> of the progress of T-325, fell out of it. The measurement, of v0.8.204
-> inside tmux at 160x45: the panel said `Genre     Alpha`, a label-less
-> `OMEGAEND, Adventure` under it, and no bar for a book of 50 percent. **The
-> control of the same binary**: `One Chapter Book`, of a clean genre and of 20
-> percent, held its bar under its `Progress` row.
+> **The fault**, of v0.8.205 inside tmux against the sandbox: the library
+> `Podcasts`, the key `/`, the words `zzqxzzqx`, and `Enter` gave
+> `Search result [0 items]`, and the key `l` then gave `Episodes [0 items]`
+> with the words `The program gets the episodes of this podcast…` — the words
+> of a request that the program never made (`ids_library_pod_search.get(0)`
+> gives nothing, therefore `ask_the_server_for_the_episodes` never ran, and
+> the log held no line), and they stood for ever. The same key of the same
+> search of the library `Books` did nothing and said nothing (the log
+> 26 -> 26). The arm `AppView::SearchBook` of the key (`src/app.rs:4656`)
+> checked `if let Some(index)` alone, filled every list of the view of the
+> episodes with `.get(index).cloned().unwrap_or_default()`, and set the view.
 >
-> **The correction is one call**: `in_one_line` (the T-311 rule of a row) now
-> wraps the line before `in_one_row` at the one push site of
-> `the_lines_of_the_facts`. The corrected program of the same data of the
-> server said `Genre     Alpha OMEGAEND, Adventure` in one row, and the bar
-> stood in the panel again. **v0.8.205.** The build of the fault — the
-> correction removed — failed the new pure test
-> `a_value_of_an_end_of_a_line_stands_in_one_row` of that module.
+> **The correction is one guard** at the top of that arm: a cursor over no
+> line of `titles_search_book` (one row for each line, for the two kinds of a
+> library) says `This line holds no media.` and it stays in the view of the
+> search. **v0.8.206.** The control of the same binary: the search `Letters`
+> gave `Search result [1 item]`, and the key `l` of it gave
+> `Episodes [57 items]` with the full panel of `Letters of Two Brides`. The
+> build of the fault — the guard disabled — failed the new test
+> `tests/the_key_l_of_a_search_with_no_hit_says_why.rs`.
 >
 > **What this round leaves open, and each of them is a candidate and not an
-> item**: the titles of `render_the_reason` and of `render_the_message`, where
-> a `\n` glues the words of a title together, because a `Span` drops a control
-> character — no lost row, and a name that the library does not hold; the
-> cursor of an empty list, which `select_next` of the Bookmarks view and of
-> eight sibling views sets to `Some(0)` and a bare `select_previous` sets to
-> `Some(usize::MAX)`, and which no render heals, because a view of no line
-> draws its reason and every render takes a clone of the state — every read
-> absorbs it with `.get(index)` today, therefore it is silent and it does not
-> stop the program; the key `l` of a search of a podcast with such a stale
-> cursor, which can open `AppView::PodcastEpisode` with every field empty; a
-> fact value of an East Asian language in the panel 5, and no media of the
-> sandbox holds one; the static titles of a `Block` (`sessions_tui.rs`,
-> `stats_tui.rs`, `reader_tui.rs`, and the reader with no book of `tui.rs`)
-> each stand under 36 columns and fit a terminal of 40 — the sweep of this
-> round measured the four of them, and they are no candidates now; and every
-> candidate of the turns before this one.
+> item**: the other keys of the view of the search over a cursor with no
+> line, which each read `.get` and speak already or take a silent road that
+> no measurement has reached; the cursor of an empty list at large — the nine
+> sibling views whose `select_next` gives `Some(0)` for a list of no line and
+> whose bare `select_previous` gives `Some(usize::MAX)`
+> (`src/app.rs:10805-10922`), and every read absorbs it with `.get` today;
+> the titles of `render_the_reason` and of `render_the_message`, where a `\n`
+> of a title of the server glues the words together, because a `Span` drops a
+> control character — the title of the bookmarks and of the episodes holds
+> the name of a media (`src/logic/bookmarks.rs:168`), therefore the data of
+> the fault is a `PATCH` of a title of two lines; a fact value of an East
+> Asian language in the panel 5, and no media of the sandbox holds one; and
+> every candidate of the turns before this one.
 >    **The turns before this one stand in `## The turns before the three
 >    newest ones` of this file**, above the heading of this prompt. **This item
 >    held three turns, and the block then stood above its limit of size**
@@ -29052,7 +29097,7 @@ every candidate of the turns before this one.
 > and it held **88074** bytes with **one** turn in it. The round of the two
 > hundred and fifth found it at 88308 bytes with one turn in it, and it did the
 > same work: the block held **81281** bytes with no turn at all after the
-> removal, and it held **85713** bytes with **one** turn in it. The round of the two hundred and sixth found it at 85713 bytes with one turn in it, and it did the same work: it holds about **86000** bytes with **one** turn in it now. The round of the two hundred and seventh found it at 85815 bytes with one turn in it, and it did the same work.
+> removal, and it held **85713** bytes with **one** turn in it. The round of the two hundred and sixth found it at 85713 bytes with one turn in it, and it did the same work: it holds about **86000** bytes with **one** turn in it now. The round of the two hundred and seventh found it at 85815 bytes with one turn in it, and it did the same work. The round of the two hundred and eighth found it at 85404 bytes with one turn in it, and it did the same work.
 > **A block that stands at 80000 bytes or under holds two
 > turns**, and the turn of the stage before this one names the parts of that
 > stage which stay open. **The list of the decisions

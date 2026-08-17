@@ -36406,3 +36406,78 @@ item.**
 - A fact value of an East Asian language (two-column characters) in the
   panel 5; no media of the sandbox holds one.
 - Every candidate of the turns before this one stays open.
+
+## T-375 — The key `l` of a search with no hit says why, and it opens no view
+
+**The candidate of T-374.** That item left this line: "**The key `l` of a
+search of a podcast with such a stale cursor** (`src/app.rs:4657` to `:4703`)
+is gated on `if let Some(index)` alone and ends at `AppView::PodcastEpisode`:
+it can switch the view with every field empty, instead of doing nothing."
+
+**The root of the stale cursor.** The cursor of the view of the search stands
+at the first line from the birth of the application: `App::new` selects the
+line 0 (`src/app.rs:1973-1974`), and no code of the program sets that
+selection back to nothing. A search with no hit therefore holds a cursor over
+a line that the view does not have.
+
+**The measurement of the fault, of the real program v0.8.205 inside tmux at
+160x45 against the sandbox on `:13399`, library `Podcasts`.** The key `/`, the
+words `zzqxzzqx`, and `Enter` gave `Search result [0 items]` with the reason
+`The server found nothing for "zzqxzzqx". Press / to write other words.`. The
+key `l` of that view gave the view `Episodes [0 items]` with the words `The
+program gets the episodes of this podcast…` and `Press h to go back.` — the
+words of a request that the program never made: `ids_library_pod_search.get(0)`
+gives nothing, therefore `ask_the_server_for_the_episodes` never ran, the log
+of the program held no line of the episodes, and the words stood after six
+seconds and more. The key `h` gave the view of the search back (the control
+that the keys work).
+
+**The control of the same fault, of the library `Books`.** The same key of
+the same search did nothing and said nothing: the screen kept the view of the
+search, and the log held 26 lines before the key and 26 after it. **That is
+the fault of T-79 (a key that does nothing must say why).**
+
+**Why.** The arm `AppView::SearchBook` of the key `l` (`src/app.rs`, around
+line 4656) read `selected_search_book` = `Some(0)` and, for a library of
+podcasts, filled every list of the view of the episodes with
+`.get(index).cloned().unwrap_or_default()` — every field empty — and set
+`view_state = AppView::PodcastEpisode` with no check of the line. The arm of a
+book spawned a play task whose `.and_then(|i| ids_search_book.get(i))` gave
+nothing, in silence.
+
+**The correction is one guard, at the top of the arm.** If
+`selected_search_book` is nothing, or `titles_search_book.get(index)` is
+nothing (`titles_search_book` holds one row for each line of the view, for
+the two kinds of a library), the key says `This line holds no media.` (the
+sentence of `words_of_a_line_with_no_media`, which gives `Nothing` for this
+view because `selected_item_id` of the view of the search of a library of
+podcasts is `None`) and it stays in the view of the search. **v0.8.206.**
+
+**The corrected program of the same conditions.** The podcast arm said `This
+line holds no media.` and stayed in `Search result [0 items]`; the book arm
+said the same, and the log held 25 lines before and 25 after. **The control**
+— the search `Letters` of the library `Podcasts` gave `Search result [1
+item]`, and the key `l` of it gave `Episodes [57 items]` with the full panel
+of `Letters of Two Brides`.
+
+**The build of the fault fails the gate.** The new integration test
+`tests/the_key_l_of_a_search_with_no_hit_says_why.rs`, one test function,
+offline (the port 1 that nothing listens on, T-25), asserts the cursor of the
+birth is `Some(0)`, the two arms say the sentence and stay, and a search of
+one row still opens the view of the episodes. The build of the fault (the
+guard disabled with `if false && …`) fails it.
+
+**What this item leaves open, and each of them is a candidate and not an
+item.**
+
+- The other keys of the view of the search over a cursor with no line (for
+  example the keys of a download or of the queue) each read `.get` and take
+  the sentence of `words_of_a_line_with_no_media` already, or take a silent
+  road that no measurement has reached.
+- **The cursor of an empty list, at large.** The nine sibling views whose
+  `select_next` gives `Some(0)` for a list of no line (Chapters, Bookmarks,
+  NewPodcast, Keys, Authors, Ebooks, PutInAList, SendToEreader,
+  SettingsReader, `src/app.rs` around lines 10805-10922) and whose bare
+  `select_previous` gives `Some(usize::MAX)`; every read of them absorbs the
+  index with `.get` today.
+- Every candidate of the turns before this one stays open.
