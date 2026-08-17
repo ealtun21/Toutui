@@ -515,6 +515,32 @@ pub fn the_name_for_the_disk(filter: &str) -> String {
     }
 }
 
+/// Says whether the start must ask the server for the name of the filter.
+///
+/// A row that an older database wrote holds the value of the filter and no
+/// name: the version 11 added the column with an empty text, and the write of
+/// the name stands behind a key. The value of an author and of a series holds
+/// an identity, therefore no arithmetic gives the name back, and the start
+/// named the group ("An author") for ever. The five other kinds hold the name
+/// itself in base64, and the header decodes it (T-379): they need no request.
+/// See T-381.
+pub fn the_filter_needs_a_name_of_the_server(filter: &str, name: &str) -> bool {
+    name.is_empty() && (filter.starts_with("authors.") || filter.starts_with("series."))
+}
+
+/// Gives the name of the filter back out of the choices of the server.
+///
+/// The choices of `get_filter_data` hold the pair of the identity and of the
+/// name for every author and every series of the library. A filter whose
+/// author or series the server no longer holds gives no name: the header then
+/// names the group, and the log says why. See T-381.
+pub fn the_name_out_of_the_choices(choices: &[FilterChoice], filter: &str) -> Option<String> {
+    choices
+        .iter()
+        .find(|choice| choice.value == filter)
+        .map(|choice| choice.label.clone())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

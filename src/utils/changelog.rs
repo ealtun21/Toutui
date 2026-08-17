@@ -41,6 +41,19 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.212",
+        date: "18/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The start of the program names the filter of an old \
+             database.** A row that a version before 0.8.211 wrote holds the \
+             value of a filter of an author or of a series and no name: the \
+             header of the start named the group, for example \"An author\", \
+             at every start. The start now asks the server for the name one \
+             time, and the account then keeps it.",
+        ],
+    },
+    Entry {
         version: "0.8.211",
         date: "18/08/2026",
         body: &[

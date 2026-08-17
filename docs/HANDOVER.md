@@ -28004,12 +28004,51 @@ read absorbs it with `.get` today; a fact value of an East Asian language
 in the panel 5, and no media of the sandbox holds one; and
 every candidate of the turns before this one.
 
+**The session of the two hundred and thirteenth turn shipped T-380**: the
+start of the program names the filter of an author and of a series now.
+**The candidate came of T-379** (the first leftover: the box of the name
+lives in the process, and the row of the account holds the value alone).
+
+**The fault**, of v0.8.210 inside tmux at 100 columns against the
+sandbox: `sqlite3` wrote the filter of the author Lewis Carroll
+(`authors.<the identity in base64>`) into `users.library_filter`, the
+program started, the Library view held `[1 item]`, and the header read
+`⇅ The sequence of the server ▣ An author` — the group, and not the
+name.
+
+**The correction, v0.8.211, three parts**: the version 11 of the
+database adds the column `library_filter_name` to `users` (and
+`LATEST_VERSION` goes to 11 — the first build forgot that constant, and
+the runner then returned before the new migration); `get_library_sort`
+and `update_library_sort` carry the name, and the write reads it of the
+new `sort_filter::the_name_for_the_disk`; and `App::new` seeds the box
+`the_name_that_stands` out of the row, therefore a write of the
+sequence alone, after a restart, keeps the name. The control of the
+corrected binary: the key `f` and the row Lewis Carroll gave
+`▣ Lewis Carroll`, a restart gave it at the start, a change of the sort
+after the restart kept the name in the row, and a removal of the filter
+emptied the value and the name together. The build of the fault —
+`the_name_for_the_disk` disabled — fails the new test
+`tests/the_start_names_the_filter_of_the_disk.rs`. The row of the
+account holds the sequence and the filter of the start again, and no
+media of the sandbox changed.
+
+**What this round leaves open, and each of them is a candidate and not
+an item**: a filter of an author or of a series that an older database
+wrote still names the group at the start, because the name of it
+reached no disk; the header reads `▣ No filter` after a removal of the
+filter, and the words could omit the mark; the cursor of an empty list
+at large — the nine sibling views of `src/app.rs:10805-10922`, and
+every read absorbs it with `.get` today; a fact value of an East Asian
+language in the panel 5, and no media of the sandbox holds one; and
+every candidate of the turns before this one.
+
 ## The prompt for the next session
 
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.211**; `Cargo.toml` is at 0.8.211. The
+> AlbanDAVID/Toutui. Newest release **v0.8.212**; `Cargo.toml` is at 0.8.212. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -29022,44 +29061,47 @@ every candidate of the turns before this one.
 > 1. **A condition of the program that no measurement has reached.** A sweep of
 >    this shape found a fault in one hundred and nineteen sessions of one
 >    hundred and twenty.
-> **The session of the two hundred and thirteenth turn shipped T-380**: the
-> start of the program names the filter of an author and of a series now.
-> **The candidate came of T-379** (the first leftover: the box of the name
-> lives in the process, and the row of the account holds the value alone).
+> **The session of the two hundred and fourteenth turn shipped T-381**: the
+> start of the program names the filter of an old database now. **The
+> candidate came of T-380** (the first leftover: a row that a version before
+> 0.8.211 wrote holds the value of a filter of an author or of a series and
+> no name, and no request of the start gave the name back).
 >
-> **The fault**, of v0.8.210 inside tmux at 100 columns against the
-> sandbox: `sqlite3` wrote the filter of the author Lewis Carroll
-> (`authors.<the identity in base64>`) into `users.library_filter`, the
-> program started, the Library view held `[1 item]`, and the header read
-> `⇅ The sequence of the server ▣ An author` — the group, and not the
+> **The fault**, of v0.8.211 inside tmux at 100 columns against the
+> sandbox: `sqlite3` wrote the filter of the author Lewis Carroll into
+> `users.library_filter` and an empty text into `users.library_filter_name`
+> — the row that the migration to the version 11 gives an old database —
+> and the header of every start read `▣ An author`: the group, and not the
 > name.
 >
-> **The correction, v0.8.211, three parts**: the version 11 of the
-> database adds the column `library_filter_name` to `users` (and
-> `LATEST_VERSION` goes to 11 — the first build forgot that constant, and
-> the runner then returned before the new migration); `get_library_sort`
-> and `update_library_sort` carry the name, and the write reads it of the
-> new `sort_filter::the_name_for_the_disk`; and `App::new` seeds the box
-> `the_name_that_stands` out of the row, therefore a write of the
-> sequence alone, after a restart, keeps the name. The control of the
-> corrected binary: the key `f` and the row Lewis Carroll gave
-> `▣ Lewis Carroll`, a restart gave it at the start, a change of the sort
-> after the restart kept the name in the row, and a removal of the filter
-> emptied the value and the name together. The build of the fault —
-> `the_name_for_the_disk` disabled — fails the new test
-> `tests/the_start_names_the_filter_of_the_disk.rs`. The row of the
-> account holds the sequence and the filter of the start again, and no
+> **The correction, v0.8.212, three parts**:
+> `sort_filter::the_filter_needs_a_name_of_the_server` (true when the name
+> of the row is empty and the value starts with `authors.` or `series.`;
+> the five other kinds hold the name itself in base64 and need no request);
+> `sort_filter::the_name_out_of_the_choices` (the label of the choice whose
+> value is the value of the row); and one request of `get_filter_data` in
+> `App::new`, after the library of the account is resolved and not in the
+> offline mode — the name goes to the box and to the row of the account,
+> and the next start reads the row alone. A fault of the request or of the
+> write takes a line of the log and no word for the user. The control of
+> the corrected binary: the author row healed (`▣ Lewis Carroll` at the
+> start, and the row then held the pair), the series row healed
+> (`▣ The Test Chronicles`), and a filter of an author that the server does
+> not hold kept the group, wrote no name, and the log held the WARN line.
+> The build of the fault — the predicate disabled with `&& false` — fails
+> the new test `tests/the_name_of_an_old_filter_comes_of_the_server.rs`.
+> The row of the account holds the empty texts of the start again, and no
 > media of the sandbox changed.
 >
 > **What this round leaves open, and each of them is a candidate and not
-> an item**: a filter of an author or of a series that an older database
-> wrote still names the group at the start, because the name of it
-> reached no disk; the header reads `▣ No filter` after a removal of the
-> filter, and the words could omit the mark; the cursor of an empty list
-> at large — the nine sibling views of `src/app.rs:10805-10922`, and
-> every read absorbs it with `.get` today; a fact value of an East Asian
-> language in the panel 5, and no media of the sandbox holds one; and
-> every candidate of the turns before this one.
+> an item**: the offline mode with such an old row still names the group,
+> and the heal waits for a start with the server up (by design: the
+> offline mode sends no request); the header reads `▣ No filter` after a
+> removal of the filter, and the words could omit the mark; the cursor of
+> an empty list at large — the nine sibling views of
+> `src/app.rs:10805-10922`, and every read absorbs it with `.get` today; a
+> fact value of an East Asian language in the panel 5, and no media of the
+> sandbox holds one; and every candidate of the turns before this one.
 >    **The turns before this one stand in `## The turns before the three
 >    newest ones` of this file**, above the heading of this prompt. **This item
 >    held three turns, and the block then stood above its limit of size**
@@ -29326,7 +29368,7 @@ every candidate of the turns before this one.
 > and it held **88074** bytes with **one** turn in it. The round of the two
 > hundred and fifth found it at 88308 bytes with one turn in it, and it did the
 > same work: the block held **81281** bytes with no turn at all after the
-> removal, and it held **85713** bytes with **one** turn in it. The round of the two hundred and sixth found it at 85713 bytes with one turn in it, and it did the same work: it holds about **86000** bytes with **one** turn in it now. The round of the two hundred and seventh found it at 85815 bytes with one turn in it, and it did the same work. The round of the two hundred and eighth found it at 85404 bytes with one turn in it, and it did the same work. The round of the two hundred and ninth found it at 85391 bytes with one turn in it, and it did the same work. The round of the two hundred and tenth found it at 85549 bytes with one turn in it, and it did the same work. The round of the two hundred and eleventh found it at 85579 bytes with one turn in it, and it did the same work. The round of the two hundred and twelfth found it at 85050 bytes with one turn in it, and it did the same work. The round of the two hundred and thirteenth found it at 85565 bytes with one turn in it, and it did the same work.
+> removal, and it held **85713** bytes with **one** turn in it. The round of the two hundred and sixth found it at 85713 bytes with one turn in it, and it did the same work: it holds about **86000** bytes with **one** turn in it now. The round of the two hundred and seventh found it at 85815 bytes with one turn in it, and it did the same work. The round of the two hundred and eighth found it at 85404 bytes with one turn in it, and it did the same work. The round of the two hundred and ninth found it at 85391 bytes with one turn in it, and it did the same work. The round of the two hundred and tenth found it at 85549 bytes with one turn in it, and it did the same work. The round of the two hundred and eleventh found it at 85579 bytes with one turn in it, and it did the same work. The round of the two hundred and twelfth found it at 85050 bytes with one turn in it, and it did the same work. The round of the two hundred and thirteenth found it at 85565 bytes with one turn in it, and it did the same work. The round of the two hundred and fourteenth found it at 85376 bytes with one turn in it, and it did the same work.
 > **A block that stands at 80000 bytes or under holds two
 > turns**, and the turn of the stage before this one names the parts of that
 > stage which stay open. **The list of the decisions

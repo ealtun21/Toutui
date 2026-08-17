@@ -1061,6 +1061,71 @@ impl App {
             library_name = libraries_names[index].clone();
             media_type = media_types[index].clone();
         }
+
+        // A filter of an author or of a series that an older database wrote
+        // holds no name in the row of the account (T-380 added the column, and
+        // the write of it stands behind a key): the start then named the group
+        // for ever. This one request gives the name back, the box and the row
+        // keep it, and the next start reads the row alone. The write stands
+        // behind no key of the user, therefore its fault takes a line of the
+        // log and no word for the user (T-177 and T-205). See T-381.
+        if !is_offline
+            && crate::logic::sort_filter::the_filter_needs_a_name_of_the_server(
+                &library_filter,
+                &library_filter_name,
+            )
+        {
+            match crate::api::libraries::get_filter_data::get_filter_data(&api, &id_selected_lib)
+                .await
+            {
+                Ok(data) => {
+                    let choices = crate::api::libraries::get_filter_data::choices(&data);
+                    match crate::logic::sort_filter::the_name_out_of_the_choices(
+                        &choices,
+                        &library_filter,
+                    ) {
+                        Some(name) => {
+                            crate::logic::sort_filter::the_name_that_stands::keep(
+                                &library_filter,
+                                &name,
+                            );
+                            if let Err(error) = crate::db::crud::update_library_sort(
+                                &username,
+                                &library_sort,
+                                library_desc,
+                                &library_filter,
+                                &name,
+                            ) {
+                                log::error!(
+                                    "[app] the program did not write the name \"{}\" of the \
+                                     filter of {}: {}. The next start asks the server again.",
+                                    name,
+                                    username,
+                                    error
+                                );
+                            }
+                        }
+                        None => {
+                            log::warn!(
+                                "[app] the server no longer holds the filter {} of {}. \
+                                 The header names the group.",
+                                library_filter,
+                                username
+                            );
+                        }
+                    }
+                }
+                Err(error) => {
+                    log::warn!(
+                        "[app] the name of the filter {} of {} did not come: {}. \
+                         The header names the group, and the next start asks again.",
+                        library_filter,
+                        username,
+                        error
+                    );
+                }
+            }
+        }
         // The offline mode shows the media of the disk, and not a library of the
         // server. The header must say that.
         let lib_name_type = if is_offline {

@@ -36835,3 +36835,71 @@ words could omit the mark when no filter stands (the leftover of T-379).
 (3) The candidates of T-379 that stay: the cursor of an empty list at
 large, the nine sibling views of `src/app.rs`; a fact value of an East
 Asian language in the panel 5.
+
+## T-381 — The start names the filter of an old database
+
+**The candidate came of T-380.** The first leftover candidate of that round:
+a filter of an author or of a series that an older database wrote (the
+column of the version 11 empty) still names the group at the start of the
+program, because the name reached no disk and no request of the start gave
+it back.
+
+**The fault, measured in the real program v0.8.211 inside tmux at 100
+columns against the sandbox on `:13399`, library `Books`.** `sqlite3` wrote
+`authors.MzEyYzQyZmYtZTgwMC00YjI5LTk5NzQtZDJkODk5ZDBiYmE5` (the identity of
+the author Lewis Carroll in base64) into `users.library_filter` and an
+empty text into `users.library_filter_name` — the row that the migration to
+the version 11 gives a database of the version 10. The Library view held
+`[1 item]` (Alice in Wonderland), and the second row of the header read
+`⇅ The sequence of the server ▣ An author` — the group, and not the name,
+at every start.
+
+**The root.** The value of such a filter holds an identity, no arithmetic
+gives the name back (T-379), the box `the_name_that_stands` dies with the
+process, and the seed of T-380 reads the row alone — a row that an older
+version wrote holds no name, and no code path asked the server for it.
+
+**The correction, v0.8.212, three parts.**
+
+1. `the_filter_needs_a_name_of_the_server(filter, name)` of
+   `src/logic/sort_filter.rs` — true when the name of the row is empty and
+   the value starts with `authors.` or `series.`; the five other kinds hold
+   the name itself in base64 and need no request.
+2. `the_name_out_of_the_choices(choices, filter)` of the same file — gives
+   the label of the choice whose value is the value of the row.
+3. `App::new` of `src/app.rs`, after the library of the account is resolved
+   and only when the program is not offline: one request of
+   `get_filter_data`, the name goes to the box and to the row of the
+   account with `update_library_sort`, and the next start reads the row
+   alone. A fault of the request or of the write takes a line of the log
+   and no word for the user (the rule of T-177 and T-205); a filter whose
+   author the server no longer holds gives a WARN line "the server no
+   longer holds the filter ... The header names the group."
+
+**The control of the corrected binary, real keys inside tmux.** The author
+row healed — the header read `▣ Lewis Carroll` at the start (first frame
+in 408 ms), and the row of the disk then held the pair; the series row
+healed the same way (`▣ The Test Chronicles`); a filter of an author that
+the server does not hold (`authors.QW4gYXV0aG9yIHRoYXQgd2VudCBhd2F5`) kept
+the group `▣ An author`, wrote no name, and the log held the WARN line.
+
+**The test.** `tests/the_name_of_an_old_filter_comes_of_the_server.rs`, one
+test function (the rule of the box of the process). It reads the predicate
+of the two kinds of the identity, of a name that stands, of a genre, of an
+empty filter, and of a value with no identity; and the name out of the
+choices, with the road of an author that went away (`None`). The build of
+the fault — the predicate disabled with `&& false` — fails it with
+`assertion failed: the_filter_needs_a_name_of_the_server(...)`.
+
+**The road back of the sandbox.** No media changed and no playback ran;
+`sqlite3` gave the row of the account `library_sort`, `library_desc`,
+`library_filter`, and `library_filter_name` of the start back (empty
+texts).
+
+**What this round leaves open, each a candidate and not an item.** (1) The
+offline mode with such an old row still names the group, and the heal
+waits for a start with the server up — by design, because the offline mode
+sends no request. (2) The header reads `▣ No filter` after a removal of the
+filter — the leftover of T-379. (3) The candidates of T-380 that stay: the
+cursor of an empty list at large, the nine sibling views of `src/app.rs`; a
+fact value of an East Asian language in the panel 5.
