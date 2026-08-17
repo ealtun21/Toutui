@@ -41,6 +41,21 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.213",
+        date: "18/08/2026",
+        body: &[
+            "Fixed:",
+            "- **A library of podcasts does not take a filter that the \
+             server ignores.** The server ignores a filter of an author, of \
+             a series, of a narrator, of a publisher, and of the position in \
+             a library of podcasts, and it answers every item: the header \
+             then named a filter that did not act. Such a filter now stays \
+             out of the request and out of the header, the view of the \
+             filter of such a library offers no choice of the position, and \
+             a library of books gives the filter back.",
+        ],
+    },
+    Entry {
         version: "0.8.212",
         date: "18/08/2026",
         body: &[

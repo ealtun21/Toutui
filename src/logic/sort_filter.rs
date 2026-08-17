@@ -359,7 +359,16 @@ pub fn rows(is_podcast: bool, filters: &[FilterChoice], note: Option<String>) ->
 
     let mut group = "";
 
-    for one in progress_choices().iter().chain(filters.iter()) {
+    // **The server ignores a filter of the position in a library of
+    // podcasts** (T-382): the view of such a library must not offer a choice
+    // that does not act.
+    let of_the_program = if is_podcast {
+        Vec::new()
+    } else {
+        progress_choices()
+    };
+
+    for one in of_the_program.iter().chain(filters.iter()) {
         // A group gives its name one time, before its first value.
         if one.group != group {
             group = one.group;
@@ -526,6 +535,32 @@ pub fn the_name_for_the_disk(filter: &str) -> String {
 /// See T-381.
 pub fn the_filter_needs_a_name_of_the_server(filter: &str, name: &str) -> bool {
     name.is_empty() && (filter.starts_with("authors.") || filter.starts_with("series."))
+}
+
+/// Says whether a filter of this value acts in a library of this kind.
+///
+/// **The server ignores a filter of an author, of a series, of a narrator,
+/// of a publisher, and of the position in a library of podcasts, and it
+/// answers every item** (T-382). The measurement against the sandbox: a
+/// library of 520 podcasts with no listening at all gave 520 items for
+/// `progress.finished`, for `progress.in-progress`, and for
+/// `progress.not-started` together, and the filters of an author, of a
+/// series, of a narrator, and of a publisher gave the count of no filter.
+/// The header then names a filter that does not act, and a view must not
+/// say a state that the program does not have (T-91). A genre, a tag, and
+/// a language act in the two kinds of a library, and a filter of no value
+/// is no filter.
+pub fn is_a_filter_of_the_library(filter: &str, is_podcast: bool) -> bool {
+    if filter.is_empty() || !is_podcast {
+        return true;
+    }
+
+    let kind = filter.split('.').next().unwrap_or_default();
+
+    !matches!(
+        kind,
+        "authors" | "series" | "narrators" | "publishers" | "progress"
+    )
 }
 
 /// Gives the name of the filter back out of the choices of the server.

@@ -36903,3 +36903,88 @@ sends no request. (2) The header reads `▣ No filter` after a removal of the
 filter — the leftover of T-379. (3) The candidates of T-380 that stay: the
 cursor of an empty list at large, the nine sibling views of `src/app.rs`; a
 fact value of an East Asian language in the panel 5.
+
+## T-382 — A library of podcasts does not take a filter that the server ignores
+
+**The candidate came of the sweep of T-381.** The database holds one
+`library_filter` per account and not per library, and the guard of
+`App::new` clears a sequence field that has no meaning in a library of
+podcasts (`src/app.rs`, `is_a_field_of_the_program`) — no such guard stood
+for the filter.
+
+**The fault, measured two ways against the sandbox on `:13399`, program
+v0.8.212 inside tmux at 100 columns.**
+
+1. `curl` of the server: the library `ManyPods` of 520 podcasts with no
+   listening at all answered 520 items for `filter=progress.finished`, for
+   `progress.in-progress`, and for `progress.not-started` together, and the
+   filters of an author, of a series, of a narrator, and of a publisher
+   gave the count of no filter (the library `Podcasts` of 2 podcasts gave 2
+   for each of them). A genre, a tag, and a language act: a value that no
+   podcast holds gave 0. The server ignores the five kinds in a library of
+   podcasts.
+2. The real program: `sqlite3` wrote the filter of the author Lewis Carroll
+   (`authors.MzEyYzQyZmYtZTgwMC00YjI5LTk5NzQtZDJkODk5ZDBiYmE5` with the
+   name `Lewis Carroll`) into the row of the account and the library
+   `Podcasts` beside it. The header read `⇅ The sequence of the server ▣
+   Lewis Carroll`, the title of the panel read `Library [2 items] — a
+   filter is on (f)`, and the list held the two podcasts of the library —
+   every item, and no filter at all. The second face, with no library
+   switch: the view of the key `f` of the library `Podcasts` offered the
+   group `Your position`, the key `l` applied `Finished`, and the header
+   then read `▣ Finished` over the same two podcasts, which no one
+   finished.
+
+**The root.** `App::new` reads the one row of the account and sends
+`library_filter` to every library; the server of Audiobookshelf ignores
+`authors.*`, `series.*`, `narrators.*`, `publishers.*`, and `progress.*`
+for a library of podcasts and answers every item; the header and the title
+of the panel then name a filter that does not act, against the rule of
+T-91 (a view must not say a state that the program does not have).
+
+**The correction, v0.8.213, three parts.**
+
+1. `sort_filter::is_a_filter_of_the_library(filter, is_podcast)` — false
+   for the five kinds in a library of podcasts; a genre, a tag, a
+   language, and an empty filter pass; every kind passes in a library of
+   books.
+2. A guard in `App::new` (before the heal of T-381): a filter that is not
+   a filter of the library goes out of the request and out of the header,
+   and **the row of the disk keeps it**, in the way of the sequence guard
+   — the library of books gives it back.
+3. `sort_filter::rows` — the view of the sequence and of the filter of a
+   library of podcasts offers no group `Your position`.
+
+**The control of the corrected binary, real keys inside tmux.** The
+library `Podcasts` with the author filter in the row gave `▣ No filter`
+and the title `Library [2 items]` with no words of a filter; the view of
+the key `f` of that library held the tags and the languages and no group
+`Your position`; the library `Books` after it gave `▣ Lewis Carroll` and
+`Library [1 item] — a filter is on (f)` with Alice in Wonderland alone —
+the row of the disk kept the filter through the two starts of the podcast
+library.
+
+**The test.**
+`tests/a_filter_that_the_server_ignores_stays_out_of_a_library_of_podcasts.rs`,
+one test function (the rule of the box of the process). It reads the
+predicate of the five kinds of the two library kinds, of the three kinds
+that act, and of the empty filter; and the rows of the two library kinds.
+The build of the fault — the predicate disabled with `|| true` and the
+rows guard with `&& false` — fails it with `a library of podcasts must not
+take the filter authors.…`.
+
+**The road back of the sandbox.** No media changed and no playback ran;
+`sqlite3` gave the row of the account the values of the start back (the
+library `Books`, and the four columns of the sequence and of the filter
+empty).
+
+**What this round leaves open, each a candidate and not an item.** (1) A
+filter of an author of one library of books rides into a second library of
+books: the server honors it there and answers 0 items, the view says "No
+media of this library agrees with the filter", and the header names the
+author — true words, and still a filter of another library. (2) The
+header reads `▣ No filter` after a removal of the filter — the leftover of
+T-379. (3) The candidates of T-381 that stay: the cursor of an empty list
+at large, the nine sibling views of `src/app.rs`; a fact value of an East
+Asian language in the panel 5; the offline mode with an old nameless
+filter row names the group (by design).

@@ -930,7 +930,7 @@ impl App {
         // of one of them is the fault of the accounts: the start stops with the
         // words that name the database, and the key `R` keeps the application of
         // the user (T-205).
-        let (mut library_sort, library_desc, library_filter, library_filter_name) =
+        let (mut library_sort, library_desc, mut library_filter, library_filter_name) =
             crate::db::crud::get_library_sort(&username)
                 .map_err(|error| crate::db::TheAccountsDidNotCome(error.to_string()))?;
 
@@ -1060,6 +1060,19 @@ impl App {
         if let Some(index) = libraries_ids.iter().position(|x| x == &target) {
             library_name = libraries_names[index].clone();
             media_type = media_types[index].clone();
+        }
+
+        // **The server ignores a filter of an author, of a series, of a
+        // narrator, of a publisher, and of the position in a library of
+        // podcasts, and it answers every item** (T-382): the header then
+        // named a filter that does not act. The row of the disk keeps the
+        // filter, in the way of the sequence below: the library of books
+        // gives it back.
+        if !crate::logic::sort_filter::is_a_filter_of_the_library(
+            &library_filter,
+            media_type == "podcast",
+        ) {
+            library_filter = String::new();
         }
 
         // A filter of an author or of a series that an older database wrote

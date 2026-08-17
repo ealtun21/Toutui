@@ -28043,12 +28043,54 @@ every read absorbs it with `.get` today; a fact value of an East Asian
 language in the panel 5, and no media of the sandbox holds one; and
 every candidate of the turns before this one.
 
+**The session of the two hundred and fourteenth turn shipped T-381**: the
+start of the program names the filter of an old database now. **The
+candidate came of T-380** (the first leftover: a row that a version before
+0.8.211 wrote holds the value of a filter of an author or of a series and
+no name, and no request of the start gave the name back).
+
+**The fault**, of v0.8.211 inside tmux at 100 columns against the
+sandbox: `sqlite3` wrote the filter of the author Lewis Carroll into
+`users.library_filter` and an empty text into `users.library_filter_name`
+— the row that the migration to the version 11 gives an old database —
+and the header of every start read `▣ An author`: the group, and not the
+name.
+
+**The correction, v0.8.212, three parts**:
+`sort_filter::the_filter_needs_a_name_of_the_server` (true when the name
+of the row is empty and the value starts with `authors.` or `series.`;
+the five other kinds hold the name itself in base64 and need no request);
+`sort_filter::the_name_out_of_the_choices` (the label of the choice whose
+value is the value of the row); and one request of `get_filter_data` in
+`App::new`, after the library of the account is resolved and not in the
+offline mode — the name goes to the box and to the row of the account,
+and the next start reads the row alone. A fault of the request or of the
+write takes a line of the log and no word for the user. The control of
+the corrected binary: the author row healed (`▣ Lewis Carroll` at the
+start, and the row then held the pair), the series row healed
+(`▣ The Test Chronicles`), and a filter of an author that the server does
+not hold kept the group, wrote no name, and the log held the WARN line.
+The build of the fault — the predicate disabled with `&& false` — fails
+the new test `tests/the_name_of_an_old_filter_comes_of_the_server.rs`.
+The row of the account holds the empty texts of the start again, and no
+media of the sandbox changed.
+
+**What this round leaves open, and each of them is a candidate and not
+an item**: the offline mode with such an old row still names the group,
+and the heal waits for a start with the server up (by design: the
+offline mode sends no request); the header reads `▣ No filter` after a
+removal of the filter, and the words could omit the mark; the cursor of
+an empty list at large — the nine sibling views of
+`src/app.rs:10805-10922`, and every read absorbs it with `.get` today; a
+fact value of an East Asian language in the panel 5, and no media of the
+sandbox holds one; and every candidate of the turns before this one.
+
 ## The prompt for the next session
 
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.212**; `Cargo.toml` is at 0.8.212. The
+> AlbanDAVID/Toutui. Newest release **v0.8.213**; `Cargo.toml` is at 0.8.213. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -29061,47 +29103,53 @@ every candidate of the turns before this one.
 > 1. **A condition of the program that no measurement has reached.** A sweep of
 >    this shape found a fault in one hundred and nineteen sessions of one
 >    hundred and twenty.
-> **The session of the two hundred and fourteenth turn shipped T-381**: the
-> start of the program names the filter of an old database now. **The
-> candidate came of T-380** (the first leftover: a row that a version before
-> 0.8.211 wrote holds the value of a filter of an author or of a series and
-> no name, and no request of the start gave the name back).
+> **The session of the two hundred and fifteenth turn shipped T-382**: a
+> library of podcasts does not take a filter that the server ignores now.
+> **The candidate came of the sweep of T-381** (the guard of `App::new`
+> clears a sequence field that has no meaning in a library of podcasts,
+> and no such guard stood for the filter of the one row of the account).
 >
-> **The fault**, of v0.8.211 inside tmux at 100 columns against the
-> sandbox: `sqlite3` wrote the filter of the author Lewis Carroll into
-> `users.library_filter` and an empty text into `users.library_filter_name`
-> — the row that the migration to the version 11 gives an old database —
-> and the header of every start read `▣ An author`: the group, and not the
-> name.
+> **The fault**, of v0.8.212 inside tmux at 100 columns against the
+> sandbox: `curl` first — the library of 520 podcasts with no listening
+> at all answered 520 items for `progress.finished`, for
+> `progress.in-progress`, and for `progress.not-started` together, and
+> the filters of an author, of a series, of a narrator, and of a
+> publisher gave the count of no filter; a genre, a tag, and a language
+> act. Then the program: the filter of the author Lewis Carroll in the
+> row and the library `Podcasts` beside it gave the header
+> `▣ Lewis Carroll` over the two podcasts of the library — every item,
+> and no filter at all — and the view of the key `f` of that library
+> offered `Your position`, whose `Finished` gave `▣ Finished` over two
+> podcasts that no one finished.
 >
-> **The correction, v0.8.212, three parts**:
-> `sort_filter::the_filter_needs_a_name_of_the_server` (true when the name
-> of the row is empty and the value starts with `authors.` or `series.`;
-> the five other kinds hold the name itself in base64 and need no request);
-> `sort_filter::the_name_out_of_the_choices` (the label of the choice whose
-> value is the value of the row); and one request of `get_filter_data` in
-> `App::new`, after the library of the account is resolved and not in the
-> offline mode — the name goes to the box and to the row of the account,
-> and the next start reads the row alone. A fault of the request or of the
-> write takes a line of the log and no word for the user. The control of
-> the corrected binary: the author row healed (`▣ Lewis Carroll` at the
-> start, and the row then held the pair), the series row healed
-> (`▣ The Test Chronicles`), and a filter of an author that the server does
-> not hold kept the group, wrote no name, and the log held the WARN line.
-> The build of the fault — the predicate disabled with `&& false` — fails
-> the new test `tests/the_name_of_an_old_filter_comes_of_the_server.rs`.
-> The row of the account holds the empty texts of the start again, and no
+> **The correction, v0.8.213, three parts**:
+> `sort_filter::is_a_filter_of_the_library` (false for the five kinds in
+> a library of podcasts; a genre, a tag, a language, and an empty filter
+> pass); a guard in `App::new` before the heal of T-381 — such a filter
+> goes out of the request and out of the header, and the row of the disk
+> keeps it, in the way of the sequence guard: the library of books gives
+> it back; and `sort_filter::rows` — the view of a library of podcasts
+> offers no group `Your position`. The control of the corrected binary:
+> `Podcasts` with the author filter in the row gave `▣ No filter` and
+> `Library [2 items]` with no words of a filter, the view of the key `f`
+> held no `Your position`, and `Books` after it gave `▣ Lewis Carroll`
+> and `[1 item]` — the row kept the filter. The build of the fault — the
+> predicate disabled with `|| true` and the rows guard with `&& false` —
+> fails the new test
+> `tests/a_filter_that_the_server_ignores_stays_out_of_a_library_of_podcasts.rs`.
+> The row of the account holds the values of the start again, and no
 > media of the sandbox changed.
 >
 > **What this round leaves open, and each of them is a candidate and not
-> an item**: the offline mode with such an old row still names the group,
-> and the heal waits for a start with the server up (by design: the
-> offline mode sends no request); the header reads `▣ No filter` after a
-> removal of the filter, and the words could omit the mark; the cursor of
-> an empty list at large — the nine sibling views of
-> `src/app.rs:10805-10922`, and every read absorbs it with `.get` today; a
-> fact value of an East Asian language in the panel 5, and no media of the
-> sandbox holds one; and every candidate of the turns before this one.
+> an item**: a filter of an author of one library of books rides into a
+> second library of books — the server honors it there, 0 items, and the
+> view says why: true words, and still a filter of another library; the
+> header reads `▣ No filter` after a removal of the filter, and the
+> words could omit the mark; the cursor of an empty list at large — the
+> nine sibling views of `src/app.rs:10805-10922`; a fact value of an
+> East Asian language in the panel 5; the offline mode with an old
+> nameless filter row names the group (by design); and every candidate
+> of the turns before this one.
 >    **The turns before this one stand in `## The turns before the three
 >    newest ones` of this file**, above the heading of this prompt. **This item
 >    held three turns, and the block then stood above its limit of size**
@@ -29368,7 +29416,7 @@ every candidate of the turns before this one.
 > and it held **88074** bytes with **one** turn in it. The round of the two
 > hundred and fifth found it at 88308 bytes with one turn in it, and it did the
 > same work: the block held **81281** bytes with no turn at all after the
-> removal, and it held **85713** bytes with **one** turn in it. The round of the two hundred and sixth found it at 85713 bytes with one turn in it, and it did the same work: it holds about **86000** bytes with **one** turn in it now. The round of the two hundred and seventh found it at 85815 bytes with one turn in it, and it did the same work. The round of the two hundred and eighth found it at 85404 bytes with one turn in it, and it did the same work. The round of the two hundred and ninth found it at 85391 bytes with one turn in it, and it did the same work. The round of the two hundred and tenth found it at 85549 bytes with one turn in it, and it did the same work. The round of the two hundred and eleventh found it at 85579 bytes with one turn in it, and it did the same work. The round of the two hundred and twelfth found it at 85050 bytes with one turn in it, and it did the same work. The round of the two hundred and thirteenth found it at 85565 bytes with one turn in it, and it did the same work. The round of the two hundred and fourteenth found it at 85376 bytes with one turn in it, and it did the same work.
+> removal, and it held **85713** bytes with **one** turn in it. The round of the two hundred and sixth found it at 85713 bytes with one turn in it, and it did the same work: it holds about **86000** bytes with **one** turn in it now. The round of the two hundred and seventh found it at 85815 bytes with one turn in it, and it did the same work. The round of the two hundred and eighth found it at 85404 bytes with one turn in it, and it did the same work. The round of the two hundred and ninth found it at 85391 bytes with one turn in it, and it did the same work. The round of the two hundred and tenth found it at 85549 bytes with one turn in it, and it did the same work. The round of the two hundred and eleventh found it at 85579 bytes with one turn in it, and it did the same work. The round of the two hundred and twelfth found it at 85050 bytes with one turn in it, and it did the same work. The round of the two hundred and thirteenth found it at 85565 bytes with one turn in it, and it did the same work. The round of the two hundred and fourteenth found it at 85376 bytes with one turn in it, and it did the same work. The round of the two hundred and fifteenth found it at 85762 bytes with one turn in it, and it did the same work.
 > **A block that stands at 80000 bytes or under holds two
 > turns**, and the turn of the stage before this one names the parts of that
 > stage which stay open. **The list of the decisions
