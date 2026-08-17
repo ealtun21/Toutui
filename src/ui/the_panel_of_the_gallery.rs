@@ -270,12 +270,19 @@ pub fn the_smallest_gallery(of_a_cell: u16, font: FontSize) -> u16 {
 ///
 /// `a_picture_comes` and `of_the_facts` say how many rows the panel 5 needs for
 /// the whole of its words. See [`the_whole_panel_of_the_cover`] and T-350.
+///
+/// `of_the_description` is the number of the lines that the description of the
+/// media takes at the width of the panel
+/// (`crate::logic::the_scroll_of_a_panel::the_number_of_the_lines`). **A media
+/// with no cover holds no row for a picture, therefore the words are every row
+/// that the panel 5 can use** (T-353): the rows after them go to the gallery.
 pub fn the_two_panels(
     column: Rect,
     of_a_cell: u16,
     font: FontSize,
     a_picture_comes: bool,
     of_the_facts: u16,
+    of_the_description: u16,
 ) -> (Rect, Option<Rect>) {
     let the_smallest = the_smallest_gallery(of_a_cell, font);
     let of_the_cover = the_whole_panel_of_the_cover(a_picture_comes, of_the_facts);
@@ -297,6 +304,37 @@ pub fn the_two_panels(
     // more than one row goes back to one row before it takes them.
     let of_the_gallery = if column.height - of_the_gallery < of_the_cover {
         the_smallest
+    } else {
+        of_the_gallery
+    };
+
+    // **The panel 5 of a media with no cover takes no row that its words cannot
+    // use** (T-353). The picture takes every row that the facts and the
+    // description leave (T-330.3), therefore the share of the design is right
+    // while a picture comes. A media that the server holds with no cover holds
+    // no picture at all: the rows after the words then say nothing, and the
+    // gallery under them loses the bands of covers that they hold. A screen of
+    // 160 columns and 45 rows gave that panel 18 rows inside its border, the
+    // words took 4 of them, **14 rows held nothing**, and the gallery of a list
+    // of 2056 books showed 12 covers.
+    //
+    // The description scrolls with the keys `J` and `K` (T-330.3), therefore
+    // this rule takes rows away from the panel and it never gives it more:
+    // a description of many lines keeps the rows of the share.
+    let the_most_of_the_cover = THE_ROWS_OF_THE_BORDER
+        .saturating_add(of_the_facts)
+        .saturating_add(of_the_description)
+        .max(of_the_cover);
+
+    let of_the_gallery = if !a_picture_comes
+        && column.height.saturating_sub(of_the_gallery) > the_most_of_the_cover
+    {
+        let the_rows =
+            ((column.height - the_most_of_the_cover).saturating_sub(2) / of_a_row).max(1);
+
+        (the_rows * of_a_row + 2)
+            .min(column.height - of_the_cover)
+            .max(of_the_gallery)
     } else {
         of_the_gallery
     };
@@ -425,7 +463,7 @@ mod tests {
         let of_the_facts = crate::ui::the_panel_of_the_cover::THE_ROWS_OF_THE_FACTS;
         let the_smallest_panel = the_whole_panel_of_the_cover(true, of_the_facts);
 
-        let (cover, gallery) = the_two_panels(column, of_a_cell, FONT, true, of_the_facts);
+        let (cover, gallery) = the_two_panels(column, of_a_cell, FONT, true, of_the_facts, 1);
         let gallery = gallery.expect("a column of 41 rows holds the two panels");
 
         assert_eq!(cover.y, column.y);
@@ -447,7 +485,7 @@ mod tests {
         // covers of the media beside it.
         let short = Rect::new(110, 2, 50, the_smallest_panel + 1);
         assert_eq!(
-            the_two_panels(short, of_a_cell, FONT, true, of_the_facts),
+            the_two_panels(short, of_a_cell, FONT, true, of_the_facts, 1),
             (short, None)
         );
 
@@ -457,6 +495,102 @@ mod tests {
         assert!(
             the_smallest_gallery(of_the_largest, FONT) > the_smallest_gallery(of_a_cell, FONT),
             "a larger cell must need more rows"
+        );
+    }
+
+    /// The panel 5 of a media with no cover takes no row that its words cannot
+    /// use, and the gallery takes those rows. See T-353.
+    ///
+    /// **The parts of this test stay in one function.**
+    #[test]
+    fn the_panel_of_a_media_with_no_cover_leaves_the_gallery_the_rows_of_no_word() {
+        // The measurement of 2026-08-17: the column of the covers of a screen
+        // of 160 by 45 stands at the column 110 and it holds 39 rows.
+        let column = Rect::new(110, 3, 50, 39);
+        let of_a_cell = THE_WIDTHS_OF_A_CELL[THE_WIDTH_OF_THE_START];
+
+        // `Large Book 2056` of the sandbox says two facts, and its description
+        // says `No description available` in one line.
+        let of_the_facts = 2;
+        let of_the_description = 1;
+
+        let (cover, gallery) = the_two_panels(
+            column,
+            of_a_cell,
+            FONT,
+            false,
+            of_the_facts,
+            of_the_description,
+        );
+        let gallery = gallery.expect("a column of 39 rows holds the two panels");
+
+        assert_eq!(cover.y, column.y);
+        assert_eq!(gallery.y, cover.y + cover.height);
+        assert_eq!(cover.height + gallery.height, column.height);
+
+        // The panel keeps the rows of the whole of its words, and no row of a
+        // picture that never comes.
+        let the_smallest_panel = the_whole_panel_of_the_cover(false, of_the_facts);
+        assert!(
+            cover.height >= the_smallest_panel,
+            "the panel 5 holds {} rows and its words need {the_smallest_panel}",
+            cover.height
+        );
+
+        // **The rows after the words go to the gallery**: the fault of T-353
+        // gave the panel 20 rows of the 39, and 14 of them held nothing at all.
+        // The gallery holds whole bands alone, therefore the panel keeps the
+        // rows of the band that does not fit and no more.
+        let of_a_band = the_rows_of_a_box(of_a_cell, FONT);
+        assert!(
+            cover.height < the_smallest_panel + of_a_band,
+            "the panel 5 holds {} rows of a column of {}, and its words need \
+             {the_smallest_panel}: a band of {of_a_band} rows stands in the \
+             rows that no word uses",
+            cover.height,
+            column.height
+        );
+
+        // The bands of the gallery of the same column, before this rule and
+        // after it: the share of the design gave three of them.
+        let the_bands = |height: u16| (height.saturating_sub(2)) / of_a_band;
+        let of_the_share = the_bands(column.height * THE_SHARE_OF_THE_GALLERY / 100);
+        assert!(
+            the_bands(gallery.height) > of_the_share,
+            "the gallery holds {} bands and the share of the design gives \
+             {of_the_share}",
+            the_bands(gallery.height)
+        );
+
+        // **A media with a picture keeps the share of the design** (T-330.3):
+        // the picture takes every row that the words leave, therefore no row of
+        // that panel says nothing.
+        let (of_a_picture, _) = the_two_panels(
+            column,
+            of_a_cell,
+            FONT,
+            true,
+            of_the_facts,
+            of_the_description,
+        );
+        assert!(
+            of_a_picture.height > cover.height,
+            "the panel of a picture holds {} rows and the panel of no picture \
+             holds {}",
+            of_a_picture.height,
+            cover.height
+        );
+
+        // **A description of many lines keeps the rows of the share**: the
+        // description scrolls with the keys `J` and `K`, therefore this rule
+        // takes rows away from the panel and it never gives it more.
+        let (of_many_lines, _) = the_two_panels(column, of_a_cell, FONT, false, of_the_facts, 200);
+        assert_eq!(
+            of_many_lines.height,
+            column.height
+                - the_bands(column.height * THE_SHARE_OF_THE_GALLERY / 100) * of_a_band
+                - 2,
+            "a description of 200 lines must keep the rows of the share"
         );
     }
 

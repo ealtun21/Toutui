@@ -33585,3 +33585,101 @@ item:**
   takes the same columns for cells of ten.
 
 **v0.8.183.**
+
+## T-353 — The panel of the cover of a media with no picture keeps the rows that no word of it uses
+
+**The condition.** The real program v0.8.183 inside tmux, at 160 columns and 45
+rows, of the library `Large` of the sandbox, in the Library view. Every item of
+that library carries `coverPath: null`, therefore the panel 5 holds no picture
+at all (T-319 and T-349), and the media of the cursor is `Large Book 2056`.
+
+**The fault.** The column at the right holds 39 rows. The panel 5 took **20** of
+them: 18 rows inside its border, and the words of the media took **four** of
+those 18 — `Time      0m`, `Files     1 file, 0.0 MB`, and `No description
+available`. **Fourteen rows of that panel held no character at all.** The panel
+6 of the gallery took the 19 rows that stayed, and it showed **12 covers in
+three bands** of a list of 2056 books:
+
+```text
+┌5 Cover ────────────────────────────────────────┐
+│Time      0m                                    │
+│Files     1 file, 0.0 MB                        │
+│No description available                        │
+│                                                │
+│                                    … 14 rows … │
+└────────────────────────────────────────────────┘
+┌6 Gallery ──────────────────────────────────────┐
+│  ┏━━━━━━━━┓ ┌────────┐ ┌────────┐ ┌────────┐   │
+│  ┃Large   ┃ │Large   │ │Large   │ │Large   │   │
+│  ┃Book    ┃ │Book    │ │Book    │ │Book    │   │
+│  ┃2056    ┃ │2055    │ │2054    │ │2053    │   │
+│  ┃        ┃ │        │ │        │ │        │   │
+│  ┗━━━━━━━━┛ └────────┘ └────────┘ └────────┘   │
+│                                    … 2 bands … │
+└────────────────────────────────────────────────┘
+```
+
+**Why.** `the_two_panels` of `src/ui/the_panel_of_the_gallery.rs` gives the
+gallery a share of the height of the column (`THE_SHARE_OF_THE_GALLERY`, 40 per
+cent, in whole bands of the grid), and it gives the panel 5 **every row that
+stays**. That rule is right while a picture comes: the picture takes every row
+that the facts and the description leave (T-330.3), therefore no row of such a
+panel says nothing. **A media that the server holds with no cover holds no
+picture at all**, therefore the rows after the words go to nothing, and the
+gallery under them loses the bands of covers that those rows hold.
+
+**This is the third face of the fault of T-349 and of T-350.** T-349 gave the
+panel of a media with no cover its smallest height, T-350 gave the gallery the
+rows of the facts of that panel, and each of them read the **smallest** panel.
+Neither of them read the **largest** one: a column that holds more rows than the
+words need gives every one of them to the panel.
+
+**The correction.** `the_two_panels` takes the number of the lines of the
+description, and the panel 5 of a media with no picture then holds no more than
+`THE_ROWS_OF_THE_BORDER + of_the_facts + of_the_description`. The gallery takes
+the rows after that limit, in whole bands of the grid, and the panel keeps the
+rows of the band that does not fit.
+
+**The rule holds in one direction alone.** The description scrolls with the keys
+`J` and `K` (T-330.3), therefore a description of many lines must not take the
+rows of the gallery: the limit takes rows away from the panel, and it never
+gives it more. A media with a picture keeps the share of the design, and the
+guard `!a_picture_comes` says so in the code.
+
+**The corrected program of the same harness**, of the same screen: the panel 5
+holds **7** rows, the gallery holds 32, and it shows **20 covers in five bands**.
+The same measurement of the library `Books`, whose media of the cursor
+(`A Book Of An Epub With No...`) holds no cover and says seven lines: the panel
+holds 14 rows and the gallery holds four bands.
+
+**The build of the fault**: `!a_picture_comes` of that condition becomes
+`false && !a_picture_comes`, and
+`ui::the_panel_of_the_gallery::tests::the_panel_of_a_media_with_no_cover_leaves_the_gallery_the_rows_of_no_word`
+then says "the panel 5 holds 25 rows of a column of 39, and its words need 6: a
+band of 6 rows stands in the rows that no word uses".
+
+**A test of the value of the program before this item is a test of the fault.**
+`the_gallery_stands_under_a_panel_that_says_its_words_whole` of
+`tests/the_gallery_leaves_the_panel_of_the_cover_its_facts.rs` held
+`assert_eq!(gallery.height, 8)` for a column of 22 rows of a media with no
+cover: the panel kept 14 rows for seven rows of words. That number is 14 now,
+and the panel holds 8.
+
+**What this item leaves open, and each of them is a candidate and not an item:**
+
+- **The rows of the band that does not fit still say nothing.** The gallery
+  holds whole bands alone, therefore a column of 39 rows leaves the panel 5
+  seven rows for six rows of words. A gallery that draws a part of a band, or a
+  panel 5 that gives those rows to its description, would use them.
+- **The width of the panel 5 of a media with no cover.** `split_for_covers`
+  gives it `PANEL_MAX_WIDTH` (72 columns) or 40 per cent of the width, because
+  the limit of the height belongs to a picture (T-348). The facts of such a
+  media need about 30 columns, and the description of it wraps: a panel of the
+  columns of the widest fact would give the list more of the screen, and it
+  would give the description more lines.
+- **The rows of the facts are not the rows of the picture** (T-352): a screen of
+  36 rows holds a panel of 50 columns whose picture is 11 rows and 22 columns,
+  and 26 columns of every row of that picture stand empty.
+- Every candidate of the items before this one.
+
+**v0.8.184.**

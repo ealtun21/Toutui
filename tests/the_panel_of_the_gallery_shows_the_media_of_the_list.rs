@@ -75,6 +75,12 @@ const FONT: FontSize = FontSize {
     height: 20,
 };
 
+/// The lines of the description of the media of the measurement.
+///
+/// The rows of the description reach `the_two_panels` since T-353, and a media
+/// with a picture keeps the share of the design at every value of them.
+const OF_THE_DESCRIPTION: u16 = 2;
+
 /// The column of the covers of the measurement: the panel 5 over the panel 6,
 /// and no row of the screen that no part uses. See T-327.
 ///
@@ -86,7 +92,14 @@ fn the_column_holds_the_two_panels_and_no_row_that_no_part_uses() {
     let column = Rect::new(111, 2, 50, 41);
     let of_a_cell = THE_WIDTHS_OF_A_CELL[THE_WIDTH_OF_THE_START];
 
-    let (cover, gallery) = the_two_panels(column, of_a_cell, FONT, true, THE_ROWS_OF_THE_FACTS);
+    let (cover, gallery) = the_two_panels(
+        column,
+        of_a_cell,
+        FONT,
+        true,
+        THE_ROWS_OF_THE_FACTS,
+        OF_THE_DESCRIPTION,
+    );
     let gallery = gallery.expect("a column of 41 rows holds the panel 5 and the panel 6");
 
     // The panel 5 stands above the panel 6, and the two of them use every row.
@@ -118,7 +131,14 @@ fn the_column_holds_the_two_panels_and_no_row_that_no_part_uses() {
     // of the media beside it.
     let short = Rect::new(111, 2, 50, THE_SMALLEST_PANEL_OF_THE_WORDS + 2);
     assert_eq!(
-        the_two_panels(short, of_a_cell, FONT, true, THE_ROWS_OF_THE_FACTS),
+        the_two_panels(
+            short,
+            of_a_cell,
+            FONT,
+            true,
+            THE_ROWS_OF_THE_FACTS,
+            OF_THE_DESCRIPTION
+        ),
         (short, None)
     );
 
@@ -134,9 +154,14 @@ fn the_column_holds_the_two_panels_and_no_row_that_no_part_uses() {
         );
         before = the_smallest;
 
-        if let (_, Some(gallery)) =
-            the_two_panels(column, of_a_cell, FONT, true, THE_ROWS_OF_THE_FACTS)
-        {
+        if let (_, Some(gallery)) = the_two_panels(
+            column,
+            of_a_cell,
+            FONT,
+            true,
+            THE_ROWS_OF_THE_FACTS,
+            OF_THE_DESCRIPTION,
+        ) {
             let of_a_row = the_rows_of_a_box(of_a_cell, FONT);
             assert_eq!((gallery.height - 2) % of_a_row, 0);
         }
@@ -151,7 +176,14 @@ fn the_column_holds_the_two_panels_and_no_row_that_no_part_uses() {
 fn the_grid_holds_the_media_around_the_cursor_of_the_list() {
     let column = Rect::new(111, 2, 50, 41);
     let of_a_cell = THE_WIDTHS_OF_A_CELL[THE_WIDTH_OF_THE_START];
-    let (_, gallery) = the_two_panels(column, of_a_cell, FONT, true, THE_ROWS_OF_THE_FACTS);
+    let (_, gallery) = the_two_panels(
+        column,
+        of_a_cell,
+        FONT,
+        true,
+        THE_ROWS_OF_THE_FACTS,
+        OF_THE_DESCRIPTION,
+    );
     let inside = {
         let gallery = gallery.expect("a column of 41 rows holds the panel 6");
         Rect::new(

@@ -41,6 +41,26 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.184",
+        date: "17/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The panel of the cover of a media with no picture leaves the \
+             gallery the rows that its words cannot use.** A media that the \
+             server holds with no cover keeps no row for a picture, therefore \
+             the words are every row that the panel can use. The panel took \
+             the share of the design and the rows after the words then said \
+             nothing at all: a terminal of 160 columns and 45 rows gave that \
+             panel 18 rows inside its border, the words took 4 of them, 14 \
+             rows held no character, and the gallery under it showed 12 covers \
+             of a library of 2056 books. The panel now holds 5 rows, and the \
+             gallery shows 20 covers in 5 bands. A media with a picture keeps \
+             the share of the design, because the picture takes every row that \
+             the words leave, and a description of many lines keeps that share \
+             too, because the description scrolls with the keys J and K.",
+        ],
+    },
+    Entry {
         version: "0.8.183",
         date: "17/08/2026",
         body: &[

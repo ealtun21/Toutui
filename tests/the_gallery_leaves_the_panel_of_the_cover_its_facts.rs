@@ -89,6 +89,13 @@ const OF_THE_FACTS_OF_THE_BOOK: u16 = 9;
 /// server holds with no cover.
 const OF_THE_FACTS_WITH_NO_COVER: u16 = 3;
 
+/// The lines of the description of the media of the measurement.
+///
+/// `THE_ROWS_OF_A_DESCRIPTION` is the smallest number of the rows of that part
+/// of the panel, therefore this number changes no bound of this test. The rows
+/// of the description reach `the_two_panels` since T-353.
+const OF_THE_DESCRIPTION: u16 = 2;
+
 /// The rows of the column of the covers of a screen of 28 rows, of the
 /// measurement: the header takes two rows, the row of the message one, and the
 /// footer two.
@@ -160,7 +167,14 @@ fn the_gallery_stands_under_a_panel_that_says_its_words_whole() {
     // fifteen, and the facts of that book then lost four of their nine lines.
     let of_the_book = Rect::new(111, 2, 50, THE_COLUMN_OF_28_ROWS);
     assert_eq!(
-        the_two_panels(of_the_book, of_a_cell, FONT, true, OF_THE_FACTS_OF_THE_BOOK),
+        the_two_panels(
+            of_the_book,
+            of_a_cell,
+            FONT,
+            true,
+            OF_THE_FACTS_OF_THE_BOOK,
+            OF_THE_DESCRIPTION
+        ),
         (of_the_book, None),
         "the panel 5 of a book of nine facts needs 21 rows, and the gallery \
          needs 8 more of a column of 23"
@@ -174,6 +188,7 @@ fn the_gallery_stands_under_a_panel_that_says_its_words_whole() {
         FONT,
         true,
         OF_THE_FACTS_WITH_NO_COVER,
+        OF_THE_DESCRIPTION,
     );
     let gallery = gallery.expect("a panel 5 of 15 rows and a gallery of 8 fill a column of 23");
     assert_eq!(cover.height, 15);
@@ -181,8 +196,13 @@ fn the_gallery_stands_under_a_panel_that_says_its_words_whole() {
 
     // **The other face**: a media that the server holds with no cover, at the
     // column of a screen of 27 rows. The panel 5 of it needs seven rows, and
-    // the gallery of eight stands under it. The program before this item gave
-    // that panel every row of the column, and twenty of them held nothing.
+    // the gallery stands under it. The program before this item gave that panel
+    // every row of the column, and twenty of them held nothing.
+    //
+    // **The gallery of this column held eight rows until T-353**: the share of
+    // the design gave it one band, and the panel 5 then kept fourteen rows for
+    // seven rows of words. The gallery now takes the rows that no word of the
+    // panel can use, therefore it holds two bands and fourteen rows.
     let with_no_cover = Rect::new(111, 2, 50, THE_COLUMN_OF_27_ROWS);
     let (cover, gallery) = the_two_panels(
         with_no_cover,
@@ -190,6 +210,7 @@ fn the_gallery_stands_under_a_panel_that_says_its_words_whole() {
         FONT,
         false,
         OF_THE_FACTS_WITH_NO_COVER,
+        OF_THE_DESCRIPTION,
     );
     let gallery = gallery.expect("a panel 5 of a media with no cover needs 7 rows of the 22");
     assert_eq!(cover.height + gallery.height, THE_COLUMN_OF_27_ROWS);
@@ -198,7 +219,11 @@ fn the_gallery_stands_under_a_panel_that_says_its_words_whole() {
         "the panel 5 holds {} rows and the words of it need 7",
         cover.height
     );
-    assert_eq!(gallery.height, 8);
+    assert_eq!(
+        gallery.height, 14,
+        "the gallery holds two bands and no row that no cell uses"
+    );
+    assert_eq!(cover.height, 8);
 
     // The rule over every column of the sweep of the measurement, for the two
     // media and for every width of a cell of the design: a gallery that stands
@@ -211,8 +236,14 @@ fn the_gallery_stands_under_a_panel_that_says_its_words_whole() {
         ] {
             for height in 1..60 {
                 let column = Rect::new(111, 2, 50, height);
-                let (cover, gallery) =
-                    the_two_panels(column, of_a_cell, FONT, a_picture_comes, of_the_facts);
+                let (cover, gallery) = the_two_panels(
+                    column,
+                    of_a_cell,
+                    FONT,
+                    a_picture_comes,
+                    of_the_facts,
+                    OF_THE_DESCRIPTION,
+                );
 
                 let Some(gallery) = gallery else {
                     assert_eq!(cover, column, "a column of no gallery keeps every row");

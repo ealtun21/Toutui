@@ -1170,6 +1170,21 @@ impl App {
             .map(|lines| lines.len() as u16)
             .unwrap_or(crate::ui::the_panel_of_the_cover::THE_ROWS_OF_THE_FACTS);
 
+        // **The picture takes every row that the facts and the description
+        // leave** (T-330.3), therefore the panel needs the rows of the text of
+        // the description before it draws anything.
+        //
+        // **The gallery reads this number too** (T-353), therefore it stands
+        // before the two panels: the width of the panel is the width of the
+        // column, because `the_two_panels` divides the height alone.
+        let of_the_description = u16::try_from(
+            crate::logic::the_scroll_of_a_panel::the_number_of_the_lines(
+                &self.the_description_of_the_panel(),
+                column.width.saturating_sub(2),
+            ),
+        )
+        .unwrap_or(u16::MAX);
+
         let of_a_cell = crate::ui::the_panel_of_the_gallery::THE_WIDTHS_OF_A_CELL
             [self.the_size_of_a_cell_of_the_gallery];
         let (panel, gallery) = if self.the_frame_of_the_panels_stands() {
@@ -1179,6 +1194,7 @@ impl App {
                 cover::picker().font_size(),
                 a_picture_comes,
                 of_the_facts,
+                of_the_description,
             )
         } else {
             (column, None)
@@ -1203,17 +1219,6 @@ impl App {
             .as_deref()
             .or(selected.first().map(|id| id.as_str()))
             .and_then(|id| self.covers.form_of(id));
-
-        // **The picture takes every row that the facts and the description
-        // leave** (T-330.3), therefore the panel needs the rows of the text of
-        // the description before it draws anything.
-        let of_the_description = u16::try_from(
-            crate::logic::the_scroll_of_a_panel::the_number_of_the_lines(
-                &self.the_description_of_the_panel(),
-                inside.width,
-            ),
-        )
-        .unwrap_or(u16::MAX);
 
         let parts = crate::ui::the_panel_of_the_cover::the_parts_of_the_panel(
             inside,
