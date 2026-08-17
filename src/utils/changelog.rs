@@ -41,6 +41,22 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.187",
+        date: "17/08/2026",
+        body: &[
+            "Fixed:",
+            "- **A click of the panel of the list of a view with no line \
+             names that panel.** A view that holds no line says why, and no \
+             click of the mouse in that panel did anything at all: the \
+             program wrote the place of that panel for the mouse only when it \
+             drew the lines of a list in it, therefore the place stayed the \
+             place of the frame before it. The key of the next library makes \
+             the program read its lists again, and the place of the panel was \
+             then nothing at all. A click of that panel gives it the focus \
+             now, and it reads no row of a list that the view does not hold.",
+        ],
+    },
+    Entry {
         version: "0.8.186",
         date: "17/08/2026",
         body: &[

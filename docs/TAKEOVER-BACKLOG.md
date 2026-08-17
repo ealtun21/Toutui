@@ -33879,3 +33879,133 @@ would fail it.
 - Every candidate of the items before this one.
 
 **v0.8.186.**
+
+---
+
+## T-356 — No click of the panel 4 of a view with no line does anything at all
+
+**The condition.** The real program v0.8.186 inside tmux, at 160 columns and 45
+rows, of the library `Empty` of the sandbox (the section 5 of
+`docs/TEST-SERVER.md`). That library holds no media at all, therefore the
+Library view and the Home view of it hold no line, and each of them says its
+reason with `App::render_the_reason` (T-91 and T-103). The correction of T-354
+takes the panels 5 and 6 away in that view, and the correction of T-355 gives
+the sentence the border, the number, and the name of the panel 4: the user
+therefore sees a panel 4 that takes the whole width of the work.
+
+**The road of the measurement.** The account of the sandbox took the library
+`Books` in `name_selected_lib` and in `id_selected_lib` (the trap 203 and the
+trap 204), the key `Tab` gave the Library view of the 18 items of it, and the
+key `BTab` (the trap 70) then gave the library `Empty`.
+
+**The fault.** The key `1` gave the focus to the panel 1, and **no click of the
+panel 4 gave that panel the focus**. Nine columns of the row 10 each left the
+focus where it stood:
+
+```text
+click column 40 row 10 -> the panel 1 border is '╔1'   (the focus stayed)
+click column 45 row 10 -> the panel 1 border is '╔1'   (the focus stayed)
+click column 60 row 10 -> the panel 1 border is '╔1'   (the focus stayed)
+click column 80 row 10 -> the panel 1 border is '╔1'   (the focus stayed)
+click column 100 row 10 -> the panel 1 border is '╔1'  (the focus stayed)
+click column 107 row 10 -> the panel 1 border is '╔1'  (the focus stayed)
+click column 120 row 10 -> the panel 1 border is '╔1'  (the focus stayed)
+click column 140 row 10 -> the panel 1 border is '╔1'  (the focus stayed)
+click column 155 row 10 -> the panel 1 border is '╔1'  (the focus stayed)
+```
+
+A click of the row 4 of that panel, which is the row of the sentence itself,
+did the same.
+
+**The two controls of the same run.** The key `4` and a click of the column 10
+of the row 6 gave the focus to the panel 1 **and** the cursor to the line
+`Sequence and filter`, therefore the mouse reached the program in that view and
+the panel 4 alone was dead to it. And the same click of the column 45 of the
+row 10 of the **Library view of `Books`**, of the same program and of the same
+run, moved the focus to the panel 4 at once: `╔1 Views` became `┌1 Views` and
+`┌4 Library [18 items]` became `╔4 Library [18 items]`.
+
+**Why.** `the_areas_of_the_list_of_the_mouse` of `src/ui/tui.rs` stands inside
+`render_the_list_of_the_panel_4` and inside `render_the_bands_of_the_panel_4`
+alone. The empty road of `render_library`, of `render_home`, and of
+`render_series` calls `App::render_the_reason` and it comes back, therefore it
+writes **no area of the panel 4 at all**, and the areas of that panel stay the
+areas of the frame before it. No line of `src/` resets them: a `grep` of
+`the_areas_of_the_mouse` over the whole of `src/` gives the write of the panel
+1, of the panel 2, of the panel 3, of the panel 5, of the panel 6, of the band
+of the player, and of the bar of the book at each frame, and the write of the
+panel 4 on the road of the lines alone.
+
+**The key of the next library makes a new application.** `take_the_next_library`
+of `src/app.rs` writes `must_refresh`, and the loop of `src/main.rs` then builds
+a new `App` (T-205 and T-308), whose `the_areas_of_the_mouse` is
+`TheAreasOfTheMouse::default()` (`src/app.rs`). The panel of the list of it
+therefore holds `Rect::default()`, which holds no cell of the screen at all, and
+`the_target_of_a_point` gave `TheTarget::Nothing` for every point of the panel
+that the user could see. **The key `R` makes the same new application**, and so
+does the start of the program: a user of one library with no media meets this
+fault at the first frame.
+
+**A diagnostic of a `TestBackend` said the same numbers.** A render of the
+Library view with no line, of an application of `App::new`, gave
+`the_panel_of_the_list: Rect { x: 0, y: 0, width: 0, height: 0 }` beside
+`the_panel_of_the_views: Rect { x: 0, y: 2, width: 34, height: 23 }`, and the
+three points (45, 9), (130, 9), and (80, 3) each gave `Nothing`.
+
+**This is the fifth face of the fault of T-354 and of T-355.** T-354 took the
+two panels of the covers away from a view with no line, T-355 gave the panel 4
+of it its border, its number, and its name, and this one gives that same panel
+the clicks of the user. **A panel that the user can see and that no click can
+name is the fault of T-79 in the mouse**: the key `4` and the digit of the
+panel work, and the pointer of the user works nowhere.
+
+**The correction.** `App::render_the_reason` takes `&mut self`, and after it
+draws the sentence it writes the areas of the mouse of the panel that it drew:
+
+```rust
+self.the_areas_of_the_list_of_the_mouse(area, Rect::default(), 0, &ListState::default());
+```
+
+**The rows of the lines are `Rect::default()` and the number of the lines is
+0**, therefore a click of that panel names it and it reads **no row** of a list
+that the view does not hold, and a step of the wheel over it moves nothing.
+That is the rule of the bands of the Home view of T-321, which writes the same
+two values for the same reason, and this is the road of a view that holds no
+line at all.
+
+**The corrected program of the same harness**, of the same screen and of the
+same road: the key `1` gave the focus to the panel 1, and a click of the column
+45 and a click of the column 130 of the row 10 each gave it to the panel 4 —
+`╔1 Views` became `┌1 Views` at each of them. The Home view of the same library
+gave the same answer for a click of the column 100 of the row 12, two steps of
+the wheel over that panel moved nothing, and the program stood.
+
+**The build of the fault**: the write of the areas becomes `if false { … }`, and
+`the_areas_of_the_mouse_of_a_view_with_no_line` of
+`tests/the_areas_of_the_mouse_of_a_view_with_no_line.rs` then says
+`left: Nothing` for `right: TheListOfTheView { the_line: None }`. That test
+renders the Library view and the Home view of a library with no line on a
+`TestBackend` of 160 columns and 45 rows, and the **control of the same run** is
+a click of the column 10 of the row 6, which must stay `ThePanelOfTheViews`: a
+correction that gave the whole screen to the panel 4 would fail it.
+
+**What this item leaves open, and each of them is a candidate and not an item:**
+
+- **The panel 4 of a view with no line takes the focus of a click and it says
+  no word of its own.** The key `4` and a click each give it the focus, and the
+  keys `j` and `k` of that focus then move a cursor of no line. A view that
+  holds no line holds no work for the keys of its panel, and the footer of it
+  names them.
+- **The Series view holds no frame of the panels**, therefore its reason writes
+  the areas of a panel that no border of the screen shows. The rect of it is the
+  area of the sentence, and a click inside it names the panel of the list of a
+  view that draws no such panel.
+- **The panel 5 and the panel 6 of a view with no line write no area either**,
+  because `render_covers` never runs on that road (T-354). Those two areas hold
+  the values of the frame before them, and a new application makes them nothing:
+  the fault of this item stands for them at every width that draws them.
+- **The rows of the band that does not fit** of T-353, and **the width of the
+  panel 5 of a media with no cover**.
+- Every candidate of the items before this one.
+
+**v0.8.187.**

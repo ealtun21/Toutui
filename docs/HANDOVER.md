@@ -25847,6 +25847,77 @@ gallery 31 rows, and four bands of six rows and the two rows of the border take
 **the width of the panel 5 of a media with no cover**; and every candidate of
 the turns before this one.
 
+
+### The turn of the hundred and eighty-eighth: the panel 4 of a view with no line (T-355)
+
+**The session of the hundred and eighty-eighth turn took the item 1 of the
+list of the work**, and it took the **first candidate that the round before it
+left**: the panel 4 of a view with no line.
+
+**A `ps` of the machine at the start of the round found it clean**: no program
+of `toutui`, and no shell of a busy loop. The tree of git was clean, every
+commit and every tag of the round before it stood at the remote, and the disk
+held 446 gigabytes. The `cargo clean` of that round gave a cold build, and
+`cargo nextest run` of the gate then needed 33.52 seconds for the 224 binaries
+of the tests.
+
+**The fault, of the real program v0.8.185 inside tmux**, at 160 columns and 45
+rows, of the library `Empty` of the sandbox. That library holds no media at
+all, therefore the Library view and the Home view of it hold no line, and each
+of them says its reason with `App::render_the_reason` (T-91 and T-103). **The
+three panels of the stack at the left each stood with their border, their
+number, and their name, and the panel 4 stood with none of the three**: the
+sentence of the reason said its two lines under a bare line of `Borders::TOP`.
+
+**The key `4` gave that panel the focus, and the screen said nothing at all.**
+The focus of this program is the shape of a border and not a colour alone (the
+section (c) of `docs/mockups/mockup-1.md`), therefore a panel of no border can
+hold the focus and show it nowhere: the same key of the same view with its
+lines gave `╔4 Library [18 items] ═══…═╗`, and the empty view gave the same
+screen before the key and after it.
+
+**Why**: `render_library` and `render_home` call `App::render_the_reason` and
+they then come back, therefore `render_the_list_of_the_panel_4` never draws the
+block of that panel. `render_the_reason` held the shape of the screen of T-103,
+which is older than the frame of the panels of T-320: one border at the top,
+and no title at all. **That is the fault that the frame of T-320 corrected for
+the panel of the covers of T-23.**
+
+**The correction**: `App::render_the_reason` takes the title of the panel of
+the caller, and it draws the sentence inside
+`crate::ui::frame::a_panel(4, the title, the focus)` while
+`the_frame_of_the_panels_stands` gives `true`. The title is the title of the
+panel 4 of the same view with its lines (`render_list_title`), therefore the
+two roads of one view say one title, and that title says how many lines the
+view holds. **A terminal that holds no frame of the panels keeps the block of
+one border at the top that it had.**
+
+**The corrected program of the same harness**, of the same screen:
+`╔4 Library [0 items] ═══…═╗` around the sentence, `┌4 Home [0 items] ───…───┐`
+after the key `1`, and a terminal of **100** columns of the same library gave
+the line at the top and no panel at all. The test of the gate renders the two
+views of a `TestBackend` of 160 columns and 45 rows with two panels of the
+focus, and **the control of the same run is a terminal of 100 columns**, which
+holds no frame: a correction that gives every screen a panel 4 fails it.
+**v0.8.186.**
+
+**The gates**: clippy and fmt clean, 1587 tests of nextest in 3.65 seconds,
+`cargo test -j 16 --no-fail-fast` twice with no failure, and
+`cargo nextest run --run-ignored all` gave **1613 of 1613** in 60.8 seconds
+with the sandbox up.
+
+**What this round leaves open, and each of them is a candidate and not an
+item**: **the areas of the mouse of the panel 4 are the areas of the frame
+before a view with no line**, because `the_areas_of_the_list_of_the_mouse`
+stands inside `render_the_list_of_the_panel_4` alone — a user who goes from a
+library of many books to a library of no media with `Shift+Tab` keeps the rect
+of the list of the library before it, and a click inside the panel 4 of the
+empty view then reads a line of a list that the view does not hold; **the
+Series view holds no frame of the panels**, therefore the title `"Series"` of
+its reason reaches no screen of today; **the rows of the band that does not
+fit** of T-353; **the width of the panel 5 of a media with no cover**; and
+every candidate of the turns before this one.
+
 ## The prompt for the next session
 
 
@@ -26870,75 +26941,77 @@ the turns before this one.
 >
 >
 >
-> **The session of the hundred and eighty-eighth turn took the item 1 of the
+> **The session of the hundred and eighty-ninth turn took the item 1 of the
 > list of the work**, and it took the **first candidate that the round before it
-> left**: the panel 4 of a view with no line.
+> left**: the areas of the mouse of the panel 4 of a view with no line.
 >
 > **A `ps` of the machine at the start of the round found it clean**: no program
 > of `toutui`, and no shell of a busy loop. The tree of git was clean, every
-> commit and every tag of the round before it stood at the remote, and the disk
-> held 446 gigabytes. The `cargo clean` of that round gave a cold build, and
-> `cargo nextest run` of the gate then needed 33.52 seconds for the 224 binaries
-> of the tests.
+> commit and every tag of the round before it stood at the remote, the load
+> average was 6, and the disk held 446 gigabytes. The `cargo clean` of the round
+> before it gave a cold build of 12 seconds for `cargo build -j 16`.
 >
-> **The fault, of the real program v0.8.185 inside tmux**, at 160 columns and 45
-> rows, of the library `Empty` of the sandbox. That library holds no media at
-> all, therefore the Library view and the Home view of it hold no line, and each
-> of them says its reason with `App::render_the_reason` (T-91 and T-103). **The
-> three panels of the stack at the left each stood with their border, their
-> number, and their name, and the panel 4 stood with none of the three**: the
-> sentence of the reason said its two lines under a bare line of `Borders::TOP`.
+> **The fault, of the real program v0.8.186 inside tmux**, at 160 columns and 45
+> rows. The account took the library `Books` in `name_selected_lib` and in
+> `id_selected_lib` (the trap 203 and the trap 204), the key `Tab` gave the
+> Library view of the 18 items of it, and the key `BTab` (the trap 70) then gave
+> the library `Empty`, which holds no media at all. The key `1` gave the focus to
+> the panel 1, and **no click of the panel 4 gave that panel the focus**: nine
+> columns of the row 10, from the column 40 to the column 155, each left the
+> border of the panel 1 at `╔1`, and a click of the row of the sentence itself
+> did the same.
 >
-> **The key `4` gave that panel the focus, and the screen said nothing at all.**
-> The focus of this program is the shape of a border and not a colour alone (the
-> section (c) of `docs/mockups/mockup-1.md`), therefore a panel of no border can
-> hold the focus and show it nowhere: the same key of the same view with its
-> lines gave `╔4 Library [18 items] ═══…═╗`, and the empty view gave the same
-> screen before the key and after it.
+> **The two controls of the same run.** A click of the column 10 of the row 6
+> gave the focus to the panel 1 **and** the cursor to the line `Sequence and
+> filter`, therefore the mouse reached the program in that view and the panel 4
+> alone was dead to it. And the same click of the column 45 of the row 10 of the
+> Library view of `Books`, of the same run, moved the focus to the panel 4 at
+> once.
 >
-> **Why**: `render_library` and `render_home` call `App::render_the_reason` and
-> they then come back, therefore `render_the_list_of_the_panel_4` never draws the
-> block of that panel. `render_the_reason` held the shape of the screen of T-103,
-> which is older than the frame of the panels of T-320: one border at the top,
-> and no title at all. **That is the fault that the frame of T-320 corrected for
-> the panel of the covers of T-23.**
+> **Why**: `the_areas_of_the_list_of_the_mouse` stands inside
+> `render_the_list_of_the_panel_4` and inside `render_the_bands_of_the_panel_4`
+> alone, therefore the empty road of `render_library`, of `render_home`, and of
+> `render_series` writes no area of the panel 4 at all, and no line of `src/`
+> resets those areas. **The key of the next library makes a new application**
+> (`must_refresh` of `src/main.rs`, and the key `R` makes the same one), whose
+> `the_areas_of_the_mouse` is `TheAreasOfTheMouse::default()`: the panel of the
+> list then holds `Rect::default()`, which holds no cell of the screen, and
+> `the_target_of_a_point` gave `TheTarget::Nothing` for every point of the panel
+> that the user could see. A diagnostic of a `TestBackend` said the same numbers.
 >
-> **The correction**: `App::render_the_reason` takes the title of the panel of
-> the caller, and it draws the sentence inside
-> `crate::ui::frame::a_panel(4, the title, the focus)` while
-> `the_frame_of_the_panels_stands` gives `true`. The title is the title of the
-> panel 4 of the same view with its lines (`render_list_title`), therefore the
-> two roads of one view say one title, and that title says how many lines the
-> view holds. **A terminal that holds no frame of the panels keeps the block of
-> one border at the top that it had.**
+> **The correction**: `App::render_the_reason` takes `&mut self`, and after it
+> draws the sentence it writes
+> `self.the_areas_of_the_list_of_the_mouse(area, Rect::default(), 0, &ListState::default())`.
+> The rows of the lines are `Rect::default()` and the number of the lines is 0,
+> therefore a click of that panel names it and it reads **no row** of a list that
+> the view does not hold, and a step of the wheel over it moves nothing. That is
+> the rule of the bands of the Home view of T-321.
 >
-> **The corrected program of the same harness**, of the same screen:
-> `╔4 Library [0 items] ═══…═╗` around the sentence, `┌4 Home [0 items] ───…───┐`
-> after the key `1`, and a terminal of **100** columns of the same library gave
-> the line at the top and no panel at all. The test of the gate renders the two
-> views of a `TestBackend` of 160 columns and 45 rows with two panels of the
-> focus, and **the control of the same run is a terminal of 100 columns**, which
-> holds no frame: a correction that gives every screen a panel 4 fails it.
-> **v0.8.186.**
+> **The corrected program of the same harness**, of the same screen and of the
+> same road: a click of the column 45 and a click of the column 130 of the row 10
+> each gave the panel 4 the focus, the Home view of the same library gave the
+> same answer for a click of the column 100 of the row 12, two steps of the wheel
+> over that panel moved nothing, and the program stood. The test of the gate
+> renders the two views on a `TestBackend` of 160 columns and 45 rows, and the
+> **control of the same run** is a click of the column 10 of the row 6, which
+> must stay `ThePanelOfTheViews`: a correction that gave the whole screen to the
+> panel 4 fails it. **v0.8.187.**
 >
-> **The gates**: clippy and fmt clean, 1587 tests of nextest in 3.65 seconds,
+> **The gates**: clippy and fmt clean, 1588 tests of nextest in 2.9 seconds,
 > `cargo test -j 16 --no-fail-fast` twice with no failure, and
-> `cargo nextest run --run-ignored all` gave **1613 of 1613** in 60.8 seconds
+> `cargo nextest run --run-ignored all` gave **1614 of 1614** in 60.1 seconds
 > with the sandbox up.
 >
 > **What this round leaves open, and each of them is a candidate and not an
-> item**: **the areas of the mouse of the panel 4 are the areas of the frame
-> before a view with no line**, because `the_areas_of_the_list_of_the_mouse`
-> stands inside `render_the_list_of_the_panel_4` alone — a user who goes from a
-> library of many books to a library of no media with `Shift+Tab` keeps the rect
-> of the list of the library before it, and a click inside the panel 4 of the
-> empty view then reads a line of a list that the view does not hold; **the
-> Series view holds no frame of the panels**, therefore the title `"Series"` of
-> its reason reaches no screen of today; **the rows of the band that does not
-> fit** of T-353; **the width of the panel 5 of a media with no cover**; and
-> every candidate of the turns before this one.
->
->
+> item**: **the panel 4 of a view with no line takes the focus of a click and it
+> says no word of its own**, and the keys `j` and `k` of that focus then move a
+> cursor of no line; **the Series view holds no frame of the panels**, therefore
+> its reason writes the areas of a panel that no border of the screen shows;
+> **the panel 5 and the panel 6 of a view with no line write no area either**,
+> because `render_covers` never runs on that road (T-354), and the fault of this
+> round stands for them at every width that draws them; **the rows of the band
+> that does not fit** of T-353; **the width of the panel 5 of a media with no
+> cover**; and every candidate of the turns before this one.
 >    **The turns before this one stand in `## The turns before the three
 >    newest ones` of this file**, above the heading of this prompt. **This item
 >    held three turns, and the block then stood above its limit of size**
@@ -27160,7 +27233,9 @@ the turns before this one.
 > turn at all after the removal, and it holds about **82000** bytes with
 > **one** turn in it now. The round of the hundred and eighty-eighth found it
 > at 82778 bytes with one turn in it, and it did the same work, and the block
-> then held **82820** bytes with **one** turn in it.
+> then held **82820** bytes with **one** turn in it. The round of the hundred
+> and eighty-ninth found it at 82820 bytes with one turn in it, and it did the
+> same work, and the block then held **83163** bytes with **one** turn in it.
 > **A block that stands at 80000 bytes or under holds two
 > turns**, and the turn of the stage before this one names the parts of that
 > stage which stay open. **The list of the decisions

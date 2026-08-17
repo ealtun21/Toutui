@@ -2856,7 +2856,19 @@ impl App {
     /// The title comes of the caller, because it is the title of the panel 4 of
     /// the same view with its lines: `render_the_list_of_the_panel_4` draws that
     /// same block, and the two roads of one view must not say two titles.
-    fn render_the_reason(&self, area: Rect, buf: &mut Buffer, title: &str, text: &str) {
+    ///
+    /// **This road writes the areas of the mouse of the panel 4 too** (T-356):
+    /// `the_areas_of_the_list_of_the_mouse` stood inside
+    /// `render_the_list_of_the_panel_4` and inside the bands of the Home view
+    /// alone, therefore a view with no line wrote no area of that panel at all,
+    /// and the areas of it stayed the areas of the frame before it. **A new
+    /// application makes those areas nothing at all** — the key `R` and the key
+    /// of the next library each make one — and no click of the panel 4 then
+    /// gave it the focus. The panel that this function draws holds no line,
+    /// therefore the rows of the lines are `Rect::default()` and the number of
+    /// the lines is 0: a click of this panel names it, and it reads no row of a
+    /// list that the view does not hold.
+    fn render_the_reason(&mut self, area: Rect, buf: &mut Buffer, title: &str, text: &str) {
         // **The frame stands in the Home view and in the Library view alone**,
         // and a terminal under 120 columns holds no frame at all: the sentence
         // of such a screen keeps the block of one border at the top that it had.
@@ -2877,6 +2889,12 @@ impl App {
             .wrap(Wrap { trim: true })
             .block(block)
             .render(area, buf);
+
+        // **The areas of the mouse are the areas of the last frame**, therefore
+        // a view that draws no line of a list must write the panel that it drew
+        // with no line in it. That is the rule of the bands of the Home view
+        // (T-321), and this is the road of a view that holds no line at all.
+        self.the_areas_of_the_list_of_the_mouse(area, Rect::default(), 0, &ListState::default());
     }
 
     /// AppView::Library rendering
