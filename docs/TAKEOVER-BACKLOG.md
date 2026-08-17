@@ -30992,6 +30992,101 @@ line each that keep every other line — no mark, no rule of the playback that
 stopped, no clamp of the place, and a render that comes back at once — made
 **six** of the 11 tests fail.
 
+#### The part 5, the table of the times, is done, v0.8.165, of the round of the hundred and sixty-fifth turn
+
+**The part 5 holds three rounds, and this is the second of them**: the table of
+the times. The two bars shipped as v0.8.164. The key `Enter` of a chapter, and
+the click of a row, stay.
+
+**The data of this part is the program itself and the sandbox as it stands**: no
+proxy, no book of a harness, no change of the sandbox.
+
+**The fault, measured with the real program v0.8.164 inside tmux**, of 160
+columns and 45 rows, of the library `Books` of the sandbox, with "A Second Book
+Of Many Hours" of 70 chapters at about 2:45:35 of its eight hours. Each row of
+the list held the number, the title, and the start in parentheses, and no
+length at all, and no row of a header:
+
+```text
+────────The chapters of "A Second Book Of Many Hours" [70 items]────────
+    1. Chapter 1 of the second book  (00:00)
+    2. Chapter 2 of the second book  (04:02)
+    3. Chapter 3 of the second book  (08:34)
+```
+
+The start stood in no column: the parentheses came after the title, therefore
+a long title took the time of that row far to the right, and a user could not
+read the times of two rows together. The length of a chapter had no place at
+all.
+
+**The corrected program of the same harness**, at 160 columns, holds a table
+with a row of a header:
+
+```text
+     #  Title                                    Start  Length
+     1  Chapter 1 of the second book             00:00   4m02s
+     2  Chapter 2 of the second book             04:02   4m32s
+    11  Chapter 11 of the second book          1:02:50   9m02s
+➤ ▶ 25  Chapter 25 of the second book          2:40:59   4m41s
+```
+
+**The controls of that same run.** At 80 columns, "A Book Of Many Hours" of
+three chapters of about two hours and 46 minutes each gave `2:46:40` in the
+column `Start` and `2h46m` in the column `Length`, and the first chapter gave
+`00:00` right-aligned under the seven columns of the widest start; the key `G`
+moved the cursor to the chapter 3, and the row of the header stayed over the
+list; a click of the row 8 of the screen, which is the first row under the
+header, gave the chapter 1 and not the chapter 2, therefore the row of the
+header takes one row of the panel and the map of the mouse reads the rows that
+stay; at 40 columns the table did not stand, and the line of today came back,
+with no row of a header at all; and "A Book That Ends Before Its Length", of no
+chapter, kept the two bars and no header.
+
+**The decisions of this round, which do not open again.**
+- **The columns of the times take the width of the widest value that they
+  hold**, and not a fixed width: a book of eight hours gives `7:59:12` in seven
+  columns and a book of 30 minutes gives `29:12` in five, therefore a fixed
+  width either cuts the one or it takes two columns of the title of the other.
+- **The length of a chapter names the second under one hour** (`7m50s`) and the
+  minute over it (`1h02m`), because `convert_seconds` rounds to the minute and
+  every chapter of less than 30 seconds then says `0m`.
+- **The title of a chapter takes every column that the others leave**, which is
+  the rule of the table of the panel 4 (T-321).
+- **A row that keeps fewer than 20 columns for the title holds no table at
+  all**, and the line of today then stands in its place: the line of today
+  says the start already, and a text that the row cuts says nothing to the
+  user (T-91). Twenty columns is the number of
+  `the_table_of_a_view::THE_SMALLEST_TITLE`.
+- **A book of no chapter gives no row of a header**, because a header of no
+  row names columns that no row holds.
+- **The row of the header takes one row of the panel**, therefore the bar of
+  the scroll and the map of the mouse read the rows that stay.
+
+**The correction is four files.** `src/logic/chapters.rs` takes
+`the_length_of_a_chapter`, `TheColumnsOfTheChapters`, `the_columns_of_the_table`,
+and `the_header_of_the_table`, and `lines` takes the width of a row;
+`src/ui/the_list_of_a_view.rs` takes the field `the_header_of_the_columns` of
+`TheContentOfAPanel` and the function `render_the_list_with_a_header`, so a
+view whose rows are not a media gets a row of a header too; `src/ui/tui.rs`
+gives `render_chapters` the width of a line of the list and the new render;
+`tests/the_table_of_the_panel_4_holds_its_columns.rs` takes the new field.
+
+**The gate is `tests/the_chapters_view_holds_the_table_of_the_times.rs`, of 12
+tests.** Eleven are pure, and the twelfth draws the list with its header into a
+`Buffer`, because **a gate of the pure function alone says nothing of the
+render** (the shape of T-256). **The build of the fault** (the trap 147), of
+four edits of one line each that keep every other line, made **nine** of the
+12 tests fail.
+
+**The trap of this part.** `format!` with a width counts the characters of a
+text and not the columns of the screen (the trap 245), therefore a title of a
+chapter that holds a letter of two columns moves every column of the row after
+it. `crate::logic::message::the_columns_of` with a pad of spaces is the road,
+and one test of the gate holds it with a title of `あああ`.
+
+**The next round of this part takes the key `Enter` of a chapter and the click
+of a row, which play that chapter.**
+
 ## T-331 — The new Home view of the bands of covers
 
 **The design is `docs/mockups/mockup-6.txt`, and `docs/mockups/mockup-6.md`

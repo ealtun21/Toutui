@@ -97,6 +97,7 @@ fn the_screen_of_the_panel(width: u16, the_table: bool) -> (Vec<String>, Rect) {
             title: "Library [18 items]",
             lines: &the_lines(),
             the_rows: the_table.then_some(the_rows.as_slice()),
+            the_header_of_the_columns: None,
         },
         &mut state,
     );

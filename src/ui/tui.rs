@@ -1792,7 +1792,6 @@ impl App {
         .areas(area);
 
         let state = self.player.state();
-        let lines = crate::logic::chapters::lines(&state.chapters, state.position);
 
         // **The two bars stand over the table** (T-330.5, and the note of
         // `docs/mockups/mockup-7.md`): the bar of the whole book, with a mark at
@@ -1814,6 +1813,25 @@ impl App {
         let [bars_area, main_area] =
             Layout::vertical([Constraint::Length(rows_of_the_bars), Constraint::Fill(1)])
                 .areas(main_area);
+
+        // **The table of the times takes the width of a line of the list**
+        // (T-330.5): the block of this view holds one border at the top,
+        // therefore the width of the panel is the width of the area, and the
+        // bar of the scroll and the sign of the cursor take their columns of it
+        // before the columns of the table divide what stays.
+        let the_rows_of_the_lines = main_area.height.saturating_sub(2);
+        let of_a_line = crate::logic::the_scroll_of_a_list::the_list_of_the_render(
+            state.chapters.len(),
+            main_area.width,
+            the_rows_of_the_lines,
+        )
+        .width_of_the_lines
+        .saturating_sub(crate::ui::the_list_of_a_view::THE_SIGN_OF_THE_CURSOR);
+
+        let lines = crate::logic::chapters::lines(&state.chapters, state.position, of_a_line);
+        let the_header_of_the_columns = crate::logic::chapters::the_header_of_the_table(
+            crate::logic::chapters::the_columns_of_the_table(of_a_line, &state.chapters),
+        );
 
         // The header holds the three sentences of this view, and it is a pure
         // function of `crate::logic::chapters`: **the two headers of a media
@@ -1838,12 +1856,22 @@ impl App {
         }
 
         App::render_footer(footer_area, buf, &text_render_footer);
-        self.render_list(
+
+        let the_lines_of_the_list = crate::ui::the_list_of_a_view::render_the_list_with_a_header(
             main_area,
             buf,
+            &self.config.colors,
             &title,
             &lines,
+            the_header_of_the_columns.as_deref(),
             &mut self.list_state_chapters.clone(),
+        );
+
+        self.the_areas_of_the_list_of_the_mouse(
+            main_area,
+            the_lines_of_the_list,
+            lines.len(),
+            &self.list_state_chapters.clone(),
         );
     }
 }
@@ -3532,6 +3560,7 @@ impl App {
                 title: render_list_title,
                 lines: render_list_items,
                 the_rows,
+                the_header_of_the_columns: None,
             },
             list_state,
         );

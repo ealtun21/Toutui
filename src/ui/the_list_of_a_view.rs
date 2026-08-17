@@ -99,6 +99,38 @@ pub fn render_the_list_of_a_panel(
             title,
             lines,
             the_rows: None,
+            the_header_of_the_columns: None,
+        },
+        list_state,
+    )
+    .0
+}
+
+/// Draws the list of a view with a row of the header of its own columns. See
+/// T-330.5.
+///
+/// **The lines of the caller hold their columns already**: the table of T-321
+/// holds the four columns of a media, and a view whose rows are not a media
+/// therefore gives the text of each row and the row of the header of it.
+pub fn render_the_list_with_a_header(
+    area: Rect,
+    buf: &mut Buffer,
+    colors: &Colors,
+    title: &str,
+    lines: &[String],
+    the_header_of_the_columns: Option<&str>,
+    list_state: &mut ListState,
+) -> Rect {
+    render_the_table_of_a_panel(
+        area,
+        buf,
+        colors,
+        TheContentOfAPanel {
+            the_panel: None,
+            title,
+            lines,
+            the_rows: None,
+            the_header_of_the_columns,
         },
         list_state,
     )
@@ -121,6 +153,12 @@ pub struct TheContentOfAPanel<'a> {
     pub lines: &'a [String],
     /// The rows of the table, one of each line of `lines`. See T-321.
     pub the_rows: Option<&'a [crate::ui::the_table_of_a_view::ARowOfTheTable]>,
+    /// The row of the header of the columns of the caller. See T-330.5.
+    ///
+    /// **The lines of the caller then hold their columns already**, therefore
+    /// this row and `the_rows` never stand together: `the_rows` is the table of
+    /// a media, and this is the table of a view whose rows are not a media.
+    pub the_header_of_the_columns: Option<&'a str>,
 }
 
 /// Draws the table of the panel 4, with the row of its header. See T-321.
@@ -146,6 +184,7 @@ pub fn render_the_table_of_a_panel(
         title,
         lines,
         the_rows,
+        the_header_of_the_columns,
     } = the_content;
 
     // **A colour of the configuration that holds no three numbers is a colour
@@ -206,7 +245,8 @@ pub fn render_the_table_of_a_panel(
     // the arithmetic of the bar of the scroll reads the rows that stay. A panel
     // of two rows or fewer holds the header and no line at all, therefore it
     // keeps the list of today.
-    let of_the_header = the_rows.is_some() && inner.height >= 3;
+    let of_the_header =
+        (the_rows.is_some() || the_header_of_the_columns.is_some()) && inner.height >= 3;
     let rows_of_the_lines = if of_the_header {
         inner.height - 1
     } else {
@@ -227,7 +267,12 @@ pub fn render_the_table_of_a_panel(
             .saturating_sub(THE_SIGN_OF_THE_CURSOR),
     );
 
-    let the_table = of_the_header && the_columns.the_table_stands();
+    // **The table of a media and the header of the caller never stand
+    // together** (T-330.5): the first one makes the text of each row of a media
+    // here, and the second one takes the text that the caller made already.
+    let the_table_of_a_media =
+        of_the_header && the_rows.is_some() && the_columns.the_table_stands();
+    let the_table = the_table_of_a_media || (of_the_header && the_header_of_the_columns.is_some());
 
     // **A panel that is too narrow for the columns of the table draws the list
     // of today** (T-321), and the arithmetic of the bar then reads every row of
@@ -249,7 +294,7 @@ pub fn render_the_table_of_a_panel(
     // after it names a media that the library does not hold, and the bar of the
     // scroll counts the lines of the list and not the rows of the panel (T-255).
     // `in_one_line` is the one place of that rule.
-    let the_texts: Vec<String> = match (the_table, the_rows) {
+    let the_texts: Vec<String> = match (the_table_of_a_media, the_rows) {
         (true, Some(the_rows)) => the_rows
             .iter()
             .map(|row| crate::ui::the_table_of_a_view::the_text_of_a_row(row, the_columns))
@@ -294,11 +339,15 @@ pub fn render_the_table_of_a_panel(
             height: 1,
         };
 
-        Line::raw(crate::ui::the_table_of_a_view::the_header_of_the_table(
-            the_columns,
-        ))
-        .style(header_style.add_modifier(Modifier::BOLD))
-        .render(of_the_words, buf);
+        let the_words = if the_table_of_a_media {
+            crate::ui::the_table_of_a_view::the_header_of_the_table(the_columns)
+        } else {
+            the_header_of_the_columns.unwrap_or_default().to_string()
+        };
+
+        Line::raw(the_words)
+            .style(header_style.add_modifier(Modifier::BOLD))
+            .render(of_the_words, buf);
     }
 
     let list = List::new(items)

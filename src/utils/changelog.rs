@@ -41,6 +41,23 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.165",
+        date: "17/08/2026",
+        body: &[
+            "Added:",
+            "- **The list of the chapters is a table of the times.** Each row \
+             says the number of the chapter, its title, the moment where it \
+             starts in the book, and how long it is. A row of a header names \
+             the four columns, and it stays over the list while you move.",
+            "- The columns of the times take the width of the widest value \
+             that they hold, therefore the times of two rows stand under each \
+             other and you read them together.",
+            "- A screen that has no room for the columns keeps the list of \
+             before, which says the number, the title, and the start of each \
+             chapter.",
+        ],
+    },
+    Entry {
         version: "0.8.164",
         date: "17/08/2026",
         body: &[

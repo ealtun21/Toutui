@@ -35,10 +35,16 @@ pub fn chapter_at(chapters: &[Chapter], position: f64) -> Option<usize> {
 
 /// Makes the text of each line of the list of the chapters.
 ///
-/// A mark stands before the chapter that plays. The number of the chapter
-/// stands at the start, and the time of its start stands at the end.
-pub fn lines(chapters: &[Chapter], position: f64) -> Vec<String> {
+/// A mark stands before the chapter that plays. **The table of the times takes
+/// the columns `Start` and `Length` after the title** (T-330.5, and the table of
+/// `docs/mockups/mockup-7.md`), and a row that has no room for them keeps the
+/// line of today: the line of today says the start of the chapter already, and a
+/// text that the row cuts says nothing to the user (T-91).
+///
+/// `width` is the columns of a line of the list, after the sign of the cursor.
+pub fn lines(chapters: &[Chapter], position: f64, width: u16) -> Vec<String> {
     let now = chapter_at(chapters, position);
+    let the_columns = the_columns_of_the_table(width, chapters);
 
     chapters
         .iter()
@@ -46,15 +52,229 @@ pub fn lines(chapters: &[Chapter], position: f64) -> Vec<String> {
         .map(|(index, chapter)| {
             let mark = if Some(index) == now { "▶ " } else { "  " };
 
-            format!(
-                "{}{}. {}  ({})",
-                mark,
-                index + 1,
-                chapter.title,
-                clock(chapter.start)
-            )
+            if the_columns.the_table_stands() {
+                the_row_of_a_chapter(mark, index, chapter, the_columns)
+            } else {
+                format!(
+                    "{}{}. {}  ({})",
+                    mark,
+                    index + 1,
+                    chapter.title,
+                    clock(chapter.start)
+                )
+            }
         })
         .collect()
+}
+
+/// The length of a chapter, for the column `Length` of the table.
+///
+/// **The length of a chapter is not the length of a media**: `convert_seconds`
+/// rounds to the minute, therefore every chapter of less than 30 seconds gives
+/// `0m` and the user reads no length at all. A chapter of less than one hour
+/// therefore names the second (`7m50s`), and a longer one names the minute
+/// (`1h02m`), which is the shape of the design.
+///
+/// A length that the media does not have gives `-`, which is the word of the
+/// table of the panel 4 for a value that is absent (T-321).
+pub fn the_length_of_a_chapter(seconds: f64) -> String {
+    if !seconds.is_finite() || seconds < 1.0 {
+        return "-".to_string();
+    }
+
+    let whole = seconds.round() as u64;
+
+    if whole < 60 {
+        format!("{}s", whole)
+    } else if whole < 3600 {
+        format!("{}m{:02}s", whole / 60, whole % 60)
+    } else {
+        format!("{}h{:02}m", whole / 3600, (whole % 3600) / 60)
+    }
+}
+
+/// The columns that the title of a chapter keeps at every width of the table.
+///
+/// A title of fewer columns says nothing of the name of a chapter, and the line
+/// of today then stands in the place of the table. This is the rule of
+/// `the_table_of_a_view::THE_SMALLEST_TITLE`, and it holds the same number.
+pub const THE_SMALLEST_TITLE_OF_A_CHAPTER: u16 = 20;
+
+/// The columns of the mark of the chapter that plays, with the space after it.
+const THE_MARK_OF_THE_ROW: u16 = 2;
+
+/// The columns between two columns of the table.
+const THE_GAP_OF_THE_TABLE: u16 = 2;
+
+/// The smallest column of the start: `00:00` of the first chapter.
+const THE_SMALLEST_START: u16 = 5;
+
+/// The smallest column of the length: the word `Length` of the header stands
+/// over it, therefore no column of it is narrower than that word.
+const THE_SMALLEST_LENGTH: u16 = 6;
+
+/// The name of the column of the number of a chapter.
+pub const THE_NUMBER: &str = "#";
+/// The name of the column of the title of a chapter.
+pub const THE_TITLE: &str = "Title";
+/// The name of the column of the start of a chapter in the book.
+pub const THE_START: &str = "Start";
+/// The name of the column of the length of a chapter.
+pub const THE_LENGTH: &str = "Length";
+
+/// The width of each column of the table of the chapters, in columns of the
+/// screen. See T-330.5.
+///
+/// **The columns of the times take the width of the widest value that they
+/// hold**: a book of eight hours gives `7:59:12` in seven columns and a book of
+/// 30 minutes gives `29:12` in five, therefore a fixed width of the start either
+/// cuts the one or it takes two columns of the title of the other.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub struct TheColumnsOfTheChapters {
+    /// The number of the chapter.
+    pub the_number: u16,
+    /// The title of the chapter. It takes every column that the others leave.
+    pub the_title: u16,
+    /// The start of the chapter in the book.
+    pub the_start: u16,
+    /// The length of the chapter.
+    pub the_length: u16,
+}
+
+impl TheColumnsOfTheChapters {
+    /// Says that the row holds the table. A row that holds no column of the
+    /// title draws the line of today.
+    pub fn the_table_stands(self) -> bool {
+        self.the_title > 0
+    }
+}
+
+/// The columns of the table of the chapters, for a line of `width` columns.
+///
+/// `width` is the columns of a line of the list, after the sign of the cursor
+/// and after the bar of the scroll.
+pub fn the_columns_of_the_table(width: u16, chapters: &[Chapter]) -> TheColumnsOfTheChapters {
+    if chapters.is_empty() {
+        return TheColumnsOfTheChapters::default();
+    }
+
+    let the_widest = |texts: &mut dyn Iterator<Item = String>| -> u16 {
+        texts
+            .map(|text| crate::logic::message::the_columns_of(&text) as u16)
+            .max()
+            .unwrap_or(0)
+    };
+
+    let the_number = the_widest(&mut (1..=chapters.len()).map(|number| number.to_string()))
+        .max(crate::logic::message::the_columns_of(THE_NUMBER) as u16);
+
+    let the_start = the_widest(&mut chapters.iter().map(|chapter| clock(chapter.start)))
+        .max(THE_SMALLEST_START)
+        .max(crate::logic::message::the_columns_of(THE_START) as u16);
+
+    let the_length = the_widest(
+        &mut chapters
+            .iter()
+            .map(|chapter| the_length_of_a_chapter(chapter.end - chapter.start)),
+    )
+    .max(THE_SMALLEST_LENGTH);
+
+    let of_the_others = THE_MARK_OF_THE_ROW
+        + the_number
+        + THE_GAP_OF_THE_TABLE
+        + THE_GAP_OF_THE_TABLE
+        + the_start
+        + THE_GAP_OF_THE_TABLE
+        + the_length;
+
+    let the_title = width.saturating_sub(of_the_others);
+
+    if the_title < THE_SMALLEST_TITLE_OF_A_CHAPTER {
+        return TheColumnsOfTheChapters::default();
+    }
+
+    TheColumnsOfTheChapters {
+        the_number,
+        the_title,
+        the_start,
+        the_length,
+    }
+}
+
+/// The row of the header of the table of the chapters, or nothing at all for a
+/// row that holds no table.
+///
+/// The words of it stand over the words of the rows, therefore the mark of the
+/// chapter that plays takes its two columns of the header too.
+pub fn the_header_of_the_table(the_columns: TheColumnsOfTheChapters) -> Option<String> {
+    if !the_columns.the_table_stands() {
+        return None;
+    }
+
+    Some(the_row_of_the_table(
+        "  ",
+        &the_in_the_columns(THE_NUMBER, the_columns.the_number, true),
+        THE_TITLE,
+        THE_START,
+        THE_LENGTH,
+        the_columns,
+    ))
+}
+
+/// The row of one chapter of the table.
+fn the_row_of_a_chapter(
+    mark: &str,
+    index: usize,
+    chapter: &Chapter,
+    the_columns: TheColumnsOfTheChapters,
+) -> String {
+    the_row_of_the_table(
+        mark,
+        &the_in_the_columns(&(index + 1).to_string(), the_columns.the_number, true),
+        &chapter.title,
+        &clock(chapter.start),
+        &the_length_of_a_chapter(chapter.end - chapter.start),
+        the_columns,
+    )
+}
+
+/// Puts the five parts of a row of the table in their columns.
+fn the_row_of_the_table(
+    mark: &str,
+    number: &str,
+    title: &str,
+    start: &str,
+    length: &str,
+    the_columns: TheColumnsOfTheChapters,
+) -> String {
+    let text = format!(
+        "{}{}  {}  {}  {}",
+        mark,
+        number,
+        the_in_the_columns(title, the_columns.the_title, false),
+        the_in_the_columns(start, the_columns.the_start, true),
+        the_in_the_columns(length, the_columns.the_length, true),
+    );
+
+    text.trim_end().to_string()
+}
+
+/// Puts a text in a number of columns of the screen.
+///
+/// **`format!` with a width counts the characters and not the columns** (the
+/// trap 245): a title of a chapter that holds a letter of two columns then takes
+/// one column too many, and every column of the row after it moves. A text that
+/// is wider than its columns takes the three points of `in_one_row`.
+fn the_in_the_columns(text: &str, columns: u16, to_the_right: bool) -> String {
+    let text = crate::logic::message::in_one_row(text, columns);
+    let of_the_text = crate::logic::message::the_columns_of(&text);
+    let room = " ".repeat(usize::from(columns).saturating_sub(of_the_text));
+
+    if to_the_right {
+        format!("{}{}", room, text)
+    } else {
+        format!("{}{}", text, room)
+    }
 }
 
 /// The mark of a boundary of a chapter, in the bar of the whole book.
@@ -422,6 +642,10 @@ mod tests {
         ]
     }
 
+    /// A row that has no room for the columns of the table, therefore the tests
+    /// of the line of today read the line of today. See T-330.5.
+    const THE_NARROW_ROW: u16 = 30;
+
     #[test]
     fn the_position_gives_the_chapter() {
         let all = three();
@@ -448,12 +672,12 @@ mod tests {
     #[test]
     fn a_book_with_no_chapter_gives_nothing() {
         assert_eq!(chapter_at(&[], 12.0), None);
-        assert!(lines(&[], 12.0).is_empty());
+        assert!(lines(&[], 12.0, 80).is_empty());
     }
 
     #[test]
     fn every_chapter_gives_one_line() {
-        let text = lines(&three(), 30.0);
+        let text = lines(&three(), 30.0, THE_NARROW_ROW);
 
         assert_eq!(text.len(), 3);
         assert!(text[0].contains("1. One"));
@@ -464,7 +688,7 @@ mod tests {
     /// The user must see which chapter plays.
     #[test]
     fn the_chapter_that_plays_has_a_mark() {
-        let text = lines(&three(), 30.0);
+        let text = lines(&three(), 30.0, THE_NARROW_ROW);
 
         assert!(text[1].starts_with('▶'));
         assert!(!text[0].starts_with('▶'));
@@ -534,7 +758,7 @@ mod tests {
                 .expect("the number must stand in the line")
         };
 
-        let text = lines(&three(), 30.0);
+        let text = lines(&three(), 30.0, THE_NARROW_ROW);
         let first = column(&text[0]);
 
         for line in &text {

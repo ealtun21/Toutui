@@ -181,6 +181,90 @@ test function.
 **Two runs of `cargo nextest run` under the load of 24 loops of a shell
 gave 1200 of 1200 at v0.8.49 too** (T-220).
 
+## The session of the hundred and sixty-fifth turn of 2026-08-17: the table of the times of the view of the chapters
+
+**The item: T-330, the part 5, the table of the times**, and the release
+**v0.8.165**.
+
+**The part 5 holds three rounds**: the two bars (v0.8.164), the table of the
+times, and the key `Enter` of a chapter. **This round took the table of the
+times.** The key `Enter` of a chapter and the click of a row stay.
+
+**The fault, of the real program v0.8.164 inside tmux**, of 160 columns and 45
+rows, of the library `Books` of the sandbox, with "A Second Book Of Many Hours"
+and its 70 chapters at about 2:45:35 of its eight hours. Each row of the list
+held the number, the title, and the start of the chapter in parentheses, **and
+no length at all**, and **no row of a header**:
+
+```text
+────────The chapters of "A Second Book Of Many Hours" [70 items]────────
+    1. Chapter 1 of the second book  (00:00)
+    2. Chapter 2 of the second book  (04:02)
+    3. Chapter 3 of the second book  (08:34)
+```
+
+**The start stood in no column of the panel**: the parentheses came after the
+title, therefore a long title took the time of that row far to the right, and
+the user could not read the times of two rows together. The length of one
+chapter had no place at all.
+
+**The corrected program of the same harness**, at 160 columns:
+
+```text
+     #  Title                                    Start  Length
+     1  Chapter 1 of the second book             00:00   4m02s
+     2  Chapter 2 of the second book             04:02   4m32s
+    11  Chapter 11 of the second book          1:02:50   9m02s
+➤ ▶ 25  Chapter 25 of the second book          2:40:59   4m41s
+```
+
+**The controls of the same run.** At 80 columns, "A Book Of Many Hours" of
+three chapters of about two hours and 46 minutes each gave `2:46:40` in the
+column `Start` and `2h46m` in the column `Length`, and the first chapter gave
+`00:00` right-aligned under the seven columns of the widest start; the key `G`
+moved the cursor to the chapter 3 and **the row of the header stayed** over the
+list; **a click of the row 8 of the screen, which is the first row under the
+header, gave the chapter 1 and not the chapter 2**, therefore the row of the
+header takes one row of the panel and the map of the mouse reads the rows that
+stay; at 40 columns **the table did not stand and the line of today came back**,
+with no row of a header at all; and "A Book That Ends Before Its Length", of no
+chapter, kept the two bars and no header.
+
+**The data of this part is the program itself and the sandbox as it stands**:
+no proxy, no book of a harness, and no change of the media. The account took
+the library `Books` with a `sqlite3` of `name_selected_lib` and of
+`id_selected_lib` (the trap 203 and the trap 204), and the library `Large` of
+the start came back at the end (the trap 198).
+
+**The correction is four files.** `src/logic/chapters.rs` takes
+`the_length_of_a_chapter`, `TheColumnsOfTheChapters`,
+`the_columns_of_the_table`, and `the_header_of_the_table`, and `lines` takes
+the width of a row; `src/ui/the_list_of_a_view.rs` takes the field
+`the_header_of_the_columns` of `TheContentOfAPanel` and the function
+`render_the_list_with_a_header`, therefore **a view whose rows are not a media
+holds a row of a header too**; `src/ui/tui.rs` gives `render_chapters` the
+width of a line of the list and that render;
+`tests/the_table_of_the_panel_4_holds_its_columns.rs` takes the new field.
+
+**The gate is `tests/the_chapters_view_holds_the_table_of_the_times.rs`, of 12
+tests.** Eleven of them are pure, and the twelfth draws the list with its
+header into a `Buffer`, because **a gate of the pure function alone says
+nothing of the render** (the shape of T-256). **The build of the fault** (the
+trap 147), of four edits of one line each that keep every other line — no table
+of the rows, no header, no length of a chapter, and a header that the render
+does not draw — made **nine** of the 12 tests fail.
+
+**The trap of this part.** **`format!` with a width counts the characters of a
+text and not the columns of the screen** (the trap 245), therefore a title of a
+chapter that holds a letter of two columns moves every column of the row after
+it. `crate::logic::message::the_columns_of` with a pad of spaces is the road,
+and one test of the gate holds it with a title of `あああ`.
+
+**The gates**: `cargo clippy --all-targets -- -D warnings` and `cargo fmt
+--check` are clean, `cargo nextest run` gives 1516 of 1516, `cargo nextest run
+--run-ignored all` gives 1542 of 1542 with the sandbox up, and `cargo test -j
+16 --no-fail-fast` gives no failure over two runs.
+
 ## The session of the hundred and sixty-fourth turn of 2026-08-17: the two bars of the view of the chapters
 
 **The item: T-330, the part 5, the two bars**, and the release **v0.8.164**.
@@ -12028,7 +12112,7 @@ the maintainer gave it after that road finished its eight stages.
 | T-330.2 | The filters lose the empty words: `No filter`, `Finished`, `Started, not finished`, `Not started` — **done, v0.8.161** | `sort_filter::PROGRESS` of `src/logic/sort_filter.rs` |
 | T-330.3 | The picture of the panel 5 takes every row that the facts and the description leave — **done, v0.8.162** | `the_parts_of_the_panel` of `src/ui/the_panel_of_the_cover.rs` |
 | T-330.4 | The cell of the gallery holds the picture and its border alone — **done, v0.8.163** | `src/ui/the_panel_of_the_gallery.rs` and `render_the_gallery` of `src/ui/tui.rs` |
-| T-330.5 | The Chapters view of the two bars and of the table of the times — **the two bars are done, v0.8.164**; the table of the times and the key `Enter` of a chapter stay | `docs/mockups/mockup-7.txt` and `mockup-7.md`, `src/logic/chapters.rs`, and `src/ui/the_bars_of_the_chapters.rs` |
+| T-330.5 | The Chapters view of the two bars and of the table of the times — **the two bars are done, v0.8.164, and the table of the times is done, v0.8.165**; the key `Enter` of a chapter stays | `docs/mockups/mockup-7.txt` and `mockup-7.md`, `src/logic/chapters.rs`, `src/ui/the_bars_of_the_chapters.rs`, and `src/ui/the_list_of_a_view.rs` |
 | T-331 | The Home view of the bands of covers, one band for each shelf of the server | `docs/mockups/mockup-6.txt` and `mockup-6.md` |
 
 **The five parts of T-330 come in that sequence**, because the words are small
@@ -12036,10 +12120,9 @@ and safe and the Chapters view is large: **one part is one round and one
 commit, with a gate of its own**. **The part 1 is done, v0.8.160, the part 2 is
 done, v0.8.161, the part 3 is done, v0.8.162, and the part 4 is done,
 v0.8.163**. **That part 5 is the large one of the five**, and it holds three
-rounds: **the two bars are done, v0.8.164**, and the next round takes the table
-of the times of `docs/mockups/mockup-7.txt` — the columns `Start` and `Length`
-of each row — and the round after it takes the key `Enter` and the click of a
-row that play that chapter.
+rounds: **the two bars are done, v0.8.164, and the table of the times is done,
+v0.8.165**, and the round after them takes the key `Enter` of a chapter and the
+click of a row, which play that chapter.
 
 **T-331 starts at a spec** in `docs/superpowers/specs/` and not at code: it
 changes the meaning of the keys `h` and `l` of a view, it takes the table of
@@ -22176,6 +22259,85 @@ the real program.
     and `path`). **That second one is a candidate and not an item.**
 
 
+## The session of the hundred and sixty-third turn of 2026-08-17: a cell of the gallery holds the picture and its border alone, of the block of the prompt
+
+  **The session of the hundred and sixty-third turn took the part 4 of the
+  second report of the maintainer** (T-330.4, v0.8.163): a cell of the panel 6
+  of the gallery holds the picture of the cover and its border, and no word at
+  all.
+
+  **The fault.** A cell held a row of the percentage of the position of the
+  user inside its border and a row of a short title under its box (T-327).
+  **The panel 5 of the cover says the two of them for the media of the cursor
+  already**, and the panel 4 of the list says them for every media of the
+  view. **A title of ten columns is a title that the cell cuts**: three
+  different books of the sandbox each gave `A Book Of…`.
+
+  **The data of this part is the program itself**: no proxy, no book of a
+  harness, and no change of the sandbox. The account takes the library `Books`
+  of the sandbox with a `sqlite3` of `name_selected_lib` and of
+  `id_selected_lib` (the trap 203 and the trap 204), because that library
+  holds the media that the server gives a cover.
+
+  **The real program v0.8.162 inside tmux**, of 160 columns and 45 rows, of
+  the Library view with the cursor on the first row. The panel 6 held 18 rows
+  and **eight** cells:
+
+  ```text
+  │  ║  done  ║ │    -   │ │  done  │ │    -   │   │
+  │  ╚════════╝ └────────┘ └────────┘ └────────┘   │
+  │  A Book Of… A Book Of… A Book Of… A Very La…   │
+  ```
+
+  **The corrected program of the same harness**: the panel holds 20 rows and
+  **twelve** cells, and the border of the cell of the cursor is heavy and not
+  double.
+
+  ```text
+  │  ┏━━━━━━━━┓ ┌────────┐ ┌────────┐ ┌────────┐   │
+  │  ┃        ┃ │        │ │        │ │        │   │
+  │  ┗━━━━━━━━┛ └────────┘ └────────┘ └────────┘   │
+  ```
+
+  `tmux capture-pane -e` gave the colour `48;2;…` on **eight** rows of that
+  panel, where the program before it gave it on four: **the rows that the
+  words gave back go to the pictures.**
+
+  **The controls of the same run**: a click of the second cell of the second
+  row (`docs/harness/click.sh`, the column 129 and the row 32) moved the
+  cursor of the panel 4 to the sixth media of the list and the heavy border to
+  that same cell, therefore **the box of a cell is the whole of that cell
+  now**; and the panel 5 kept its facts and its description, and it gave two
+  rows to the gallery.
+
+  **The correction is three files.** `the_rows_of_a_row_of_the_grid` of
+  `src/ui/the_panel_of_the_gallery.rs` goes away, because a row of the grid is
+  a box now; the areas `the_place` and `the_title` of a cell and the fields
+  `title` and `done` of a media of the gallery go away with it;
+  `render_the_gallery` of `src/ui/tui.rs` loses its two `Paragraph`, and the
+  border of the cell of the cursor becomes `BorderType::Thick`.
+
+  **The gate is `tests/the_cell_of_the_gallery_holds_the_picture_alone.rs`, of
+  three tests.** The first one makes a real `App` of the offline mode, it
+  draws the Library view of twenty books of a title of `Zebra` into a
+  `TestBackend` of 160 by 45, and it holds that **every character of the panel
+  6 under the row of its title is a space or one of the twelve characters of a
+  border**. The control of that same test holds that the panel 4 draws `Zebra
+  Book 1`: a gate that finds no word in a screen of no word says nothing.
+  **The build of the fault** (the trap 147), of the three files of `HEAD` in
+  the tree of the gate, made **three** of the three tests fail.
+
+  **The trap of this part.** **`String::char_indices` gives the index of a
+  byte and not the column of the screen** (the trap 245): the gate read the
+  column of the digit `6` of the row of the title of the panel with
+  `char_indices`, and that row holds `│`, `║`, and `➤` at the left of it, each
+  of three bytes and one column. The search of the last row of the panel then
+  read a column 60 columns at the right of the border, and the test said "the
+  panel 6 holds no last row" for a panel that stood whole. `str::chars` with
+  `position` is the road. **A row of a buffer of the screen is the whole row
+  and not the panel**, therefore a gate of the words of one panel takes the
+  columns of that panel out of the row first.
+
 ## The decisions of T-201 to T-327 that do not open again
 
 These decisions stood in the block of the prompt of the next session until the
@@ -23320,7 +23482,7 @@ that takes every row that the facts and the description leave:
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.158**; `Cargo.toml` is at 0.8.158. The
+> AlbanDAVID/Toutui. Newest release **v0.8.165**; `Cargo.toml` is at 0.8.165. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -24260,8 +24422,8 @@ that takes every row that the facts and the description leave:
 >    with no percentage and no title; and the Chapters view takes the two bars
 >    and the table of `docs/mockups/mockup-7.txt`. **The parts 1 to 4 are
 >    done** (v0.8.160 to v0.8.163), and **the part 5 holds three rounds**: the
->    two bars are done (v0.8.164), and the table of the times and the key
->    `Enter` of a chapter stay. T-331 is the new Home view
+>    two bars are done (v0.8.164) and the table of the times is done
+>    (v0.8.165), and the key `Enter` of a chapter and the click of a row stay. T-331 is the new Home view
 >    of the bands of covers of `docs/mockups/mockup-6.txt`, **and it starts at
 >    a spec in `docs/superpowers/specs/` and not at code**. **The mockups of
 >    the two of them are written already** (`mockup-6` and `mockup-7`, of
@@ -24308,6 +24470,81 @@ that takes every row that the facts and the description leave:
 > 1. **A condition of the program that no measurement has reached.** A sweep of
 >    this shape found a fault in one hundred and eleven sessions of one hundred
 >    and twelve.
+>
+> **The session of the hundred and sixty-fifth turn took the table of the times
+> of the part 5 of the second report of the maintainer** (T-330.5, v0.8.165).
+> **The part 5 holds three rounds**: the two bars (v0.8.164), the table of the
+> times, and the key `Enter` of a chapter. **This round took the second of
+> them**, and the next round takes the key `Enter` of a chapter and the click
+> of a row, which play that chapter.
+>
+> **The fault.** Each row of the list of the chapters held the number, the
+> title, and the start of the chapter in parentheses, **and no length at all**,
+> and no row of a header named the values. **The start stood in no column of
+> the panel**: the parentheses came after the title, therefore a long title
+> took the time of that row far to the right and the user could not read the
+> times of two rows together.
+>
+> **The data of this part is the program itself and the sandbox as it stands**:
+> no proxy, no book of a harness, and no change of a media. The account takes
+> the library `Books` with a `sqlite3` of `name_selected_lib` and of
+> `id_selected_lib` (the trap 203 and the trap 204), and the library of the
+> start comes back at the end (the trap 198).
+>
+> **The real program v0.8.164 inside tmux**, of 160 columns and 45 rows, with
+> "A Second Book Of Many Hours" and its 70 chapters at about 2:45:35 of its
+> eight hours:
+>
+> ```text
+>     1. Chapter 1 of the second book  (00:00)
+>     2. Chapter 2 of the second book  (04:02)
+>     3. Chapter 3 of the second book  (08:34)
+> ```
+>
+> **The corrected program of the same harness**:
+>
+> ```text
+>      #  Title                                    Start  Length
+>      1  Chapter 1 of the second book             00:00   4m02s
+>      2  Chapter 2 of the second book             04:02   4m32s
+>     11  Chapter 11 of the second book          1:02:50   9m02s
+> ➤ ▶ 25  Chapter 25 of the second book          2:40:59   4m41s
+> ```
+>
+> **The controls of the same run.** At 80 columns, "A Book Of Many Hours" of
+> three chapters of about 2h46m each gave `2:46:40` in the column `Start` and
+> `2h46m` in the column `Length`, and the first chapter gave `00:00`
+> right-aligned under the seven columns of the widest start; the key `G` moved
+> the cursor to the chapter 3 and **the row of the header stayed** over the
+> list; **a click of the row 8 of the screen, which is the first row under the
+> header, gave the chapter 1 and not the chapter 2**, therefore the row of the
+> header takes one row of the panel and the map of the mouse reads the rows
+> that stay; at 40 columns **the table did not stand and the line of today came
+> back**, with no row of a header at all; and "A Book That Ends Before Its
+> Length", of no chapter, kept the two bars and no header.
+>
+> **The correction is four files.** `src/logic/chapters.rs` takes
+> `the_length_of_a_chapter`, `TheColumnsOfTheChapters`,
+> `the_columns_of_the_table`, and `the_header_of_the_table`, and `lines` takes
+> the width of a row; `src/ui/the_list_of_a_view.rs` takes the field
+> `the_header_of_the_columns` of `TheContentOfAPanel` and the function
+> `render_the_list_with_a_header`, therefore **a view whose rows are not a
+> media holds a row of a header too**; `src/ui/tui.rs` gives `render_chapters`
+> the width of a line of the list and that render;
+> `tests/the_table_of_the_panel_4_holds_its_columns.rs` takes the new field.
+>
+> **The gate is `tests/the_chapters_view_holds_the_table_of_the_times.rs`, of
+> 12 tests.** Eleven of them are pure, and the twelfth draws the list with its
+> header into a `Buffer`, because **a gate of the pure function alone says
+> nothing of the render** (the shape of T-256). **The build of the fault** (the
+> trap 147), of four edits of one line each that keep every other line, made
+> **nine** of the 12 tests fail.
+>
+> **The trap of this part.** **`format!` with a width counts the characters of
+> a text and not the columns of the screen** (the trap 245), therefore a title
+> of a chapter that holds a letter of two columns moves every column of the row
+> after it. `crate::logic::message::the_columns_of` with a pad of spaces is the
+> road, and one test of the gate holds it with a title of `あああ`.
 >
 > **The session of the hundred and sixty-fourth turn took the two bars of the
 > part 5 of the second report of the maintainer** (T-330.5, v0.8.164). **The
@@ -24386,83 +24623,6 @@ that takes every row that the facts and the description leave:
 >
 > **The next round takes the table of the times of `docs/mockups/mockup-7.txt`**:
 > the columns `Start` and `Length` of each row of the list of the chapters.
->
->> **The session of the hundred and sixty-third turn took the part 4 of the
-> second report of the maintainer** (T-330.4, v0.8.163): a cell of the panel 6
-> of the gallery holds the picture of the cover and its border, and no word at
-> all.
->
-> **The fault.** A cell held a row of the percentage of the position of the
-> user inside its border and a row of a short title under its box (T-327).
-> **The panel 5 of the cover says the two of them for the media of the cursor
-> already**, and the panel 4 of the list says them for every media of the
-> view. **A title of ten columns is a title that the cell cuts**: three
-> different books of the sandbox each gave `A Book Of…`.
->
-> **The data of this part is the program itself**: no proxy, no book of a
-> harness, and no change of the sandbox. The account takes the library `Books`
-> of the sandbox with a `sqlite3` of `name_selected_lib` and of
-> `id_selected_lib` (the trap 203 and the trap 204), because that library
-> holds the media that the server gives a cover.
->
-> **The real program v0.8.162 inside tmux**, of 160 columns and 45 rows, of
-> the Library view with the cursor on the first row. The panel 6 held 18 rows
-> and **eight** cells:
->
-> ```text
-> │  ║  done  ║ │    -   │ │  done  │ │    -   │   │
-> │  ╚════════╝ └────────┘ └────────┘ └────────┘   │
-> │  A Book Of… A Book Of… A Book Of… A Very La…   │
-> ```
->
-> **The corrected program of the same harness**: the panel holds 20 rows and
-> **twelve** cells, and the border of the cell of the cursor is heavy and not
-> double.
->
-> ```text
-> │  ┏━━━━━━━━┓ ┌────────┐ ┌────────┐ ┌────────┐   │
-> │  ┃        ┃ │        │ │        │ │        │   │
-> │  ┗━━━━━━━━┛ └────────┘ └────────┘ └────────┘   │
-> ```
->
-> `tmux capture-pane -e` gave the colour `48;2;…` on **eight** rows of that
-> panel, where the program before it gave it on four: **the rows that the
-> words gave back go to the pictures.**
->
-> **The controls of the same run**: a click of the second cell of the second
-> row (`docs/harness/click.sh`, the column 129 and the row 32) moved the
-> cursor of the panel 4 to the sixth media of the list and the heavy border to
-> that same cell, therefore **the box of a cell is the whole of that cell
-> now**; and the panel 5 kept its facts and its description, and it gave two
-> rows to the gallery.
->
-> **The correction is three files.** `the_rows_of_a_row_of_the_grid` of
-> `src/ui/the_panel_of_the_gallery.rs` goes away, because a row of the grid is
-> a box now; the areas `the_place` and `the_title` of a cell and the fields
-> `title` and `done` of a media of the gallery go away with it;
-> `render_the_gallery` of `src/ui/tui.rs` loses its two `Paragraph`, and the
-> border of the cell of the cursor becomes `BorderType::Thick`.
->
-> **The gate is `tests/the_cell_of_the_gallery_holds_the_picture_alone.rs`, of
-> three tests.** The first one makes a real `App` of the offline mode, it
-> draws the Library view of twenty books of a title of `Zebra` into a
-> `TestBackend` of 160 by 45, and it holds that **every character of the panel
-> 6 under the row of its title is a space or one of the twelve characters of a
-> border**. The control of that same test holds that the panel 4 draws `Zebra
-> Book 1`: a gate that finds no word in a screen of no word says nothing.
-> **The build of the fault** (the trap 147), of the three files of `HEAD` in
-> the tree of the gate, made **three** of the three tests fail.
->
-> **The trap of this part.** **`String::char_indices` gives the index of a
-> byte and not the column of the screen** (the trap 245): the gate read the
-> column of the digit `6` of the row of the title of the panel with
-> `char_indices`, and that row holds `│`, `║`, and `➤` at the left of it, each
-> of three bytes and one column. The search of the last row of the panel then
-> read a column 60 columns at the right of the border, and the test said "the
-> panel 6 holds no last row" for a panel that stood whole. `str::chars` with
-> `position` is the road. **A row of a buffer of the screen is the whole row
-> and not the panel**, therefore a gate of the words of one panel takes the
-> columns of that panel out of the row first.
 >
 >    **The turns before this one stand in `## The turns before the three
 >    newest ones` of this file**, above the heading of this prompt. **This item
@@ -24570,6 +24730,20 @@ that takes every row that the facts and the description leave:
 > `Ch -` and no percent at all (T-91); and **a playback that stopped gives no
 > bar**, because the engine keeps the length and the place of the media that
 > played last (T-330.5).
+> **The columns of the times of the table of the Chapters view take the width
+> of the widest value that they hold**, because a book of eight hours gives
+> `7:59:12` in seven columns and a book of 30 minutes gives `29:12` in five;
+> **the length of a chapter names the second under one hour (`7m50s`) and the
+> minute over it (`1h02m`)**, because `convert_seconds` rounds to the minute
+> and every chapter of less than 30 seconds then says `0m`; **the title of a
+> chapter takes every column that the others leave**, which is the rule of the
+> table of the panel 4 (T-321); **a row that keeps fewer than 20 columns for
+> the title holds no table at all** and the line of today stands in its place,
+> because that line says the start already and a text that the row cuts says
+> nothing to the user (T-91); **a book of no chapter gives no row of a
+> header**; and **the row of the header takes one row of the panel**, therefore
+> the bar of the scroll and the map of the mouse read the rows that stay
+> (T-330.5).
 > **The words of the sequence and of the filter of the status bar keep the
 > middle of the row while the middle is free**, therefore every screen that
 > stood before T-329 stands in the same shape; **they stand beside the part at
@@ -24712,7 +24886,9 @@ that takes every row that the facts and the description leave:
 > the block then held about **86100** bytes with **two** turns in it; the round
 > of the hundred and sixty-fourth found it at 86393 bytes with two turns in it,
 > and it did the same work, and the block then held about **86100** bytes with
-> **two** turns in it.
+> **two** turns in it; the round of the hundred and sixty-fifth found it at
+> 87430 bytes with two turns in it, and it did the same work, and the block
+> then held about **87200** bytes with **two** turns in it.
 > **A block that stands at 80000 bytes or under holds two
 > turns**, and the turn of the stage before this one names the parts of that
 > stage which stay open. **The list of the decisions
