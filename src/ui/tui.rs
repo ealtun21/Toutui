@@ -1123,6 +1123,19 @@ impl App {
         Self::a_picture_comes_of(&playing, &selected)
     }
 
+    /// Says if the panel 5 of the cover holds the identity of one media at
+    /// least. See T-354.
+    ///
+    /// **A media with no cover is a media of this panel** (T-319): the words of
+    /// it stand in the panel, therefore this answer is not
+    /// `a_picture_comes_in_the_panel_of_the_cover`. A view of no media at all
+    /// gives `false`, and the panel then takes no column of the screen.
+    fn a_media_of_the_panel_of_the_cover_comes(&self) -> bool {
+        let (playing, selected) = self.the_media_of_the_panel_of_the_cover();
+
+        playing.is_some() || !selected.is_empty()
+    }
+
     /// Draws the panel 5 of the cover, and it gives the area of the facts of
     /// the media and the area of the description of it. See T-319.
     ///
@@ -2487,20 +2500,32 @@ impl App {
         // (T-50), therefore the layout needs to know whether a picture comes
         // at all before it cuts the area (T-348).
         let a_picture_comes = self.a_picture_comes_in_the_panel_of_the_cover();
-        let (main_area, cover_panel) = cover::split_for_covers(
-            main_area,
-            main_area.width,
-            cover::picker().font_size(),
-            a_picture_comes,
-        );
+
+        // Every line starts with a mark: the media that plays, a media that
+        // the user finished, or the part that the user heard. See T-44.
+        //
+        // **The two panels of the covers read this number** (T-354), therefore
+        // the lines of the view stand before the layout: a view with no line
+        // holds no media of a picture and no media of a cell.
+        let lines = self.home_lines();
+        let (main_area, cover_panel) = if cover::the_panels_of_the_covers_stand(
+            lines.len(),
+            self.a_media_of_the_panel_of_the_cover_comes(),
+        ) {
+            cover::split_for_covers(
+                main_area,
+                main_area.width,
+                cover::picker().font_size(),
+                a_picture_comes,
+            )
+        } else {
+            (main_area, None)
+        };
         let the_words_of_the_panel = self.render_covers(cover_panel, buf);
 
         let [list_area, item_area1, item_area2] =
             self.the_areas_of_a_list_and_the_panel(main_area, the_words_of_the_panel);
 
-        // Every line starts with a mark: the media that plays, a media that
-        // the user finished, or the part that the user heard. See T-44.
-        let lines = self.home_lines();
         let count = self
             .home_rows
             .iter()
@@ -2868,19 +2893,30 @@ impl App {
         // (T-50), therefore the layout needs to know whether a picture comes
         // at all before it cuts the area (T-348).
         let a_picture_comes = self.a_picture_comes_in_the_panel_of_the_cover();
-        let (main_area, cover_panel) = cover::split_for_covers(
-            main_area,
-            main_area.width,
-            cover::picker().font_size(),
-            a_picture_comes,
-        );
+
+        // Every book of a series gives one line. See T-22.
+        //
+        // **The two panels of the covers read this number** (T-354), therefore
+        // the lines of the view stand before the layout: a view with no line
+        // holds no media of a picture and no media of a cell.
+        let lines = self.library_lines();
+        let (main_area, cover_panel) = if cover::the_panels_of_the_covers_stand(
+            lines.len(),
+            self.a_media_of_the_panel_of_the_cover_comes(),
+        ) {
+            cover::split_for_covers(
+                main_area,
+                main_area.width,
+                cover::picker().font_size(),
+                a_picture_comes,
+            )
+        } else {
+            (main_area, None)
+        };
         let the_words_of_the_panel = self.render_covers(cover_panel, buf);
 
         let [list_area, item_area1, item_area2] =
             self.the_areas_of_a_list_and_the_panel(main_area, the_words_of_the_panel);
-
-        // Every book of a series gives one line. See T-22.
-        let lines = self.library_lines();
         // The title says the sequence and the filter, because a user who
         // does not see every item must know why. See T-24.
         let render_list_title = format!(

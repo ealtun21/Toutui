@@ -41,6 +41,23 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.185",
+        date: "17/08/2026",
+        body: &[
+            "Fixed:",
+            "- **A view with no line takes no panel of the cover and no panel \
+             of the gallery.** The two panels hold the picture of a media and \
+             the cells of the media beside it, therefore a view that holds no \
+             line gives them no media at all. They stood with no character in \
+             them: a terminal of 160 columns and 45 rows gave the Library view \
+             of a library with no media a panel of the cover of 8 rows and a \
+             panel of the gallery of 32 rows, the two of them took 48 columns, \
+             and the reason of the view said its two lines in the 74 columns \
+             that stayed. The reason takes the whole width of the view now, and \
+             a media that plays keeps the two panels.",
+        ],
+    },
+    Entry {
         version: "0.8.184",
         date: "17/08/2026",
         body: &[

@@ -33683,3 +33683,110 @@ and the panel holds 8.
 - Every candidate of the items before this one.
 
 **v0.8.184.**
+
+## T-354 — A view with no line holds two panels of the covers with nothing in them
+
+**The condition.** The real program v0.8.184 inside tmux, at 160 columns and 45
+rows, of the library `Empty` of the sandbox (the section 5 of
+`docs/TEST-SERVER.md`). That library holds no media at all, therefore the
+Library view and the Home view of it hold no line, and each of them says its
+reason with `App::render_the_reason` (T-91 and T-103). The server answers,
+therefore `is_offline` holds `false`, and no request came back with a fault.
+
+**The fault.** The two panels of the covers stood beside that reason with **no
+character in them**. The panel 5 of the cover held **8** rows and the panel 6 of
+the gallery held **32**, the two of them took **50 columns** of the work of the
+view, one column stayed empty beside them, and the reason of the view said its
+two lines in the **75** columns that stayed:
+
+```text
+┌1 Views ────────────────────────┐──────────────────────────────── ┌5 Cover ────────────────────────────────────────┐
+│➤ Home                       Tab│      This library holds no media│                                                │
+│  Library                    Tab│ Press L to tell the server to ex│                                                │
+│  Sequence and filter          f│                                 │                                                │
+│  Authors                      a│                                 │                                                │
+│  Narrators                    v│                                 │                                                │
+│  Collections                  c│                                 │                                                │
+│  Queue                        q│                                 └────────────────────────────────────────────────┘
+│  Downloads                    d│                                 ┌6 Gallery ──────────────────────────────────────┐
+│  Chapters                     C│                                 │                                                │
+│  Bookmarks                    V│                                 │                     … 30 rows of nothing …     │
+└...───────────────────────────..┘                                 └────────────────────────────────────────────────┘
+```
+
+The Home view of the same library gave the same two panels, with its own reason
+(`The server gave no shelf for this library.`).
+
+**Why.** `render_library` and `render_home` of `src/ui/tui.rs` cut the area with
+`cover::split_for_covers` **before** they read the lines of the view, and the
+guard of that function reads the width of the screen, the height of the area,
+and whether a picture comes (T-50, T-348, and T-349). **None of the three says
+that the view holds no media at all.** The two panels then stand, and
+`render_covers` draws the border of each of them: a panel 5 of no media has no
+picture and no fact, and a panel 6 of no media has no cell.
+
+**This is the fourth face of the fault of T-319.** T-348 and T-349 read a media
+with **no cover**, T-352 and T-353 read the rows and the columns that the
+picture of such a media cannot use, and each of the four holds a media. This one
+holds **no media at all**: the panel of a view with no line can use no column of
+the screen, and the rows of it can hold nothing at any width and at any height.
+
+**The correction.** `cover::the_panels_of_the_covers_stand(the_lines_of_the_view,
+a_media_of_the_panel_comes)` gives the rule, and the two views of the frame of
+the panels read the lines of their list before they cut the area. A view of no
+line and of no media of the panel takes no panel 5 and no panel 6, and the
+reason of it takes the whole width of the work.
+
+**A media that plays keeps the two panels** (T-23). The picture of that media
+and the facts of it say something in a view that holds no line of its own,
+therefore the rule reads the media of the panel
+(`App::a_media_of_the_panel_of_the_cover_comes`, which is the media that plays
+and the media of the cursor) and not the lines alone. **That answer is not
+`a_picture_comes_in_the_panel_of_the_cover`**: a media with no cover is a media
+of the panel, and the words of it stand there (T-319).
+
+**The corrected program of the same harness**, of the same screen: no panel 5,
+no panel 6, and the reason of the view centred in the **126** columns of the
+work.
+
+```text
+┌1 Views ────────────────────────┐──────────────────────────────────────────────────────────────────────────────────
+│➤ Home                       Tab│                                 This library holds no media.
+│  Library                    Tab│                      Press L to tell the server to examine the library.
+```
+
+**The build of the fault**: the guard of `render_library` and of `render_home`
+becomes `if true || cover::the_panels_of_the_covers_stand(…)`, and
+`the_panels_of_the_covers_go_away_in_a_view_with_no_line` of
+`tests/the_panels_of_the_covers_go_away_in_a_view_with_no_line.rs` then says
+"the panel 5 of the cover takes no column of a Library view with no line". That
+test renders the two views of a `TestBackend` of 160 columns and 45 rows, and
+the **control of the same run** is a view of one line, which keeps the two
+panels: a correction that takes the panels away for every view would fail it.
+
+**What this item leaves open, and each of them is a candidate and not an item:**
+
+- **The panel 4 of a view with no line has no border, no number, and no name.**
+  `render_library` and `render_home` call `App::render_the_reason` and they then
+  come back, therefore `render_the_list_of_the_panel_4` never draws the block of
+  that panel: the reason stands under a bare line of `Borders::TOP`, and no key
+  and no click of the user can name the panel that holds it. That is the fault
+  that the frame of T-320 corrected for the panel of the covers of T-23, and it
+  stands in the panel 4 now.
+- **A picture of one colour draws no character at all**, therefore
+  `tmux capture-pane -p` with no `-e` says that a panel of a cover holds
+  nothing. The covers of the books of the series of the sandbox are WEBP of 400
+  by 400 pixels of one colour: the panel 5 of a series row held 13 rows that
+  read as empty, and the same capture with `-e` held
+  `48;2;1;255;255` and `48;2;255;0;254` of twelve columns each. **A measurement
+  of a picture of this program needs `the_screen -e`.**
+- **The rows of the band that does not fit still say nothing** (T-353), and the
+  measurement of this round says why the gallery cannot take them: a column of
+  40 rows whose panel 5 needs 9 gives the gallery 31 rows, and 4 bands of 6 rows
+  and the 2 rows of the border take 26 of them. The 5 rows that stay go to the
+  panel 5, where they hold nothing. A gallery of 32 rows would hold **five**
+  bands, and the panel 5 of 8 rows would then say every fact and no line of the
+  description at all.
+- Every candidate of the items before this one.
+
+**v0.8.185.**

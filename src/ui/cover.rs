@@ -618,6 +618,30 @@ pub fn the_smallest_panel_of_the_cover(a_picture_comes: bool) -> u16 {
     THE_ROWS_OF_THE_BORDER + of_the_words_or_of_the_picture
 }
 
+/// Says if the panel 5 of the cover and the panel 6 of the gallery stand in a
+/// view of this number of lines. See T-354.
+///
+/// `the_lines_of_the_view` is the number of the lines of the list of the view,
+/// and `a_media_of_the_panel_comes` says that the panel holds the identity of
+/// one media at least (the media that plays, or the media of the cursor).
+///
+/// **A view with no line holds no media at all, therefore the two panels take
+/// no column of the screen** (T-354). The two panels hold a picture of a media
+/// and a cell of a media: a view of no line gives them no media, therefore
+/// every row of them holds nothing. The Library view of the library `Empty` of
+/// the sandbox, at 160 columns and 45 rows, held a panel 5 of 8 rows and a
+/// panel 6 of 32 rows with **no character at all**, and the reason of the view
+/// said its two lines in the 74 columns that stayed.
+///
+/// **A media that plays keeps the panel** (T-23): the picture of that media and
+/// the facts of it say something in a view that holds no line of its own.
+pub fn the_panels_of_the_covers_stand(
+    the_lines_of_the_view: usize,
+    a_media_of_the_panel_comes: bool,
+) -> bool {
+    the_lines_of_the_view > 0 || a_media_of_the_panel_comes
+}
+
 /// Cuts the main area into the area of the text and the area of the covers.
 ///
 /// The function gives no area for the covers when the screen is too narrow.

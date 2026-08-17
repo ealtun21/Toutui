@@ -4,8 +4,15 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.8.178.** The item T-347 belongs to this
+**The newest release is v0.8.185.** The item T-354 belongs to this
 session. The
+item T-353 belongs to the session before it. The
+item T-352 belongs to the session before it. The
+item T-351 belongs to the session before it. The
+item T-350 belongs to the session before it. The
+item T-349 belongs to the session before it. The
+item T-348 belongs to the session before it. The
+item T-347 belongs to the session before it. The
 item T-346 belongs to the session before it. The
 item T-345 belongs to the session before it. The
 item T-344 belongs to the session before it. The
@@ -13333,6 +13340,21 @@ answers slowly while it writes. Two answers to measure:
 
 ## The traps that cost time
 
+### Of the harness of tmux
+
+**The trap 247: a picture of one colour draws no character at all.** The half
+blocks of `ratatui-image` are cells of a background colour and of a foreground
+colour, and a picture of **one** colour therefore gives cells that hold the
+space alone. `tmux capture-pane -p` with no `-e` drops every colour, therefore
+such a panel reads as a panel of nothing. The covers of the books of the series
+of the sandbox are WEBP of 400 by 400 pixels of one colour: the round of T-354
+read a panel 5 of a series row of 13 rows that held nothing and it took that
+screen for a fault of the layout, and the same capture with `the_screen -e`
+held `48;2;1;255;255` and `48;2;255;0;254` of twelve columns each. **A
+measurement of a picture of this program needs `the_screen -e`**, and a cover of
+many colours (`Alice in Wonderland` of the library `Books`) draws the half
+blocks that a capture with no colour shows.
+
 ### Of the theme and of the file of the settings
 
 **The trap 246: a change of `Colors::default` alone reaches no user.** The
@@ -25692,12 +25714,74 @@ Duration: 0m` alone; **the width of the panel 5 of a media with no cover under
 the gallery**, which `split_for_covers` gives `PANEL_MAX_WIDTH` while the
 gallery under it takes the same columns for cells of ten; and every candidate
 of the turns before this one.
+**The session of the hundred and eighty-sixth turn took the item 1 of the
+list of the work**, and it took **a candidate that the turn before it left
+open**: the panel 5 of a media that the server holds with no cover.
+
+**A `ps` of the machine at the start of the round found it clean**: no
+program of `toutui`, and no shell of a busy loop. The tree of git was clean,
+the disk held 446 gigabytes, and the `cargo clean` of the round before this
+one gave a cold build of `cargo build -j 16` in **18.47 seconds**.
+
+**The fault, of the real program v0.8.183 inside tmux**, at 160 columns and
+45 rows, of the library `Large` of the sandbox, in the Library view. Every
+item of that library carries `coverPath: null`, therefore the panel 5 holds
+no picture at all. The column at the right holds 39 rows, the panel 5 took
+**20** of them, and the words of the media took **four** of the 18 rows
+inside its border: `Time      0m`, `Files     1 file, 0.0 MB`, and
+`No description available`. **Fourteen rows of that panel held no character
+at all**, and the gallery under it showed **12 covers in three bands** of a
+list of 2056 books.
+
+**Why**: `the_two_panels` gives the gallery a share of the height of the
+column, in whole bands of the grid, and it gives the panel 5 **every row
+that stays**. That rule is right while a picture comes, because the picture
+takes every row that the facts and the description leave (T-330.3). A media
+with no cover holds no picture: the rows after the words then go to nothing.
+**This is the third face of the fault of T-349 and of T-350**, and each of
+those two read the **smallest** panel and never the largest one.
+
+**The correction**: `the_two_panels` takes the number of the lines of the
+description, and the panel 5 of a media with no picture holds no more than
+`THE_ROWS_OF_THE_BORDER + of_the_facts + of_the_description`. The gallery
+takes the rows after that limit, in whole bands. **The rule holds in one
+direction alone**: the description scrolls with the keys `J` and `K`,
+therefore a description of many lines keeps the rows of the share, and the
+guard `!a_picture_comes` keeps a media with a picture at the share of the
+design.
+
+**The corrected program of the same harness**, of the same screen: the panel
+5 holds **7** rows, and the gallery shows **20 covers in five bands**. The
+library `Books`, whose media of the cursor holds no cover and says seven
+lines, gave a panel of 14 rows and a gallery of four bands. **v0.8.184.**
+
+**A test of the value of the program before this item is a test of the
+fault**: `the_gallery_stands_under_a_panel_that_says_its_words_whole` of
+T-350 held `assert_eq!(gallery.height, 8)` for a column of 22 rows of a
+media with no cover, and that number is 14 now. **A round that changes a
+share of the height must read every test that names a height**, as the round
+of T-352 read every test that named a width. **A new argument of a pure
+function reaches five files of `tests/`**, and `cargo clippy --all-targets`
+names each of them one build at a time.
+
+**What this round leaves open, and each of them is a candidate and not an
+item**: **the rows of the band that does not fit still say nothing**,
+because the gallery holds whole bands alone — a column of 39 rows leaves the
+panel 5 seven rows for six rows of words; **the width of the panel 5 of a
+media with no cover**, which `split_for_covers` gives `PANEL_MAX_WIDTH` or
+40 per cent of the width, while the facts of such a media need about 30
+columns; **the rows of the facts are not the rows of the picture** (T-352),
+where a screen of 36 rows holds a panel of 50 columns whose picture is 11
+rows and 22 columns; **the words of the panel 5 at a screen of 9 rows and
+fewer**, where the panel goes away; and every candidate of the turns before
+this one.
+
 ## The prompt for the next session
 
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.184**; `Cargo.toml` is at 0.8.184. The
+> AlbanDAVID/Toutui. Newest release **v0.8.185**; `Cargo.toml` is at 0.8.185. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -26528,7 +26612,7 @@ of the turns before this one.
 > makes no request: a measurement of two roads of the header needs a key of a
 > fresh request, and the key `R` alone forgets the state of a view.
 > Verify with a second program: `curl`, `podman logs abs-test`, or a browser.
-> Write the measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-353 and
+> Write the measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-354 and
 > up), and name that item in the commit.
 >
 > **`String::find` gives the index of a byte and not the column of the screen**
@@ -26541,8 +26625,8 @@ of the turns before this one.
 > `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`, and
 > `cargo nextest run` with `ALSA_CONFIG_PATH` pointing at a null asound file of
 > two lines (`pcm.!default { type null }` and `ctl.!default { type null }`).
-> Baseline: **1584 tests in 3.1 seconds of nextest**, and `cargo nextest run --run-ignored
-> all` gives **1610 of 1610** with the sandbox up, in about 60 seconds. **Run that
+> Baseline: **1586 tests in 2.9 seconds of nextest**, and `cargo nextest run --run-ignored
+> all` gives **1612 of 1612** with the sandbox up, in about 60 seconds. **Run that
 > second command at the end of the session too**: it found T-132 and T-111.
 > **And `cargo clean` is the last command of the round**, after the push: the
 > maintainer asked for it on 2026-08-17, and the paragraph of the disk above
@@ -26715,67 +26799,73 @@ of the turns before this one.
 >
 >
 >
-> **The session of the hundred and eighty-sixth turn took the item 1 of the
-> list of the work**, and it took **a candidate that the turn before it left
-> open**: the panel 5 of a media that the server holds with no cover.
+> **The session of the hundred and eighty-seventh turn took the item 1 of the
+> list of the work**, and it found a condition that no round of this fork had
+> reached: a **view that holds no line at all**.
 >
-> **A `ps` of the machine at the start of the round found it clean**: no
-> program of `toutui`, and no shell of a busy loop. The tree of git was clean,
-> the disk held 446 gigabytes, and the `cargo clean` of the round before this
-> one gave a cold build of `cargo build -j 16` in **18.47 seconds**.
+> **A `ps` of the machine at the start of the round found it clean**: no program
+> of `toutui`, and no shell of a busy loop. The tree of git was clean, the disk
+> held 446 gigabytes, and the `cargo clean` of the round before this one gave a
+> cold build of `cargo build -j 16` in **18.47 seconds**.
 >
-> **The fault, of the real program v0.8.183 inside tmux**, at 160 columns and
-> 45 rows, of the library `Large` of the sandbox, in the Library view. Every
-> item of that library carries `coverPath: null`, therefore the panel 5 holds
-> no picture at all. The column at the right holds 39 rows, the panel 5 took
-> **20** of them, and the words of the media took **four** of the 18 rows
-> inside its border: `Time      0m`, `Files     1 file, 0.0 MB`, and
-> `No description available`. **Fourteen rows of that panel held no character
-> at all**, and the gallery under it showed **12 covers in three bands** of a
-> list of 2056 books.
+> **The fault, of the real program v0.8.184 inside tmux**, at 160 columns and 45
+> rows, of the library `Empty` of the sandbox. That library holds no media at
+> all, therefore the Library view and the Home view of it hold no line, and each
+> of them says its reason with `App::render_the_reason` (T-91 and T-103). **The
+> two panels of the covers stood beside that reason with no character in them**:
+> the panel 5 of the cover held **8** rows, the panel 6 of the gallery held
+> **32**, the two of them took **50 columns** of the work of the view, and the
+> reason said its two lines in the **75** columns that stayed.
 >
-> **Why**: `the_two_panels` gives the gallery a share of the height of the
-> column, in whole bands of the grid, and it gives the panel 5 **every row
-> that stays**. That rule is right while a picture comes, because the picture
-> takes every row that the facts and the description leave (T-330.3). A media
-> with no cover holds no picture: the rows after the words then go to nothing.
-> **This is the third face of the fault of T-349 and of T-350**, and each of
-> those two read the **smallest** panel and never the largest one.
+> **Why**: `render_library` and `render_home` cut the area with
+> `cover::split_for_covers` **before** they read the lines of the view, and the
+> guard of that function reads the width of the screen, the height of the area,
+> and whether a picture comes (T-50, T-348, and T-349) — **none of the three says
+> that the view holds no media at all**. **This is the fourth face of the fault
+> of T-319**: T-348, T-349, T-352, and T-353 each read a media that the server
+> holds with no cover, and each of them holds a media. A view with no line holds
+> none, therefore no row of those panels can hold anything at any width and at
+> any height.
 >
-> **The correction**: `the_two_panels` takes the number of the lines of the
-> description, and the panel 5 of a media with no picture holds no more than
-> `THE_ROWS_OF_THE_BORDER + of_the_facts + of_the_description`. The gallery
-> takes the rows after that limit, in whole bands. **The rule holds in one
-> direction alone**: the description scrolls with the keys `J` and `K`,
-> therefore a description of many lines keeps the rows of the share, and the
-> guard `!a_picture_comes` keeps a media with a picture at the share of the
-> design.
+> **The correction**:
+> `cover::the_panels_of_the_covers_stand(the_lines_of_the_view, a_media_of_the_panel_comes)`,
+> and the two views of the frame of the panels read the lines of their list
+> before they cut the area. **A media that plays keeps the two panels** (T-23),
+> therefore the rule reads the media of the panel
+> (`App::a_media_of_the_panel_of_the_cover_comes`) and not the lines alone, and
+> that answer is **not** `a_picture_comes_in_the_panel_of_the_cover`: a media
+> with no cover is a media of the panel, and the words of it stand there.
 >
-> **The corrected program of the same harness**, of the same screen: the panel
-> 5 holds **7** rows, and the gallery shows **20 covers in five bands**. The
-> library `Books`, whose media of the cursor holds no cover and says seven
-> lines, gave a panel of 14 rows and a gallery of four bands. **v0.8.184.**
+> **The corrected program of the same harness**, of the same screen: no panel 5,
+> no panel 6, and the reason of the view centred in the **126** columns of the
+> work. The test of the gate renders the two views of a `TestBackend` of 160
+> columns and 45 rows, and **the control of the same run is a view of one line**,
+> which keeps the two panels: a correction that takes the panels away for every
+> view fails it. **v0.8.185.**
 >
-> **A test of the value of the program before this item is a test of the
-> fault**: `the_gallery_stands_under_a_panel_that_says_its_words_whole` of
-> T-350 held `assert_eq!(gallery.height, 8)` for a column of 22 rows of a
-> media with no cover, and that number is 14 now. **A round that changes a
-> share of the height must read every test that names a height**, as the round
-> of T-352 read every test that named a width. **A new argument of a pure
-> function reaches five files of `tests/`**, and `cargo clippy --all-targets`
-> names each of them one build at a time.
+> **A picture of one colour draws no character at all** (the trap 247). The round
+> read a panel 5 of a **series** row of 13 rows that held nothing, and it took
+> that screen for a fault of the layout: the same capture with `the_screen -e`
+> held `48;2;1;255;255` and `48;2;255;0;254` of twelve columns each. The covers
+> of the books of the series of the sandbox are WEBP of 400 by 400 pixels **of
+> one colour**, and the half blocks of such a picture are cells of a background
+> colour with no character in them. **A measurement of a picture of this program
+> needs `the_screen -e`**, and `tmux capture-pane -p` with no `-e` says that
+> every such panel holds nothing.
 >
 > **What this round leaves open, and each of them is a candidate and not an
-> item**: **the rows of the band that does not fit still say nothing**,
-> because the gallery holds whole bands alone — a column of 39 rows leaves the
-> panel 5 seven rows for six rows of words; **the width of the panel 5 of a
-> media with no cover**, which `split_for_covers` gives `PANEL_MAX_WIDTH` or
-> 40 per cent of the width, while the facts of such a media need about 30
-> columns; **the rows of the facts are not the rows of the picture** (T-352),
-> where a screen of 36 rows holds a panel of 50 columns whose picture is 11
-> rows and 22 columns; **the words of the panel 5 at a screen of 9 rows and
-> fewer**, where the panel goes away; and every candidate of the turns before
-> this one.
+> item**: **the panel 4 of a view with no line has no border, no number, and no
+> name**, because the two views call `render_the_reason` and they then come back
+> before `render_the_list_of_the_panel_4` draws the block of that panel — the
+> reason stands under a bare line of `Borders::TOP`, and no key and no click of
+> the user can name the panel that holds it, which is the fault that the frame of
+> T-320 corrected for the panel of the covers of T-23; **the rows of the band
+> that does not fit** of T-353, where the measurement of this round says why the
+> gallery cannot take them (a column of 40 rows whose panel 5 needs 9 gives the
+> gallery 31 rows, and four bands of six rows and the two rows of the border take
+> 26 of them, therefore 5 rows go back to the panel 5 where they hold nothing);
+> **the width of the panel 5 of a media with no cover**; and every candidate of
+> the turns before this one.
 >
 >
 >    **The turns before this one stand in `## The turns before the three
@@ -26990,7 +27080,10 @@ of the turns before this one.
 > it wrote its own, and the block then held about **82000** bytes with **one**
 > turn in it; the round of the hundred and eighty-fifth found it at 82253 bytes
 > with one turn in it, and it did the same work, and the block then held
-> **82396** bytes with **one** turn in it.
+> **82396** bytes with **one** turn in it; the round of the hundred and
+> eighty-seventh found it at 82070 bytes with one turn in it, and it did the
+> same work, and the block then held about **82600** bytes with **one** turn in
+> it.
 > The round of the hundred and eighty-sixth found it at 82574 bytes with one
 > turn in it, and it did the same work: the block held **78045** bytes with no
 > turn at all after the removal, and it holds about **82000** bytes with
