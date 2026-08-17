@@ -33396,3 +33396,100 @@ numbers of the measurement and not the value of the function that it measures**
 measurement says none.
 
 **v0.8.181.**
+
+## T-351 — The panel of the cover of a media that holds a picture stands with no character at all at a screen of 13 and of 14 rows
+
+**The condition**: the Home view or the Library view of a screen of 84 columns
+and more, of a media whose cover the server holds, at a screen whose panel of
+the cover is 8 or 9 rows tall. **This item is the first candidate that T-350
+left open** — the height of the panel 5 of a media that holds a picture — and
+it needs no proxy and no change of the sandbox at all.
+
+**The fault, of the real program v0.8.181 inside tmux**, at 160 columns, of the
+library `Books` of the sandbox, in the Home view. The media of the cursor is
+`A Long Test Book`, and the server holds a cover for it. The height of the
+screen came from `tmux resize-window -t check -x 160 -y N` after the first
+frame.
+
+At a screen of 13 rows and at a screen of 14 rows the panel 5 of the cover
+stood with 22 columns and 8 or 9 rows, and it held no character at all: no
+picture, no fact, and no word of the media.
+
+```text
+┌5 Cover ────────────┐
+│                    │
+│                    │
+│                    │
+│                    │
+│                    │
+│                    │
+└────────────────────┘
+```
+
+At a screen of 15 rows of the same run the panel stood with 22 columns and it
+drew a picture of 16 columns. The widths below come from the colours of
+`tmux capture-pane -p -e`, of the same run: **the picture is a background
+colour**, therefore a capture with no colour shows spaces and it says that no
+picture stands where one does.
+
+| the rows of the screen | the columns of the panel | the columns of the picture |
+|---|---|---|
+| 13 | 22 | 0 |
+| 14 | 22 | 0 |
+| 15 | 22 | 16 |
+| 19 | 28 | 24 |
+| 30 | 50 | 26 |
+
+**Why**: `split_for_covers` of `src/ui/cover.rs` compares the height of the
+**whole** panel with `the_smallest_panel_of_the_cover(a_picture_comes)`. That
+function gave `MIN_HEIGHT_FOR_COVER`, which is 8, for a media that holds a
+picture. `plan_covers` of the same file compares the height **inside** the
+border with that same `MIN_HEIGHT_FOR_COVER`. The border of the panel takes two
+rows. A panel of 8 or of 9 rows therefore held 6 or 7 rows for the picture,
+`plan_covers` gave no rectangle at all, and the panel drew nothing. **The arm of
+a media with no cover held the border already**
+(`THE_ROWS_OF_THE_BORDER + THE_ROWS_OF_THE_FACTS`, T-349), **and the arm of a
+picture did not**.
+
+**The correction**: `the_smallest_panel_of_the_cover` adds
+`THE_ROWS_OF_THE_BORDER` to both arms. The smallest panel of a picture is
+therefore 10 rows, and the smallest panel of the words stays at 5 rows.
+
+**The corrected program, of the same harness**: at 13 and at 14 rows the panel
+goes away, the list of the panel 4 takes those 22 columns and it says the whole
+title of every row, and the two rows under the list say
+`Author: Long Author - Year: N/A - Duration: 30m` and
+`Progress: 50%, 15m left, Not finished`. At 15, 19, and 30 rows nothing
+changed: the columns of the panel and the columns of the picture are 22 and 16,
+28 and 24, and 50 and 26, the same numbers as before the correction.
+
+**The control, of the same run**: the library `Large` of the sandbox, whose
+media the server holds with no cover at all. Its panel stands at 11, 12, 13,
+14, and 20 rows with 50 columns, and it says `Time      0m`,
+`Files     1 file, 0.0 MB`, and `No description available`, the same as before
+the correction.
+
+**The test**:
+`tests/the_panel_of_the_cover_draws_the_picture_that_it_took_the_rows_for.rs`.
+It walks the whole chain of the render of `crate::ui::tui`: `split_for_covers`,
+the border of the block, `the_parts_of_the_panel`, and `plan_covers`, for every
+height of 0 to 39. With the correction removed it fails with `the panel of a
+screen of 8 rows stands with 6 rows inside its border, and it draws no picture
+at all`.
+
+**What this round leaves open**, and each of them is a candidate and not an
+item:
+
+- **The width of the panel of a picture** comes of
+  `width_that_the_height_can_use(area.height, ...)`, which reads the height of
+  the **whole** panel while the picture gets the height inside the border. The
+  picture of a panel of 15 rows is therefore 16 columns wide inside a panel of
+  22, and some columns of the list go to a picture that cannot use them.
+- **The words of the panel 5 at a screen of 9 rows and fewer**, where the panel
+  goes away and the row under the list says
+  `Author: N/A - Year: N/A - Duration: 0m` alone.
+- **The width of the panel 5 of a media with no cover under the gallery**,
+  which `split_for_covers` gives `PANEL_MAX_WIDTH` while the gallery under it
+  takes the same columns for cells of ten.
+
+**v0.8.182.**

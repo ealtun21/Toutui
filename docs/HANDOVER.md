@@ -25448,12 +25448,100 @@ after `App::new_with_the_engine` writes the request of the items; **the row
 series; and **the mark says the state and the words do not**, because a line
 of the panel 2 holds 30 columns (T-324).
 
+## The session of the hundred and eighty-third turn of 2026-08-17: T-350, the gallery and the rows of the facts of the panel of the cover, of the block of the prompt
+
+**The session of the hundred and eighty-third turn took the item 1 of the
+list of the work**, and it took **the third candidate that the turn before it
+left open**: the panel 6 of the gallery under 20 rows, which no measurement of
+tmux had driven.
+
+**A `ps` of the machine at the start of the round found it clean**: no program
+of `toutui`, and no shell of a busy loop. The tree of git was clean, the disk
+held 446 gigabytes, and the `cargo clean` of the round before this one gave a
+cold build of `cargo build -j 16` in **18.38 seconds**.
+
+**The fault, of the real program v0.8.180 inside tmux**, of the library
+`Books` of the sandbox, in the Home view, at 160 columns, with
+`tmux resize-window -t check -x 160 -y N` after the first frame. The media of
+the cursor is `A Long Test Book`, and the facts of the design of it take
+**nine** lines. At 27 rows the panel 5 said all nine of them, the bar of the
+progress, and `No description available`, and no gallery stood. At **28 rows,
+one row more of the screen**, the gallery stood and the panel said five lines
+of the nine:
+
+```text
+│Author    Long Author                      │
+│Narrator  A Test Narrator                  │
+│Time      30m, 15m left                    │
+│Started   17 Aug 2026                      │
+│Genre     Fiction, Adventure               │
+└───────────────────────────────────────────┘
+┌6 Gallery ─────────────────────────────────┐
+```
+
+**The place of the user and the bar of the progress went away**, and T-325
+says that the two of them always take a line. The same fault stood at 29 rows,
+with six of the nine lines. **A screen that is taller said less about the
+media.**
+
+**Why**: `the_two_panels` of `the_panel_of_the_gallery` read the constant
+`THE_SMALLEST_PANEL_OF_THE_COVER`, which holds `THE_ROWS_OF_THE_FACTS`, and
+that number is **three**. Three is the number of the rows of the facts **under
+the list**, and the facts of the design of the panel 5 take **a line each**
+(T-325). The column of a screen of 28 rows holds 23 rows: the gallery took 8
+and it left 15, the picture then kept its smallest 8 of the 13 inside the
+border, and the five rows that stayed held five of the nine lines.
+
+**The other face of the same fault**: the media of the library `Large`, which
+the server holds with no cover at all, need no row for a picture (T-319 and
+T-349), therefore seven rows say the whole of such a panel while the constant
+reserved fifteen. At 27 rows the gallery went away, the panel said its three
+lines, and **twenty rows of that panel held no character at all** — the fault
+of T-319, in the panel that T-327 built to fill those rows.
+
+**The correction**: one pure function,
+`the_whole_panel_of_the_cover(a_picture_comes, of_the_facts)`, gives the rows
+that the panel 5 needs for the whole of its words — the border, the picture of
+a media that has one, the lines of the facts of **that** media, and
+`THE_ROWS_OF_A_DESCRIPTION`. `the_two_panels` reads that function, and the
+constant goes away. `render_covers` counts the lines of the facts **before**
+it divides the column: the gallery divides the height alone, therefore the
+words wrap at the same width whether the gallery stands or not.
+
+**The picture and the description keep their smallest number of rows**,
+because each of them says its words in the rows that it has: the picture takes
+every row that stays (T-330.3), and the description scrolls with the keys `J`
+and `K`. **The facts hold no such rule**: a line of the facts stands whole, or
+the panel does not say it at all.
+
+**The corrected program of the same harness**: at 29, 28, and 27 rows the
+panel 5 of that book says its nine lines, the bar, and the description,
+character for character the same at each of the three, and no gallery stands;
+the gallery of that book comes back at 34 rows. **The control is the library
+`Large`**: its gallery now stands at 27 rows, where it went away before, and
+at 22 rows, where 12 rows of the panel held nothing. **v0.8.181.**
+
+**What this round leaves open, and each of them is a candidate and not an
+item**: **the height of the panel 5 of a media that holds a picture**, where
+`split_for_covers` compares the height of the whole panel with
+`MIN_HEIGHT_FOR_COVER` while `the_parts_of_the_panel` compares the height
+**inside** the border with `THE_SMALLEST_PICTURE`, which is the same number —
+the picture of the smallest panel therefore stands in 6 rows while the
+constant says 8, and a panel of 8 rows says the picture alone and no word of
+the media; **the words of the panel 5 at a screen of 9 rows and fewer**, where
+the panel goes away and the row under the list says `Author: N/A - Year: N/A -
+Duration: 0m` alone; **the width of the panel 5 of a media with no cover under
+the gallery**, which `split_for_covers` gives `PANEL_MAX_WIDTH` while the
+gallery under it takes the same columns for cells of ten; and every candidate
+of the turns before this one.
+
+
 ## The prompt for the next session
 
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.180**; `Cargo.toml` is at 0.8.180. The
+> AlbanDAVID/Toutui. Newest release **v0.8.182**; `Cargo.toml` is at 0.8.182. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -26297,8 +26385,8 @@ of the panel 2 holds 30 columns (T-324).
 > `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`, and
 > `cargo nextest run` with `ALSA_CONFIG_PATH` pointing at a null asound file of
 > two lines (`pcm.!default { type null }` and `ctl.!default { type null }`).
-> Baseline: **1580 tests in 3.1 seconds of nextest**, and `cargo nextest run --run-ignored
-> all` gives **1606 of 1606** with the sandbox up, in about 60 seconds. **Run that
+> Baseline: **1583 tests in 3.1 seconds of nextest**, and `cargo nextest run --run-ignored
+> all` gives **1609 of 1609** with the sandbox up, in about 60 seconds. **Run that
 > second command at the end of the session too**: it found T-132 and T-111.
 > **And `cargo clean` is the last command of the round**, after the push: the
 > maintainer asked for it on 2026-08-17, and the paragraph of the disk above
@@ -26464,92 +26552,85 @@ of the panel 2 holds 30 columns (T-324).
 >    holds three decisions that a round must not take alone. Read it first.
 >
 > 1. **A condition of the program that no measurement has reached.** A sweep of
->    this shape found a fault in one hundred and eleven sessions of one hundred
->    and twelve.
+>    this shape found a fault in one hundred and twelve sessions of one hundred
+>    and thirteen.
 >
 
 >
 >
-> **The session of the hundred and eighty-third turn took the item 1 of the
-> list of the work**, and it took **the third candidate that the turn before it
-> left open**: the panel 6 of the gallery under 20 rows, which no measurement of
-> tmux had driven.
+> **The session of the hundred and eighty-fourth turn took the item 1 of the
+> list of the work**, and it took **the first candidate that the turn before it
+> left open**: the height of the panel 5 of a media that holds a picture.
 >
 > **A `ps` of the machine at the start of the round found it clean**: no program
 > of `toutui`, and no shell of a busy loop. The tree of git was clean, the disk
 > held 446 gigabytes, and the `cargo clean` of the round before this one gave a
 > cold build of `cargo build -j 16` in **18.38 seconds**.
 >
-> **The fault, of the real program v0.8.180 inside tmux**, of the library
-> `Books` of the sandbox, in the Home view, at 160 columns, with
-> `tmux resize-window -t check -x 160 -y N` after the first frame. The media of
-> the cursor is `A Long Test Book`, and the facts of the design of it take
-> **nine** lines. At 27 rows the panel 5 said all nine of them, the bar of the
-> progress, and `No description available`, and no gallery stood. At **28 rows,
-> one row more of the screen**, the gallery stood and the panel said five lines
-> of the nine:
+> **The fault, of the real program v0.8.181 inside tmux**, at 160 columns, of
+> the library `Books` of the sandbox, in the Home view. The media of the cursor
+> is `A Long Test Book`, and the server holds a cover for it. At a screen of 13
+> rows and at a screen of 14 rows the panel 5 stood with 22 columns and 8 or 9
+> rows, and it held **no character at all**: no picture, no fact, and no word of
+> the media.
 >
 > ```text
-> │Author    Long Author                      │
-> │Narrator  A Test Narrator                  │
-> │Time      30m, 15m left                    │
-> │Started   17 Aug 2026                      │
-> │Genre     Fiction, Adventure               │
-> └───────────────────────────────────────────┘
-> ┌6 Gallery ─────────────────────────────────┐
+> ┌5 Cover ────────────┐
+> │                    │
+> │                    │
+> │                    │
+> │                    │
+> │                    │
+> │                    │
+> └────────────────────┘
 > ```
 >
-> **The place of the user and the bar of the progress went away**, and T-325
-> says that the two of them always take a line. The same fault stood at 29 rows,
-> with six of the nine lines. **A screen that is taller said less about the
-> media.**
+> At 15 rows of the same run that panel drew a picture of 16 columns. **The
+> picture is a background colour**, therefore `tmux capture-pane -p` with no
+> `-e` shows spaces and it says that no picture stands where one does: the
+> widths of this round come of a `python3` that reads the runs of
+> `\x1b[48;2;R;G;Bm` of the capture with the colours. The columns of the panel
+> and the columns of the picture, of the same run: 22 and 0 at 13 rows, 22 and 0
+> at 14 rows, 22 and 16 at 15 rows, 28 and 24 at 19 rows, and 50 and 26 at 30
+> rows.
 >
-> **Why**: `the_two_panels` of `the_panel_of_the_gallery` read the constant
-> `THE_SMALLEST_PANEL_OF_THE_COVER`, which holds `THE_ROWS_OF_THE_FACTS`, and
-> that number is **three**. Three is the number of the rows of the facts **under
-> the list**, and the facts of the design of the panel 5 take **a line each**
-> (T-325). The column of a screen of 28 rows holds 23 rows: the gallery took 8
-> and it left 15, the picture then kept its smallest 8 of the 13 inside the
-> border, and the five rows that stayed held five of the nine lines.
+> **Why**: `split_for_covers` compares the height of the **whole** panel with
+> `the_smallest_panel_of_the_cover`, and that function gave
+> `MIN_HEIGHT_FOR_COVER`, which is 8, for a media that holds a picture.
+> `plan_covers` compares the height **inside** the border with that same
+> number. The border takes two rows, therefore a panel of 8 or of 9 rows held 6
+> or 7 rows for the picture, `plan_covers` gave no rectangle, and the panel drew
+> nothing. **The arm of a media with no cover held the border already**
+> (`THE_ROWS_OF_THE_BORDER + THE_ROWS_OF_THE_FACTS`, T-349), **and the arm of a
+> picture did not**.
 >
-> **The other face of the same fault**: the media of the library `Large`, which
-> the server holds with no cover at all, need no row for a picture (T-319 and
-> T-349), therefore seven rows say the whole of such a panel while the constant
-> reserved fifteen. At 27 rows the gallery went away, the panel said its three
-> lines, and **twenty rows of that panel held no character at all** — the fault
-> of T-319, in the panel that T-327 built to fill those rows.
+> **The correction**: `the_smallest_panel_of_the_cover` adds
+> `THE_ROWS_OF_THE_BORDER` to both arms. The smallest panel of a picture is
+> therefore 10 rows, and the smallest panel of the words stays at 5 rows.
 >
-> **The correction**: one pure function,
-> `the_whole_panel_of_the_cover(a_picture_comes, of_the_facts)`, gives the rows
-> that the panel 5 needs for the whole of its words — the border, the picture of
-> a media that has one, the lines of the facts of **that** media, and
-> `THE_ROWS_OF_A_DESCRIPTION`. `the_two_panels` reads that function, and the
-> constant goes away. `render_covers` counts the lines of the facts **before**
-> it divides the column: the gallery divides the height alone, therefore the
-> words wrap at the same width whether the gallery stands or not.
+> **The corrected program of the same harness**: at 13 and at 14 rows the panel
+> goes away, the list of the panel 4 takes those 22 columns and it says the
+> whole title of every row, and the two rows under the list say
+> `Author: Long Author - Year: N/A - Duration: 30m` and
+> `Progress: 50%, 15m left, Not finished`. At 15, 19, and 30 rows the columns of
+> the panel and of the picture are the same numbers as before the correction.
+> **The control is the library `Large`**, whose media the server holds with no
+> cover: its panel stands at 11, 12, 13, 14, and 20 rows with 50 columns, and it
+> says the same three lines as before. **v0.8.182.**
 >
-> **The picture and the description keep their smallest number of rows**,
-> because each of them says its words in the rows that it has: the picture takes
-> every row that stays (T-330.3), and the description scrolls with the keys `J`
-> and `K`. **The facts hold no such rule**: a line of the facts stands whole, or
-> the panel does not say it at all.
->
-> **The corrected program of the same harness**: at 29, 28, and 27 rows the
-> panel 5 of that book says its nine lines, the bar, and the description,
-> character for character the same at each of the three, and no gallery stands;
-> the gallery of that book comes back at 34 rows. **The control is the library
-> `Large`**: its gallery now stands at 27 rows, where it went away before, and
-> at 22 rows, where 12 rows of the panel held nothing. **v0.8.181.**
+> **Two unit tests of `src/ui/cover.rs` held the number 8 as the smallest panel
+> of a picture**, and the correction moved it to 10: a round that changes such a
+> constant must read every test that names it, because `cargo nextest run` stops
+> at the first fault and it hides the rest.
 >
 > **What this round leaves open, and each of them is a candidate and not an
-> item**: **the height of the panel 5 of a media that holds a picture**, where
-> `split_for_covers` compares the height of the whole panel with
-> `MIN_HEIGHT_FOR_COVER` while `the_parts_of_the_panel` compares the height
-> **inside** the border with `THE_SMALLEST_PICTURE`, which is the same number —
-> the picture of the smallest panel therefore stands in 6 rows while the
-> constant says 8, and a panel of 8 rows says the picture alone and no word of
-> the media; **the words of the panel 5 at a screen of 9 rows and fewer**, where
-> the panel goes away and the row under the list says `Author: N/A - Year: N/A -
+> item**: **the width of the panel of a picture**, which comes of
+> `width_that_the_height_can_use(area.height, ...)` and therefore reads the
+> height of the **whole** panel while the picture gets the height inside the
+> border — the picture of a panel of 15 rows is 16 columns wide inside a panel
+> of 22, and some columns of the list go to a picture that cannot use them;
+> **the words of the panel 5 at a screen of 9 rows and fewer**, where the panel
+> goes away and the row under the list says `Author: N/A - Year: N/A -
 > Duration: 0m` alone; **the width of the panel 5 of a media with no cover under
 > the gallery**, which `split_for_covers` gives `PANEL_MAX_WIDTH` while the
 > gallery under it takes the same columns for cells of ten; and every candidate
@@ -26762,7 +26843,10 @@ of the panel 2 holds 30 columns (T-324).
 > whole list of the decisions of T-320 to T-350 out of the block and it put it
 > in `## The decisions of T-320 to T-350 that do not open again` of this file,
 > with a pointer of three lines in its place: the block then held **82253**
-> bytes with **one** turn in it.
+> bytes with **one** turn in it; the round of the hundred and eighty-fourth
+> found it at 82742 bytes with one turn in it, and it took that turn out and
+> it wrote its own, and the block then held about **82000** bytes with **one**
+> turn in it.
 > **A block that stands at 80000 bytes or under holds two
 > turns**, and the turn of the stage before this one names the parts of that
 > stage which stay open. **The list of the decisions

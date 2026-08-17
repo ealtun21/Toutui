@@ -41,6 +41,23 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.182",
+        date: "17/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The panel of the cover goes away at a screen that cannot hold \
+             its picture.** The panel stood at a screen of eight rows, and the \
+             border of it took two of them: the picture then had six rows, the \
+             render of the picture needs eight, and the panel therefore held no \
+             character at all. A terminal of 160 columns and 13 rows gave that \
+             empty panel 22 columns of the list. The panel of a media that \
+             holds a picture now needs the rows of the border and the rows of \
+             the picture together, and the list takes those columns while the \
+             screen is too low. The panel of a media that the server holds with \
+             no cover does not change.",
+        ],
+    },
+    Entry {
         version: "0.8.181",
         date: "17/08/2026",
         body: &[

@@ -590,6 +590,14 @@ pub fn width_that_the_height_can_use(height: u16, font: FontSize, ratio: f32) ->
 /// a panel that says fewer facts than the row of the facts under the list says
 /// takes the columns of the list for nothing.
 ///
+/// **The border of the panel belongs to both arms** (T-351). `split_for_covers`
+/// reads the height of the **whole** panel, and `plan_covers` reads the height
+/// **inside** the border: an arm that gives `MIN_HEIGHT_FOR_COVER` alone
+/// therefore opened a panel of 8 rows that holds 6 rows for the picture, and
+/// `plan_covers` gave no rectangle at all. A screen of 160 columns and 13 rows
+/// held a panel of 22 columns and 8 rows with **no character in it**: no
+/// picture, no fact, and no word of the media.
+///
 /// **A panel that goes away costs the list the rows of that row of the facts**
 /// (`the_areas_of_a_list` of `crate::ui::tui` gives them out of the work of the
 /// view, and the panel stands beside that work and it costs it no row at all).
@@ -598,11 +606,13 @@ pub fn width_that_the_height_can_use(height: u16, font: FontSize, ratio: f32) ->
 /// and the two rows under it then said `Author: N/A - Year: N/A - Duration: 0m`
 /// and `Progress:  N/A%,   N/A`, which say less than the panel said.
 pub fn the_smallest_panel_of_the_cover(a_picture_comes: bool) -> u16 {
-    if a_picture_comes {
+    let of_the_words_or_of_the_picture = if a_picture_comes {
         MIN_HEIGHT_FOR_COVER
     } else {
-        THE_ROWS_OF_THE_BORDER + crate::ui::the_panel_of_the_cover::THE_ROWS_OF_THE_FACTS
-    }
+        crate::ui::the_panel_of_the_cover::THE_ROWS_OF_THE_FACTS
+    };
+
+    THE_ROWS_OF_THE_BORDER + of_the_words_or_of_the_picture
 }
 
 /// Cuts the main area into the area of the text and the area of the covers.
@@ -1366,7 +1376,12 @@ mod tests {
     fn a_panel_of_a_picture_takes_the_limit_of_the_height() {
         let _covers = WithCovers::on();
 
-        let of_few_rows = split_for_covers(area(126, MIN_HEIGHT_FOR_COVER), 160, FONT, true)
+        // **The smallest panel of a picture is the border and the picture**
+        // (T-351), and a panel of `MIN_HEIGHT_FOR_COVER` rows holds the border
+        // and no whole picture at all.
+        let the_smallest = MIN_HEIGHT_FOR_COVER + THE_ROWS_OF_THE_BORDER;
+
+        let of_few_rows = split_for_covers(area(126, the_smallest), 160, FONT, true)
             .1
             .expect("a panel of a screen of few rows");
         let of_many_rows = split_for_covers(area(126, 40), 160, FONT, true)
@@ -1461,7 +1476,12 @@ mod tests {
     fn a_panel_of_a_picture_goes_away_under_the_height_of_a_picture() {
         let _covers = WithCovers::on();
 
-        for height in 0..MIN_HEIGHT_FOR_COVER {
+        // **The border of the panel takes two rows of the picture** (T-351):
+        // the number of this test is the number of the measurement, and a panel
+        // of 8 and of 9 rows held no character at all.
+        let the_smallest = 10;
+
+        for height in 0..the_smallest {
             assert!(
                 split_for_covers(area(126, height), 160, FONT, true)
                     .1
@@ -1470,6 +1490,12 @@ mod tests {
                  few rows, therefore it must go away"
             );
         }
+
+        assert_eq!(
+            the_smallest_panel_of_the_cover(true),
+            the_smallest,
+            "a border of two rows and the rows of a whole picture"
+        );
     }
 
     /// **A panel of the words that says fewer facts than the row under the list
