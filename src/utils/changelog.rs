@@ -41,6 +41,22 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.199",
+        date: "17/08/2026",
+        body: &[
+            "Fixed:",
+            "- **A line of a list that the screen cuts says that the screen cut \
+             it.** A line of a list stands on one row of its panel, and a line \
+             that was wider than that panel lost the columns of its end with no \
+             mark at all: the Collections view of a terminal of 40 columns said \
+             `[Collection] A Test Collection [1 item`, therefore the user read a \
+             number of the items that the collection does not have. Every line \
+             of every list now keeps its start and it takes three points for the \
+             end that the screen cannot hold, which is the rule of the title of \
+             a panel and of the columns of the table of a media already.",
+        ],
+    },
+    Entry {
         version: "0.8.198",
         date: "17/08/2026",
         body: &[

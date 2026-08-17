@@ -35653,3 +35653,110 @@ gave 1638 of 1638.
   and every candidate of the items before this one.
 
 **v0.8.198.**
+
+## T-368 — A line of a list that the screen cuts says that the screen cut it
+
+**The candidate of T-367.** The round of the two hundredth turn left this line:
+"a row of a list of the panel 4 loses the last character of its text at 40
+columns with no mark of the cut", and it named the row of the Collections view
+that says it. This round measured it, and the fault is not the row of that view:
+it is **every line of every list of this program**.
+
+**The measurement, of the real program v0.8.198 inside tmux against the
+sandbox** with the account `toutuitest`. **The data of this fault is the size of
+the terminal** (T-301) **and the text of the server**, therefore it needs no
+proxy, no book of a harness, and no change of the sandbox at all:
+`COLUMNS_OF_THE_SCREEN=40` of `docs/harness/drive.sh`, and the key `c` of the
+Home view of the library `Books`. The panel of the Collections view said:
+
+```text
+──Collections and playlists [2 items]───
+➤ [Collection] A Test Collection [1 item
+  [Playlist] A Test Playlist [1 item]
+```
+
+**The first row is a text of 39 columns in 38.** The panel of a screen of 40
+columns gives the whole width to its lines, the sign of the cursor takes two
+columns of every one of them, therefore the text of a line holds 38: the row
+`[Collection] A Test Collection [1 item]` lost its `]` and it said nothing at
+all of that cut. **The user reads a number of the items that the collection does
+not have.** **The control of the same run** is the row after it,
+`[Playlist] A Test Playlist [1 item]` of 35 columns, which stood whole, and the
+same view of a screen of 160 columns, which gave the whole of the two rows.
+
+**Why.** `render_the_table_of_a_panel` of `src/ui/the_list_of_a_view.rs` makes a
+`ListItem` of each line, and a `ListItem` that is wider than its area loses the
+columns of its end: ratatui draws no mark of that cut. Three rules of this
+program hold that same text of one row already — the **title** of the panel takes
+`in_one_row` (T-304), the **columns of the table of a media** take it for each
+cell (T-321), and the **line of every key** of the view `?` takes it through
+`the_columns_of_a_line` (T-362) — and **the lines of every other view took
+none of them**. The doc of `the_columns_of_a_line` says the fault in its own
+words ("A line that is longer than this loses its end"), and the one caller of
+that function is the view of the keys: the rule stood on the caller, and no
+caller but one held it.
+
+**The decision: the render of the list holds that rule, and no caller of it
+does.** A rule that stands on the caller needs every caller of every view to
+know the columns of a panel that the render alone measures — the border of the
+panel 4, the bar of the scroll, and the sign of the cursor each take columns of
+it, and the width of the lines comes of `the_list_of_the_render` inside that
+function. The one place of the rule is therefore the map that makes the
+`ListItem`, beside `in_one_line`, which holds the rule of the row of T-311 in
+that same place. **A line of the table of a media stands in that room already**,
+therefore the call gives the text of such a line back with no change at all.
+
+**The correction is one file.** `src/ui/the_list_of_a_view.rs`: the map of the
+`ListItem` takes `crate::logic::message::in_one_row(&of_one_line, of_a_line)`,
+and `of_a_line` is `the_list.width_of_the_lines` after the two columns of
+`THE_SIGN_OF_THE_CURSOR`.
+
+**The corrected program of the same harness** (v0.8.199) said
+`➤ [Collection] A Test Collection [1 ite…` at 40 columns, and the whole of the
+row at 160. **The control of the same run**: the Library view of 40 columns kept
+its two rows of the list of today, and the Library view of 160 columns kept the
+four columns of its table of a media, the panel 1 of its views, and the panel 5
+of its facts.
+
+**The gate.** The new test
+`a_line_that_is_longer_than_the_panel_says_that_it_was_cut` of
+`src/ui/the_list_of_a_view.rs` draws the real list into a `Buffer` of ratatui and
+it reads the columns of the row of a line, with the sign of the cursor taken
+away. It holds the row of the measurement at 40 columns, the control of the line
+after it, the control of the two lines at 160 columns, and a panel of 3 and of 2
+columns for the panic that a subtraction of a width can give. It stands beside
+`a_title_that_is_longer_than_the_screen_keeps_its_start` of T-304, which is the
+same rule for the title of that same panel.
+
+**Three builds of the fault, and each of them fails the gate**:
+
+1. the map with no `in_one_row` at all, which is the program of v0.8.198;
+2. `of_a_line` of the width of the lines, with the two columns of the sign of the
+   cursor forgotten: a text of 39 columns then stands in a width of 40 and it
+   takes no three points, and ratatui cuts it to 38 again;
+3. `of_a_line` of `area.width`, with the border of the panel, the bar of the
+   scroll, and the sign of the cursor forgotten together.
+
+**The gates of the round.** Clippy and fmt clean, 1613 tests of nextest in 3.0
+seconds (1612 before this item), `cargo test -j 16 --no-fail-fast` three times
+with no failure, and `cargo nextest run --run-ignored all` with the sandbox up
+gave 1639 of 1639.
+
+**What this item leaves open, and each of them is a candidate and not an item.**
+
+- **The row of the header of the columns of a list holds no rule of one row**:
+  `the_header_of_the_columns` of `TheContentOfAPanel` draws through `Line::raw`
+  in an area of its own, and no measurement of this round reached a header that
+  is wider than its panel.
+- The panel 1 names no key of the next library (`Shift+Tab`) and no view of the
+  search (`/`), and the two of them stand in the group "The views" of the list of
+  every key.
+- The title of a panel that holds a name of the server, which T-361, T-363, and
+  T-367 each left open: the titles of the statistics and of the sessions hold no
+  fault at 40 columns, and the class needs a name of the server to become one.
+- The Series view holds no frame of the panels at all.
+- The keys `4`, `j`, `k`, and `l` of the panel 4 of a view with no line say
+  nothing, and the footer of that focus names none of them since T-359.
+- The footers of the panel 5 and of the panel 6 (T-354), the rows of the band
+  that does not fit (T-353), the width of the panel 5 of a media with no cover,
+  and every candidate of the items before this one.

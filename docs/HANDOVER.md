@@ -27077,12 +27077,112 @@ not fit (T-353); the width of the panel 5 of a media with no cover; the title of
 the panel of the statistics and of the sessions (T-361); and every candidate of
 the turns before this one.
 
+## The session of the two hundredth turn of 2026-08-17: T-367, the panel of the views names no view of a podcast in a library of books, of the block of the prompt
+
+**The session of the two hundredth turn took the item 1 of the list of the
+work**, and the round of it stands in one session with the round of T-366: the
+driver sent the prompt of the round again while this session ran, therefore the
+same session closed T-366 with `cargo clean` and it then took a new round. The
+item is T-367, and it is **the other direction of the rule of T-365**: the panel
+1 of the views named the view of the downloads of the server in a library of
+books.
+
+**A `ps` of the machine at the start of the round found it clean**: no program of
+`toutui`, no shell of a busy loop, a load average of 1.4, and the disk held 420
+gigabytes. The tree of git was clean, the commit of T-366 stood at the remote
+with the tag v0.8.197, and `cargo build -j 16` of the clean tree of that
+`cargo clean` took **15 seconds**, which agrees with the 16 seconds of the round
+before it.
+
+**The candidate of the start of this round gave no item, and the measurement of
+it is a fact of its own.** T-361 and T-363 each left "the title of the panel of
+the view of the statistics and of the view of the sessions, which holds no wrap"
+open. **The two titles hold no fault at 40 columns**: `Your listening time` takes
+19 columns and `The sessions that you played` takes 28, and the panel of a screen
+of 40 columns gives 38. That candidate needs a title of a **name of the server**
+to become a fault, and every title of that shape reaches `the_list_of_a_view`,
+which holds `in_one_row` already.
+
+**The fault came of a sweep of the views of the panel 1 at 40 columns.** The key
+`d` of the Home view of the library `Books` gave the Home view again, therefore
+the round read the whole screen of that key (the trap 222) at 160 columns:
+
+```text
+║  Queue                        q║
+║➤ Downloads                    d║
+║  Chapters                     C║
+```
+
+The key `1` and eight keys `j` took that line, and the key `l` of it gave no view
+at all: the Home view stood, the border of the panel went back to the light
+border of no focus, and the row of the message said `This library holds books.
+The server downloads the episodes of a podcast only.` **The log grew by no
+line**: 25 lines before the key, and 25 after it. **The control of the same run**
+is the key `q` of the same view, which gave `The queue [0 items]` at once, and the
+library `Podcasts`, where the key `d` gave `The downloads of the server [0
+items]`.
+
+**Why.** `show_the_downloads_of_the_server` of `src/app.rs` holds the guard
+`if !self.is_podcast`, because the server downloads the episodes of a podcast
+alone. T-365 took the views of a book out of a library of podcasts and T-366 gave
+the panel the line of the series with that same mark, and **a mark of one kind of
+a library cannot say that a view belongs to the other kind**: the fault of the
+other direction therefore stayed. **The mockup 1 holds that fault too** — its
+panel 1 names `Downloads d` on a screen of a library of books — and a round must
+not write in `docs/mockups/`.
+
+**The correction, of one file of the source.** The field
+`of_a_library_of_books: bool` of `AView` goes away, and the enum
+`TheLibraryOfAView` of three values takes its place: `Every`, `OfBooks`, and
+`OfPodcasts`. The filter of `the_views` reads the three of them with a `match`,
+therefore **no value of that enum can go without a rule**, and a fourth kind of a
+library of a later round meets the compiler. The line `Downloads` takes
+`OfPodcasts`, the lines `Series`, `Authors`, and `Narrators` keep `OfBooks`, and
+the eleven other lines take `Every`. **v0.8.198.**
+
+**Three tests read the old field**, and each of them is a fact of the shape of
+this correction: the gate of T-365, the new gate, and
+`tests/the_frame_of_the_panels_holds_its_three_shapes.rs` of T-320, whose count
+of the lines of a library of books read the whole constant. **A count of
+`THE_VIEWS.len()` belongs to no library now**, and the new gate holds the rule
+that says why: **no line of `THE_VIEWS` may belong to no library at all**.
+
+**The corrected program of the same harness** gave the library `Books` a panel of
+fourteen lines with no line of the downloads, whose third line is `Series s`; the
+key `G` took the line `Every key` and the key `l` of it opened that view; and a
+click of the row 12 took the line `Chapters` and the program stood. The library
+`Podcasts` gave a panel of twelve lines whose sixth line is `Downloads d`, and the
+key `l` of it gave `The downloads of the server [0 items]`.
+
+**Four builds of the fault, and each of them fails the gate**: the line with the
+mark `Every` (which is the program of v0.8.197), a filter whose arm of a podcast
+gives `true`, that arm in reverse, and that arm of `false` — the last of them
+gives a view that no library names, and the new gate alone catches it at the part
+of the control.
+
+**The gates**: clippy and fmt clean, 1612 tests of nextest,
+`cargo test -j 16 --no-fail-fast` three times with no failure, and
+`cargo nextest run --run-ignored all` with the sandbox up gave 1638 of 1638. The
+account took the library `Books` back at the end (the trap 198).
+
+**What this round leaves open, and each of them is a candidate and not an item**:
+**a row of a list of the panel 4 loses the last character of its text at 40
+columns with no mark of the cut** (`[Collection] A Test Collection [1 item` is
+what the user reads of that row of the Collections view); **the panel 1 names no
+key of the next library (`Shift+Tab`) and no view of the search (`/`)**, and the
+two of them stand in the group "The views" of the list of every key; the title of
+a panel that holds a name of the server, of the paragraph above; the Series view,
+which holds no frame of the panels at all; the keys `4`, `j`, `k`, and `l` of the
+panel 4 of a view with no line; the footers of the panel 5 and of the panel 6
+(T-354); the rows of the band that does not fit (T-353); the width of the panel 5
+of a media with no cover; and every candidate of the turns before this one.
+
 ## The prompt for the next session
 
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.198**; `Cargo.toml` is at 0.8.198. The
+> AlbanDAVID/Toutui. Newest release **v0.8.199**; `Cargo.toml` is at 0.8.199. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -27913,7 +28013,7 @@ the turns before this one.
 > makes no request: a measurement of two roads of the header needs a key of a
 > fresh request, and the key `R` alone forgets the state of a view.
 > Verify with a second program: `curl`, `podman logs abs-test`, or a browser.
-> Write the measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-368 and
+> Write the measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-369 and
 > up), and name that item in the commit.
 >
 > **`String::find` gives the index of a byte and not the column of the screen**
@@ -27926,8 +28026,8 @@ the turns before this one.
 > `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`, and
 > `cargo nextest run` with `ALSA_CONFIG_PATH` pointing at a null asound file of
 > two lines (`pcm.!default { type null }` and `ctl.!default { type null }`).
-> Baseline: **1612 tests in 2.9 seconds of nextest**, and `cargo nextest run --run-ignored
-> all` gives **1638 of 1638** with the sandbox up, in about 26 seconds. **Run that
+> Baseline: **1613 tests in 3.0 seconds of nextest**, and `cargo nextest run --run-ignored
+> all` gives **1639 of 1639** with the sandbox up, in about 18 seconds. **Run that
 > second command at the end of the session too**: it found T-132 and T-111.
 > **And `cargo clean` is the last command of the round**, after the push: the
 > maintainer asked for it on 2026-08-17, and the paragraph of the disk above
@@ -28095,103 +28195,91 @@ the turns before this one.
 > 1. **A condition of the program that no measurement has reached.** A sweep of
 >    this shape found a fault in one hundred and seventeen sessions of one
 >    hundred and eighteen.
-> **The session of the two hundredth turn took the item 1 of the list of the
-> work**, and the round of it stands in one session with the round of T-366: the
-> driver sent the prompt of the round again while this session ran, therefore the
-> same session closed T-366 with `cargo clean` and it then took a new round. The
-> item is T-367, and it is **the other direction of the rule of T-365**: the panel
-> 1 of the views named the view of the downloads of the server in a library of
-> books.
+> **The session of the two hundred and first turn took the item 1 of the list of
+> the work**, and the item is **T-368**: a line of a list that the screen cuts now
+> says that the screen cut it. **The candidate came of the round before this one**,
+> which named the row of the Collections view of 40 columns, and the measurement
+> of this round found that the fault is not that view: it is **every line of every
+> list of this program**.
 >
 > **A `ps` of the machine at the start of the round found it clean**: no program of
-> `toutui`, no shell of a busy loop, a load average of 1.4, and the disk held 420
-> gigabytes. The tree of git was clean, the commit of T-366 stood at the remote
-> with the tag v0.8.197, and `cargo build -j 16` of the clean tree of that
-> `cargo clean` took **15 seconds**, which agrees with the 16 seconds of the round
-> before it.
+> `toutui`, no shell of a busy loop, a load average of 4.7 of a game of the user,
+> and the disk held 432 gigabytes. The tree of git was clean, the commit of T-367
+> stood with the tag v0.8.198, and `cargo build -j 16` of the clean tree of that
+> `cargo clean` took **17.6 seconds**, which agrees with the 15 seconds of the
+> round before it.
 >
-> **The candidate of the start of this round gave no item, and the measurement of
-> it is a fact of its own.** T-361 and T-363 each left "the title of the panel of
-> the view of the statistics and of the view of the sessions, which holds no wrap"
-> open. **The two titles hold no fault at 40 columns**: `Your listening time` takes
-> 19 columns and `The sessions that you played` takes 28, and the panel of a screen
-> of 40 columns gives 38. That candidate needs a title of a **name of the server**
-> to become a fault, and every title of that shape reaches `the_list_of_a_view`,
-> which holds `in_one_row` already.
->
-> **The fault came of a sweep of the views of the panel 1 at 40 columns.** The key
-> `d` of the Home view of the library `Books` gave the Home view again, therefore
-> the round read the whole screen of that key (the trap 222) at 160 columns:
+> **The measurement needed no proxy, no book of a harness, and no change of the
+> sandbox at all**: the data of this fault is the size of the terminal (T-301) and
+> the text of the server. `COLUMNS_OF_THE_SCREEN=40` of `docs/harness/drive.sh`,
+> and the key `c` of the Home view of the library `Books`:
 >
 > ```text
-> ║  Queue                        q║
-> ║➤ Downloads                    d║
-> ║  Chapters                     C║
+> ──Collections and playlists [2 items]───
+> ➤ [Collection] A Test Collection [1 item
+>   [Playlist] A Test Playlist [1 item]
 > ```
 >
-> The key `1` and eight keys `j` took that line, and the key `l` of it gave no view
-> at all: the Home view stood, the border of the panel went back to the light
-> border of no focus, and the row of the message said `This library holds books.
-> The server downloads the episodes of a podcast only.` **The log grew by no
-> line**: 25 lines before the key, and 25 after it. **The control of the same run**
-> is the key `q` of the same view, which gave `The queue [0 items]` at once, and the
-> library `Podcasts`, where the key `d` gave `The downloads of the server [0
-> items]`.
+> **The first row is a text of 39 columns in 38.** The panel of a screen of 40
+> columns gives the whole width to its lines and the sign of the cursor takes two
+> columns of every one of them, therefore a line holds 38: the row lost its `]`,
+> and ratatui said nothing at all of that cut. **The user reads a number of the
+> items that the collection does not have.** **The control of the same run** is the
+> row after it, of 35 columns, which stood whole, and the same view at 160 columns,
+> which gave the whole of the two rows.
 >
-> **Why.** `show_the_downloads_of_the_server` of `src/app.rs` holds the guard
-> `if !self.is_podcast`, because the server downloads the episodes of a podcast
-> alone. T-365 took the views of a book out of a library of podcasts and T-366 gave
-> the panel the line of the series with that same mark, and **a mark of one kind of
-> a library cannot say that a view belongs to the other kind**: the fault of the
-> other direction therefore stayed. **The mockup 1 holds that fault too** — its
-> panel 1 names `Downloads d` on a screen of a library of books — and a round must
-> not write in `docs/mockups/`.
+> **Why.** Three rules of this program hold the text of one row already — the
+> **title** of the panel takes `in_one_row` (T-304), the **columns of the table of
+> a media** take it for each cell (T-321), and the **line of every key** of the
+> view `?` takes it through `the_columns_of_a_line` (T-362) — **and the lines of
+> every other view took none of them**. The doc of `the_columns_of_a_line` says the
+> fault in its own words ("A line that is longer than this loses its end"), and the
+> one caller of that function is the view of the keys: **the rule stood on the
+> caller, and no caller but one held it.**
 >
-> **The correction, of one file of the source.** The field
-> `of_a_library_of_books: bool` of `AView` goes away, and the enum
-> `TheLibraryOfAView` of three values takes its place: `Every`, `OfBooks`, and
-> `OfPodcasts`. The filter of `the_views` reads the three of them with a `match`,
-> therefore **no value of that enum can go without a rule**, and a fourth kind of a
-> library of a later round meets the compiler. The line `Downloads` takes
-> `OfPodcasts`, the lines `Series`, `Authors`, and `Narrators` keep `OfBooks`, and
-> the eleven other lines take `Every`. **v0.8.198.**
+> **The decision: the render of the list holds that rule, and no caller of it
+> does.** A rule on the caller needs every view to know the columns that the render
+> alone measures — the border of the panel 4, the bar of the scroll, and the sign
+> of the cursor each take columns of it, and the width of the lines comes of
+> `the_list_of_the_render` inside that function. The one place is the map that
+> makes the `ListItem`, beside `in_one_line`, which holds the rule of the row of
+> T-311 in that same place. **A line of the table of a media stands in that room
+> already**, therefore the call gives such a line back with no change at all.
 >
-> **Three tests read the old field**, and each of them is a fact of the shape of
-> this correction: the gate of T-365, the new gate, and
-> `tests/the_frame_of_the_panels_holds_its_three_shapes.rs` of T-320, whose count
-> of the lines of a library of books read the whole constant. **A count of
-> `THE_VIEWS.len()` belongs to no library now**, and the new gate holds the rule
-> that says why: **no line of `THE_VIEWS` may belong to no library at all**.
+> **The correction, of one file of the source.** `src/ui/the_list_of_a_view.rs`:
+> the map of the `ListItem` takes
+> `crate::logic::message::in_one_row(&of_one_line, of_a_line)`, and `of_a_line` is
+> `the_list.width_of_the_lines` after the two columns of `THE_SIGN_OF_THE_CURSOR`.
+> **v0.8.199.**
 >
-> **The corrected program of the same harness** gave the library `Books` a panel of
-> fourteen lines with no line of the downloads, whose third line is `Series s`; the
-> key `G` took the line `Every key` and the key `l` of it opened that view; and a
-> click of the row 12 took the line `Chapters` and the program stood. The library
-> `Podcasts` gave a panel of twelve lines whose sixth line is `Downloads d`, and the
-> key `l` of it gave `The downloads of the server [0 items]`.
+> **The corrected program of the same harness** said
+> `➤ [Collection] A Test Collection [1 ite…` at 40 columns and the whole of the row
+> at 160. **The control of the same run**: the Library view of 40 columns kept its
+> two rows of the list of today, and of 160 columns it kept the four columns of its
+> table of a media, the panel 1 of its views, and the panel 5 of its facts.
 >
-> **Four builds of the fault, and each of them fails the gate**: the line with the
-> mark `Every` (which is the program of v0.8.197), a filter whose arm of a podcast
-> gives `true`, that arm in reverse, and that arm of `false` — the last of them
-> gives a view that no library names, and the new gate alone catches it at the part
-> of the control.
+> **Three builds of the fault, and each of them fails the gate**: the map with no
+> `in_one_row` at all (which is the program of v0.8.198), `of_a_line` of the width
+> of the lines with the two columns of the sign of the cursor forgotten, and
+> `of_a_line` of `area.width` with the border, the bar, and the sign forgotten
+> together.
 >
-> **The gates**: clippy and fmt clean, 1612 tests of nextest,
-> `cargo test -j 16 --no-fail-fast` three times with no failure, and
-> `cargo nextest run --run-ignored all` with the sandbox up gave 1638 of 1638. The
-> account took the library `Books` back at the end (the trap 198).
+> **The gates**: clippy and fmt clean, 1613 tests of nextest in 3.0 seconds,
+> `cargo test -j 16 --no-fail-fast` three times with exit 0 and 237 blocks of `ok`
+> each time, and `cargo nextest run --run-ignored all` with the sandbox up gave
+> 1639 of 1639.
 >
 > **What this round leaves open, and each of them is a candidate and not an item**:
-> **a row of a list of the panel 4 loses the last character of its text at 40
-> columns with no mark of the cut** (`[Collection] A Test Collection [1 item` is
-> what the user reads of that row of the Collections view); **the panel 1 names no
-> key of the next library (`Shift+Tab`) and no view of the search (`/`)**, and the
-> two of them stand in the group "The views" of the list of every key; the title of
-> a panel that holds a name of the server, of the paragraph above; the Series view,
-> which holds no frame of the panels at all; the keys `4`, `j`, `k`, and `l` of the
-> panel 4 of a view with no line; the footers of the panel 5 and of the panel 6
-> (T-354); the rows of the band that does not fit (T-353); the width of the panel 5
-> of a media with no cover; and every candidate of the turns before this one.
+> **the row of the header of the columns of a list holds no rule of one row**
+> (`the_header_of_the_columns` of `TheContentOfAPanel` draws through `Line::raw` in
+> an area of its own, and no measurement of this round reached a header that is
+> wider than its panel); the panel 1 names no key of the next library (`Shift+Tab`)
+> and no view of the search (`/`); the title of a panel that holds a name of the
+> server, which T-361, T-363, and T-367 each left open; the Series view, which
+> holds no frame of the panels at all; the keys `4`, `j`, `k`, and `l` of the panel
+> 4 of a view with no line; the footers of the panel 5 and of the panel 6 (T-354);
+> the rows of the band that does not fit (T-353); the width of the panel 5 of a
+> media with no cover; and every candidate of the turns before this one.
 >
 >
 >
@@ -28447,7 +28535,10 @@ the turns before this one.
 > removal, and it held **85642** bytes with **one** turn in it. The round of the
 > two hundredth found it at 85880 bytes with one turn in it, and it did the same
 > work: the block held **80596** bytes with no turn at all after the removal, and
-> it holds **86725** bytes with **one** turn in it now.
+> it held **86725** bytes with **one** turn in it. The round of the two hundred
+> and first found it at 86951 bytes with one turn in it, and it did the same
+> work: the block held **80969** bytes with no turn at all after the removal, and
+> it holds **86106** bytes with **one** turn in it now.
 > **A block that stands at 80000 bytes or under holds two
 > turns**, and the turn of the stage before this one names the parts of that
 > stage which stay open. **The list of the decisions

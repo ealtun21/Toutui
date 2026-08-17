@@ -323,11 +323,30 @@ pub fn render_the_table_of_a_panel(
         _ => lines.to_vec(),
     };
 
+    // **A line that the panel cuts says that the panel cut it** (T-368). A
+    // `ListItem` that is wider than its area loses the columns of its end, and
+    // ratatui draws no mark of that cut at all: the measurement of the
+    // Collections view of a terminal of 40 columns gave the row
+    // `[Collection] A Test Collection [1 item`, and the user reads a name and a
+    // number of the items that the collection does not have. The three points
+    // of `in_one_row` say that the screen cut it, and they say it for every
+    // view of a list — the title of the panel holds that rule already (T-304)
+    // and the table of a media holds it for each of its columns (T-321).
+    //
+    // The sign of the cursor takes the two columns before the text of every
+    // line, therefore the room of the text is the width of the lines after
+    // them. A line of the table of a media stands in that room already,
+    // therefore this call gives the text of it back with no change.
+    let of_a_line = the_list
+        .width_of_the_lines
+        .saturating_sub(THE_SIGN_OF_THE_CURSOR);
+
     let items: Vec<ListItem> = the_texts
         .iter()
         .enumerate()
         .map(|(i, line)| {
-            ListItem::new(crate::logic::message::in_one_line(line).into_owned())
+            let of_one_line = crate::logic::message::in_one_line(line);
+            ListItem::new(crate::logic::message::in_one_row(&of_one_line, of_a_line))
                 .bg(the_colour_of_a_line(colors, i))
         })
         .collect();
@@ -564,6 +583,87 @@ mod tests {
 
         // A width that holds no title at all gives no panic.
         assert_eq!(the_header_of_the_list(long, 1), "…");
+    }
+
+    /// Gives the row of the line `which` of a list of a width, with the columns
+    /// of the sign of the cursor taken away and with the spaces of the end of
+    /// the row taken away.
+    ///
+    /// The row 0 of the buffer is the header of the block, therefore the line 0
+    /// of the list stands at the row 1.
+    fn the_row_of_a_line(lines: &[String], which: u16, width: u16) -> String {
+        let area = Rect::new(0, 0, width, u16::try_from(lines.len()).unwrap_or(1) + 2);
+        let mut buf = Buffer::empty(area);
+
+        let mut state = ListState::default();
+        state.select(None);
+
+        render_the_list(
+            area,
+            &mut buf,
+            &Colors::default(),
+            "Episodes",
+            lines,
+            &mut state,
+        );
+
+        (THE_SIGN_OF_THE_CURSOR..width)
+            .map(|column| buf[(column, which + 1)].symbol().to_string())
+            .collect::<String>()
+            .trim_end()
+            .to_string()
+    }
+
+    /// A line of a list that the panel cuts says that the panel cut it. See
+    /// T-368.
+    ///
+    /// **The parts of this test stay in one function.**
+    #[test]
+    fn a_line_that_is_longer_than_the_panel_says_that_it_was_cut() {
+        // **The fault of T-368, of the real program v0.8.198 inside tmux**: the
+        // key `c` of a terminal of 40 columns gave the Collections view of the
+        // sandbox, and the first row of it said
+        // `[Collection] A Test Collection [1 item` — 38 columns of a text of 39.
+        // ratatui draws no mark of that cut at all, therefore the user reads a
+        // number of the items that the collection does not have.
+        let long = "[Collection] A Test Collection [1 item]".to_string();
+        assert_eq!(long.chars().count(), 39);
+
+        let lines = vec![
+            long.clone(),
+            "[Playlist] A Test Playlist [1 item]".to_string(),
+        ];
+
+        // The panel of a screen of 40 columns holds 38 columns of a text: the
+        // sign of the cursor takes two of them, and the list of two lines in a
+        // panel of four rows needs no bar of the scroll.
+        let row = the_row_of_a_line(&lines, 0, 40);
+
+        assert!(
+            row.starts_with("[Collection] A Test"),
+            "the line lost its start at 40 columns: {row}"
+        );
+        assert!(
+            row.ends_with('…'),
+            "the line said nothing of the end that went away at 40 columns: {row}"
+        );
+        assert!(
+            crate::logic::message::the_columns_of(&row) <= 38,
+            "the line stood outside the panel at 40 columns: {row}"
+        );
+
+        // The control of the same render: the line after it stands whole,
+        // therefore no line of a list takes the three points that it does not
+        // need.
+        assert_eq!(the_row_of_a_line(&lines, 1, 40), lines[1]);
+
+        // The control of a panel that holds every column of the two lines.
+        assert_eq!(the_row_of_a_line(&lines, 0, 160), long);
+        assert_eq!(the_row_of_a_line(&lines, 1, 160), lines[1]);
+
+        // A panel that holds no text at all gives no panic.
+        let _ = the_row_of_a_line(&lines, 0, 3);
+        let _ = the_row_of_a_line(&lines, 0, 2);
     }
 
     /// Draws a list of three lines with the colours of a user, and gives the
