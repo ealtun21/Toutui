@@ -2680,17 +2680,24 @@ impl App {
         let the_frame_stands = self.the_frame_of_the_panels_stands();
         let the_stack_stands = self.the_stack_of_the_panels_stands();
         let the_focus = self.the_panel_of_the_focus;
+        // **The footer of a panel of the stack names the panel 4 by what that
+        // panel holds** (T-364). `home_lines` maps one line of the screen over
+        // one row of `home_rows`, therefore this test is the test of
+        // `lines.is_empty()` of the branch below, and it costs no new line.
+        let the_view_holds_a_line = !self.home_rows.is_empty();
         let of_the_table = crate::ui::keys::the_footer_of_a_panel(
             of_the_table,
             the_frame_stands,
             the_stack_stands,
             the_focus,
+            the_view_holds_a_line,
         );
         let of_the_bands = crate::ui::keys::the_footer_of_a_panel(
             of_the_bands,
             the_frame_stands,
             the_stack_stands,
             the_focus,
+            the_view_holds_a_line,
         );
 
         // **The footer takes the rows of the longer of the two texts, and the
@@ -2775,6 +2782,7 @@ impl App {
                     the_frame_stands,
                     the_stack_stands,
                     the_focus,
+                    the_view_holds_a_line,
                 ),
             );
             self.render_the_reason(
@@ -2810,6 +2818,7 @@ impl App {
                 the_frame_stands,
                 the_stack_stands,
                 the_focus,
+                the_view_holds_a_line,
             )
             .as_str(),
         );
@@ -3156,11 +3165,17 @@ impl App {
         // (T-320), and it names no panel at all in a terminal that holds no
         // frame of the panels: a footer must not promise a key that the view
         // does not hold (T-143).
+        // **The footer of a panel of the stack names the panel 4 by what that
+        // panel holds** (T-364). `library_lines` maps one line of the screen
+        // over one row of `library_rows`, therefore this test is the test of
+        // `lines.is_empty()` of the branch below.
+        let the_view_holds_a_line = !self.library_rows.is_empty();
         let text_render_footer = crate::ui::keys::the_footer_of_a_panel(
             of_the_view,
             self.the_frame_of_the_panels_stands(),
             self.the_stack_of_the_panels_stands(),
             self.the_panel_of_the_focus,
+            the_view_holds_a_line,
         );
         let text_render_footer = text_render_footer.as_str();
         let rows_of_the_footer = self.the_rows_of_the_footer(text_render_footer, area);
@@ -3257,6 +3272,7 @@ impl App {
                 self.the_frame_of_the_panels_stands(),
                 self.the_stack_of_the_panels_stands(),
                 self.the_panel_of_the_focus,
+                the_view_holds_a_line,
             )
         } else {
             text_render_footer.to_string()

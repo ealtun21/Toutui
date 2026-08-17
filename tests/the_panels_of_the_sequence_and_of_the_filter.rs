@@ -83,22 +83,33 @@ fn the_footer_of_a_panel_of_the_stack_names_the_work_of_its_key() {
     // A screen that holds no frame keeps the footer of the view, with no word
     // of a panel at all.
     assert_eq!(
-        toutui::ui::keys::the_footer_of_a_panel(of_the_view, false, false, ThePanel::TheSequence),
+        toutui::ui::keys::the_footer_of_a_panel(
+            of_the_view,
+            false,
+            false,
+            ThePanel::TheSequence,
+            true
+        ),
         of_the_view
     );
 
     // **The key `l` of the panel 2 takes a sequence, and the key `l` of the
     // panel 3 takes a filter**: a footer of `l: play or open` at that moment
     // would name a work that the key does not do.
-    let of_the_sequence =
-        toutui::ui::keys::the_footer_of_a_panel(of_the_view, true, true, ThePanel::TheSequence);
+    let of_the_sequence = toutui::ui::keys::the_footer_of_a_panel(
+        of_the_view,
+        true,
+        true,
+        ThePanel::TheSequence,
+        true,
+    );
     assert!(
         of_the_sequence.contains("l: this sequence"),
         "{of_the_sequence:?}"
     );
 
     let of_the_filter =
-        toutui::ui::keys::the_footer_of_a_panel(of_the_view, true, true, ThePanel::TheFilter);
+        toutui::ui::keys::the_footer_of_a_panel(of_the_view, true, true, ThePanel::TheFilter, true);
     assert!(
         of_the_filter.contains("l: this filter"),
         "{of_the_filter:?}"
@@ -117,7 +128,7 @@ fn the_footer_of_a_panel_of_the_stack_names_the_work_of_its_key() {
     // **The footer of the panel 4 names the key `f`**: the measurement of the
     // real program v0.8.148 gave a footer of eight keys and no `f` in it.
     let of_the_list =
-        toutui::ui::keys::the_footer_of_a_panel(of_the_view, true, true, ThePanel::TheList);
+        toutui::ui::keys::the_footer_of_a_panel(of_the_view, true, true, ThePanel::TheList, true);
     assert!(of_the_list.starts_with(of_the_view));
     assert!(
         of_the_list.contains("f: sequence"),

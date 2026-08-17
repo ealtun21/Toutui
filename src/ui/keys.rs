@@ -728,11 +728,22 @@ pub fn the_footer_of_the_home_view(is_podcast: bool, the_bands_stand: bool) -> &
 /// panel that the frame did not draw does nothing (T-79), and a footer must not
 /// promise it. The key `z` itself stands in the footer of the two modes,
 /// because it is the road back of the mode that hides them.
+///
+/// **The footer of a panel of the stack must not name a list that the view does
+/// not hold** (T-364). The keys `h` and `4` of the panel 1, of the panel 2, and
+/// of the panel 3 take the focus back to the panel 4, and that panel holds the
+/// list of the view. A library with no media gives that panel one sentence and
+/// no list at all, and the three footers of the measurement of v0.8.194 said
+/// `h: the list` and `4/Ctrl+l: the list` over a panel that read
+/// `This library holds no media.` That is the rule of T-143 for a word and not
+/// for a key: the key does its work, and the word of it names a thing that the
+/// screen does not hold. [`the_panel_4_of_a_view`] gives the word of that panel.
 pub fn the_footer_of_a_panel(
     of_the_view: &str,
     the_frame_stands: bool,
     the_stack_stands: bool,
     the_focus: crate::ui::frame::ThePanel,
+    the_view_holds_a_line: bool,
 ) -> String {
     use crate::ui::frame::ThePanel;
 
@@ -740,16 +751,21 @@ pub fn the_footer_of_a_panel(
         return of_the_view.to_string();
     }
 
+    let of_the_panel_4 = the_panel_4_of_a_view(the_view_holds_a_line);
+
     match the_focus {
-        ThePanel::TheViews => "j/k: move  l: open the view  h: the list  \
-                4/Ctrl+l: the list  ?: every key  Q: quit"
-            .to_string(),
-        ThePanel::TheSequence => "j/k: move  l: this sequence  h: the list  \
-                4/Ctrl+l: the list  ?: every key  Q: quit"
-            .to_string(),
-        ThePanel::TheFilter => "j/k: move  l: this filter  h: the list  \
-                4/Ctrl+l: the list  ?: every key  Q: quit"
-            .to_string(),
+        ThePanel::TheViews => format!(
+            "j/k: move  l: open the view  h: {of_the_panel_4}  \
+                4/Ctrl+l: {of_the_panel_4}  ?: every key  Q: quit"
+        ),
+        ThePanel::TheSequence => format!(
+            "j/k: move  l: this sequence  h: {of_the_panel_4}  \
+                4/Ctrl+l: {of_the_panel_4}  ?: every key  Q: quit"
+        ),
+        ThePanel::TheFilter => format!(
+            "j/k: move  l: this filter  h: {of_the_panel_4}  \
+                4/Ctrl+l: {of_the_panel_4}  ?: every key  Q: quit"
+        ),
         // **The footer of the panel 4 names the key `f` of the sequence and of
         // the filter** (T-318): the key stood in the panel 1 and in no footer,
         // and a user who cannot find a key has no key at all (the rule of T-143
@@ -757,20 +773,43 @@ pub fn the_footer_of_a_panel(
         // **The footer of the panel 5 names the keys of that panel** (T-319):
         // the keys `j` and `k` move the description of the media, and the key
         // `l` plays it, which is the key of the list of the view.
-        ThePanel::TheCover => "j/k: the description  l: play or open  h: the list  \
-                4/Ctrl+h: the list  ?: every key  Q: quit"
-            .to_string(),
+        ThePanel::TheCover => format!(
+            "j/k: the description  l: play or open  h: {of_the_panel_4}  \
+                4/Ctrl+h: {of_the_panel_4}  ?: every key  Q: quit"
+        ),
         // **The footer of the panel 6 names the keys of the gallery** (T-327):
         // the keys `j` and `k` move the cursor of the list one row of the grid,
         // the keys `+` and `-` change the size of a cell, and the key `l` plays
         // the media of the cell of the cursor.
-        ThePanel::TheGallery => "j/k: a row of the grid  +/-: the size of a cell  \
-                l: play or open  h: the list  ?: every key  Q: quit"
-            .to_string(),
+        ThePanel::TheGallery => format!(
+            "j/k: a row of the grid  +/-: the size of a cell  \
+                l: play or open  h: {of_the_panel_4}  ?: every key  Q: quit"
+        ),
         ThePanel::TheList if the_stack_stands => {
             format!("{of_the_view}  f: sequence  1/Ctrl+h: the panels  z: hide them")
         }
         ThePanel::TheList => format!("{of_the_view}  f: sequence  z: the panels 1, 2, and 3"),
+    }
+}
+
+/// The word of the panel 4 for the footer of another panel. See T-364.
+///
+/// **A footer names what the screen holds.** The panel 4 of the Home view and of
+/// the Library view holds the list of the media, and the keys `h` and `4` of the
+/// panels around it take the focus back to it. A library with no media gives
+/// that panel the reason of `crate::ui::keys::THE_LIBRARY_WITH_NO_MEDIA` and no
+/// list, therefore the word `the list` names a thing that the user cannot see.
+///
+/// The word `the view` is true of the two conditions, and the word `the list` is
+/// the one that says more: this function gives the second word while the view
+/// holds a line, and the first word while it holds none.
+///
+/// The function is pure, therefore a test needs no screen.
+pub fn the_panel_4_of_a_view(the_view_holds_a_line: bool) -> &'static str {
+    if the_view_holds_a_line {
+        "the list"
+    } else {
+        "the view"
     }
 }
 

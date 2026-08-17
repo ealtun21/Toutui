@@ -41,6 +41,23 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.195",
+        date: "17/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The footer of a panel of the stack names no list of a view \
+             that holds none.** The keys `h` and `4` of the panel 1, of the \
+             panel 2, and of the panel 3 take the focus back to the panel 4, \
+             and that panel holds the list of the media. A library with no \
+             media gives it one sentence and no list at all, and the three \
+             footers still read `h: the list` and `4/Ctrl+l: the list` over a \
+             panel that said `This library holds no media.` The word now says \
+             what the panel holds: `the view` while the view holds no line, \
+             and `the list` while it holds one. The key does the same work in \
+             the two conditions.",
+        ],
+    },
+    Entry {
         version: "0.8.194",
         date: "17/08/2026",
         body: &[

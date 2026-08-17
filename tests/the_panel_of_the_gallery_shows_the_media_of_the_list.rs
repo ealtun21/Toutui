@@ -292,7 +292,7 @@ fn the_digit_of_the_gallery_names_the_panel_and_the_focus_moves_to_it() {
 /// **The parts of this test stay in one function.**
 #[test]
 fn the_footer_of_the_gallery_names_the_keys_of_the_gallery() {
-    let footer = the_footer_of_a_panel("j/k: move", true, true, ThePanel::TheGallery);
+    let footer = the_footer_of_a_panel("j/k: move", true, true, ThePanel::TheGallery, true);
 
     // **A key that the footer does not name is a key that the user does not
     // have** (the rule of T-143 in reverse): the keys of the size of a cell are
@@ -319,13 +319,13 @@ fn the_footer_of_the_gallery_names_the_keys_of_the_gallery() {
     // the footer of the view.
     assert_ne!(
         footer,
-        the_footer_of_a_panel("j/k: move", true, true, ThePanel::TheCover)
+        the_footer_of_a_panel("j/k: move", true, true, ThePanel::TheCover, true)
     );
 
     // **A screen that draws no frame gives the footer of the view** (T-320):
     // the panels stand at 120 columns and more.
     assert_eq!(
-        the_footer_of_a_panel("j/k: move", false, false, ThePanel::TheGallery),
+        the_footer_of_a_panel("j/k: move", false, false, ThePanel::TheGallery, true),
         "j/k: move"
     );
 }

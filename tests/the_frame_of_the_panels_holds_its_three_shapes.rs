@@ -256,7 +256,7 @@ fn the_keys_of_the_frame_stand_in_the_list_of_the_keys_and_in_the_footer() {
     let of_the_view = toutui::ui::keys::FOOTER_OF_A_LIBRARY_OF_BOOKS;
 
     let of_no_frame =
-        toutui::ui::keys::the_footer_of_a_panel(of_the_view, false, false, ThePanel::TheList);
+        toutui::ui::keys::the_footer_of_a_panel(of_the_view, false, false, ThePanel::TheList, true);
     assert_eq!(
         of_no_frame, of_the_view,
         "the footer of a screen that holds no frame is the footer of the view"
@@ -265,7 +265,7 @@ fn the_keys_of_the_frame_stand_in_the_list_of_the_keys_and_in_the_footer() {
     // The panel 4 holds the focus: the footer of the view stands, and it names
     // the key of the panel of the views beside it.
     let of_the_list =
-        toutui::ui::keys::the_footer_of_a_panel(of_the_view, true, true, ThePanel::TheList);
+        toutui::ui::keys::the_footer_of_a_panel(of_the_view, true, true, ThePanel::TheList, true);
     assert!(of_the_list.starts_with(of_the_view));
     assert!(of_the_list.contains('1') && of_the_list.contains("Ctrl+h"));
 
@@ -274,7 +274,7 @@ fn the_keys_of_the_frame_stand_in_the_list_of_the_keys_and_in_the_footer() {
     // and a footer that said `l: play or open` would name a work that the key
     // does not do.
     let of_the_views =
-        toutui::ui::keys::the_footer_of_a_panel(of_the_view, true, true, ThePanel::TheViews);
+        toutui::ui::keys::the_footer_of_a_panel(of_the_view, true, true, ThePanel::TheViews, true);
     assert!(
         of_the_views.contains("l: open the view"),
         "the footer of the panel of the views must name the work of the key l: {of_the_views:?}"

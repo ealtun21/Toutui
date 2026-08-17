@@ -114,14 +114,14 @@ fn the_footer_of_the_panel_of_the_list_names_the_key_of_the_stack() {
 
     // The stack stands: the footer names the digit of the panel 1, and it names
     // the key that hides the three panels.
-    let with_the_stack = the_footer_of_a_panel(of_the_view, true, true, ThePanel::TheList);
+    let with_the_stack = the_footer_of_a_panel(of_the_view, true, true, ThePanel::TheList, true);
     assert!(with_the_stack.contains("1/Ctrl+h: the panels"));
     assert!(with_the_stack.contains("z: hide them"));
 
     // The stack is hidden: the digit of the panel 1 does nothing at that
     // moment (T-79), therefore the footer must not promise it (T-143). The key
     // `z` stays, because it is the road back.
-    let with_no_stack = the_footer_of_a_panel(of_the_view, true, false, ThePanel::TheList);
+    let with_no_stack = the_footer_of_a_panel(of_the_view, true, false, ThePanel::TheList, true);
     assert!(
         !with_no_stack.contains("1/Ctrl+h"),
         "the footer of the mode that hides the stack must promise no digit of it: {with_no_stack}"
@@ -133,7 +133,7 @@ fn the_footer_of_the_panel_of_the_list_names_the_key_of_the_stack() {
     // **A screen that holds no frame of the panels names no panel at all**
     // (T-320): the key `z` does nothing there, therefore the footer of the view
     // stays as it is.
-    let with_no_frame = the_footer_of_a_panel(of_the_view, false, false, ThePanel::TheList);
+    let with_no_frame = the_footer_of_a_panel(of_the_view, false, false, ThePanel::TheList, true);
     assert_eq!(with_no_frame, of_the_view);
     assert!(!with_no_frame.contains('z'));
 }

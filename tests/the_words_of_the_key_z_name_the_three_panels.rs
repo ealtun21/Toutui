@@ -61,7 +61,7 @@ fn the_footer_of_the_list_names_the_three_panels() {
 
     let of_the_view = "j/k: move  l: play or open  Q: quit";
 
-    let with_no_stack = the_footer_of_a_panel(of_the_view, true, false, ThePanel::TheList);
+    let with_no_stack = the_footer_of_a_panel(of_the_view, true, false, ThePanel::TheList, true);
     assert!(
         with_no_stack.ends_with("z: the panels 1, 2, and 3"),
         "the footer of the mode that hides the stack names the three panels: {with_no_stack}"
@@ -71,7 +71,7 @@ fn the_footer_of_the_list_names_the_three_panels() {
     // key `z` there hides the panels that the digit `1` names beside it, and the
     // words `hide them` therefore hold the three of them with no list. The
     // correction of T-330 must not write a list of three names into this row.
-    let with_the_stack = the_footer_of_a_panel(of_the_view, true, true, ThePanel::TheList);
+    let with_the_stack = the_footer_of_a_panel(of_the_view, true, true, ThePanel::TheList, true);
     assert!(with_the_stack.ends_with("1/Ctrl+h: the panels  z: hide them"));
 }
 
