@@ -41,6 +41,19 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.173",
+        date: "17/08/2026",
+        body: &[
+            "Fixed:",
+            "- **A terminal of few rows shows the list of the view again.** The \
+             row that says the author, the year, and the length of the media of \
+             the cursor took its two rows before the list, therefore a screen \
+             of 8 rows said `Library [500 items of 2056]` and it showed no one \
+             of those items. The list is the work of the view, and it now keeps \
+             its line first. A screen of 9 rows and more does not change.",
+        ],
+    },
+    Entry {
         version: "0.8.172",
         date: "17/08/2026",
         body: &[

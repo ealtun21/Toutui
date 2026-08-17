@@ -209,6 +209,19 @@ fn the_five_areas(area: Rect, rows_of_the_player: u16, rows_of_the_footer: u16) 
 /// one split: a screen of 20 rows gives the list 6 lines, and the split of a
 /// large terminal would give it 5. A playback moves no line of the list into the
 /// description.
+///
+/// **The row of the item took the last lines of the list** (T-342). A
+/// `Constraint::Length` stands before a `Constraint::Fill` in the solver of
+/// ratatui, therefore the two rows of the row of the item came away from the
+/// screen first and the list took what stayed. The measurement of 2026-08-17,
+/// of a terminal of 100 by 8: this area held 3 rows, the row of the item took
+/// 2 of them, and the list held its border and **no line at all** while its
+/// title said `Library [500 items of 2056]`.
+///
+/// **The list is the work of the view, and it goes away last**: the row of the
+/// item takes no row that the list needs for its border and one line
+/// (`THE_SMALLEST_LIST`). A screen that held the two rows of that row keeps
+/// them, therefore this rule reaches a terminal of 8 rows and fewer alone.
 fn the_areas_of_a_list(main_area: Rect, rows_that_the_player_left: u16) -> [Rect; 3] {
     // 13 rows give the list 5 lines with the split of a large terminal. Fewer
     // rows than that give every row to the list: the lines are the work of the
@@ -217,8 +230,9 @@ fn the_areas_of_a_list(main_area: Rect, rows_that_the_player_left: u16) -> [Rect
         return Layout::vertical([
             Constraint::Fill(1),
             // The row of the item takes two rows, because its text wraps in a
-            // terminal of 80 columns. See T-94.
-            Constraint::Length(2),
+            // terminal of 80 columns. See T-94. It takes fewer of them, and
+            // none at all, before the list loses its one line. See T-342.
+            Constraint::Length(the_rows_of_the_row_of_the_item(main_area.height)),
             Constraint::Length(0),
         ])
         .areas(main_area);
@@ -230,6 +244,27 @@ fn the_areas_of_a_list(main_area: Rect, rows_that_the_player_left: u16) -> [Rect
         Constraint::Fill(1),
     ])
     .areas(main_area)
+}
+
+/// The rows that the list of a view keeps for itself: the border with the title
+/// at the top, and one line. See T-342.
+///
+/// The list of every view of this program stands in a `Block` of
+/// `Borders::TOP`, therefore a list of one line needs two rows.
+const THE_SMALLEST_LIST: u16 = 2;
+
+/// The rows of the row of the item under a list of few rows. See T-342.
+///
+/// The row of the item says the author, the year, the length, and the place of
+/// the user of the line of the cursor. **It says nothing at all while the list
+/// holds no line**, because the cursor then stands on no line that the user
+/// sees: it therefore takes its two rows out of what the list does not need.
+///
+/// A view of 4 rows and more keeps the two rows that it had.
+fn the_rows_of_the_row_of_the_item(rows_of_the_view: u16) -> u16 {
+    // The row of the item takes two rows, because its text wraps in a terminal
+    // of 80 columns. See T-94.
+    rows_of_the_view.saturating_sub(THE_SMALLEST_LIST).min(2)
 }
 
 impl App {
@@ -4716,6 +4751,73 @@ mod tests {
                 height,
                 list_of_no_playback.height,
                 list_of_a_playback.height
+            );
+        }
+    }
+
+    /// **The list of a view goes away last** (T-342).
+    ///
+    /// The measurement of the real program v0.8.172 inside tmux, in a terminal
+    /// of 100 columns and 8 rows: the Library view said
+    /// `Library [500 items of 2056]` in the title of its border, the row of the
+    /// item said `Author: N/A - Year: N/A - Duration: 0m` and
+    /// `Progress:  N/A%,   N/A` on the two rows under it, and **no one of the
+    /// 500 items stood on the screen**. The row of the item is a
+    /// `Constraint::Length` and the list is a `Constraint::Fill`, therefore the
+    /// solver of ratatui gave the row of the item its two rows first.
+    ///
+    /// **The parts of this test stay in one function.**
+    #[test]
+    fn the_list_of_a_view_keeps_its_line_before_the_row_of_the_item() {
+        // A view of 4 rows and more keeps the two rows that it had, therefore
+        // every screen that stood before T-342 stands in the same shape.
+        for rows_of_the_view in 4..=12u16 {
+            assert_eq!(
+                the_rows_of_the_row_of_the_item(rows_of_the_view),
+                2,
+                "the view of {rows_of_the_view} rows must keep the row of the item"
+            );
+        }
+
+        // A view of fewer rows gives the list its border and one line first.
+        assert_eq!(the_rows_of_the_row_of_the_item(3), 1);
+        assert_eq!(the_rows_of_the_row_of_the_item(2), 0);
+        assert_eq!(the_rows_of_the_row_of_the_item(1), 0);
+        assert_eq!(the_rows_of_the_row_of_the_item(0), 0);
+
+        // The areas themselves, of a screen of 100 columns. A screen of 8 rows
+        // gives the work of a view 3 rows: the header takes 2, the row of the
+        // message takes 1, and the footer takes 2.
+        for (rows_of_the_screen, rows_of_the_list) in
+            [(8u16, 2u16), (7, 2), (6, 1), (12, 5), (13, 6)]
+        {
+            let screen = Rect {
+                x: 0,
+                y: 0,
+                width: 100,
+                height: rows_of_the_screen,
+            };
+
+            let [_, main_area, _] = the_areas_of_a_view(screen, 0, FOOTER_HEIGHT);
+            let [list, of_the_item, _] = the_areas_of_a_list(main_area, 0);
+
+            assert_eq!(
+                list.height, rows_of_the_list,
+                "a screen of {rows_of_the_screen} rows must give the list \
+                 {rows_of_the_list} rows, and it gives {}",
+                list.height
+            );
+            assert!(
+                list.height >= THE_SMALLEST_LIST || list.height == main_area.height,
+                "a screen of {rows_of_the_screen} rows gives the list \
+                 {} rows of the {} rows of the work of the view",
+                list.height,
+                main_area.height
+            );
+            assert_eq!(
+                list.height + of_the_item.height,
+                main_area.height,
+                "the two parts must hold every row of the work of the view"
             );
         }
     }

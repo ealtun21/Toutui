@@ -32215,3 +32215,120 @@ harness of this fork, which looks every 200 milliseconds, cannot hold it. **No
 round measured that frame in the real program**, therefore no correction of the
 program stands behind this line: the road of one is a snapshot of the store at
 the start of the frame, which every part of that frame then reads.
+
+## T-342 — The list of a view goes away before the row of the item
+
+**The condition**: a terminal of few rows. It needs no proxy, no change of the
+sandbox, and no book of a harness: the size of the terminal is the data of the
+fault (T-301 and T-340), and `ROWS_OF_THE_SCREEN` of `docs/harness/drive.sh` is
+45 by default. This round drove the real program at 100 columns and 45, 16,
+12, 10, 8, 7, 6, 5, 4, 3, 2, and 1 rows.
+
+**`the_areas_of_a_list` of `src/ui/tui.rs` splits the work of a view of a list
+into the list, the row of the item, and the description.** The row of the item
+is a `Constraint::Length(2)` and the list is a `Constraint::Fill(1)`. **A
+`Length` stands before a `Fill` in the solver of ratatui**, therefore the row
+of the item took its two rows away from the screen first, and the list took
+what stayed. The words of that same function say the opposite rule already, of
+T-99: "A terminal that holds few rows must show the list… the lines are the
+work of the view."
+
+**The measurement of the real program v0.8.172 inside tmux**, of the sandbox
+at 100 columns, with the account `toutuitest` and the library `Large` of 2056
+items. At 8 rows, the Home view:
+
+```text
+👋 Connected as toutuitest                📖 Large (book)                         🦜 Toutui v0.8.172
+🔗 localhost:13399            ⇅ The sequence of the server ▣ No filter
+──────────────────────────────────────────Home [20 items]───────────────────────────────────────────
+Author: N/A - Year: N/A - Duration: 0m
+Progress:  N/A%,   N/A
+
+  j/k: move  l: play or open  Tab: home/library  S-Tab: the next library  /: search  R: refresh  ?:
+                                         every key  Q: quit
+```
+
+At 8 rows, the Library view (the key `Tab`):
+
+```text
+────────────────────────────────────Library [500 items of 2056]─────────────────────────────────────
+Author: N/A - Year: N/A - Duration: 0m
+Progress:  N/A%,   N/A
+```
+
+**The title of the border says 500 items and the screen shows no one of
+them.** The row of the item says the author, the year, and the length of the
+line of the cursor, and the user sees no line of the cursor at all: every
+value of it says `N/A` for a media that the user cannot see.
+
+At 7 rows the border and its title went away too, and the two rows of the row
+of the item stayed; at 6 rows one of them stayed; at 5 rows and fewer the
+screen held the header and the footer alone.
+
+The rows of the screen: the header takes 2, the row of the message takes 1,
+and the footer takes 2. A screen of 8 rows therefore gives the work of the
+view 3 rows, a screen of 7 rows gives it 2, and a screen of 6 rows gives it 1.
+
+**The correction**: `src/ui/tui.rs`, and a new constant `THE_SMALLEST_LIST` of
+2 — the list of every view of this program stands in a `Block` of
+`Borders::TOP`, therefore a list of one line needs two rows — and a new pure
+function `the_rows_of_the_row_of_the_item(rows_of_the_view)` that gives
+`rows_of_the_view.saturating_sub(THE_SMALLEST_LIST).min(2)`.
+`the_areas_of_a_list` calls it in the place of the literal 2.
+
+**The decision of this round: the list is the work of the view, and it goes
+away last.** The row of the item says nothing at all while the list holds no
+line, because the cursor then stands on no line that the user sees. **A view
+of 4 rows and more keeps the two rows that it had**, therefore this rule
+reaches a terminal of 8 rows and fewer alone, and every screen of 9 rows and
+more stands in the shape that it had.
+
+**The measurement of the corrected program v0.8.173**, of the same harness and
+the same widths. **The header of the capture says `v0.8.172`**, because the
+round measured the correction before it wrote the version of the release. At 8
+rows, the Home view:
+
+```text
+👋 Connected as toutuitest                📖 Large (book)                         🦜 Toutui v0.8.172
+🔗 localhost:13399            ⇅ The sequence of the server ▣ No filter
+──────────────────────────────────────────Home [20 items]───────────────────────────────────────────
+➤     Large Book 0001                                                                              █
+Author: N/A - Year: N/A - Duration: 0m
+
+  j/k: move  l: play or open  Tab: home/library  S-Tab: the next library  /: search  R: refresh  ?:
+                                         every key  Q: quit
+```
+
+At 8 rows, the Library view: `➤     Large Book 2056`. At 7 rows the list holds
+its line and the row of the item is away. At 6 rows the title of the border
+stands alone. **The screens of 12 rows and of 45 rows are the screens of the
+program before it, character for character.**
+
+**The gate**: `the_list_of_a_view_keeps_its_line_before_the_row_of_the_item` of
+`src/ui/tui.rs`. It reads `the_rows_of_the_row_of_the_item` for the views of 0
+to 12 rows, and it reads the areas of the whole screen at 6, 7, 8, 12, and 13
+rows: the list takes 1, 2, 2, 5, and 6 rows, the two parts hold every row of
+the work of the view together, and the list keeps `THE_SMALLEST_LIST` rows
+while the work of the view has that many.
+
+The correction failed the gate with the fault built back in: one edit of the
+new function, a `.max(2)` after the `.min(2)`, gives the program before it,
+and the test then failed with `left: 2, right: 1`.
+
+**What this item leaves open** (each of them a candidate and not a
+measurement):
+
+- **A screen of 5 rows and fewer holds the header and the footer alone**: the
+  header takes 2 rows, the row of the message takes 1, and the footer takes 2,
+  and the work of the view then takes none. **No round has decided which of
+  those parts gives way first.**
+- **The row of the message takes one row of every screen at every moment**,
+  and a screen of 45 rows holds a blank row above its footer for it.
+- **The row of the item of a screen of 8 rows says `N/A` for every value**,
+  and the words of a media that the server did not give hold the rule of
+  T-325 in the panel 5 alone.
+- **The reader of an ebook and the view of the chapters take no rule of this
+  item**: this round measured the views of a list alone, and the reader holds
+  a split of its own (T-301 and T-302). **A measurement of the reader at 8
+  rows did not run.**
+- **Every candidate of the turns before this one stays open.**

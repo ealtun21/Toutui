@@ -12679,6 +12679,34 @@ table of the five and the address of the page that shows them side by side.
 T-316 to T-319 before that decision.** The four items are independent,
 therefore the answer can take a part of more than one mockup.
 
+### 0.b The size of the terminal, and what stays of it (T-301, T-340, T-342)
+
+**The size of the terminal is data of a fault, and it needs no harness at
+all.** Three rounds took that road and each of them found a fault: T-301 (the
+footer of the reader at 40 columns), T-340 (the three parts of a row of the
+header at 40 columns), and T-342 (the list of a view at 8 rows). **The two
+sizes are two roads**: `COLUMNS_OF_THE_SCREEN` and `ROWS_OF_THE_SCREEN` of
+`docs/harness/drive.sh`, and 40 columns and 45 rows are the defaults of the
+narrowest terminal that this fork measures.
+
+**What stays open of the rows**, and each of them is a candidate and not an
+item:
+
+- **A screen of 5 rows and fewer holds the header and the footer alone.** The
+  header takes 2 rows, the row of the message takes 1, and the footer takes 2:
+  the work of the view then takes none at all. **No round has decided which of
+  those parts gives way first**, and T-342 took the decision of the list of a
+  view alone.
+- **The row of the message takes one row of every screen at every moment**, and
+  a screen of 45 rows holds a blank row above its footer for it.
+- **The reader of an ebook and the view of the chapters at 8 rows.** T-342
+  measured the views of a list alone; the reader holds a split of its own
+  (T-301 and T-302), and the Chapters view holds the two bars of T-330.5 above
+  its table.
+- **The two sizes together.** Every measurement of this road took one of them
+  and it kept the other one at its default. A terminal of 40 columns **and** 8
+  rows is a screen that no round has read.
+
 ### 1. The book of xHE-AAC: it plays now (T-68 and T-69)
 
 **T-53 and T-63 close with T-68, and T-69 makes the file play.** The user gave the
@@ -22761,11 +22789,19 @@ the real program.
   item T-323 of `docs/TAKEOVER-BACKLOG.md` names every region of the map of the
   mouse that no stage reached; **each of them is a candidate and not an item.**
 
-## The decisions of T-201 to T-341 that do not open again
+## The decisions of T-201 to T-342 that do not open again
 
 These decisions stood in the block of the prompt of the next session until the
 round of the hundred and thirty-ninth turn, and that block met its limit of
 size (T-284 and T-310). Each of them holds, and the block names this section.
+
+**The list of a view is the work of that view, and it goes away last**: the row
+of the item takes no row that the list needs for its border and one line, and
+it says nothing at all while the list holds no line, because the cursor then
+stands on no line that the user sees; **a view of 4 rows and more keeps the two
+rows that it had**, therefore that rule reaches a terminal of 8 rows and fewer
+alone and every screen of 9 rows and more stands in the shape that it had
+(T-342).
 
 **a playback that keeps no place does not start: the row
 of `listening_session` is the one copy of the place of the user for a program
@@ -24422,12 +24458,87 @@ machine of 24 loops of a shell, and it passed 12 of 12 with one thread. **The
 condition of the real program stays open as a candidate**, and T-341 names the
 road of a correction.
 
+### The turn of the hundred and seventy-fourth round (T-340 and T-341)
+
+**The session of the hundred and seventy-fourth turn took the item 1 of the
+list of the work**: a condition of the program that no measurement has
+reached. **The size of the terminal is the data of the fault** (T-301), and
+the round needed no proxy, no book of a harness, and no change of the
+sandbox at all.
+
+**The fault, of the real program v0.8.171 inside tmux at 40 columns**, which
+is the narrowest terminal that this fork measures. The header holds three
+parts on one row — the account at the left, the name of the library in the
+middle, and the name of the program at the right of the first row, and the
+address of the server at the left, the words of the sequence and of the
+filter in the middle, and the notice of the key `R` at the right of the
+second row — and **each of them is a `Paragraph` of its own over the whole
+area that measures no neighbour**. The Home view of the library `Podcasts`
+of the sandbox gave `👋 toutuitestPodcasts (podcas🦜 v0.8.171`: the account
+wrote over the mark `📖` of the library, and the name of the program wrote
+over the end of `(podcast)`. **The offline mode of the same width gave the
+second row**, and that row is the worse of the two:
+`🔗 localhost:133 R: try the server again`. **The header said an address
+that the user does not have.** A text that the row cuts says nothing to the
+user (T-91), and a text that the row cuts into a **different** address says
+something that is not true.
+
+**T-115 met this fault at 60 columns and it corrected the words alone**
+(`THE_WIDTH_OF_THE_LONG_HEADER` of 68 gives each text a short form), and a
+short form that no part measures still writes over its neighbours.
+**T-329 corrected the middle of the second row alone**, and the words of
+`the_column_of_the_words` name what stayed: "the fault of T-115 one row
+below".
+
+**The correction**: `src/ui/the_row_of_the_header.rs`, and `render_header`
+of `src/ui/tui.rs` draws each part in an area of its own. The rule is the
+rule of T-329 for every part of the two rows — **a part stands whole with a
+gap of two columns from its neighbours, or it does not stand at all** — and
+each row names the sequence in which its parts go away. The corrected
+program of the same harness gave `👋 toutuitest  📖 Podcasts (podcast)` at
+40 columns and `🔗 localhost:13399 does not answer` whole, and **the rows of
+80, 84, 120, and 160 columns are the rows of the program before it,
+character for character**, with the words of the sequence and of the filter
+where they stood.
+
+**The round found a second fault at its first command**, and it is T-341:
+`cargo nextest run` of a clean tree gave `1363 passed, 1 failed`. The test
+`no_cell_of_the_gallery_holds_a_word` of T-339 passed alone and it passed 8
+runs of the whole gate, and it failed the run 5 of 6 under 24 loops of a
+shell. **A box of the process that a task writes while a frame draws** is
+the cause: `cover::request` spawns a task, a port that no program holds
+refuses at once (the trap 112), and a runtime of many threads therefore
+gives `CoverBytes::Fault` to the cells that the render reaches last — the
+first cell of the grid held `Zebra Book 1` and the eleven after it stood
+empty. The test takes the runtime of one thread now, and it passed 12 runs
+of 12 under the same load. **The program holds that condition too, and no
+round has measured it in the real program**: one frame can hold two answers
+of one question, and such a frame lives less than the 200 milliseconds of
+the poll of the loop of the screen, therefore `tmux capture-pane` cannot
+hold it. **It is a candidate and not an item**, and T-341 names the road of
+a correction.
+
+The two corrections each failed the gate with the correction removed: one
+edit of `the_places_of_a_row` gave the three paragraphs of one area back,
+and four of the six new tests then failed with the row
+`📴 toutui📖 Podcasts (podcast)  v0.8.171`. The gates gave **1566 of 1566**,
+`cargo test -j 16 --no-fail-fast` passed two times, and
+`cargo nextest run --run-ignored all` gave **1592 of 1592** with the sandbox
+up, in 82 seconds. **v0.8.172.**
+
+The next round takes the item 1 again. **The parts of a stage of the road of
+the panels that stay open** stand in the section
+`### 0. The road of the panels (T-316 to T-323)` of `## What is open`, and
+the item T-323 of `docs/TAKEOVER-BACKLOG.md` names every region of the map
+of the mouse that no stage reached; **each of them is a candidate and not an
+item.**
+
 ## The prompt for the next session
 
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.172**; `Cargo.toml` is at 0.8.172. The
+> AlbanDAVID/Toutui. Newest release **v0.8.173**; `Cargo.toml` is at 0.8.173. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -25262,8 +25373,8 @@ road of a correction.
 > `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`, and
 > `cargo nextest run` with `ALSA_CONFIG_PATH` pointing at a null asound file of
 > two lines (`pcm.!default { type null }` and `ctl.!default { type null }`).
-> Baseline: **1560 tests in 3.1 seconds**, and `cargo nextest run --run-ignored
-> all` gives **1586 of 1586** with the sandbox up, in about 60 seconds. **Run that
+> Baseline: **1567 tests in 23.8 seconds**, and `cargo nextest run --run-ignored
+> all` gives **1593 of 1593** with the sandbox up, in about 86 seconds. **Run that
 > second command at the end of the session too**: it found T-132 and T-111.
 > **And `cargo clean` is the last command of the round**, after the push: the
 > maintainer asked for it on 2026-08-17, and the paragraph of the disk above
@@ -25434,71 +25545,62 @@ road of a correction.
 >
 
 >
-> **The session of the hundred and seventy-fourth turn took the item 1 of the
+> **The session of the hundred and seventy-fifth turn took the item 1 of the
 > list of the work**: a condition of the program that no measurement has
-> reached. **The size of the terminal is the data of the fault** (T-301), and
-> the round needed no proxy, no book of a harness, and no change of the
-> sandbox at all.
+> reached. **The size of the terminal is the data of the fault** (T-301 and
+> T-340), and this round took the other size of it: **the rows**. It needed no
+> proxy, no book of a harness, and no change of the sandbox at all.
 >
-> **The fault, of the real program v0.8.171 inside tmux at 40 columns**, which
-> is the narrowest terminal that this fork measures. The header holds three
-> parts on one row — the account at the left, the name of the library in the
-> middle, and the name of the program at the right of the first row, and the
-> address of the server at the left, the words of the sequence and of the
-> filter in the middle, and the notice of the key `R` at the right of the
-> second row — and **each of them is a `Paragraph` of its own over the whole
-> area that measures no neighbour**. The Home view of the library `Podcasts`
-> of the sandbox gave `👋 toutuitestPodcasts (podcas🦜 v0.8.171`: the account
-> wrote over the mark `📖` of the library, and the name of the program wrote
-> over the end of `(podcast)`. **The offline mode of the same width gave the
-> second row**, and that row is the worse of the two:
-> `🔗 localhost:133 R: try the server again`. **The header said an address
-> that the user does not have.** A text that the row cuts says nothing to the
-> user (T-91), and a text that the row cuts into a **different** address says
-> something that is not true.
+> **The fault, of the real program v0.8.172 inside tmux at 100 columns and 8
+> rows.** `the_areas_of_a_list` of `src/ui/tui.rs` splits the work of a view of
+> a list into the list, the row of the item, and the description. The row of
+> the item is a `Constraint::Length(2)` and the list is a `Constraint::Fill(1)`,
+> and **a `Length` stands before a `Fill` in the solver of ratatui**: the row of
+> the item therefore took its two rows away from the screen first, and the list
+> took what stayed. The Library view of the library `Large` of the sandbox gave
+> this screen:
 >
-> **T-115 met this fault at 60 columns and it corrected the words alone**
-> (`THE_WIDTH_OF_THE_LONG_HEADER` of 68 gives each text a short form), and a
-> short form that no part measures still writes over its neighbours.
-> **T-329 corrected the middle of the second row alone**, and the words of
-> `the_column_of_the_words` name what stayed: "the fault of T-115 one row
-> below".
+> ```text
+> ────────────────────────────────Library [500 items of 2056]──────────────────
+> Author: N/A - Year: N/A - Duration: 0m
+> Progress:  N/A%,   N/A
+> ```
 >
-> **The correction**: `src/ui/the_row_of_the_header.rs`, and `render_header`
-> of `src/ui/tui.rs` draws each part in an area of its own. The rule is the
-> rule of T-329 for every part of the two rows — **a part stands whole with a
-> gap of two columns from its neighbours, or it does not stand at all** — and
-> each row names the sequence in which its parts go away. The corrected
-> program of the same harness gave `👋 toutuitest  📖 Podcasts (podcast)` at
-> 40 columns and `🔗 localhost:13399 does not answer` whole, and **the rows of
-> 80, 84, 120, and 160 columns are the rows of the program before it,
-> character for character**, with the words of the sequence and of the filter
-> where they stood.
+> **The title of the border said 500 items and the screen showed no one of
+> them**, and the row of the item said `N/A` for every value of a media that the
+> user could not see. The Home view of the same width gave the same shape. At 7
+> rows the border and its title went away too and the row of the item stayed; at
+> 6 rows one of its two rows stayed; at 5 rows and fewer the screen held the
+> header and the footer alone. **The words of that same function say the
+> opposite rule already**, of T-99: "A terminal that holds few rows must show the
+> list… the lines are the work of the view."
 >
-> **The round found a second fault at its first command**, and it is T-341:
-> `cargo nextest run` of a clean tree gave `1363 passed, 1 failed`. The test
-> `no_cell_of_the_gallery_holds_a_word` of T-339 passed alone and it passed 8
-> runs of the whole gate, and it failed the run 5 of 6 under 24 loops of a
-> shell. **A box of the process that a task writes while a frame draws** is
-> the cause: `cover::request` spawns a task, a port that no program holds
-> refuses at once (the trap 112), and a runtime of many threads therefore
-> gives `CoverBytes::Fault` to the cells that the render reaches last — the
-> first cell of the grid held `Zebra Book 1` and the eleven after it stood
-> empty. The test takes the runtime of one thread now, and it passed 12 runs
-> of 12 under the same load. **The program holds that condition too, and no
-> round has measured it in the real program**: one frame can hold two answers
-> of one question, and such a frame lives less than the 200 milliseconds of
-> the poll of the loop of the screen, therefore `tmux capture-pane` cannot
-> hold it. **It is a candidate and not an item**, and T-341 names the road of
-> a correction.
+> **The correction**: a constant `THE_SMALLEST_LIST` of 2 — the list of every
+> view of this program stands in a `Block` of `Borders::TOP`, therefore a list of
+> one line needs two rows — and a pure function
+> `the_rows_of_the_row_of_the_item(rows_of_the_view)` of
+> `rows_of_the_view.saturating_sub(THE_SMALLEST_LIST).min(2)`, which
+> `the_areas_of_a_list` calls in the place of the literal 2. **The decision: the
+> list is the work of the view, and it goes away last.** The row of the item
+> says nothing at all while the list holds no line, because the cursor then
+> stands on no line that the user sees. **A view of 4 rows and more keeps the
+> two rows that it had**, therefore the rule reaches a terminal of 8 rows and
+> fewer alone: the corrected program gave `➤     Large Book 2056` at 8 rows and
+> a line of the list at 7 rows, and **the screens of 12 rows and of 45 rows are
+> the screens of the program before it, character for character.**
 >
-> The two corrections each failed the gate with the correction removed: one
-> edit of `the_places_of_a_row` gave the three paragraphs of one area back,
-> and four of the six new tests then failed with the row
-> `📴 toutui📖 Podcasts (podcast)  v0.8.171`. The gates gave **1566 of 1566**,
-> `cargo test -j 16 --no-fail-fast` passed two times, and
-> `cargo nextest run --run-ignored all` gave **1592 of 1592** with the sandbox
-> up, in 82 seconds. **v0.8.172.**
+> The correction failed the gate with the correction removed: one `.max(2)`
+> after the `.min(2)` of the new function gives the program before it, and
+> `the_list_of_a_view_keeps_its_line_before_the_row_of_the_item` then failed
+> with `left: 2, right: 1`. **v0.8.173.**
+>
+> **What this round leaves open, and each of them is a candidate and not an
+> item**: a screen of 5 rows and fewer holds the header and the footer alone,
+> and **no round has decided which of those parts gives way first**; the row of
+> the message takes one row of every screen at every moment, and a screen of 45
+> rows holds a blank row above its footer for it; and **a measurement of the
+> reader of an ebook and of the view of the chapters at 8 rows did not run** —
+> this round measured the views of a list alone.
 >
 > The next round takes the item 1 again. **The parts of a stage of the road of
 > the panels that stay open** stand in the section
@@ -25562,9 +25664,13 @@ road of a correction.
 > program holds more than one account (T-124). **The decisions of T-124 to
 > T-200 stand in `## The decisions of T-124 to T-200 that do not open again` of
 > `docs/HANDOVER.md`, outside this block, and each of them holds** (T-294).
-> And **the decisions of T-201 to T-340 stand in
-> `## The decisions of T-201 to T-341 that do not open again` of
+> And **the decisions of T-201 to T-342 stand in
+> `## The decisions of T-201 to T-342 that do not open again` of
 > `docs/HANDOVER.md`, outside this block, and each of them holds** (T-310).
+> **The list of a view is the work of that view, and it goes away last**: the
+> row of the item takes no row that the list needs for its border and one
+> line, and a view of 4 rows and more keeps the two rows that it had, therefore
+> that rule reaches a terminal of 8 rows and fewer alone (T-342).
 > **The bands of covers of the Home view stand where the table of the panel 4
 > stands**, therefore a screen under 120 columns keeps the list of one column
 > that it had, and a panel that has no room for one whole band keeps the table
@@ -25746,7 +25852,7 @@ road of a correction.
 > did the same work, and the block then held 98907 bytes with one turn in it —
 > **at the line of 99000**, therefore that round took the whole list of the
 > decisions of T-201 to T-311 out of the block and it put it in
-> `## The decisions of T-201 to T-341 that do not open again` of this file,
+> `## The decisions of T-201 to T-342 that do not open again` of this file,
 > with a pointer of three lines in its place: the block then held **66224**
 > bytes with one turn in it; the round of the hundred and fortieth found it at
 > 66685 bytes with one turn in it, and it did the same work, and the block then
@@ -25824,7 +25930,9 @@ road of a correction.
 > **88013** bytes with **one** turn in it; the round of the hundred and
 > seventy-fourth found it at 88012 bytes with one turn in it, and it took that
 > turn out and it wrote its own, and the block then held **88943** bytes with
-> **one** turn in it.
+> **one** turn in it; the round of the hundred and seventy-fifth found it at
+> 88943 bytes with one turn in it, and it did the same work, and the block then
+> held **88980** bytes with **one** turn in it.
 > **A block that stands at 80000 bytes or under holds two
 > turns**, and the turn of the stage before this one names the parts of that
 > stage which stay open. **The list of the decisions
