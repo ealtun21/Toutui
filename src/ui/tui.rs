@@ -1073,6 +1073,56 @@ impl App {
         }
     }
 
+    /// The media of the panel 5 of the cover: the media that plays, and the
+    /// media of the list around the cursor.
+    ///
+    /// **The selection needs no second cover when it is the media that
+    /// plays.** The panel then shows one cover, and that cover is large.
+    ///
+    /// The render of the panel reads this, **and the layout of the frame reads
+    /// it before the render** (T-348): the width of the panel comes of the
+    /// picture that stands in it, therefore `split_for_covers` must know
+    /// whether a picture comes at all.
+    fn the_media_of_the_panel_of_the_cover(&self) -> (Option<String>, Vec<String>) {
+        let playback = self.player.state();
+        let playing = if playback.status == PlaybackStatus::Stopped || playback.item_id.is_empty() {
+            None
+        } else {
+            Some(playback.item_id.clone())
+        };
+
+        let selected: Vec<String> = self
+            .cover_ids()
+            .into_iter()
+            .filter(|id| !id.is_empty() && Some(id.as_str()) != playing.as_deref())
+            .take(cover::SHELF_MAX)
+            .collect();
+
+        (playing, selected)
+    }
+
+    /// Says if one media of the panel 5 has a picture that the panel can draw.
+    ///
+    /// **A picture that the program did not ask for yet is not a media with no
+    /// picture** (T-319): `cover::no_picture_comes` reads the two states of the
+    /// store that no second request asks for, and no other value.
+    fn a_picture_comes_of(playing: &Option<String>, selected: &[String]) -> bool {
+        playing
+            .iter()
+            .chain(selected.iter())
+            .any(|id| !cover::no_picture_comes(id))
+    }
+
+    /// Says if a picture stands in the panel 5 of the cover of this frame.
+    ///
+    /// **The width of that panel comes of the height of the picture in it**
+    /// (T-50), therefore the layout needs this answer before the render of the
+    /// panel. A panel of the words alone takes no such limit (T-348).
+    fn a_picture_comes_in_the_panel_of_the_cover(&self) -> bool {
+        let (playing, selected) = self.the_media_of_the_panel_of_the_cover();
+        Self::a_picture_comes_of(&playing, &selected)
+    }
+
     /// Draws the panel 5 of the cover, and it gives the area of the facts of
     /// the media and the area of the description of it. See T-319.
     ///
@@ -1123,21 +1173,7 @@ impl App {
 
         self.the_areas_of_the_mouse.the_panel_of_the_cover = panel;
 
-        let playback = self.player.state();
-        let playing = if playback.status == PlaybackStatus::Stopped || playback.item_id.is_empty() {
-            None
-        } else {
-            Some(playback.item_id.clone())
-        };
-
-        // The selection needs no second cover when it is the media that
-        // plays. The panel then shows one cover, and that cover is large.
-        let selected: Vec<String> = self
-            .cover_ids()
-            .into_iter()
-            .filter(|id| !id.is_empty() && Some(id.as_str()) != playing.as_deref())
-            .take(cover::SHELF_MAX)
-            .collect();
+        let (playing, selected) = self.the_media_of_the_panel_of_the_cover();
 
         // The large cover takes the form of its own picture. Therefore a cover
         // that is higher than it is wide takes the whole height of the panel.
@@ -1150,10 +1186,7 @@ impl App {
         // **A picture that never comes must take no row of the screen**
         // (T-319): the server holds some media with no cover at all, and the
         // panel of those media held 50 columns and 41 rows of nothing.
-        let a_picture_comes = playing
-            .iter()
-            .chain(selected.iter())
-            .any(|id| !cover::no_picture_comes(id));
+        let a_picture_comes = Self::a_picture_comes_of(&playing, &selected);
 
         // **The facts of the design take the rows that they need** (T-325): the
         // panel of a book of the Library view says one fact of one line, and
@@ -1431,7 +1464,12 @@ impl App {
             .and_then(|reader| reader.picture_of_the_page());
 
         let (text_area, panel) = match &picture {
-            Some(_) => cover::split_for_covers(main_area, area.width, cover::picker().font_size()),
+            // **The picture of a page of a PDF stands always** (T-54): this
+            // arm holds a picture already, therefore the panel takes the limit
+            // of the height of T-50.
+            Some(_) => {
+                cover::split_for_covers(main_area, area.width, cover::picker().font_size(), true)
+            }
             None => (main_area, None),
         };
 
@@ -2432,8 +2470,16 @@ impl App {
         // reads, and not the width of the screen** (T-320): the stack takes 34
         // columns away, and a panel of a cover of the width of the whole screen
         // would then stand over the list.
-        let (main_area, cover_panel) =
-            cover::split_for_covers(main_area, main_area.width, cover::picker().font_size());
+        // **The width of the panel of the cover comes of the picture in it**
+        // (T-50), therefore the layout needs to know whether a picture comes
+        // at all before it cuts the area (T-348).
+        let a_picture_comes = self.a_picture_comes_in_the_panel_of_the_cover();
+        let (main_area, cover_panel) = cover::split_for_covers(
+            main_area,
+            main_area.width,
+            cover::picker().font_size(),
+            a_picture_comes,
+        );
         let the_words_of_the_panel = self.render_covers(cover_panel, buf);
 
         let [list_area, item_area1, item_area2] =
@@ -2805,8 +2851,16 @@ impl App {
         //
         // **The width of the work of the view is the width that this function
         // reads, and not the width of the screen** (T-320).
-        let (main_area, cover_panel) =
-            cover::split_for_covers(main_area, main_area.width, cover::picker().font_size());
+        // **The width of the panel of the cover comes of the picture in it**
+        // (T-50), therefore the layout needs to know whether a picture comes
+        // at all before it cuts the area (T-348).
+        let a_picture_comes = self.a_picture_comes_in_the_panel_of_the_cover();
+        let (main_area, cover_panel) = cover::split_for_covers(
+            main_area,
+            main_area.width,
+            cover::picker().font_size(),
+            a_picture_comes,
+        );
         let the_words_of_the_panel = self.render_covers(cover_panel, buf);
 
         let [list_area, item_area1, item_area2] =
@@ -2894,8 +2948,16 @@ impl App {
 
         // The panel of the covers stands at the right of the list and of the
         // description. It is always visible. See T-23.
-        let (main_area, cover_panel) =
-            cover::split_for_covers(main_area, area.width, cover::picker().font_size());
+        // **The width of the panel of the cover comes of the picture in it**
+        // (T-50), therefore the layout needs to know whether a picture comes
+        // at all before it cuts the area (T-348).
+        let a_picture_comes = self.a_picture_comes_in_the_panel_of_the_cover();
+        let (main_area, cover_panel) = cover::split_for_covers(
+            main_area,
+            area.width,
+            cover::picker().font_size(),
+            a_picture_comes,
+        );
         let the_words_of_the_panel = self.render_covers(cover_panel, buf);
 
         let [list_area, item_area1, item_area2] =
@@ -2965,8 +3027,16 @@ impl App {
 
         // The panel of the covers stands at the right of the list and of the
         // description. It is always visible. See T-23.
-        let (main_area, cover_panel) =
-            cover::split_for_covers(main_area, area.width, cover::picker().font_size());
+        // **The width of the panel of the cover comes of the picture in it**
+        // (T-50), therefore the layout needs to know whether a picture comes
+        // at all before it cuts the area (T-348).
+        let a_picture_comes = self.a_picture_comes_in_the_panel_of_the_cover();
+        let (main_area, cover_panel) = cover::split_for_covers(
+            main_area,
+            area.width,
+            cover::picker().font_size(),
+            a_picture_comes,
+        );
         let the_words_of_the_panel = self.render_covers(cover_panel, buf);
 
         let [list_area, item_area1, item_area2] =
@@ -3038,8 +3108,16 @@ impl App {
 
         // The panel of the covers stands at the right of the list and of the
         // description. It is always visible. See T-23.
-        let (main_area, cover_panel) =
-            cover::split_for_covers(main_area, area.width, cover::picker().font_size());
+        // **The width of the panel of the cover comes of the picture in it**
+        // (T-50), therefore the layout needs to know whether a picture comes
+        // at all before it cuts the area (T-348).
+        let a_picture_comes = self.a_picture_comes_in_the_panel_of_the_cover();
+        let (main_area, cover_panel) = cover::split_for_covers(
+            main_area,
+            area.width,
+            cover::picker().font_size(),
+            a_picture_comes,
+        );
         let the_words_of_the_panel = self.render_covers(cover_panel, buf);
 
         let [list_area, item_area1, item_area2] =
@@ -3128,8 +3206,16 @@ impl App {
 
         // The panel of the covers stands at the right of the list and of the
         // description. It is always visible. See T-23.
-        let (main_area, cover_panel) =
-            cover::split_for_covers(main_area, area.width, cover::picker().font_size());
+        // **The width of the panel of the cover comes of the picture in it**
+        // (T-50), therefore the layout needs to know whether a picture comes
+        // at all before it cuts the area (T-348).
+        let a_picture_comes = self.a_picture_comes_in_the_panel_of_the_cover();
+        let (main_area, cover_panel) = cover::split_for_covers(
+            main_area,
+            area.width,
+            cover::picker().font_size(),
+            a_picture_comes,
+        );
         let the_words_of_the_panel = self.render_covers(cover_panel, buf);
 
         let [list_area, item_area1, item_area2] =
@@ -3395,8 +3481,16 @@ impl App {
 
         // The panel of the covers stands at the right of the list and of the
         // description. It is always visible. See T-23.
-        let (main_area, cover_panel) =
-            cover::split_for_covers(main_area, area.width, cover::picker().font_size());
+        // **The width of the panel of the cover comes of the picture in it**
+        // (T-50), therefore the layout needs to know whether a picture comes
+        // at all before it cuts the area (T-348).
+        let a_picture_comes = self.a_picture_comes_in_the_panel_of_the_cover();
+        let (main_area, cover_panel) = cover::split_for_covers(
+            main_area,
+            area.width,
+            cover::picker().font_size(),
+            a_picture_comes,
+        );
         let the_words_of_the_panel = self.render_covers(cover_panel, buf);
 
         let [list_area, item_area1, item_area2] =
@@ -3578,8 +3672,16 @@ impl App {
 
         // The panel of the covers stands at the right of the list and of the
         // description. It is always visible. See T-23.
-        let (main_area, cover_panel) =
-            cover::split_for_covers(main_area, area.width, cover::picker().font_size());
+        // **The width of the panel of the cover comes of the picture in it**
+        // (T-50), therefore the layout needs to know whether a picture comes
+        // at all before it cuts the area (T-348).
+        let a_picture_comes = self.a_picture_comes_in_the_panel_of_the_cover();
+        let (main_area, cover_panel) = cover::split_for_covers(
+            main_area,
+            area.width,
+            cover::picker().font_size(),
+            a_picture_comes,
+        );
         let the_words_of_the_panel = self.render_covers(cover_panel, buf);
 
         let [list_area, item_area1, item_area2] =

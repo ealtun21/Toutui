@@ -33038,3 +33038,100 @@ measurement):
   mouse of a screen of few rows**.
 - **Five of the seven views of T-344 were not driven in tmux.**
 - **Every candidate of the turns before this one stays open.**
+
+## T-348 — The panel of the cover of a media with no cover cuts its words in a terminal of few rows
+
+**The condition**: the Home view or the Library view of a screen of 84 columns
+and more, whose media the server holds **with no cover at all**, on a terminal
+of few rows. The library `Large` of the sandbox is such a library:
+`GET /api/items/cc8c44ae-c966-43bc-96fb-26bd63df4bce/cover` of `Large Book
+0001` answers the status **404**, therefore `cover::no_picture_comes` gives
+`true` and the panel 5 holds the words of the media alone (T-319).
+
+**The measurement, of the real program v0.8.178 inside tmux**, of the library
+`Large`, in the Home view, with `tmux resize-window -t check -x 160 -y N` after
+the first frame. At 16 rows:
+
+```text
+┌1 Views ────────────────────────┐╔4 Home [20 items] ═══════…═══╗ ┌5 Cover ────────────┐
+│➤ Home                       Tab│║Recently Added ────…── 9 of 10 ›║ │Time      0m        │
+│  Library                    Tab│║┏━━━━━━━━┓ ┌────────┐ …        ║ │Files     1 file, 0.│
+│  Sequence and filter          f│║┃Large   ┃ │Large   │ …        ║ │No description      │
+│  Authors                      a│║┃Book    ┃ │Book    │ …        ║ │available           │
+```
+
+The panel took **22 columns**, and it cut `Files     1 file, 0.0 MB` after
+`0.` — in the middle of a number — and it broke `No description available`
+over two lines. **A text that the panel cuts says nothing to the user** (T-91).
+The same panel of the same media at **30 rows** took **48 columns** and it said
+the two lines whole. The fault stood at 16, 14, and 13 rows, and the panel goes
+away at 12 rows and fewer (`MIN_HEIGHT_FOR_COVER`). **The same fault stood at
+100 columns**, which is the shape of two columns of `frame::the_shape_of`: the
+panel took 22 columns at 16 and 14 rows there too.
+
+**Why**: `cover::split_for_covers` clamps the width of the panel with
+`width_that_the_height_can_use(area.height, font, WIDEST_COVER)`. That limit is
+the limit of a **picture** (T-50): "a panel that is wider than this value gives
+the picture no more pixels, and it takes columns of the text for nothing." **A
+panel that holds no picture takes no such limit**: the height of it says
+nothing at all about the columns that the words of the media need. The limit
+gave 22 columns at 16 rows and 48 at 30 rows, for the same three lines of text.
+
+**The correction**: `split_for_covers` takes `a_picture_comes` now, and the
+limit of the height applies to a panel that holds a picture alone. Two new
+methods of `App` carry the answer to the layout, which stands before the
+render: `the_media_of_the_panel_of_the_cover`, which gives the media that plays
+and the media of the list around the cursor (the render of the panel held those
+three lines already), and `a_picture_comes_in_the_panel_of_the_cover`, which
+reads `cover::no_picture_comes` of each of them — **the same value that
+`the_parts_of_the_panel` reads for the rows of the panel** (T-319). The eight
+views that draw the panel of a cover pass it; the reader of a page of a PDF
+passes `true`, because that arm holds a picture already (T-54).
+
+**The corrected program of the same harness**: at 16, 14, and 13 rows the panel
+holds 48 columns and it says `Files     1 file, 0.0 MB` and `No description
+available` whole, which is the panel of the same media at 30 rows, character
+for character. **The control is the library `Books` of the sandbox**, whose
+media hold a cover: the panel of it took 48 columns at 30 rows, 28 at 20 rows,
+and 22 at 16 and 14 rows, before the correction and after it, character for
+character. The correction therefore gives a screen of few rows the panel that a
+screen of many rows had already, and it changes no panel that holds a picture.
+
+**The build of the fault**: the arm of the pure function went away with
+`if a_picture_comes || true`, and
+`a_panel_of_no_picture_keeps_its_width_at_a_screen_of_few_rows` then said
+`left: 22, right: 50`, and `the_words_of_a_panel_of_no_picture_stand_whole`
+said that a panel of 22 columns cuts `Files     1 file, 0.0 MB` at a screen of
+8 rows. The third test of the item,
+`a_panel_of_a_picture_takes_the_limit_of_the_height`, **passed with the fault
+built back in**, because it is the control of the rule of T-50.
+
+**v0.8.179.**
+
+**What this item leaves open, and each of them is a candidate and not an item**:
+
+- **The height of the panel 5 of a media with no cover.**
+  `MIN_HEIGHT_FOR_COVER` of 8 rows is the height of a **picture** too, and the
+  whole panel goes away at 12 rows of the screen. A panel of the words alone
+  needs three rows and a border, and no round has decided whether such a panel
+  must stand there or whether the words under the list are the right place for
+  them at that height. The measurement of this round read the words under the
+  list at 12 rows and fewer, and they said `Author: N/A - Year: N/A -
+  Duration: 0m`, which is the line of today.
+- **The panel 5 of a media that holds a picture, at a screen of few rows**: at
+  16 and 14 rows that panel keeps 22 columns and the words of T-325 stand
+  under the list. No round has measured what the picture of 6 rows inside that
+  border looks like, and `THE_SMALLEST_PICTURE` is 8.
+- **The panel 6 of the gallery of a screen of few rows**: `the_two_panels`
+  takes the border of each panel into its arithmetic, and no measurement of
+  tmux has driven it under 20 rows.
+- **The machine of this fork.** A `ps` of the start of this round found **34**
+  shells of `zsh` in a busy loop, of the load tests of past rounds
+  (`for i in $(seq 1 24); do (while :; do :; done) & done`), whose `kill` at
+  the end never ran: six of them stood for **2 days and 11 hours** at 98
+  percent of a processor each, and the load average of a machine of 32
+  processors was **47** while this round built. A round that writes such a
+  loop must give it a `trap` of the shell, and **a `ps -eo pid,pcpu,comm
+  --sort=-pcpu | head` belongs beside the `ps -C toutui` of T-271** at the
+  start of every round.
+- **Every candidate of the turns before this one stays open.**

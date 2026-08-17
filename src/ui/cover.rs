@@ -579,7 +579,21 @@ pub fn width_that_the_height_can_use(height: u16, font: FontSize, ratio: f32) ->
 ///
 /// The function gives no area for the covers when the screen is too narrow.
 /// The text then takes the whole area.
-pub fn split_for_covers(area: Rect, screen_width: u16, font: FontSize) -> (Rect, Option<Rect>) {
+///
+/// `a_picture_comes` is `false` when no media of the panel has a picture
+/// (`no_picture_comes`). **The limit of the height is the limit of a picture,
+/// therefore a panel that holds no picture does not take it** (T-348): the
+/// panel of such a media holds the words of the media alone (T-319), and the
+/// height of it says nothing at all about the columns that those words need. A
+/// screen of 160 columns and 16 rows gave that panel 22 columns, and it then
+/// cut `Files     1 file, 0.0 MB` after `0.` — a text that the panel cuts says
+/// nothing to the user (T-91).
+pub fn split_for_covers(
+    area: Rect,
+    screen_width: u16,
+    font: FontSize,
+    a_picture_comes: bool,
+) -> (Rect, Option<Rect>) {
     if !covers_are_on() {
         return (area, None);
     }
@@ -591,7 +605,11 @@ pub fn split_for_covers(area: Rect, screen_width: u16, font: FontSize) -> (Rect,
     // A panel that is wider than the height can use gives the picture no more
     // pixels. The form of a cover is not always square, therefore the limit
     // takes the widest form that a cover has. See T-50.
-    let of_the_height = width_that_the_height_can_use(area.height, font, WIDEST_COVER);
+    let of_the_height = if a_picture_comes {
+        width_that_the_height_can_use(area.height, font, WIDEST_COVER)
+    } else {
+        PANEL_MAX_WIDTH
+    };
 
     let panel_width = (area.width * PANEL_PERCENT / 100)
         .min(of_the_height)
@@ -1229,7 +1247,7 @@ mod tests {
     fn a_narrow_screen_gives_the_whole_area_to_the_text() {
         let _covers = WithCovers::on();
         let main = area(80, 20);
-        let (text, panel) = split_for_covers(main, 80, FONT);
+        let (text, panel) = split_for_covers(main, 80, FONT, true);
         assert_eq!(text, main);
         assert_eq!(panel, None);
     }
@@ -1238,7 +1256,7 @@ mod tests {
     fn a_screen_of_the_smallest_width_shows_a_cover() {
         let _covers = WithCovers::on();
         let main = area(MIN_WIDTH_FOR_COVER, 20);
-        let (_text, panel) = split_for_covers(main, MIN_WIDTH_FOR_COVER, FONT);
+        let (_text, panel) = split_for_covers(main, MIN_WIDTH_FOR_COVER, FONT, true);
         assert!(panel.is_some(), "the smallest width must show a cover");
     }
 
@@ -1246,7 +1264,7 @@ mod tests {
     fn a_low_panel_gives_the_whole_area_to_the_text() {
         let _covers = WithCovers::on();
         let main = area(150, MIN_HEIGHT_FOR_COVER - 1);
-        let (text, panel) = split_for_covers(main, 150, FONT);
+        let (text, panel) = split_for_covers(main, 150, FONT, true);
         assert_eq!(text, main);
         assert_eq!(panel, None);
     }
@@ -1255,7 +1273,7 @@ mod tests {
     fn the_panel_stands_at_the_right_and_leaves_a_column() {
         let _covers = WithCovers::on();
         let main = area(150, 25);
-        let (text, panel) = split_for_covers(main, 150, FONT);
+        let (text, panel) = split_for_covers(main, 150, FONT, true);
         let panel = panel.expect("a wide screen shows a cover");
 
         assert_eq!(panel.x + panel.width, main.x + main.width);
@@ -1266,15 +1284,100 @@ mod tests {
     #[test]
     fn the_panel_is_never_wider_than_the_limit() {
         let _covers = WithCovers::on();
-        let (_text, panel) = split_for_covers(area(400, 40), 400, FONT);
+        let (_text, panel) = split_for_covers(area(400, 40), 400, FONT, true);
         assert_eq!(panel.expect("a cover").width, PANEL_MAX_WIDTH);
+    }
+
+    /// **A panel that holds no picture takes no limit of the height** (T-348).
+    ///
+    /// The limit of `width_that_the_height_can_use` is the limit of a picture
+    /// (T-50): a panel that is wider than that gives the picture no more
+    /// pixels. **A media that the server holds with no cover gives every row of
+    /// the panel to the words** (T-319), and the height of such a panel says
+    /// nothing at all about the columns that those words need.
+    ///
+    /// The measurement of the real program of v0.8.178 inside tmux, at 160
+    /// columns and 16 rows, of the library `Large` of the sandbox, whose media
+    /// hold no cover: the panel said `Files     1 file, 0.` and it cut the
+    /// size of the files in the middle of a number, while the same panel of the
+    /// same media at 30 rows said `Files     1 file, 0.0 MB` whole.
+    #[test]
+    fn a_panel_of_no_picture_keeps_its_width_at_a_screen_of_few_rows() {
+        let _covers = WithCovers::on();
+
+        let of_few_rows = split_for_covers(area(126, MIN_HEIGHT_FOR_COVER), 160, FONT, false)
+            .1
+            .expect("a panel of a screen of few rows");
+        let of_many_rows = split_for_covers(area(126, 40), 160, FONT, false)
+            .1
+            .expect("a panel of a screen of many rows");
+
+        assert_eq!(
+            of_few_rows.width, of_many_rows.width,
+            "a panel of the words alone must take the same columns at every height"
+        );
+    }
+
+    /// The other side of the rule above: **a panel that holds a picture keeps
+    /// the limit of the height** (T-50), therefore a screen of few rows gives
+    /// it fewer columns than a screen of many rows.
+    ///
+    /// The control of the measurement of T-348 is the library `Books` of the
+    /// sandbox, whose media hold a cover: the panel of it took 48 columns at 30
+    /// rows, 28 at 20 rows, and 22 at 16 rows, before the correction and after
+    /// it, character for character.
+    #[test]
+    fn a_panel_of_a_picture_takes_the_limit_of_the_height() {
+        let _covers = WithCovers::on();
+
+        let of_few_rows = split_for_covers(area(126, MIN_HEIGHT_FOR_COVER), 160, FONT, true)
+            .1
+            .expect("a panel of a screen of few rows");
+        let of_many_rows = split_for_covers(area(126, 40), 160, FONT, true)
+            .1
+            .expect("a panel of a screen of many rows");
+
+        assert!(
+            of_few_rows.width < of_many_rows.width,
+            "a picture of few rows uses fewer columns: {} and {}",
+            of_few_rows.width,
+            of_many_rows.width
+        );
+    }
+
+    /// The words of the panel of a media with no cover must stand whole.
+    ///
+    /// `Files     1 file, 0.0 MB` is the longest of the three lines that the
+    /// measurement of T-348 read, and it takes 24 columns. The panel draws a
+    /// border of four sides inside the frame of the panels, therefore the panel
+    /// needs 26 columns for that line.
+    #[test]
+    fn the_words_of_a_panel_of_no_picture_stand_whole() {
+        let _covers = WithCovers::on();
+
+        let the_longest_line = "Files     1 file, 0.0 MB";
+        let of_the_border = 2;
+
+        for height in MIN_HEIGHT_FOR_COVER..20 {
+            let panel = split_for_covers(area(126, height), 160, FONT, false)
+                .1
+                .expect("a panel of the words");
+
+            assert!(
+                panel.width >= the_longest_line.len() as u16 + of_the_border,
+                "a panel of {} columns cuts \"{}\" at a screen of {} rows",
+                panel.width,
+                the_longest_line,
+                height
+            );
+        }
     }
 
     #[test]
     fn the_panel_is_generous() {
         let _covers = WithCovers::on();
         // A screen of 150 columns must give the cover more than 30 columns.
-        let (_text, panel) = split_for_covers(area(150, 29), 150, FONT);
+        let (_text, panel) = split_for_covers(area(150, 29), 150, FONT, true);
         assert!(panel.expect("a cover").width >= 30);
     }
 
@@ -1322,7 +1425,7 @@ mod tests {
         // 20 pixels, therefore a square picture of 34 rows needs 68 columns.
         assert_eq!(width_that_the_height_can_use(34, FONT, 1.0), 68);
 
-        let (_text, panel) = split_for_covers(area(160, 34), 160, FONT);
+        let (_text, panel) = split_for_covers(area(160, 34), 160, FONT, true);
         let panel = panel.expect("a wide screen shows a cover");
 
         // 40 per cent of 160 is 64, and the height can use 68. Therefore the
@@ -1331,7 +1434,7 @@ mod tests {
 
         // A low panel takes fewer columns, because more columns would give the
         // picture no pixel.
-        let (_text, low) = split_for_covers(area(160, 12), 160, FONT);
+        let (_text, low) = split_for_covers(area(160, 12), 160, FONT, true);
         assert_eq!(low.expect("a cover").width, 24);
     }
 

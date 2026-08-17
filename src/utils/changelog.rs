@@ -41,6 +41,24 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.179",
+        date: "17/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The panel of the cover of a media that has no cover says its \
+             words whole in a terminal of few rows.** That panel takes the \
+             columns that the picture in it can use, because a panel that is \
+             wider gives the picture no more pixels. A media that the server \
+             holds with no cover at all shows the words of the media alone \
+             there, and the height of the panel then says nothing about the \
+             columns that those words need: a terminal of 160 columns and 16 \
+             rows gave that panel 22 columns, and it cut the size of the files \
+             in the middle of a number. The panel of such a media keeps the \
+             columns that it has in a tall terminal now, and a panel that \
+             holds a picture keeps the limit that it had.",
+        ],
+    },
+    Entry {
         version: "0.8.178",
         date: "17/08/2026",
         body: &[
