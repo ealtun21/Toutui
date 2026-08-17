@@ -22699,7 +22699,7 @@ the real program.
   and not the panel**, therefore a gate of the words of one panel takes the
   columns of that panel out of the row first.
 
-## The decisions of T-201 to T-337 that do not open again
+## The decisions of T-201 to T-338 that do not open again
 
 These decisions stood in the block of the prompt of the next session until the
 round of the hundred and thirty-ninth turn, and that block met its limit of
@@ -23242,6 +23242,18 @@ again**, so that a user who clicks three times plays the media one time. **A
 click of the row of the title of a band takes the first cell that the band
 draws**, and it opens nothing at all, because the title of a band is no line of
 a list.
+
+**The counter of the new covers of a frame belongs to `CoverArt` and not to the
+process**, though the store of the covers belongs to the process: one program
+draws one frame at a time, and a counter of the process would stand between two
+tests of one binary that ask for a cover together, because `cargo test` gives
+the tests of one binary a thread each; **the limit stands in
+`CoverArt::picture` and not in `cover::request`**, because `picture` is the one
+road of the render to a new request and a limit inside `request` would need a
+second road for the identity that a task asked for already; and **the frame
+that leaves an identity writes nothing in the store**, because a mark of that
+identity would need a second key to take it away and the frame after this one
+meets the same identity by itself (T-338).
 
 
 ## The session of the hundred and forty-seventh turn of 2026-08-16: the mouse, the capture, and a click of a row, of the block of the prompt
@@ -24207,12 +24219,60 @@ click of a cell, the two clicks, the wheel over a band, and the click of a
 title. **The round 3 needs the offset of a band in the state**, which the
 decision above left to it.
 
+## The session of the hundred and seventy-first turn of 2026-08-17: the mouse of the bands of covers of the Home view, of the block of the prompt
+
+**The session of the hundred and seventy-first turn took the round 3 of the road
+of the spec of T-331** (T-337, v0.8.169): the mouse of the bands of covers of
+the Home view. The round 2 drew the bands and it gave them their keys, and the
+mouse of that panel stayed at the arithmetic of a row of a list: **a cell of a
+band holds six rows and ten columns of the screen**, therefore the render of
+the bands gives the areas of the mouse no line of a list at all.
+
+**The three faults, of the real program v0.8.168 inside tmux** of 160 columns
+and 45 rows, of the library `Books` of the sandbox. A click of the fourth cell
+of the band `Continue Listening`, at the column 72 and the row 7, left the
+heavy border on the first cell and it left the facts of the panel 5 at the
+media of that first cell. One step of the wheel over the band `Recently Added`
+moved the cursor of the band above it by one cell, and the band under the
+pointer said `6 of 10 ›` before that step and after it. A click of the row of
+the title of a band did nothing at all.
+
+**The screen of the correction, of the same harness.** The same click gave
+`┌────────┐ ┌────────┐ ┌────────┐ ┏━━━━━━━━┓`, two steps of the wheel over
+`Recently Added` gave `‹ 6 of 10 ›` with the cursor of the band above where it
+stood, the click of the title of `Discover` took the cursor into that band, and
+**two clicks of one cell inside 400 milliseconds** said `Loading the media...`,
+which is the work of the key `Enter` of that cell.
+
+**The four decisions of this round.** **The target of a report stays
+`TheTarget::TheListOfTheView`, and `App` reads the plan of the last frame**:
+the spec names a target of a band, and `TheAreasOfTheMouse` is a `Copy` struct
+of rectangles that every frame writes — that is the road of the panel 6 of the
+gallery already (T-327). **The offset of a band lives in
+`App::the_offsets_of_the_bands`**, and the band of the cursor moves by the
+least that keeps the cursor on the screen, because a band that always ends at
+the cursor moves at every key `h` of the user. **The wheel over a band moves
+that band**, and the cursor takes the cell of the edge that the band left
+behind. **The two clicks name one cell and 400 milliseconds**, and a third
+click starts a first click again.
+
+The four corrections each failed a test with the correction removed. The gates
+gave 1558 of 1558 in 3.1 seconds, `cargo test -j 16 --no-fail-fast` passed two
+times, and `cargo nextest run --run-ignored all` gave 1580 of 1580 with the
+sandbox up.
+
+**The next round takes the round 4 of that road**: the covers of the bands, and
+the limit of the new requests of one frame
+(`THE_NEW_COVERS_OF_A_FRAME` of the spec, of the log of a proxy). **The drag of
+the mouse over a band stays outside**, with the drag of the bar of the player
+(T-322).
+
 ## The prompt for the next session
 
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.169**; `Cargo.toml` is at 0.8.169. The
+> AlbanDAVID/Toutui. Newest release **v0.8.170**; `Cargo.toml` is at 0.8.170. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -24956,7 +25016,12 @@ decision above left to it.
 > program, therefore a measurement of the status of an exit needs
 > `/bin/bash -c '…'` around the command. **The log of
 > the proxy counts the requests** (the trap 144): `grep -c` of a path before a key
-> and after it says whether that key asked the server again.
+> and after it says whether that key asked the server again. **A `: >` of that
+> log while the proxy stands leaves a file of the bytes NUL** (the trap 246),
+> because the proxy keeps the place of its write: `grep -c` then reads a file of
+> bytes and it says **nothing at all**, and the measurement reads 0 for a log of
+> 27 lines. Give each run of a measurement a new file of a log, and read it with
+> `grep -ac`.
 >
 > **`pkill -f` of a proxy kills the shell of this harness** (the trap 114): the
 > command line of a `for` loop of the shell holds that name too. The process of
@@ -25195,11 +25260,19 @@ decision above left to it.
 >    the bands — the click of a cell, the two clicks that play or open, the
 >    wheel over a band, and the click of the title of a band. That round gave
 >    the bands the offset of their own in `App::the_offsets_of_the_bands`.
->    **The next round of T-331 takes the round 4**: the covers of the bands, and
->    the limit of the new requests of one frame — `THE_NEW_COVERS_OF_A_FRAME` of
->    the spec is a candidate of 8 and not a measurement, and that round measures
->    the requests of the first frame, of the key `j`, and of the key `R` with
->    the log of a proxy of `docs/harness/one_path_fails.py`. **A round of T-331
+>    **The round 4 is done too** (T-338, of 2026-08-17, v0.8.170): the limit of
+>    the new requests of the covers of one frame.
+>    `THE_NEW_COVERS_OF_A_FRAME` of `src/ui/cover.rs` is 8, `CoverArt` holds the
+>    counter of its frame, and the render of `App` puts that counter at 0 one
+>    time for one frame. The log of the proxy measured 15 requests of a cover
+>    inside one millisecond before it, and 8 and then 7 in two frames of 327
+>    milliseconds after it.
+>    **The next round of T-331 takes the round 5, which is the last one of the
+>    road**: the panel 6 of the gallery of the shelf of the cursor, and the
+>    terminal that draws no pictures — a cell that holds the title of the media
+>    in the rows of the picture. **The sandbox holds a cover for 6 of the 15
+>    media of that Home view**, therefore the cells of the screen stand empty
+>    today for the reason of that round. **A round of T-331
 >    reads that spec first,
 >    and it must not change a decision of it with no reason in its own item.** **The mockups of the two of them are
 >    written already** (`mockup-6` and `mockup-7`, of
@@ -25247,51 +25320,58 @@ decision above left to it.
 >    this shape found a fault in one hundred and eleven sessions of one hundred
 >    and twelve.
 >
-> **The session of the hundred and seventy-first turn took the round 3 of the road
-> of the spec of T-331** (T-337, v0.8.169): the mouse of the bands of covers of
-> the Home view. The round 2 drew the bands and it gave them their keys, and the
-> mouse of that panel stayed at the arithmetic of a row of a list: **a cell of a
-> band holds six rows and ten columns of the screen**, therefore the render of
-> the bands gives the areas of the mouse no line of a list at all.
+> **The session of the hundred and seventy-second turn took the round 4 of the
+> road of the spec of T-331** (T-338, v0.8.170): the limit of the new requests of
+> the covers of one frame. The rounds 2 and 3 gave the panel 4 its bands of
+> covers, and each new cell of a frame was one request of the server with no
+> limit at all.
 >
-> **The three faults, of the real program v0.8.168 inside tmux** of 160 columns
-> and 45 rows, of the library `Books` of the sandbox. A click of the fourth cell
-> of the band `Continue Listening`, at the column 72 and the row 7, left the
-> heavy border on the first cell and it left the facts of the panel 5 at the
-> media of that first cell. One step of the wheel over the band `Recently Added`
-> moved the cursor of the band above it by one cell, and the band under the
-> pointer said `6 of 10 ›` before that step and after it. A click of the row of
-> the title of a band did nothing at all.
+> **The fault, of the real program v0.8.169 inside tmux** of 160 columns and 45
+> rows, with the log of a proxy of `docs/harness/one_path_fails.py` on the port
+> 13500 and the account at that address. The first frame of the Home view of the
+> library `Books` sent **15** requests of `GET /api/items/:id/cover` at the times
+> 1.317 to 1.318 seconds — the 15 of them inside **one millisecond** — the first
+> frame of the library `Large` sent **16** of them inside one millisecond, and
+> the key `R` sent **15** more inside one millisecond. `CoverArt::picture` calls
+> `cover::request` for each new identity, and `request` spawns one task of tokio
+> for each of them.
 >
-> **The screen of the correction, of the same harness.** The same click gave
-> `┌────────┐ ┌────────┐ ┌────────┐ ┏━━━━━━━━┓`, two steps of the wheel over
-> `Recently Added` gave `‹ 6 of 10 ›` with the cursor of the band above where it
-> stood, the click of the title of `Discover` took the cursor into that band, and
-> **two clicks of one cell inside 400 milliseconds** said `Loading the media...`,
-> which is the work of the key `Enter` of that cell.
+> **The measurement of the correction, of the same harness.** The first frame
+> sent **8** requests at 1.413 seconds and **7** at 1.740 seconds: two frames,
+> 327 milliseconds apart. The key `R` sent 8 and then 7, 181 milliseconds apart.
+> A `diff` of the identities of the two runs says that the same 15 identities
+> came, therefore no cover is lost, and the screen of the two runs is the same.
+> The spec said that a limit which costs the user a band of empty cells for more
+> than one frame goes up: it costs one frame of about 330 milliseconds,
+> therefore the number 8 stays.
 >
-> **The four decisions of this round.** **The target of a report stays
-> `TheTarget::TheListOfTheView`, and `App` reads the plan of the last frame**:
-> the spec names a target of a band, and `TheAreasOfTheMouse` is a `Copy` struct
-> of rectangles that every frame writes — that is the road of the panel 6 of the
-> gallery already (T-327). **The offset of a band lives in
-> `App::the_offsets_of_the_bands`**, and the band of the cursor moves by the
-> least that keeps the cursor on the screen, because a band that always ends at
-> the cursor moves at every key `h` of the user. **The wheel over a band moves
-> that band**, and the cursor takes the cell of the edge that the band left
-> behind. **The two clicks name one cell and 400 milliseconds**, and a third
-> click starts a first click again.
+> **The three decisions of this round.** **The counter belongs to `CoverArt` and
+> not to the process**, though the store of the covers belongs to the process:
+> one program draws one frame at a time, and a counter of the process would
+> stand between two tests of one binary that ask for a cover together. **The
+> limit stands in `CoverArt::picture` and not in `cover::request`**, because
+> `picture` is the one road of the render to a new request. **The frame that
+> leaves an identity writes nothing in the store**, therefore the frame after it
+> meets that identity again and no cover is lost.
 >
-> The four corrections each failed a test with the correction removed. The gates
-> gave 1558 of 1558 in 3.1 seconds, `cargo test -j 16 --no-fail-fast` passed two
-> times, and `cargo nextest run --run-ignored all` gave 1580 of 1580 with the
-> sandbox up.
+> **A trap of the harness that this round found** (the trap 246): a `: >` of the
+> log of a proxy that stands leaves a file of the bytes NUL, because the proxy
+> keeps the place of its write, and `grep -c` of such a file says **nothing at
+> all**. A measurement of a number of requests then reads 0 for a log of 27
+> lines. `grep -ac` reads it, and a new file of a log for each run is better.
 >
-> **The next round takes the round 4 of that road**: the covers of the bands, and
-> the limit of the new requests of one frame
-> (`THE_NEW_COVERS_OF_A_FRAME` of the spec, of the log of a proxy). **The drag of
-> the mouse over a band stays outside**, with the drag of the bar of the player
-> (T-322).
+> The correction failed its test with the correction removed: the first frame
+> then asked for 20 covers and not 8. The gates gave 1559 of 1559 in 3.1
+> seconds, `cargo test -j 16 --no-fail-fast` passed two times, and
+> `cargo nextest run --run-ignored all` gave **1585 of 1585** with the sandbox
+> up, in 60 seconds.
+>
+> **The next round takes the round 5 of that road, which is the last one**: the
+> panel 6 of the gallery of the shelf of the cursor, and the terminal that draws
+> no pictures — a cell that holds the title of the media in the rows of the
+> picture. **The sandbox holds a cover for 6 of the 15 media of that Home
+> view**, therefore the cells of the screen stand empty today for the reason of
+> that round.
 >
 >    **The turns before this one stand in `## The turns before the three
 >    newest ones` of this file**, above the heading of this prompt. **This item
@@ -25348,8 +25428,8 @@ decision above left to it.
 > program holds more than one account (T-124). **The decisions of T-124 to
 > T-200 stand in `## The decisions of T-124 to T-200 that do not open again` of
 > `docs/HANDOVER.md`, outside this block, and each of them holds** (T-294).
-> And **the decisions of T-201 to T-337 stand in
-> `## The decisions of T-201 to T-337 that do not open again` of
+> And **the decisions of T-201 to T-338 stand in
+> `## The decisions of T-201 to T-338 that do not open again` of
 > `docs/HANDOVER.md`, outside this block, and each of them holds** (T-310).
 > **The bands of covers of the Home view stand where the table of the panel 4
 > stands**, therefore a screen under 120 columns keeps the list of one column
@@ -25532,7 +25612,7 @@ decision above left to it.
 > did the same work, and the block then held 98907 bytes with one turn in it —
 > **at the line of 99000**, therefore that round took the whole list of the
 > decisions of T-201 to T-311 out of the block and it put it in
-> `## The decisions of T-201 to T-337 that do not open again` of this file,
+> `## The decisions of T-201 to T-338 that do not open again` of this file,
 > with a pointer of three lines in its place: the block then held **66224**
 > bytes with one turn in it; the round of the hundred and fortieth found it at
 > 66685 bytes with one turn in it, and it did the same work, and the block then
@@ -25601,7 +25681,9 @@ decision above left to it.
 > it, and it took that turn out and it wrote its own; the round of the hundred
 > and seventieth found it at 87801 bytes with one turn in it, and it did the
 > same work; the round of the hundred and seventy-first found it at
-> 88667 bytes with one turn in it, and it did the same work.
+> 88667 bytes with one turn in it, and it did the same work; the round of the
+> hundred and seventy-second found it at 89012 bytes with one turn in it, and
+> it did the same work.
 > **A block that stands at 80000 bytes or under holds two
 > turns**, and the turn of the stage before this one names the parts of that
 > stage which stay open. **The list of the decisions

@@ -53,6 +53,13 @@ impl Widget for &mut App {
         // render is the one place of this program that knows that width.
         self.the_width_of_the_screen = area.width;
 
+        // **One frame asks the server for a number of new covers, and no
+        // more** (T-338): this function is the one road of the program to a
+        // frame of the screen, therefore the limit of `cover` stands again
+        // here. The bands of covers of the Home view draw about 20 cells, and
+        // every new cell of a frame was one request of one moment.
+        self.covers.a_new_frame();
+
         // A live message of the server can take a media away from the shelf of
         // Continue Listening. The render is not asynchronous, therefore the
         // lines change here and the program asks the server for nothing.

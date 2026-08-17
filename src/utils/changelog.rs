@@ -41,6 +41,21 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.170",
+        date: "17/08/2026",
+        body: &[
+            "Changed:",
+            "- **One frame asks the server for eight new covers, and no \
+             more.** The bands of covers of the Home view drew about 20 \
+             cells, and each new cell of a frame was one request: the first \
+             frame of a library asked the server for 15 covers inside one \
+             millisecond, and the key `R` asked for 15 more. The frame that \
+             meets more new covers than its limit leaves them for the frame \
+             after it, therefore every cover comes and the program is kind to \
+             the server.",
+        ],
+    },
+    Entry {
         version: "0.8.169",
         date: "17/08/2026",
         body: &[

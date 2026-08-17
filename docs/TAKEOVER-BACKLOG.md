@@ -31804,3 +31804,100 @@ sandbox up, in 60 seconds.
 spec keeps outside and which stands with the drag of the bar of the player
 (T-322). **The next round of the road is the round 4**: the covers, and the
 limit of the new requests of one frame.
+
+## T-338 — The limit of the new requests of the covers of a frame
+
+**The round 4 of the road of the spec**
+`docs/superpowers/specs/2026-08-17-the-home-view-of-the-bands-of-covers-design.md`
+(T-331). T-336 gave the panel 4 its bands, and the cells of them asked the
+server for a cover each: **no part of that road held a limit of one frame.**
+
+**The fault, of the real program v0.8.169 inside tmux**, of 160 columns and 45
+rows, against the sandbox, with the log of a proxy
+`python3 docs/harness/one_path_fails.py 13500 13399 requests.log
+/a-path-of-no-request`, of the account at `http://127.0.0.1:13500`.
+
+- The first frame of the Home view of the library `Books` sent **15** requests
+  of `GET /api/items/:id/cover`, at the times 1.317 to 1.318 seconds: the 15 of
+  them stood inside **one millisecond**.
+- The first frame of the Home view of the library `Large` sent **16** of them,
+  at 1.566 to 1.567 seconds: inside one millisecond too.
+- The key `R` sent **15** more inside one millisecond.
+
+The reason: `CoverArt::picture` of `src/ui/cover.rs` calls `cover::request` for
+each new identity of the frame, `request` spawns one task of tokio for each of
+them, and no part of that road holds a limit. The bands of T-336 made the
+number: the panel 4 draws about 20 cells, and the panel 6 of the gallery draws
+8 more.
+
+**The correction.**
+
+- `THE_NEW_COVERS_OF_A_FRAME` of `src/ui/cover.rs` is 8, of the decision 8 of
+  the spec.
+- `CoverArt` holds the field `the_new_covers_of_this_frame`, and
+  `CoverArt::a_new_frame` puts it at 0.
+- `<&mut App as Widget>::render` of `src/ui/tui.rs` calls
+  `self.covers.a_new_frame()` one time for one frame, and that function is the
+  one road of the program to a frame.
+- `CoverArt::picture` gives no picture and it asks for nothing while the frame
+  met its limit, and **it writes nothing in the store**, therefore the frame
+  after it asks the server for that identity again and no cover is lost.
+
+**The measurement of the correction**, of the same harness and the same library
+`Books`.
+
+- The first frame sent **8** requests at 1.413 seconds and **7** at 1.740
+  seconds: two frames, 327 milliseconds apart.
+- The key `R` sent 8 at 4.560 seconds and 7 at 4.741 seconds: 181 milliseconds
+  apart.
+- A `diff` of the identities of the two runs says that the same 15 identities
+  came, therefore the correction loses no cover. The screen of the two runs is
+  the same.
+- The spec said that a measurement which says the limit costs the user a band
+  of empty cells for more than one frame takes the limit up. The limit costs
+  the user **one** frame of about 330 milliseconds for the last 7 covers,
+  therefore the number 8 stays.
+
+**The three decisions of this round.**
+
+- **The counter belongs to `CoverArt` and not to the process**, though the
+  store of the covers belongs to the process: one program draws one frame at a
+  time, and a counter of the process would stand between two tests of one
+  binary that ask for a cover together (`cargo test` gives the tests of one
+  binary a thread each).
+- **The limit stands in `CoverArt::picture` and not in `cover::request`**:
+  `picture` is the one road of the render to a new request, and a limit inside
+  `request` would need a second road for the identity that a task asked for
+  already.
+- **The frame that leaves an identity writes nothing in the store**: a mark of
+  that identity would need a second key to take it away, and the frame after
+  this one meets the same identity by itself.
+
+**The test**:
+`ui::cover::tests::one_frame_asks_the_server_for_the_covers_of_its_limit`. A
+runtime of one thread of tokio that runs no task, therefore the keys of the
+store count the requests that the frame started, and no answer of a server can
+change that count. It gives 20 identities to three frames, and it reads 8, 16,
+and 20. **With the correction removed** (`&& false` of the arm of the limit)
+the first read gave **20**, and the test failed.
+
+**A trap of the harness that this round found** (the trap 246): a `: >` of the
+log of a proxy that stands leaves a file of the bytes NUL, because the proxy
+keeps the place of its write. `grep -c` then reads a file of bytes and it says
+**nothing at all**, and a measurement of a number of requests says 0 for a log
+of 27 lines. `grep -ac` reads such a file, and a new file of a log for each run
+of a measurement is better.
+
+**The gates**: `cargo clippy --all-targets -- -D warnings` and
+`cargo fmt --check` clean; `cargo nextest run` gave **1559 of 1559** in 3.1
+seconds (1558 before this round); and `cargo test -j 16 --no-fail-fast` passed
+two times.
+
+**The release**: v0.8.170.
+
+**What the round 4 leaves open**: the round 5 of the road of the spec — the
+panel 6 of the gallery of the shelf of the cursor, and the terminal that draws
+no pictures (a cell that holds the title of the media in the rows of the
+picture). The sandbox holds a cover for 6 of the 15 media of this Home view and
+no cover for the other 9, therefore the cells of the screen of this round stand
+empty for the reason of the round 5, and not of this one.

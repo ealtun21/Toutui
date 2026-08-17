@@ -70,6 +70,29 @@ const PLAYING_PERCENT: u16 = 62;
 /// The largest number of covers of a shelf.
 pub const SHELF_MAX: usize = 4;
 
+/// The largest number of covers that one frame asks the server for.
+///
+/// **`request` spawns one task of tokio for each new identity, and the render
+/// put no limit on the number of them** (T-338). The measurement of
+/// 2026-08-17, with
+/// the log of `docs/harness/one_path_fails.py`: the first frame of the Home
+/// view of the library `Books` of the sandbox, on a terminal of 160 columns
+/// and 45 rows, sent **15** requests of a cover inside one millisecond, the
+/// first frame of the library `Large` sent **16** of them, and the key `R`
+/// sent **15** more inside one millisecond. The bands of covers of T-336 made
+/// that number: the panel 4 of today draws about 20 cells and the panel 6 of
+/// the gallery draws 8 more, and each new cell of a frame is one request.
+///
+/// A frame that meets more new identities than this asks for the first ones of
+/// them and it leaves the others for the frame after it. **The frame that
+/// leaves an identity writes nothing in the store**, therefore the frame after
+/// it asks for that identity again and no cover is lost.
+///
+/// The number 8 comes of the design of T-331. The measurement of the
+/// correction: the 15 covers of the first frame came in **two** frames of the
+/// loop of the screen, and the user therefore waits no longer for them.
+pub const THE_NEW_COVERS_OF_A_FRAME: usize = 8;
+
 /// The largest size of the answer of the server for one cover.
 ///
 /// A cover of an audiobook is some hundred kilobytes. The limit stops an
@@ -391,6 +414,13 @@ pub struct CoverArt {
     /// reads it, therefore a cover that is higher than it is wide takes the
     /// whole height of the panel. See T-50.
     forms: HashMap<String, f32>,
+    /// The number of the new covers that this frame asked the server for. See
+    /// [`THE_NEW_COVERS_OF_A_FRAME`] and [`CoverArt::a_new_frame`].
+    ///
+    /// **The counter belongs to `CoverArt` and not to the process**: one
+    /// program draws one frame at a time, and a counter of the process would
+    /// stand between two tests of one binary that ask for a cover together.
+    the_new_covers_of_this_frame: usize,
 }
 
 impl std::fmt::Debug for CoverArt {
@@ -406,6 +436,15 @@ impl std::fmt::Debug for CoverArt {
 impl CoverArt {
     pub fn new() -> Self {
         Self::default()
+    }
+
+    /// A new frame starts, therefore the limit of the new covers stands again.
+    ///
+    /// `<&mut App as Widget>::render` calls this one time for one frame, and
+    /// that function is the one road of this program to a frame of the screen.
+    /// See [`THE_NEW_COVERS_OF_A_FRAME`].
+    pub fn a_new_frame(&mut self) {
+        self.the_new_covers_of_this_frame = 0;
     }
 
     /// Gives the picture of one item, or nothing.
@@ -440,7 +479,17 @@ impl CoverArt {
                 }
                 // The task did not finish. The next frame asks again.
                 Some(CoverBytes::Asked) => return None,
+                // **This frame asks the server for a number of new covers,
+                // and no more** (T-338). The function writes nothing in the
+                // store and nothing in the pictures of this `CoverArt` while
+                // the frame has no place, therefore the frame after it meets
+                // this identity again and it asks the server for it. No cover
+                // is lost, and the user waits one frame more for it.
+                None if self.the_new_covers_of_this_frame >= THE_NEW_COVERS_OF_A_FRAME => {
+                    return None;
+                }
                 None => {
+                    self.the_new_covers_of_this_frame += 1;
                     request(api, id);
                     return None;
                 }
@@ -831,6 +880,90 @@ mod tests {
             Ok(true),
             "the ask for a cover stopped the thread, or it gave a picture"
         );
+    }
+
+    /// **One frame asks the server for the covers of its limit, and no
+    /// more**, and the frame after it asks for the covers that the frame
+    /// before it left. See T-338.
+    ///
+    /// The measurement of 2026-08-17, with the log of
+    /// `docs/harness/one_path_fails.py`: the first frame of the Home view of
+    /// the library `Books` of the sandbox sent 15 requests of a cover inside
+    /// one millisecond, and the key `R` sent 15 more inside one millisecond.
+    /// The bands of covers of T-336 made that number, and `CoverArt::picture`
+    /// put no limit on the requests of one frame.
+    ///
+    /// **The runtime of this test runs no task**: `request` writes the
+    /// identity in the store before it spawns, therefore the keys of the store
+    /// count the requests that the frame started, and no answer of a server
+    /// can change that count while the test runs.
+    ///
+    /// The store belongs to the process, therefore the parts of this test stay
+    /// in one function.
+    #[test]
+    fn one_frame_asks_the_server_for_the_covers_of_its_limit() {
+        let _guard = guard();
+        forget();
+
+        // The address answers nothing, and the runtime below runs no task of
+        // it. The test examines the number of the requests, and not a server.
+        let pool = crate::api::client::endpoint::EndpointPool::new(vec![
+            crate::api::client::endpoint::Endpoint::new("http://127.0.0.1:1", 0),
+        ]);
+        let api = Arc::new(ApiClient::new(Arc::new(pool), "token".to_string()).expect("a client"));
+
+        // `request` spawns a task, therefore the thread needs a runtime. A
+        // runtime of one thread runs no task while no one waits on it.
+        let runtime = tokio::runtime::Builder::new_current_thread()
+            .enable_all()
+            .build()
+            .expect("a runtime");
+        let _entered = runtime.enter();
+
+        let of_the_view: Vec<String> = (0..20).map(|n| format!("the-cell-{n}-of-t-338")).collect();
+
+        let the_requests = || {
+            store()
+                .read()
+                .expect("the store of the covers")
+                .keys()
+                .filter(|id| id.starts_with("the-cell-"))
+                .count()
+        };
+
+        let mut art = CoverArt::new();
+
+        art.a_new_frame();
+        for id in &of_the_view {
+            assert!(art.picture(&api, id).is_none(), "no answer came yet");
+        }
+        assert_eq!(
+            the_requests(),
+            THE_NEW_COVERS_OF_A_FRAME,
+            "one frame of 20 new covers must ask the server for the covers of its limit, and no more"
+        );
+
+        art.a_new_frame();
+        for id in &of_the_view {
+            assert!(art.picture(&api, id).is_none(), "no answer came yet");
+        }
+        assert_eq!(
+            the_requests(),
+            2 * THE_NEW_COVERS_OF_A_FRAME,
+            "the frame after it must ask for the covers that the frame before it left"
+        );
+
+        art.a_new_frame();
+        for id in &of_the_view {
+            assert!(art.picture(&api, id).is_none(), "no answer came yet");
+        }
+        assert_eq!(
+            the_requests(),
+            of_the_view.len(),
+            "no cover of the view is lost: the third frame asks for the rest of them"
+        );
+
+        forget();
     }
 
     /// **The key `R` asks the server for every list again, therefore it must
