@@ -41,6 +41,22 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.169",
+        date: "17/08/2026",
+        body: &[
+            "Added:",
+            "- **The mouse reaches the bands of covers of the Home view.** A \
+             click of a cover takes that media. Two clicks of one cover play \
+             it, or they open the series or the podcast of it, which is the \
+             work of the key `Enter`. A click of the name of a band takes the \
+             first cover of that band.",
+            "- **The wheel of the mouse over a band moves that band.** One \
+             step gives one cover, at the left or at the right, and a band \
+             that no cover of the cursor holds moves too. The cursor stays on \
+             the screen when the band that holds it moves.",
+        ],
+    },
+    Entry {
         version: "0.8.168",
         date: "17/08/2026",
         body: &[

@@ -2156,7 +2156,22 @@ impl App {
         let font = cover::picker().font_size();
         let bands = crate::logic::the_bands_of_the_home::the_bands(&self.home_rows);
         let the_line = self.list_state_cnt_list.selected().unwrap_or(0);
-        let plan = plan_the_bands(inside, of_a_cell, font, &bands, the_line);
+        let plan = plan_the_bands(
+            inside,
+            of_a_cell,
+            font,
+            &bands,
+            the_line,
+            &self.the_offsets_of_the_bands,
+        );
+
+        // **The offsets of the state take the offsets that the frame drew**
+        // (T-337): the plan moves the band of the cursor and it holds a band of
+        // an old answer of the server inside its cells, therefore a wheel of the
+        // mouse after that frame must start at the band that the user sees.
+        for band in &plan.bands {
+            self.the_offset_of_a_band_goes_to(band.the_band, band.the_first_cell);
+        }
 
         if !plan.stands() {
             self.the_bands_of_the_last_frame = plan;

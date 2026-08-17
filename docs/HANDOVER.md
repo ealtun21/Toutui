@@ -12308,7 +12308,7 @@ rounds**:
 |---|---|
 | 1 | `src/logic/the_bands_of_the_home.rs`: the bands of the flat list of `HomeRow`, the moves of `h`, `l`, `j`, `k`, `g`, and `G`, and the count of a title. Pure functions, and no change of the screen. — **done, T-335 of 2026-08-17, and no release** |
 | 2 | The render of the bands in the panel 4 of the Home view, the keys, and the footer of its own. **This round changes the screen of the user.** — **done, T-336 of 2026-08-17, v0.8.168** |
-| 3 | The mouse: a click of a cell, two clicks, the wheel over a band, and a click of the title of a band. **It needs the offset of a band in the state of the program**, which the round 2 read of the cursor alone (T-336). |
+| 3 | The mouse: a click of a cell, two clicks, the wheel over a band, and a click of the title of a band. It gave the bands the offset of their own in `App::the_offsets_of_the_bands`, which the round 2 read of the cursor alone (T-336). — **done, T-337 of 2026-08-17, v0.8.169** |
 | 4 | The covers: the limit of the new requests of one frame, with the number of the requests measured against the sandbox. |
 | 5 | The panel 6 of the gallery of the shelf of the cursor, and the terminal that draws no pictures. |
 
@@ -22699,7 +22699,7 @@ the real program.
   and not the panel**, therefore a gate of the words of one panel takes the
   columns of that panel out of the row first.
 
-## The decisions of T-201 to T-336 that do not open again
+## The decisions of T-201 to T-337 that do not open again
 
 These decisions stood in the block of the prompt of the next session until the
 round of the hundred and thirty-ninth turn, and that block met its limit of
@@ -23218,6 +23218,30 @@ nothing to see makes no release**: the changelog of this program is a text for
 the user, and an entry that names a module says nothing to a user whose screen
 holds the same characters as before — the round that draws the bands carries
 that module with it.
+
+
+**The mouse of the bands of covers of the Home view takes the target of the
+list of the view, and `App` reads the plan of the last frame** (T-337):
+`TheAreasOfTheMouse` is a `Copy` struct of rectangles that every frame writes,
+and the bands of a frame are a `Vec` of a name, a count, and the cells of it,
+therefore a target of a band would carry that vector through every frame — the
+panel 6 of the gallery takes that same road already (T-327). **The offset of a
+band lives in `App::the_offsets_of_the_bands`**, and the band of the cursor
+moves by the least that keeps the cursor on the screen, because a band that
+always ends at the cursor moves at every key `h` of the user and the covers
+under the pointer then change for no reason of their own; **a band of an offset
+that stands after its last cells goes back to them**, therefore an answer of the
+server that a refresh made shorter gives no band of empty cells. **The wheel
+over a band moves that band by one cell**, because the wheel of a panel does the
+work of the keys of that panel and the keys of a band are `h` and `l`, and **the
+cursor takes the cell of the edge that the band left behind**. **The two clicks
+of one cell name one line of the flat list and 400 milliseconds**, because a
+terminal sends no report of two clicks and a user who clicks one cover and then
+another one asked for the two covers; **a third click starts a first click
+again**, so that a user who clicks three times plays the media one time. **A
+click of the row of the title of a band takes the first cell that the band
+draws**, and it opens nothing at all, because the title of a band is no line of
+a list.
 
 
 ## The session of the hundred and forty-seventh turn of 2026-08-16: the mouse, the capture, and a click of a row, of the block of the prompt
@@ -24134,12 +24158,61 @@ bands, and the release of it carries the module of this round with it. The gates
 gave 1544 of 1544 in 3.4 seconds, and `cargo test -j 16 --no-fail-fast` passed
 two times.
 
+## The session of the hundred and seventieth turn of 2026-08-17: the render of the bands of the Home view in the panel 4, of the block of the prompt
+
+**The session of the hundred and seventieth turn took the round 2 of the road
+of the spec of T-331** (T-336, v0.8.168): the render of the bands of covers in
+the panel 4 of the Home view, the keys of that view, and the footer of it.
+**This is the round that changed the screen of the user.** The panel 4 of the
+library `Books` of the sandbox at 160 columns and 45 rows held the table of the
+title, the author, the length, and the mark of the end; it now holds four
+bands, `Continue Listening 5 of 5`, `Recently Added 6 of 10 ›`,
+`Recent Series 3 of 3`, and `Discover 6 of 7 ›`, of six cells of a picture in a
+border each.
+
+**The arithmetic of the screen stands in `src/ui/the_panel_of_the_bands.rs`**,
+of nine unit tests and of no `App` at all: `plan_the_bands` gives the bands, the
+cells, and the areas of them, and `the_row_of_a_title` gives the row of the
+name, of the count, and of the arrows. The panel 4 held 71 columns and 39 rows,
+and a cell of ten columns of a font of ten by twenty gives six cells of a band
+and a band of eight rows.
+
+**The three decisions of this round that the spec did not hold.** The shape of
+the panel lives in `App::the_bands_of_the_last_frame`, as the grid of the panel
+6 lives in `the_gallery_of_the_last_frame`: the handler of a key holds no area
+of the screen. **The offset of a band comes of the cursor, and no band holds a
+state of its own**, because the wheel of the mouse of the round 3 is the one
+road that moves a band with no cursor in it. **The bands stand where the table
+stands** (T-321), therefore a screen under 120 columns keeps the list of one
+column that it had, and **the footer takes the rows of the longer of the two
+texts**, so that a footer of a height of its own does not decide the shape that
+names it (T-143).
+
+**The key `l` plays no media in this view**, and the key `Enter` does: the
+measurement of tmux gave no playback of `l`, and the log of `Enter` said
+`[play] the item e2b76945-… starts at 18025 seconds with 1 tracks`. **A screen
+of 100 columns and a screen of 160 columns by 16 rows each kept the table of
+today and its footer.**
+
+**A rule of this round is not measurable by a test that can fail**: `the_rows
+== 0` of a panel that is too short. The loop of the bands runs zero times with
+that guard away, therefore the plan is empty either way, and the assertion of
+the test stands as a rule that a later round cannot break. The three other
+corrections each failed a test with the correction removed. The gates gave 1554
+of 1554 in 3.1 seconds, `cargo test -j 16 --no-fail-fast` passed two times, and
+`cargo nextest run --run-ignored all` gave 1580 of 1580.
+
+**The next round takes the round 3 of that road**: the mouse of the bands — the
+click of a cell, the two clicks, the wheel over a band, and the click of a
+title. **The round 3 needs the offset of a band in the state**, which the
+decision above left to it.
+
 ## The prompt for the next session
 
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.167**; `Cargo.toml` is at 0.8.167. The
+> AlbanDAVID/Toutui. Newest release **v0.8.169**; `Cargo.toml` is at 0.8.169. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -24956,7 +25029,7 @@ two times.
 > makes no request: a measurement of two roads of the header needs a key of a
 > fresh request, and the key `R` alone forgets the state of a view.
 > Verify with a second program: `curl`, `podman logs abs-test`, or a browser.
-> Write the measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-336 and
+> Write the measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-338 and
 > up), and name that item in the commit.
 >
 > **`String::find` gives the index of a byte and not the column of the screen**
@@ -24969,8 +25042,8 @@ two times.
 > `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`, and
 > `cargo nextest run` with `ALSA_CONFIG_PATH` pointing at a null asound file of
 > two lines (`pcm.!default { type null }` and `ctl.!default { type null }`).
-> Baseline: **1457 tests in 3.1 seconds**, and `cargo nextest run --run-ignored
-> all` gives **1483 of 1483** with the sandbox up, in about 18 seconds. **Run that
+> Baseline: **1558 tests in 3.1 seconds**, and `cargo nextest run --run-ignored
+> all` gives **1584 of 1584** with the sandbox up, in about 18 seconds. **Run that
 > second command at the end of the session too**: it found T-132 and T-111.
 > **And `cargo clean` is the last command of the round**, after the push: the
 > maintainer asked for it on 2026-08-17, and the paragraph of the disk above
@@ -25118,12 +25191,15 @@ two times.
 >    `keys::the_footer_of_the_home_view` gives the footer of each of the two
 >    shapes. **That round changed the screen of the user**, and the two screens
 >    stand in its item.
->    **The next round of T-331 takes the round 3**: the mouse of the bands —
->    the click of a cell, the two clicks that play or open, the wheel over a
->    band, and the click of the title of a band. **The round 3 needs the offset
->    of a band in the state of the program**: the round 2 read that offset of
->    the cursor alone, because no key of the user moves a band that holds no
->    cursor, and the wheel is the first road that does. **A round of T-331
+>    **The round 3 is done too** (T-337, of 2026-08-17, v0.8.169): the mouse of
+>    the bands — the click of a cell, the two clicks that play or open, the
+>    wheel over a band, and the click of the title of a band. That round gave
+>    the bands the offset of their own in `App::the_offsets_of_the_bands`.
+>    **The next round of T-331 takes the round 4**: the covers of the bands, and
+>    the limit of the new requests of one frame — `THE_NEW_COVERS_OF_A_FRAME` of
+>    the spec is a candidate of 8 and not a measurement, and that round measures
+>    the requests of the first frame, of the key `j`, and of the key `R` with
+>    the log of a proxy of `docs/harness/one_path_fails.py`. **A round of T-331
 >    reads that spec first,
 >    and it must not change a decision of it with no reason in its own item.** **The mockups of the two of them are
 >    written already** (`mockup-6` and `mockup-7`, of
@@ -25171,52 +25247,51 @@ two times.
 >    this shape found a fault in one hundred and eleven sessions of one hundred
 >    and twelve.
 >
-> **The session of the hundred and seventieth turn took the round 2 of the road
-> of the spec of T-331** (T-336, v0.8.168): the render of the bands of covers in
-> the panel 4 of the Home view, the keys of that view, and the footer of it.
-> **This is the round that changed the screen of the user.** The panel 4 of the
-> library `Books` of the sandbox at 160 columns and 45 rows held the table of the
-> title, the author, the length, and the mark of the end; it now holds four
-> bands, `Continue Listening 5 of 5`, `Recently Added 6 of 10 ›`,
-> `Recent Series 3 of 3`, and `Discover 6 of 7 ›`, of six cells of a picture in a
-> border each.
+> **The session of the hundred and seventy-first turn took the round 3 of the road
+> of the spec of T-331** (T-337, v0.8.169): the mouse of the bands of covers of
+> the Home view. The round 2 drew the bands and it gave them their keys, and the
+> mouse of that panel stayed at the arithmetic of a row of a list: **a cell of a
+> band holds six rows and ten columns of the screen**, therefore the render of
+> the bands gives the areas of the mouse no line of a list at all.
 >
-> **The arithmetic of the screen stands in `src/ui/the_panel_of_the_bands.rs`**,
-> of nine unit tests and of no `App` at all: `plan_the_bands` gives the bands, the
-> cells, and the areas of them, and `the_row_of_a_title` gives the row of the
-> name, of the count, and of the arrows. The panel 4 held 71 columns and 39 rows,
-> and a cell of ten columns of a font of ten by twenty gives six cells of a band
-> and a band of eight rows.
+> **The three faults, of the real program v0.8.168 inside tmux** of 160 columns
+> and 45 rows, of the library `Books` of the sandbox. A click of the fourth cell
+> of the band `Continue Listening`, at the column 72 and the row 7, left the
+> heavy border on the first cell and it left the facts of the panel 5 at the
+> media of that first cell. One step of the wheel over the band `Recently Added`
+> moved the cursor of the band above it by one cell, and the band under the
+> pointer said `6 of 10 ›` before that step and after it. A click of the row of
+> the title of a band did nothing at all.
 >
-> **The three decisions of this round that the spec did not hold.** The shape of
-> the panel lives in `App::the_bands_of_the_last_frame`, as the grid of the panel
-> 6 lives in `the_gallery_of_the_last_frame`: the handler of a key holds no area
-> of the screen. **The offset of a band comes of the cursor, and no band holds a
-> state of its own**, because the wheel of the mouse of the round 3 is the one
-> road that moves a band with no cursor in it. **The bands stand where the table
-> stands** (T-321), therefore a screen under 120 columns keeps the list of one
-> column that it had, and **the footer takes the rows of the longer of the two
-> texts**, so that a footer of a height of its own does not decide the shape that
-> names it (T-143).
+> **The screen of the correction, of the same harness.** The same click gave
+> `┌────────┐ ┌────────┐ ┌────────┐ ┏━━━━━━━━┓`, two steps of the wheel over
+> `Recently Added` gave `‹ 6 of 10 ›` with the cursor of the band above where it
+> stood, the click of the title of `Discover` took the cursor into that band, and
+> **two clicks of one cell inside 400 milliseconds** said `Loading the media...`,
+> which is the work of the key `Enter` of that cell.
 >
-> **The key `l` plays no media in this view**, and the key `Enter` does: the
-> measurement of tmux gave no playback of `l`, and the log of `Enter` said
-> `[play] the item e2b76945-… starts at 18025 seconds with 1 tracks`. **A screen
-> of 100 columns and a screen of 160 columns by 16 rows each kept the table of
-> today and its footer.**
+> **The four decisions of this round.** **The target of a report stays
+> `TheTarget::TheListOfTheView`, and `App` reads the plan of the last frame**:
+> the spec names a target of a band, and `TheAreasOfTheMouse` is a `Copy` struct
+> of rectangles that every frame writes — that is the road of the panel 6 of the
+> gallery already (T-327). **The offset of a band lives in
+> `App::the_offsets_of_the_bands`**, and the band of the cursor moves by the
+> least that keeps the cursor on the screen, because a band that always ends at
+> the cursor moves at every key `h` of the user. **The wheel over a band moves
+> that band**, and the cursor takes the cell of the edge that the band left
+> behind. **The two clicks name one cell and 400 milliseconds**, and a third
+> click starts a first click again.
 >
-> **A rule of this round is not measurable by a test that can fail**: `the_rows
-> == 0` of a panel that is too short. The loop of the bands runs zero times with
-> that guard away, therefore the plan is empty either way, and the assertion of
-> the test stands as a rule that a later round cannot break. The three other
-> corrections each failed a test with the correction removed. The gates gave 1554
-> of 1554 in 3.1 seconds, `cargo test -j 16 --no-fail-fast` passed two times, and
-> `cargo nextest run --run-ignored all` gave 1580 of 1580.
+> The four corrections each failed a test with the correction removed. The gates
+> gave 1558 of 1558 in 3.1 seconds, `cargo test -j 16 --no-fail-fast` passed two
+> times, and `cargo nextest run --run-ignored all` gave 1580 of 1580 with the
+> sandbox up.
 >
-> **The next round takes the round 3 of that road**: the mouse of the bands — the
-> click of a cell, the two clicks, the wheel over a band, and the click of a
-> title. **The round 3 needs the offset of a band in the state**, which the
-> decision above left to it.
+> **The next round takes the round 4 of that road**: the covers of the bands, and
+> the limit of the new requests of one frame
+> (`THE_NEW_COVERS_OF_A_FRAME` of the spec, of the log of a proxy). **The drag of
+> the mouse over a band stays outside**, with the drag of the bar of the player
+> (T-322).
 >
 >    **The turns before this one stand in `## The turns before the three
 >    newest ones` of this file**, above the heading of this prompt. **This item
@@ -25273,8 +25348,8 @@ two times.
 > program holds more than one account (T-124). **The decisions of T-124 to
 > T-200 stand in `## The decisions of T-124 to T-200 that do not open again` of
 > `docs/HANDOVER.md`, outside this block, and each of them holds** (T-294).
-> And **the decisions of T-201 to T-336 stand in
-> `## The decisions of T-201 to T-336 that do not open again` of
+> And **the decisions of T-201 to T-337 stand in
+> `## The decisions of T-201 to T-337 that do not open again` of
 > `docs/HANDOVER.md`, outside this block, and each of them holds** (T-310).
 > **The bands of covers of the Home view stand where the table of the panel 4
 > stands**, therefore a screen under 120 columns keeps the list of one column
@@ -25457,7 +25532,7 @@ two times.
 > did the same work, and the block then held 98907 bytes with one turn in it —
 > **at the line of 99000**, therefore that round took the whole list of the
 > decisions of T-201 to T-311 out of the block and it put it in
-> `## The decisions of T-201 to T-336 that do not open again` of this file,
+> `## The decisions of T-201 to T-337 that do not open again` of this file,
 > with a pointer of three lines in its place: the block then held **66224**
 > bytes with one turn in it; the round of the hundred and fortieth found it at
 > 66685 bytes with one turn in it, and it did the same work, and the block then
@@ -25525,7 +25600,8 @@ two times.
 > round of the hundred and sixty-ninth found it at 87900 bytes with one turn in
 > it, and it took that turn out and it wrote its own; the round of the hundred
 > and seventieth found it at 87801 bytes with one turn in it, and it did the
-> same work.
+> same work; the round of the hundred and seventy-first found it at
+> 88667 bytes with one turn in it, and it did the same work.
 > **A block that stands at 80000 bytes or under holds two
 > turns**, and the turn of the stage before this one names the parts of that
 > stage which stay open. **The list of the decisions

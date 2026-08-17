@@ -646,6 +646,21 @@ pub struct App {
     /// band therefore says that the panel drew the table of today, and the keys
     /// `h`, `j`, `k`, `l`, `g`, and `G` then keep the moves of that table.
     pub the_bands_of_the_last_frame: crate::ui::the_panel_of_the_bands::TheBandsOfThePanel,
+    /// The offset of each band of the Home view: the cell of the shelf that
+    /// stands at the left of the band. See T-337.
+    ///
+    /// **The wheel of the mouse over a band is the one road that moves a band
+    /// that holds no cursor**, therefore the round 2 of the design of T-331 read
+    /// the cursor alone and the round 3 gave the bands this state. A band that
+    /// the user did not move takes the offset 0, and a band of an offset that
+    /// stands after its last cells goes back to them.
+    pub the_offsets_of_the_bands: Vec<usize>,
+    /// The cell of the click before this one, and the moment of it. See T-337.
+    ///
+    /// **A terminal sends no report of two clicks**, therefore the program
+    /// counts the time between two of them itself:
+    /// `crate::ui::the_mouse::the_two_clicks_of_a_cell` holds that rule.
+    pub the_click_of_a_cell_before: Option<(usize, std::time::Instant)>,
     /// The line of the user in the panel 1 of the views. See T-320.
     pub the_line_of_the_views: ListState,
     /// The line of the user in the panel 2 of the sequence. See T-318.
@@ -2188,6 +2203,8 @@ impl App {
             ),
             the_bands_of_the_last_frame:
                 crate::ui::the_panel_of_the_bands::TheBandsOfThePanel::default(),
+            the_offsets_of_the_bands: Vec::new(),
+            the_click_of_a_cell_before: None,
             the_line_of_the_views: {
                 let mut of_the_views = ListState::default();
                 of_the_views.select(Some(0));
@@ -3063,6 +3080,17 @@ impl App {
                 TheTarget::TheListOfTheView { the_line } => {
                     self.the_panel_of_the_focus = crate::ui::frame::ThePanel::TheList;
 
+                    // **The panel 4 of the Home view holds bands of covers, and
+                    // not rows of a list** (T-331 and T-337): a cell of a band
+                    // holds many rows and many columns of the screen, therefore
+                    // the line of a click comes of the plan of the last frame
+                    // and not of the row of the pointer. That is the road of the
+                    // panel 6 of the gallery (T-327).
+                    if self.the_bands_of_the_last_frame.stands() {
+                        self.the_click_of_a_band(the_report.column, the_report.row);
+                        return;
+                    }
+
                     if let Some(the_line) = the_line {
                         self.the_cursor_of_the_view_goes_to(the_line);
 
@@ -3150,6 +3178,15 @@ impl App {
                             crate::ui::frame::ThePanel::TheFilter,
                             forward,
                         ),
+                    // **The wheel over a band of the Home view moves that
+                    // band** (T-337), and it moves the list of no other view:
+                    // the keys of a band are `h` and `l`, and the wheel of a
+                    // panel does the work of the keys of that panel.
+                    TheTarget::TheListOfTheView { .. }
+                        if self.the_bands_of_the_last_frame.stands() =>
+                    {
+                        self.the_wheel_over_a_band(the_report.column, the_report.row, forward);
+                    }
                     TheTarget::TheListOfTheView { .. } => {
                         if forward {
                             self.select_next();
@@ -3213,6 +3250,158 @@ impl App {
                 }
             }
             _ => {}
+        }
+    }
+
+    /// The offset of one band of the Home view. See T-337.
+    ///
+    /// A band that no wheel of the mouse moved takes the offset 0, therefore a
+    /// band that stands after the offsets of the state gives that value.
+    pub fn the_offset_of_a_band(&self, the_band: usize) -> usize {
+        self.the_offsets_of_the_bands
+            .get(the_band)
+            .copied()
+            .unwrap_or(0)
+    }
+
+    /// Writes the offset of one band of the Home view. See T-337.
+    ///
+    /// **The bands of the view grow with the shelves of the server**, therefore
+    /// this function grows the offsets of the state with them: a band of a
+    /// number that the state does not hold takes the offset 0 of every band
+    /// before it.
+    pub fn the_offset_of_a_band_goes_to(&mut self, the_band: usize, to: usize) {
+        if self.the_offsets_of_the_bands.len() <= the_band {
+            self.the_offsets_of_the_bands.resize(the_band + 1, 0);
+        }
+
+        self.the_offsets_of_the_bands[the_band] = to;
+    }
+
+    /// The work of a click of the panel 4 of the bands of the Home view. See
+    /// T-337.
+    ///
+    /// **A click of a cell moves the cursor to the media of that cell**, which
+    /// is the work of a click of a cell of the panel 6 of the gallery (T-327),
+    /// and **two clicks of one cell play that media or they open it**, which is
+    /// the work of the key `Enter` of this view. The rule of T-316 holds: one
+    /// click of a media takes that media and it opens nothing.
+    ///
+    /// **A click of the row of the title of a band takes the first cell that the
+    /// band draws.** The title of a band is no line of a list, therefore a click
+    /// of it opens nothing at all, and the user who clicked it asked for the
+    /// shelf of that name.
+    fn the_click_of_a_band(&mut self, column: u16, row: u16) {
+        let of_the_cell = self
+            .the_bands_of_the_last_frame
+            .the_cell_of_a_point(column, row)
+            .map(|cell| cell.the_line);
+
+        if let Some(the_line) = of_the_cell {
+            let two_clicks = crate::ui::the_mouse::the_two_clicks_of_a_cell(
+                self.the_click_of_a_cell_before,
+                std::time::Instant::now(),
+                the_line,
+            );
+
+            self.the_cursor_of_the_view_goes_to(the_line);
+            self.scroll_offset = 0;
+
+            if two_clicks {
+                // **The two clicks of one cell are one work**, therefore the
+                // click that did that work starts no third one: a user who
+                // clicks three times plays the media one time.
+                self.the_click_of_a_cell_before = None;
+                self.the_work_of_the_key_that_plays_or_opens();
+            } else {
+                self.the_click_of_a_cell_before = Some((the_line, std::time::Instant::now()));
+            }
+
+            return;
+        }
+
+        self.the_click_of_a_cell_before = None;
+
+        let of_the_title = self
+            .the_bands_of_the_last_frame
+            .the_title_of_a_point(column, row)
+            .and_then(|band| band.cells.first())
+            .map(|cell| cell.the_line);
+
+        if let Some(the_line) = of_the_title {
+            self.the_cursor_of_the_view_goes_to(the_line);
+            self.scroll_offset = 0;
+        }
+    }
+
+    /// The work of the key `Enter` of the view, for the two clicks of a cell of
+    /// a band. See T-337.
+    ///
+    /// **The mouse does the work of a key, and it does not hold a road of its
+    /// own**: the key `Enter` of the Home view plays the media of the cursor or
+    /// it opens the series or the podcast of it, and the two roads must say the
+    /// same words. The wheel over the band of the player does the work of the
+    /// keys `p` and `u` in the same way (T-322).
+    fn the_work_of_the_key_that_plays_or_opens(&mut self) {
+        self.handle_key(KeyEvent::new(KeyCode::Enter, KeyModifiers::NONE));
+    }
+
+    /// The work of one step of the wheel over a band of the Home view. See
+    /// T-337.
+    ///
+    /// **The wheel moves that band by one cell**, and the band under the pointer
+    /// takes that move: the wheel of a panel does the work of the keys of that
+    /// panel, and the keys `h` and `l` of a band are the two directions of it.
+    ///
+    /// **The cursor keeps the screen**: a band of the cursor that moved under it
+    /// would give the user a cursor that no cell of the screen holds, therefore
+    /// the cursor takes the cell of the edge that the band left behind.
+    fn the_wheel_over_a_band(&mut self, column: u16, row: u16, forward: bool) {
+        use crate::logic::the_bands_of_the_home as of_the_bands;
+
+        let Some(the_band) = self
+            .the_bands_of_the_last_frame
+            .the_band_of_a_point(column, row)
+            .map(|band| band.the_band)
+        else {
+            return;
+        };
+
+        let of_a_band = self.the_bands_of_the_last_frame.the_cells_of_a_band.max(1);
+        let bands = of_the_bands::the_bands(&self.home_rows);
+
+        let Some(band) = bands.get(the_band) else {
+            return;
+        };
+
+        let the_last = band.the_cells.len().saturating_sub(of_a_band);
+        let now = self.the_offset_of_a_band(the_band).min(the_last);
+        let after = if forward {
+            (now + 1).min(the_last)
+        } else {
+            now.saturating_sub(1)
+        };
+
+        self.the_offset_of_a_band_goes_to(the_band, after);
+
+        // The cursor of the view stands in this band, therefore it takes the
+        // cell of the edge that the band left behind.
+        let the_line = self.list_state_cnt_list.selected().unwrap_or(0);
+
+        let Some((of_the_cursor, the_cell)) = of_the_bands::the_place_of_the_line(&bands, the_line)
+        else {
+            return;
+        };
+
+        if of_the_cursor != the_band {
+            return;
+        }
+
+        let the_cell = the_cell.clamp(after, after + of_a_band - 1);
+
+        if let Some(to) = band.the_cells.get(the_cell).copied() {
+            self.list_state_cnt_list.select(Some(to));
+            self.scroll_offset = 0;
         }
     }
 

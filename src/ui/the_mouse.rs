@@ -34,6 +34,39 @@ use ratatui::layout::{Position, Rect};
 pub const THE_MOUSE_STANDS: &str =
     "The program reads the mouse. Press Ctrl+o to stop it and to select the text of your terminal.";
 
+/// The longest time between the two clicks of one cell of a band. See T-337.
+///
+/// **A terminal sends no report of two clicks**: the report SGR of the mode 1006
+/// says the button, the column, and the row of one press, therefore the program
+/// counts the time between two of them itself. **400 milliseconds is the value
+/// of the double click of most systems**, and a user who wants two works of one
+/// cell needs no hurry: a second click that comes after this time moves the
+/// cursor to the same cell again, which does nothing that the user can see.
+pub const THE_TIME_OF_TWO_CLICKS: std::time::Duration = std::time::Duration::from_millis(400);
+
+/// Says whether a click of a cell of a band is the second click of two. See
+/// T-337.
+///
+/// `before` is the cell of the click before this one and the moment of it, of
+/// `App::the_click_of_a_cell_before`, and `now` is the moment of this click.
+///
+/// **The two clicks name one cell**: a user who clicks one cover and then
+/// another one asked for the two covers, and not for the media of the second
+/// one. The line of the flat list is the name of that cell (the decision 1 of
+/// the design of T-331).
+pub fn the_two_clicks_of_a_cell(
+    before: Option<(usize, std::time::Instant)>,
+    now: std::time::Instant,
+    the_line: usize,
+) -> bool {
+    match before {
+        Some((the_cell, the_moment)) => {
+            the_cell == the_line && now.duration_since(the_moment) <= THE_TIME_OF_TWO_CLICKS
+        }
+        None => false,
+    }
+}
+
 /// The words of the key `Ctrl+o` that stops the mouse. See T-316.
 pub const THE_MOUSE_STOPPED: &str =
     "The program does not read the mouse. You can select the text of your terminal again. \
@@ -539,5 +572,36 @@ mod tests {
             the_target_of_a_point(&areas, true, 10, 0),
             TheTarget::Nothing
         );
+    }
+
+    /// Two clicks of one cell inside the time of a double click are the work of
+    /// the key `Enter`, and every other pair of clicks is not. See T-337.
+    ///
+    /// **The parts of this test stay in one function.**
+    #[test]
+    fn two_clicks_of_one_cell_hold_one_line_and_one_time() {
+        let now = std::time::Instant::now();
+
+        // The first click of a run has no click before it.
+        assert!(!the_two_clicks_of_a_cell(None, now, 7));
+
+        // Two clicks of one cell, inside the time.
+        assert!(the_two_clicks_of_a_cell(Some((7, now)), now, 7));
+        assert!(the_two_clicks_of_a_cell(
+            Some((7, now)),
+            now + THE_TIME_OF_TWO_CLICKS,
+            7
+        ));
+
+        // **A click of another cell is a first click**: a user who clicks one
+        // cover and then another one asked for the two covers.
+        assert!(!the_two_clicks_of_a_cell(Some((7, now)), now, 8));
+
+        // A second click after the time of a double click is a first click.
+        assert!(!the_two_clicks_of_a_cell(
+            Some((7, now)),
+            now + THE_TIME_OF_TWO_CLICKS + std::time::Duration::from_millis(1),
+            7
+        ));
     }
 }

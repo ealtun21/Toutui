@@ -44,11 +44,14 @@
 //! is too narrow for its table: **no key of the user turns between the two
 //! shapes** (the decision 5 of the maintainer).
 //!
-//! **The offset of a band comes of the cursor, and no band holds a state of its
-//! own.** The design names an offset of each band; the wheel of the mouse of the
-//! round 3 is the one road that moves a band with no cursor in it, therefore
-//! that state belongs to that round. A render that reads the cursor alone cannot
-//! go out of agreement with the flat list of the lines.
+//! **The offset of a band lives in `App::the_offsets_of_the_bands`, and the band
+//! of the cursor moves by the least that keeps the cursor on the screen**
+//! (T-337). The round 2 read the cursor alone, because no key of the user moves
+//! a band that holds no cursor; the wheel of the mouse of the round 3 is the
+//! first road that does, therefore the round 3 gave that state. **A band of an
+//! offset that stands after its last cells goes back to them**, therefore an
+//! offset of an answer of the server that a refresh changed gives no band of
+//! empty cells.
 //!
 //! Every function of this module is pure, therefore a test of it needs no
 //! terminal, no server, and no `App` at all.
@@ -90,6 +93,16 @@ pub struct ABandOfTheScreen {
     pub the_count: String,
     /// The row of the title, over the cells.
     pub the_title: Rect,
+    /// The rows of the whole band: the title and the cells under it, over the
+    /// width of the panel. See T-337.
+    ///
+    /// **The space under a band belongs to no band**: a report of the mouse of
+    /// that row names no band, in the same way as a row under the last line of
+    /// a list names no line.
+    pub the_rows: Rect,
+    /// The cell of the shelf that stands at the left of the band, which is the
+    /// offset of it. See T-337.
+    pub the_first_cell: usize,
     /// The band holds a cell before the first cell that it draws.
     pub at_the_left: bool,
     /// The band holds a cell after the last cell that it draws.
@@ -132,6 +145,28 @@ impl TheBandsOfThePanel {
             .flat_map(|band| band.cells.iter())
             .find(|cell| cell.the_box.contains(point))
     }
+
+    /// The band of a point of the screen, and `None` for a point that stands
+    /// under every band. See T-337.
+    ///
+    /// **The rows of a band are the row of its title and the rows of its
+    /// cells**, over the whole width of the panel: the wheel of the mouse over
+    /// the space at the right of the last cell moves that band, because the
+    /// user reads that space as a part of the row of the covers.
+    pub fn the_band_of_a_point(&self, column: u16, row: u16) -> Option<&ABandOfTheScreen> {
+        let point = ratatui::layout::Position::new(column, row);
+
+        self.bands.iter().find(|band| band.the_rows.contains(point))
+    }
+
+    /// The band whose row of the title holds a point of the screen. See T-337.
+    pub fn the_title_of_a_point(&self, column: u16, row: u16) -> Option<&ABandOfTheScreen> {
+        let point = ratatui::layout::Position::new(column, row);
+
+        self.bands
+            .iter()
+            .find(|band| band.the_title.contains(point))
+    }
 }
 
 /// The rows that one band of this width takes on the screen.
@@ -156,6 +191,13 @@ pub fn the_rows_of_a_band(of_a_cell: u16, font: FontSize) -> u16 {
 /// **The panel draws whole bands alone**: a part of a band holds rows of the
 /// screen that no cell uses, which is the rule of T-327.
 ///
+/// `the_offsets` holds the offset of each band of the view, of
+/// `App::the_offsets_of_the_bands`, and a band that no wheel of the mouse moved
+/// takes the offset 0 (T-337). **The band of the cursor moves by the least that
+/// keeps the cursor on the screen**: a band that always ended at the cursor
+/// moved at every key `h` of the user, and the covers under the pointer of the
+/// user then changed for no reason of their own.
+///
 /// The function is pure, therefore a test needs no terminal and no server.
 pub fn plan_the_bands(
     inside: Rect,
@@ -163,6 +205,7 @@ pub fn plan_the_bands(
     font: FontSize,
     bands: &[ABand],
     the_line: usize,
+    the_offsets: &[usize],
 ) -> TheBandsOfThePanel {
     let of_a_band = the_rows_of_a_band(of_a_cell, font);
 
@@ -200,13 +243,25 @@ pub fn plan_the_bands(
             break;
         };
 
-        // **The cells of the band of the cursor end at the cursor**, and every
-        // other band draws its first cells. See the rule of the offset above.
-        let the_first_cell = if number == of_the_cursor {
-            the_cell_of_the_cursor.saturating_sub(the_columns.saturating_sub(1))
-        } else {
-            0
-        };
+        // **The offset of the band is the offset of the state, and the band of
+        // the cursor moves by the least that keeps the cursor on the screen**
+        // (T-337). A band of an offset that stands after its last cells goes
+        // back to them: the shelves of the server change with a refresh, and an
+        // offset of an old answer must give no band of empty cells.
+        let the_last_offset = band.the_cells.len().saturating_sub(the_columns);
+        let mut the_first_cell = the_offsets
+            .get(number)
+            .copied()
+            .unwrap_or(0)
+            .min(the_last_offset);
+
+        if number == of_the_cursor {
+            if the_cell_of_the_cursor < the_first_cell {
+                the_first_cell = the_cell_of_the_cursor;
+            } else if the_cell_of_the_cursor >= the_first_cell + the_columns {
+                the_first_cell = the_cell_of_the_cursor + 1 - the_columns;
+            }
+        }
 
         let y = inside.y + row as u16 * of_a_band;
         let mut cells = Vec::new();
@@ -248,6 +303,13 @@ pub fn plan_the_bands(
                 width: inside.width,
                 height: THE_ROWS_OF_A_TITLE,
             },
+            the_rows: Rect {
+                x: inside.x,
+                y,
+                width: inside.width,
+                height: THE_ROWS_OF_A_TITLE + of_the_picture + 2,
+            },
+            the_first_cell,
             at_the_left: the_first_cell > 0,
             at_the_right: the_first_cell + cells.len() < band.the_cells.len(),
             cells,
@@ -351,7 +413,7 @@ mod tests {
     #[test]
     fn a_band_holds_the_cells_that_the_panel_has_the_room_for() {
         let bands = the_bands(&the_rows());
-        let plan = plan_the_bands(the_panel(71, 39), 10, the_font(), &bands, 1);
+        let plan = plan_the_bands(the_panel(71, 39), 10, the_font(), &bands, 1, &[]);
 
         // (71 + 1) / (10 + 1) = 6 cells of a band.
         assert_eq!(plan.the_cells_of_a_band, 6);
@@ -369,9 +431,9 @@ mod tests {
         // The rows of a band of ten columns: 1 + (4 + 2) + 1 = 8.
         assert_eq!(the_rows_of_a_band(10, the_font()), 8);
 
-        assert!(!plan_the_bands(the_panel(71, 7), 10, the_font(), &bands, 1).stands());
-        assert!(!plan_the_bands(the_panel(9, 39), 10, the_font(), &bands, 1).stands());
-        assert!(!plan_the_bands(the_panel(71, 39), 10, the_font(), &[], 1).stands());
+        assert!(!plan_the_bands(the_panel(71, 7), 10, the_font(), &bands, 1, &[]).stands());
+        assert!(!plan_the_bands(the_panel(9, 39), 10, the_font(), &bands, 1, &[]).stands());
+        assert!(!plan_the_bands(the_panel(71, 39), 10, the_font(), &[], 1, &[]).stands());
     }
 
     #[test]
@@ -380,7 +442,7 @@ mod tests {
 
         // The cursor at the cell 8 of the first band: the six cells of the row
         // end at it, therefore the first of them is the cell 3.
-        let plan = plan_the_bands(the_panel(71, 39), 10, the_font(), &bands, 9);
+        let plan = plan_the_bands(the_panel(71, 39), 10, the_font(), &bands, 9, &[]);
         let of_the_cursor = &plan.bands[0];
 
         assert_eq!(of_the_cursor.cells[0].the_line, 4);
@@ -397,7 +459,7 @@ mod tests {
     #[test]
     fn a_cursor_on_the_line_of_a_shelf_gives_the_first_band() {
         let bands = the_bands(&the_rows());
-        let plan = plan_the_bands(the_panel(71, 39), 10, the_font(), &bands, 0);
+        let plan = plan_the_bands(the_panel(71, 39), 10, the_font(), &bands, 0, &[]);
 
         assert_eq!(plan.the_first_band, 0);
         assert_eq!(plan.bands[0].cells[0].the_line, 1);
@@ -409,7 +471,7 @@ mod tests {
         let bands = the_bands(&the_rows());
 
         // A panel of one band alone, and the cursor in the third band.
-        let plan = plan_the_bands(the_panel(71, 8), 10, the_font(), &bands, 17);
+        let plan = plan_the_bands(the_panel(71, 8), 10, the_font(), &bands, 17, &[]);
 
         assert_eq!(plan.bands.len(), 1);
         assert_eq!(plan.the_first_band, 2);
@@ -419,7 +481,7 @@ mod tests {
     #[test]
     fn a_cell_holds_its_picture_inside_its_border() {
         let bands = the_bands(&the_rows());
-        let plan = plan_the_bands(the_panel(71, 39), 10, the_font(), &bands, 1);
+        let plan = plan_the_bands(the_panel(71, 39), 10, the_font(), &bands, 1, &[]);
         let cell = plan.bands[0].cells[0];
 
         assert_eq!(cell.the_box.x, 2);
@@ -437,7 +499,7 @@ mod tests {
     #[test]
     fn a_click_of_a_cell_gives_the_line_of_that_cell() {
         let bands = the_bands(&the_rows());
-        let plan = plan_the_bands(the_panel(71, 39), 10, the_font(), &bands, 1);
+        let plan = plan_the_bands(the_panel(71, 39), 10, the_font(), &bands, 1, &[]);
         let cell = plan.bands[0].cells[1];
 
         assert_eq!(
@@ -449,10 +511,99 @@ mod tests {
         assert_eq!(plan.the_cell_of_a_point(2, 3), None);
     }
 
+    /// The offset of the state moves the cells of a band, and the band of the
+    /// cursor moves by the least that keeps the cursor on the screen. See
+    /// T-337.
+    #[test]
+    fn the_offset_of_the_state_gives_the_cells_of_a_band() {
+        let bands = the_bands(&the_rows());
+
+        // The offset 4 of the first band: the six cells of it start at the cell
+        // 4, and the cursor of the line 1 is the cell 0 of that band, therefore
+        // the band goes back to it.
+        let plan = plan_the_bands(the_panel(71, 39), 10, the_font(), &bands, 1, &[4]);
+        assert_eq!(plan.bands[0].the_first_cell, 0);
+        assert_eq!(plan.bands[0].cells[0].the_line, 1);
+
+        // The same offset with the cursor inside the six cells that it draws:
+        // the band stands where the offset says, and it does not end at the
+        // cursor.
+        let plan = plan_the_bands(the_panel(71, 39), 10, the_font(), &bands, 6, &[4]);
+        assert_eq!(plan.bands[0].the_first_cell, 4);
+        assert_eq!(plan.bands[0].cells[0].the_line, 5);
+        assert!(plan.bands[0].at_the_left);
+        assert!(plan.bands[0].at_the_right);
+
+        // **A band of an offset that stands after its last cells goes back to
+        // them**: the first band holds twelve cells and the panel draws six.
+        let plan = plan_the_bands(the_panel(71, 39), 10, the_font(), &bands, 1, &[400]);
+        assert_eq!(plan.bands[0].the_first_cell, 0);
+
+        let plan = plan_the_bands(the_panel(71, 39), 10, the_font(), &bands, 12, &[400]);
+        assert_eq!(plan.bands[0].the_first_cell, 6);
+        assert_eq!(plan.bands[0].cells[5].the_line, 12);
+
+        // **A band that the offsets of the state do not name takes the offset
+        // 0**, which is the band of a shelf that no wheel of the mouse moved.
+        let plan = plan_the_bands(the_panel(71, 39), 10, the_font(), &bands, 1, &[]);
+        assert_eq!(plan.bands[1].the_first_cell, 0);
+    }
+
+    /// A point of the screen names the band that holds it, and the row of the
+    /// title of that band. See T-337.
+    #[test]
+    fn a_point_of_the_screen_names_its_band_and_its_title() {
+        let bands = the_bands(&the_rows());
+        let plan = plan_the_bands(the_panel(71, 39), 10, the_font(), &bands, 1, &[]);
+        let first = &plan.bands[0];
+
+        // The row of the title belongs to the band and to the title of it.
+        assert_eq!(
+            plan.the_band_of_a_point(2, first.the_title.y)
+                .map(|band| band.the_band),
+            Some(0)
+        );
+        assert_eq!(
+            plan.the_title_of_a_point(2, first.the_title.y)
+                .map(|band| band.the_band),
+            Some(0)
+        );
+
+        // A row of the cells belongs to the band, and to no title.
+        let of_the_cells = first.cells[0].the_box.y;
+        assert_eq!(
+            plan.the_band_of_a_point(2, of_the_cells)
+                .map(|band| band.the_band),
+            Some(0)
+        );
+        assert_eq!(plan.the_title_of_a_point(2, of_the_cells), None);
+
+        // **The space at the right of the last cell belongs to the band**: the
+        // first band draws six cells of ten columns, and the panel holds 71.
+        assert_eq!(
+            plan.the_band_of_a_point(70, of_the_cells)
+                .map(|band| band.the_band),
+            Some(0)
+        );
+
+        // **The space under a band belongs to no band**: the band takes eight
+        // rows, and the row of its title and the six rows of its cells are
+        // seven of them.
+        let of_the_space = first.the_title.y + the_rows_of_a_band(10, the_font()) - 1;
+        assert_eq!(plan.the_band_of_a_point(2, of_the_space), None);
+
+        // The second band of the screen holds the rows under that space.
+        assert_eq!(
+            plan.the_band_of_a_point(2, of_the_space + 1)
+                .map(|band| band.the_band),
+            Some(1)
+        );
+    }
+
     #[test]
     fn the_row_of_a_title_says_the_name_the_count_and_the_arrows() {
         let bands = the_bands(&the_rows());
-        let plan = plan_the_bands(the_panel(71, 39), 10, the_font(), &bands, 9);
+        let plan = plan_the_bands(the_panel(71, 39), 10, the_font(), &bands, 9, &[]);
         let row = the_row_of_a_title(&plan.bands[0], 71);
 
         assert!(row.starts_with("Continue Listening ─"), "{}", row);
@@ -467,7 +618,7 @@ mod tests {
     #[test]
     fn a_row_that_has_no_room_for_the_count_holds_the_name_alone() {
         let bands = the_bands(&the_rows());
-        let plan = plan_the_bands(the_panel(71, 39), 10, the_font(), &bands, 1);
+        let plan = plan_the_bands(the_panel(71, 39), 10, the_font(), &bands, 1, &[]);
 
         assert_eq!(the_row_of_a_title(&plan.bands[0], 0), "");
         assert_eq!(the_row_of_a_title(&plan.bands[0], 10), "Continue…");

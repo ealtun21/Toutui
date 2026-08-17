@@ -153,7 +153,8 @@ async fn the_bands_of_the_home_view_hold_their_keys() {
         height: 39,
     };
     let bands = toutui::logic::the_bands_of_the_home::the_bands(&app.home_rows);
-    app.the_bands_of_the_last_frame = plan_the_bands(of_the_panel, 10, (10, 20).into(), &bands, 1);
+    app.the_bands_of_the_last_frame =
+        plan_the_bands(of_the_panel, 10, (10, 20).into(), &bands, 1, &[]);
 
     assert!(
         app.the_bands_of_the_last_frame.stands(),
@@ -242,7 +243,8 @@ async fn the_bands_of_the_home_view_hold_their_keys() {
 
     // **A view that is not the Home view keeps every key that it had**: the
     // bands stand in the Home view alone.
-    app.the_bands_of_the_last_frame = plan_the_bands(of_the_panel, 10, (10, 20).into(), &bands, 1);
+    app.the_bands_of_the_last_frame =
+        plan_the_bands(of_the_panel, 10, (10, 20).into(), &bands, 1, &[]);
     app.view_state = AppView::Library;
     app.list_state_cnt_list.select(Some(1));
     app.handle_key(a_key(KeyCode::Char('l')));

@@ -31675,3 +31675,132 @@ build of a fault.
 seconds (1544 before this round).
 
 **The release**: v0.8.168.
+
+## T-337 — The mouse of the bands of the Home view
+
+**The round 3 of the road of the spec**
+`docs/superpowers/specs/2026-08-17-the-home-view-of-the-bands-of-covers-design.md`
+(T-334). T-335 gave the bands of the flat list, T-336 drew them in the panel 4
+with their keys and their footer, and **the mouse of that panel stayed at the
+arithmetic of a row of a list**: a cell of a band holds six rows and ten
+columns of the screen, and the render of T-336 therefore gave the areas of the
+mouse no line of a list at all.
+
+**The three faults, of the real program v0.8.168 inside tmux**, of 160 columns
+and 45 rows, of the Home view of the library `Books` of the sandbox, with
+`docs/harness/drive.sh` and `docs/harness/click.sh`.
+
+1. **A click of a cell of a band moved the cursor nowhere.** The click of the
+   column 72 and the row 7, which is the fourth cell of the band
+   `Continue Listening`:
+
+   ```text
+   ║Continue Listening ─────────────────────────────────────────────── 6 of 6║
+   ║┏━━━━━━━━┓ ┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐        ║
+   ```
+
+   The heavy border stayed on the first cell, and the panel 5 said the facts of
+   the media of that first cell (`Author Long Author`, `Time 30m, 15m left`)
+   before the click and after it.
+2. **One step of the wheel over a band moved the cursor of another band.** The
+   step of the column 60 and the row 13, which is the band `Recently Added`,
+   moved the cursor of the band `Continue Listening` from its first cell to its
+   second one, and the band under the pointer said `6 of 10 ›` before that step
+   and after it: the wheel did the work of `select_next` of the flat list.
+3. **A click of the row of the title of a band did nothing at all.**
+
+**The screen after the correction**, of the same harness and of the same
+build. The click of the column 72 and the row 7:
+
+```text
+║Continue Listening ─────────────────────────────────────────────── 6 of 6║
+║┌────────┐ ┌────────┐ ┌────────┐ ┏━━━━━━━━┓ ┌────────┐ ┌────────┐        ║
+```
+
+Two steps of the wheel over the band `Recently Added`:
+
+```text
+║Recently Added ────────────────────────────────────────────── ‹ 6 of 10 ›║
+```
+
+The band moved, the arrow at the left came, and the heavy border of the band
+above stayed where it stood. The click of the row of the title of the band
+`Discover` took the cursor into that band, and the panel then drew the bands
+around it. **Two clicks of one cell inside 400 milliseconds** said
+`Loading the media...`, which is the work of the key `Enter` of that cell.
+**The key `Esc` stopped the program after every one of those reports**,
+therefore `crossterm` read each of them whole and it made no key of their
+bytes (T-316).
+
+**The changes.** `src/ui/the_panel_of_the_bands.rs` takes the fields
+`the_rows` and `the_first_cell` of `ABandOfTheScreen`, the two functions
+`TheBandsOfThePanel::the_band_of_a_point` and
+`TheBandsOfThePanel::the_title_of_a_point`, and the argument `the_offsets` of
+`plan_the_bands`. `src/ui/the_mouse.rs` takes `THE_TIME_OF_TWO_CLICKS` of 400
+milliseconds and `the_two_clicks_of_a_cell`. `src/app.rs` takes the fields
+`the_offsets_of_the_bands` and `the_click_of_a_cell_before`, the functions
+`the_offset_of_a_band`, `the_offset_of_a_band_goes_to`, `the_click_of_a_band`,
+`the_work_of_the_key_that_plays_or_opens`, and `the_wheel_over_a_band`, and the
+two arms of `handle_the_mouse` of the target `TheListOfTheView` read the plan
+of the last frame while the bands stand. `src/ui/tui.rs` gives the offsets of
+the state to `plan_the_bands`, and it writes the offsets that the frame drew
+back into that state.
+
+**The four decisions of this round.**
+
+- **The target of a report stays `TheTarget::TheListOfTheView`, and `App` reads
+  the plan of the last frame.** The spec names a new target
+  `TheTarget::TheBandOfAShelf { the_band }`; `TheAreasOfTheMouse` is a `Copy`
+  struct of rectangles that every frame writes, and the bands of a frame are a
+  `Vec` of a name, a count, and the cells of it, which lives in
+  `App::the_bands_of_the_last_frame` since T-336. **That is the road of the
+  panel 6 of the gallery** (T-327): the target says `ThePanelOfTheGallery` with
+  no cell, and `App::the_line_of_a_cell_of_the_gallery` reads the grid. The
+  panel 4 of the bands is the panel 4 of the list, and the bands are a shape of
+  the render (the decision 1 of the design).
+- **The offset of a band lives in `App::the_offsets_of_the_bands`, and the band
+  of the cursor moves by the least that keeps the cursor on the screen.** The
+  round 2 read the cursor alone and every band of the cursor therefore ended at
+  it; a band that always ends at the cursor moves at every key `h` of the user,
+  and the covers under the pointer then change for no reason of their own. **A
+  band of an offset that stands after its last cells goes back to them**,
+  therefore an answer of the server that a refresh made shorter gives no band
+  of empty cells.
+- **The wheel over a band moves that band, and the cursor keeps the screen.**
+  The wheel of a panel does the work of the keys of that panel, and the keys of
+  a band are `h` and `l`; a cursor that the band left behind would stand on no
+  cell of the screen, therefore it takes the cell of the edge.
+- **The two clicks of one cell name one cell and 400 milliseconds.** A terminal
+  sends no report of two clicks: the report SGR of the mode 1006 says the
+  button, the column, and the row of one press. A user who clicks one cover and
+  then another one asked for the two covers, therefore the two clicks hold one
+  line of the flat list. **A third click starts a first click again**, so that
+  a user who clicks three times plays the media one time.
+
+**The build of the fault**, of four corrections removed one at a time:
+
+| The rule removed | The test that failed |
+|---|---|
+| The click of a cell of a band | `the click of the fourth cell gives the line of that cell` |
+| The wheel over a band | `the step of the wheel moves the band under the pointer by one cell` |
+| The two clicks of one cell | `the two clicks of one cell do the work of the key Enter` |
+| The offset of the state in `plan_the_bands` | `the_offset_of_the_state_gives_the_cells_of_a_band`, and the test of the mouse |
+
+**The tests**: `tests/the_mouse_of_the_bands_of_the_home_view.rs` (new, of one
+function), the two unit tests
+`ui::the_panel_of_the_bands::tests::the_offset_of_the_state_gives_the_cells_of_a_band`
+and `a_point_of_the_screen_names_its_band_and_its_title`, and the unit test
+`ui::the_mouse::tests::two_clicks_of_one_cell_hold_one_line_and_one_time`.
+
+**The gates**: `cargo clippy --all-targets -- -D warnings` and
+`cargo fmt --check` clean; `cargo nextest run` gave **1558 of 1558** in 3.1
+seconds (1554 before this round); `cargo test -j 16 --no-fail-fast` passed two
+times; and `cargo nextest run --run-ignored all` gave **1584 of 1584** with the
+sandbox up, in 60 seconds.
+
+**The release**: v0.8.169.
+
+**What the round 3 leaves open**: the drag of the mouse over a band, which the
+spec keeps outside and which stands with the drag of the bar of the player
+(T-322). **The next round of the road is the round 4**: the covers, and the
+limit of the new requests of one frame.
