@@ -4,9 +4,9 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.8.166.** The item T-330.5 belongs to this
+**The newest release is v0.8.167.** The item T-333 belongs to this
 session. The
-items T-330.5 and T-330.5 belong to the two sessions before it. The
+items T-330.5, T-330.5, and T-330.5 belong to the three sessions before it. The
 item T-330.4 belongs to the session before them. The
 items T-330.3 and T-332 belong to the session before it. The
 item T-330.2 belongs to the session before it. The
@@ -12201,7 +12201,7 @@ the maintainer gave it after that road finished its eight stages.
 | T-330.2 | The filters lose the empty words: `No filter`, `Finished`, `Started, not finished`, `Not started` — **done, v0.8.161** | `sort_filter::PROGRESS` of `src/logic/sort_filter.rs` |
 | T-330.3 | The picture of the panel 5 takes every row that the facts and the description leave — **done, v0.8.162** | `the_parts_of_the_panel` of `src/ui/the_panel_of_the_cover.rs` |
 | T-330.4 | The cell of the gallery holds the picture and its border alone — **done, v0.8.163** | `src/ui/the_panel_of_the_gallery.rs` and `render_the_gallery` of `src/ui/tui.rs` |
-| T-330.5 | The Chapters view of the two bars, of the table of the times, and of the click of a row — **done, v0.8.164, v0.8.165, and v0.8.166** | `docs/mockups/mockup-7.txt` and `mockup-7.md`, `src/logic/chapters.rs`, `src/ui/the_bars_of_the_chapters.rs`, `src/ui/the_list_of_a_view.rs`, and `src/ui/the_mouse.rs` |
+| T-330.5 | The Chapters view of the two bars, of the table of the times, of the click of a row, and of the click of the bar of the book — **done, v0.8.164 to v0.8.167** (the last one is T-333) | `docs/mockups/mockup-7.txt` and `mockup-7.md`, `src/logic/chapters.rs`, `src/ui/the_bars_of_the_chapters.rs`, `src/ui/the_list_of_a_view.rs`, and `src/ui/the_mouse.rs` |
 | T-331 | The Home view of the bands of covers, one band for each shelf of the server | `docs/mockups/mockup-6.txt` and `mockup-6.md` |
 
 **The five parts of T-330 come in that sequence**, because the words are small
@@ -12212,11 +12212,10 @@ v0.8.163**. **That part 5 is the large one of the five**, and it holds three
 rounds, and **the three of them are done**: the two bars (v0.8.164), the table
 of the times (v0.8.165), and the click of a row that plays that chapter
 (v0.8.166). **The five parts of T-330 are therefore finished**, and T-331 is
-the work of this report that stays. **One line of the map of the mouse of
-`mockup-7.md` stays open**: a click on the bar of the book moves the media to
-that place, and the two bars of that view stand in no area of
-`TheAreasOfTheMouse` at all — that line is a candidate and not an item until a
-round measures it.
+the work of this report that stays. **The map of the mouse of `mockup-7.md` is
+finished too**: the last line of it, a click on the bar of the book that moves
+the media to that place, is **T-333, v0.8.167**, and the two bars of that view
+now stand in `TheAreasOfTheMouse`.
 
 **T-331 starts at a spec** in `docs/superpowers/specs/` and not at code: it
 changes the meaning of the keys `h` and `l` of a view, it takes the table of
@@ -23649,13 +23648,90 @@ a module of `src/ui/` of its own, and the gate calls it with a `Buffer` and no
 **The next round takes the table of the times of `docs/mockups/mockup-7.txt`**:
 the columns `Start` and `Length` of each row of the list of the chapters.
 
+### The turn of the hundred and sixty-fifth: the table of the times of the Chapters view (T-330.5)
+
+**The session of the hundred and sixty-fifth turn took the table of the times
+of the part 5 of the second report of the maintainer** (T-330.5, v0.8.165).
+**The part 5 holds three rounds**: the two bars (v0.8.164), the table of the
+times, and the key `Enter` of a chapter. **This round took the second of
+them**, and the next round takes the key `Enter` of a chapter and the click
+of a row, which play that chapter.
+
+**The fault.** Each row of the list of the chapters held the number, the
+title, and the start of the chapter in parentheses, **and no length at all**,
+and no row of a header named the values. **The start stood in no column of
+the panel**: the parentheses came after the title, therefore a long title
+took the time of that row far to the right and the user could not read the
+times of two rows together.
+
+**The data of this part is the program itself and the sandbox as it stands**:
+no proxy, no book of a harness, and no change of a media. The account takes
+the library `Books` with a `sqlite3` of `name_selected_lib` and of
+`id_selected_lib` (the trap 203 and the trap 204), and the library of the
+start comes back at the end (the trap 198).
+
+**The real program v0.8.164 inside tmux**, of 160 columns and 45 rows, with
+"A Second Book Of Many Hours" and its 70 chapters at about 2:45:35 of its
+eight hours:
+
+```text
+    1. Chapter 1 of the second book  (00:00)
+    2. Chapter 2 of the second book  (04:02)
+    3. Chapter 3 of the second book  (08:34)
+```
+
+**The corrected program of the same harness**:
+
+```text
+     #  Title                                    Start  Length
+     1  Chapter 1 of the second book             00:00   4m02s
+     2  Chapter 2 of the second book             04:02   4m32s
+    11  Chapter 11 of the second book          1:02:50   9m02s
+➤ ▶ 25  Chapter 25 of the second book          2:40:59   4m41s
+```
+
+**The controls of the same run.** At 80 columns, "A Book Of Many Hours" of
+three chapters of about 2h46m each gave `2:46:40` in the column `Start` and
+`2h46m` in the column `Length`, and the first chapter gave `00:00`
+right-aligned under the seven columns of the widest start; the key `G` moved
+the cursor to the chapter 3 and **the row of the header stayed** over the
+list; **a click of the row 8 of the screen, which is the first row under the
+header, gave the chapter 1 and not the chapter 2**, therefore the row of the
+header takes one row of the panel and the map of the mouse reads the rows
+that stay; at 40 columns **the table did not stand and the line of today came
+back**, with no row of a header at all; and "A Book That Ends Before Its
+Length", of no chapter, kept the two bars and no header.
+
+**The correction is four files.** `src/logic/chapters.rs` takes
+`the_length_of_a_chapter`, `TheColumnsOfTheChapters`,
+`the_columns_of_the_table`, and `the_header_of_the_table`, and `lines` takes
+the width of a row; `src/ui/the_list_of_a_view.rs` takes the field
+`the_header_of_the_columns` of `TheContentOfAPanel` and the function
+`render_the_list_with_a_header`, therefore **a view whose rows are not a
+media holds a row of a header too**; `src/ui/tui.rs` gives `render_chapters`
+the width of a line of the list and that render;
+`tests/the_table_of_the_panel_4_holds_its_columns.rs` takes the new field.
+
+**The gate is `tests/the_chapters_view_holds_the_table_of_the_times.rs`, of
+12 tests.** Eleven of them are pure, and the twelfth draws the list with its
+header into a `Buffer`, because **a gate of the pure function alone says
+nothing of the render** (the shape of T-256). **The build of the fault** (the
+trap 147), of four edits of one line each that keep every other line, made
+**nine** of the 12 tests fail.
+
+**The trap of this part.** **`format!` with a width counts the characters of
+a text and not the columns of the screen** (the trap 245), therefore a title
+of a chapter that holds a letter of two columns moves every column of the row
+after it. `crate::logic::message::the_columns_of` with a pad of spaces is the
+road, and one test of the gate holds it with a title of `あああ`.
+
 
 ## The prompt for the next session
 
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.166**; `Cargo.toml` is at 0.8.166. The
+> AlbanDAVID/Toutui. Newest release **v0.8.167**; `Cargo.toml` is at 0.8.167. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -24327,8 +24403,19 @@ the columns `Start` and `Length` of each row of the list of the chapters.
 > that fails then leaves the file of the start, and `git restore
 > docs/HANDOVER.md` is the road back. The removal of
 > `target/debug/incremental` alone gives the room back and it keeps every
-> artefact of the dependencies, and `CARGO_INCREMENTAL=0` keeps it away. **Do not
-> run `cargo clean`**: the rebuild of the dependencies costs more than the room.
+> artefact of the dependencies, and `CARGO_INCREMENTAL=0` keeps it away.
+> **The maintainer asked on 2026-08-17 for a `cargo clean` at the end of each
+> session**, and that is the rule now: the **last** command of a round, after
+> the commit, after the tag, and after the push, is
+> `nice -n 19 ionice -c 3 cargo clean`. **It costs the next round a cold build
+> of the dependencies**, which the measurement of T-64 gives at about 21
+> seconds for `cargo test --no-run -j 16`, and the round of 2026-08-17 measured
+> the same command of a clean tree; the rounds before this one kept the
+> artefacts for that reason. **The rule stands over that cost**, because a disk
+> that fills gives a gate that fails with `linking with \`cc\` failed`, which
+> reads like a fault of the source. **A round must not run `cargo clean` in its
+> middle**, and it must not run it before its gates: the room that it gives
+> belongs to the round after this one.
 > **The round of the hundred and thirty-eighth met it with an empty
 > `target/debug/incremental`** (the trap 244): `target/debug/deps` held 28201
 > files, and **709 of them were the binary `toutui` of an old hash** of 141
@@ -24477,6 +24564,9 @@ the columns `Start` and `Length` of each row of the list of the chapters.
 > Baseline: **1457 tests in 3.1 seconds**, and `cargo nextest run --run-ignored
 > all` gives **1483 of 1483** with the sandbox up, in about 18 seconds. **Run that
 > second command at the end of the session too**: it found T-132 and T-111.
+> **And `cargo clean` is the last command of the round**, after the push: the
+> maintainer asked for it on 2026-08-17, and the paragraph of the disk above
+> holds the rule and its cost.
 >
 > **A box of the process needs one test function.** Two test functions of one
 > module fight for the slot of that module, and `cargo test` found such a fault
@@ -24597,10 +24687,10 @@ the columns `Start` and `Length` of each row of the list of the chapters.
 >    done** (v0.8.160 to v0.8.163), and **the part 5 is done too**: the two
 >    bars (v0.8.164), the table of the times (v0.8.165), and the click of a
 >    row that plays that chapter (v0.8.166). **The five parts of T-330 are
->    finished, and T-331 is the work of this report that stays.** One line of
->    the map of the mouse of `mockup-7.md` stays open: a click on the bar of
->    the book moves the media to that place, and the two bars stand in no area
->    of `TheAreasOfTheMouse` at all — **a candidate and not an item.**
+>    finished, and the map of the mouse of `mockup-7.md` is finished
+>    with them** (T-333, v0.8.167: a click on the bar of the book moves the
+>    media to that place). **T-331 is therefore the one work of this report
+>    that stays.**
 >    T-331 is the new Home view
 >    of the bands of covers of `docs/mockups/mockup-6.txt`, **and it starts at
 >    a spec in `docs/superpowers/specs/` and not at code**. **The mockups of
@@ -24648,6 +24738,75 @@ the columns `Start` and `Length` of each row of the list of the chapters.
 > 1. **A condition of the program that no measurement has reached.** A sweep of
 >    this shape found a fault in one hundred and eleven sessions of one hundred
 >    and twelve.
+>
+> **The session of the hundred and sixty-seventh turn took the last line of the
+> map of the mouse of `docs/mockups/mockup-7.md`** (T-333, v0.8.167). **That map
+> holds three lines**: a click on a row, the wheel over the table, and a click on
+> the bar of the book. The round of T-330.5 took the first two, and it left the
+> third one as a candidate. **This round measured it, and the map of the mouse of
+> the Chapters view is therefore finished, and T-330 with it.**
+>
+> **The fault.** **The two bars of the Chapters view stood in no area of
+> `TheAreasOfTheMouse` at all**, therefore `the_target_of_a_point` gave
+> `TheTarget::Nothing` for every cell of them.
+>
+> **The data of this round is the program itself and the sandbox as it stands**:
+> no proxy, no book of a harness, and no change of a media. The account takes the
+> library `Books` with a `sqlite3` of `name_selected_lib` and of
+> `id_selected_lib` (the trap 203 and the trap 204), and the library of the start
+> comes back at the end (the trap 198).
+>
+> **The real program v0.8.166 inside tmux**, of 160 columns and 45 rows, with "A
+> Second Book Of Many Hours" and its 70 chapters. The bar of the book stands on
+> the row 3 of the screen, and its cells stand from the column 8 to the column
+> 154. A click of the column 40 of that row, with the playback at 3:19:53, said
+> nothing at all and it moved the media nowhere: the playback went on to 3:21:22
+> with the time of the machine alone.
+>
+> **The corrected program of the same harness**, with the playback in pause at
+> 5:13:34 of its eight hours. The column 40 gave 1:44:30, the column 154 gave
+> 7:56:45, the column 8 gave 0:00, and the column 100 gave 5:00:25 with the
+> message `The playback goes to 5:00:25.`:
+>
+> ```text
+>  Book  ████████████████████████████████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░  21%
+>  Ch 46 ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░   0%
+> ```
+>
+> **The controls of the same run.** A click of the column 3 of the row 3, which
+> is the name `Book` of the bar, moved the media nowhere, and a click of the
+> column 40 of the row 4, which is the bar of the chapter, moved it nowhere
+> either.
+>
+> **The correction is four files.** `src/ui/the_mouse.rs` takes the field
+> `the_bar_of_the_book` and the variant `TheTarget::TheBarOfTheBook`, and
+> `the_target_of_a_point` reads that area with `the_second_of_a_column`, which is
+> the arithmetic of the bar of the seek of the band (T-322);
+> `src/ui/the_bars_of_the_chapters.rs` takes `the_area_of_the_bar_of_the_book`,
+> and `render` gives the area of the cells of the first bar back;
+> `src/ui/tui.rs` takes that area away before the view of **every** frame draws,
+> and `render_chapters` writes it again; `src/app.rs` gives the new variant the
+> arm of the bar of the seek, for the click and for the wheel.
+>
+> **The gate is `tests/the_click_of_the_bar_of_the_book_moves_the_media.rs`, of 8
+> tests.** Seven of them are pure, and the eighth draws the two bars into a
+> `Buffer` and it reads the columns that hold a cell of a bar, because **a gate
+> of the arithmetic alone says nothing of the render** (the shape of T-256).
+> **The build of the fault** (the trap 147), of five edits of one line each that
+> keep every other line, made **3** of the 8 tests fail.
+>
+> **The trap of this part.** **An area of the mouse that no frame takes away is
+> an area of the frame before it**: the Chapters view is the one view that draws
+> this bar, therefore the road back of the area belongs to the render of the
+> frame itself, above the `match self.view_state`, and not to the view. One test
+> of the gate reads that sequence of the source.
+>
+> **The maintainer asked on 2026-08-17 for a `cargo clean` at the end of each
+> session**, and the paragraph of the disk of this block holds that rule now: it
+> is the last command of a round, after the commit, the tag, and the push. **It
+> takes the road of the trap 150 and of the trap 244 away**, and it costs the
+> round after it a cold build of the dependencies, which T-64 measures at about
+> 21 seconds for `cargo test --no-run -j 16`.
 >
 > **The session of the hundred and sixty-sixth turn took the click of a row of
 > the part 5 of the second report of the maintainer** (T-330.5, v0.8.166). **The
@@ -24733,80 +24892,6 @@ the columns `Start` and `Length` of each row of the list of the chapters.
 > in no area of `TheAreasOfTheMouse` at all**, therefore that line is a round of
 > its own, and it is a candidate and not an item until a round measures it.
 >
-> **The session of the hundred and sixty-fifth turn took the table of the times
-> of the part 5 of the second report of the maintainer** (T-330.5, v0.8.165).
-> **The part 5 holds three rounds**: the two bars (v0.8.164), the table of the
-> times, and the key `Enter` of a chapter. **This round took the second of
-> them**, and the next round takes the key `Enter` of a chapter and the click
-> of a row, which play that chapter.
->
-> **The fault.** Each row of the list of the chapters held the number, the
-> title, and the start of the chapter in parentheses, **and no length at all**,
-> and no row of a header named the values. **The start stood in no column of
-> the panel**: the parentheses came after the title, therefore a long title
-> took the time of that row far to the right and the user could not read the
-> times of two rows together.
->
-> **The data of this part is the program itself and the sandbox as it stands**:
-> no proxy, no book of a harness, and no change of a media. The account takes
-> the library `Books` with a `sqlite3` of `name_selected_lib` and of
-> `id_selected_lib` (the trap 203 and the trap 204), and the library of the
-> start comes back at the end (the trap 198).
->
-> **The real program v0.8.164 inside tmux**, of 160 columns and 45 rows, with
-> "A Second Book Of Many Hours" and its 70 chapters at about 2:45:35 of its
-> eight hours:
->
-> ```text
->     1. Chapter 1 of the second book  (00:00)
->     2. Chapter 2 of the second book  (04:02)
->     3. Chapter 3 of the second book  (08:34)
-> ```
->
-> **The corrected program of the same harness**:
->
-> ```text
->      #  Title                                    Start  Length
->      1  Chapter 1 of the second book             00:00   4m02s
->      2  Chapter 2 of the second book             04:02   4m32s
->     11  Chapter 11 of the second book          1:02:50   9m02s
-> ➤ ▶ 25  Chapter 25 of the second book          2:40:59   4m41s
-> ```
->
-> **The controls of the same run.** At 80 columns, "A Book Of Many Hours" of
-> three chapters of about 2h46m each gave `2:46:40` in the column `Start` and
-> `2h46m` in the column `Length`, and the first chapter gave `00:00`
-> right-aligned under the seven columns of the widest start; the key `G` moved
-> the cursor to the chapter 3 and **the row of the header stayed** over the
-> list; **a click of the row 8 of the screen, which is the first row under the
-> header, gave the chapter 1 and not the chapter 2**, therefore the row of the
-> header takes one row of the panel and the map of the mouse reads the rows
-> that stay; at 40 columns **the table did not stand and the line of today came
-> back**, with no row of a header at all; and "A Book That Ends Before Its
-> Length", of no chapter, kept the two bars and no header.
->
-> **The correction is four files.** `src/logic/chapters.rs` takes
-> `the_length_of_a_chapter`, `TheColumnsOfTheChapters`,
-> `the_columns_of_the_table`, and `the_header_of_the_table`, and `lines` takes
-> the width of a row; `src/ui/the_list_of_a_view.rs` takes the field
-> `the_header_of_the_columns` of `TheContentOfAPanel` and the function
-> `render_the_list_with_a_header`, therefore **a view whose rows are not a
-> media holds a row of a header too**; `src/ui/tui.rs` gives `render_chapters`
-> the width of a line of the list and that render;
-> `tests/the_table_of_the_panel_4_holds_its_columns.rs` takes the new field.
->
-> **The gate is `tests/the_chapters_view_holds_the_table_of_the_times.rs`, of
-> 12 tests.** Eleven of them are pure, and the twelfth draws the list with its
-> header into a `Buffer`, because **a gate of the pure function alone says
-> nothing of the render** (the shape of T-256). **The build of the fault** (the
-> trap 147), of four edits of one line each that keep every other line, made
-> **nine** of the 12 tests fail.
->
-> **The trap of this part.** **`format!` with a width counts the characters of
-> a text and not the columns of the screen** (the trap 245), therefore a title
-> of a chapter that holds a letter of two columns moves every column of the row
-> after it. `crate::logic::message::the_columns_of` with a pad of spaces is the
-> road, and one test of the gate holds it with a title of `あああ`.
 >    **The turns before this one stand in `## The turns before the three
 >    newest ones` of this file**, above the heading of this prompt. **This item
 >    held three turns, and the block then stood above its limit of size**
@@ -24936,6 +25021,18 @@ the columns `Start` and `Length` of each row of the list of the chapters.
 > of that view gives the line of the user itself and not a copy of it**,
 > because ratatui writes the offset of the list into the state while it draws
 > it and the map of the mouse reads that offset after the render (T-330.5).
+> **A click of the bar of the book of the Chapters view moves the media to
+> that place**, because that bar is the bar of the seek of the view: it takes
+> the arithmetic and the words of the bar of the band of the player, therefore
+> the wheel over it moves the media by ten seconds too; **the bar of the
+> chapter under it takes no click at all**, because a bar of a chapter of two
+> minutes gives one cell of the screen to about a second of the media, which
+> is a control that no user can aim at; **the area of that bar goes away
+> before the view of every frame draws**, because the Chapters view is the one
+> view that draws it and the areas of the mouse are the areas of the last
+> frame; and **the click moves the cursor of the list nowhere**, because the
+> mark of the row of the chapter that plays follows the playback by itself
+> (T-333).
 > **The words of the sequence and of the filter of the status bar keep the
 > middle of the row while the middle is free**, therefore every screen that
 > stood before T-329 stands in the same shape; **they stand beside the part at
@@ -25083,7 +25180,8 @@ the columns `Start` and `Length` of each row of the list of the chapters.
 > then held about **87200** bytes with **two** turns in it; the round of the
 > hundred and sixty-sixth found it at 88440 bytes with two turns in it, and it
 > did the same work, and the block then held about **88700** bytes with **two**
-> turns in it.
+> turns in it; the round of the hundred and sixty-seventh found it at 88710
+> bytes with two turns in it, and it did the same work.
 > **A block that stands at 80000 bytes or under holds two
 > turns**, and the turn of the stage before this one names the parts of that
 > stage which stay open. **The list of the decisions
