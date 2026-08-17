@@ -41,6 +41,27 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.191",
+        date: "17/08/2026",
+        body: &[
+            "Fixed:",
+            "- **Six more views with no line name no key of a line.** The \
+             bookmarks of a media that holds no bookmark said `j/k: move  l: go \
+             to the place  X: remove the bookmark`, the view that puts a media \
+             in a list said `j/k: move  l: put it here` for a library with no \
+             collection and no playlist, and the view of the downloads of the \
+             server said `j/k: move  X: empty the queue of this podcast` for an \
+             empty queue. The view of the devices of an e-reader, the view of \
+             the ebooks of a media, and the view of a new podcast each said the \
+             same. Those six views now name the keys that they hold, for \
+             example `h: back  ?: every key  Q: quit` for the bookmarks and `c: \
+             a collection  p: a playlist  h: back  ?: every key  Q: quit` for \
+             the view that puts a media in a list, because the keys `c` and `p` \
+             make the first list of a library. A view of one line or more keeps \
+             every key that it held before.",
+        ],
+    },
+    Entry {
         version: "0.8.190",
         date: "17/08/2026",
         body: &[

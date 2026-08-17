@@ -1838,7 +1838,15 @@ impl App {
     fn render_put_in_a_list(&mut self, area: Rect, buf: &mut Buffer) {
         // **The footer stands on the rows that it needs** (T-302): the
         // number of its rows is the number that the wrap of its text needs.
-        let text_render_footer = crate::ui::keys::FOOTER_OF_THE_LISTS_THAT_TAKE_A_MEDIA;
+        // **The footer of a view with no line names no key of a line** (T-360),
+        // therefore the number of the lists of this view stands before the text
+        // of the footer. The keys `c` and `p` make a list, and they need no
+        // line: they stay.
+        let text_render_footer = crate::ui::keys::the_footer_of_a_list(
+            crate::ui::keys::FOOTER_OF_THE_LISTS_THAT_TAKE_A_MEDIA,
+            self.lists.len(),
+        );
+        let text_render_footer = text_render_footer.as_str();
         let rows_of_the_footer = self.the_rows_of_the_footer(text_render_footer, area);
 
         let [header_area, work_area, footer_area] =
@@ -1905,25 +1913,6 @@ impl App {
     fn render_the_devices_of_an_ereader(&mut self, area: Rect, buf: &mut Buffer) {
         // **The footer stands on the rows that it needs** (T-302): the
         // number of its rows is the number that the wrap of its text needs.
-        let text_render_footer = crate::ui::keys::FOOTER_OF_THE_DEVICES_OF_AN_EREADER;
-        let rows_of_the_footer = self.the_rows_of_the_footer(text_render_footer, area);
-
-        let [header_area, work_area, footer_area] =
-            self.the_areas_of_this_view(area, rows_of_the_footer);
-
-        // **The list of a view goes away last** (T-342 and T-344): the panel
-        // of the item takes no row that the list needs for its border and one
-        // line.
-        let [main_area, item_area] = Layout::vertical([
-            Constraint::Fill(1),
-            Constraint::Length(the_rows_of_the_panel_of_the_item(
-                work_area.height,
-                4,
-                self.the_smallest_work_of_the_view(),
-            )),
-        ])
-        .areas(work_area);
-
         let book = self
             .the_book_of_the_send
             .as_ref()
@@ -1964,6 +1953,32 @@ impl App {
             ),
         };
 
+        // **The footer of a view with no line names no key of a line** (T-360),
+        // therefore the number of the lines of this view stands before the text
+        // of the footer: the key `l` sends the book of no device.
+        let text_render_footer = crate::ui::keys::the_footer_of_a_list(
+            crate::ui::keys::FOOTER_OF_THE_DEVICES_OF_AN_EREADER,
+            lines.len(),
+        );
+        let text_render_footer = text_render_footer.as_str();
+        let rows_of_the_footer = self.the_rows_of_the_footer(text_render_footer, area);
+
+        let [header_area, work_area, footer_area] =
+            self.the_areas_of_this_view(area, rows_of_the_footer);
+
+        // **The list of a view goes away last** (T-342 and T-344): the panel
+        // of the item takes no row that the list needs for its border and one
+        // line.
+        let [main_area, item_area] = Layout::vertical([
+            Constraint::Fill(1),
+            Constraint::Length(the_rows_of_the_panel_of_the_item(
+                work_area.height,
+                4,
+                self.the_smallest_work_of_the_view(),
+            )),
+        ])
+        .areas(work_area);
+
         self.render_header(header_area, buf);
         App::render_footer(footer_area, buf, text_render_footer);
         self.render_list(
@@ -1993,25 +2008,6 @@ impl App {
 
         // **The footer stands on the rows that it needs** (T-302): the
         // number of its rows is the number that the wrap of its text needs.
-        let text_render_footer = crate::ui::keys::FOOTER_OF_THE_DOWNLOADS;
-        let rows_of_the_footer = self.the_rows_of_the_footer(text_render_footer, area);
-
-        let [header_area, work_area, footer_area] =
-            self.the_areas_of_this_view(area, rows_of_the_footer);
-
-        // **The list of a view goes away last** (T-342 and T-344): the panel
-        // of the item takes no row that the list needs for its border and one
-        // line.
-        let [main_area, item_area] = Layout::vertical([
-            Constraint::Fill(1),
-            Constraint::Length(the_rows_of_the_panel_of_the_item(
-                work_area.height,
-                4,
-                self.the_smallest_work_of_the_view(),
-            )),
-        ])
-        .areas(work_area);
-
         let (title, lines) = match crate::logic::the_downloads::state() {
             crate::logic::the_downloads::State::Ready(all) if all.is_empty() => (
                 "The server downloads no episode. Press E on a podcast to get its new \
@@ -2032,6 +2028,32 @@ impl App {
             ),
             _ => ("The program asks the server…".to_string(), Vec::new()),
         };
+
+        // **The footer of a view with no line names no key of a line** (T-360),
+        // therefore the number of the lines of this view stands before the text
+        // of the footer: the key `X` empties the queue of no podcast.
+        let text_render_footer = crate::ui::keys::the_footer_of_a_list(
+            crate::ui::keys::FOOTER_OF_THE_DOWNLOADS,
+            lines.len(),
+        );
+        let text_render_footer = text_render_footer.as_str();
+        let rows_of_the_footer = self.the_rows_of_the_footer(text_render_footer, area);
+
+        let [header_area, work_area, footer_area] =
+            self.the_areas_of_this_view(area, rows_of_the_footer);
+
+        // **The list of a view goes away last** (T-342 and T-344): the panel
+        // of the item takes no row that the list needs for its border and one
+        // line.
+        let [main_area, item_area] = Layout::vertical([
+            Constraint::Fill(1),
+            Constraint::Length(the_rows_of_the_panel_of_the_item(
+                work_area.height,
+                4,
+                self.the_smallest_work_of_the_view(),
+            )),
+        ])
+        .areas(work_area);
 
         self.render_header(header_area, buf);
         App::render_footer(footer_area, buf, text_render_footer);
@@ -2055,25 +2077,6 @@ impl App {
     fn render_the_ebooks(&mut self, area: Rect, buf: &mut Buffer) {
         // **The footer stands on the rows that it needs** (T-302): the
         // number of its rows is the number that the wrap of its text needs.
-        let text_render_footer = crate::ui::keys::footer_with("read this book", None);
-        let rows_of_the_footer = self.the_rows_of_the_footer(&text_render_footer, area);
-
-        let [header_area, work_area, footer_area] =
-            self.the_areas_of_this_view(area, rows_of_the_footer);
-
-        // **The list of a view goes away last** (T-342 and T-344): the panel
-        // of the item takes no row that the list needs for its border and one
-        // line.
-        let [main_area, item_area] = Layout::vertical([
-            Constraint::Fill(1),
-            Constraint::Length(the_rows_of_the_panel_of_the_item(
-                work_area.height,
-                4,
-                self.the_smallest_work_of_the_view(),
-            )),
-        ])
-        .areas(work_area);
-
         let (title, lines) = match crate::logic::the_ebooks::state() {
             crate::logic::the_ebooks::State::Ready(all) if all.is_empty() => {
                 ("This media has no ebook.".to_string(), Vec::new())
@@ -2091,6 +2094,31 @@ impl App {
             ),
             _ => ("The program asks the server…".to_string(), Vec::new()),
         };
+
+        // **The footer of a view with no line names no key of a line** (T-360),
+        // therefore the number of the lines of this view stands before the text
+        // of the footer: the key `l` reads the book of no line.
+        let text_render_footer = crate::ui::keys::the_footer_of_a_list(
+            &crate::ui::keys::footer_with("read this book", None),
+            lines.len(),
+        );
+        let rows_of_the_footer = self.the_rows_of_the_footer(&text_render_footer, area);
+
+        let [header_area, work_area, footer_area] =
+            self.the_areas_of_this_view(area, rows_of_the_footer);
+
+        // **The list of a view goes away last** (T-342 and T-344): the panel
+        // of the item takes no row that the list needs for its border and one
+        // line.
+        let [main_area, item_area] = Layout::vertical([
+            Constraint::Fill(1),
+            Constraint::Length(the_rows_of_the_panel_of_the_item(
+                work_area.height,
+                4,
+                self.the_smallest_work_of_the_view(),
+            )),
+        ])
+        .areas(work_area);
 
         self.render_header(header_area, buf);
         App::render_footer(footer_area, buf, &text_render_footer);
@@ -2119,25 +2147,6 @@ impl App {
     fn render_new_podcast(&mut self, area: Rect, buf: &mut Buffer) {
         // **The footer stands on the rows that it needs** (T-302): the
         // number of its rows is the number that the wrap of its text needs.
-        let text_render_footer = crate::ui::keys::FOOTER_OF_A_NEW_PODCAST;
-        let rows_of_the_footer = self.the_rows_of_the_footer(text_render_footer, area);
-
-        let [header_area, work_area, footer_area] =
-            self.the_areas_of_this_view(area, rows_of_the_footer);
-
-        // **The list of a view goes away last** (T-342 and T-344): the panel
-        // of the item takes no row that the list needs for its border and one
-        // line.
-        let [main_area, item_area] = Layout::vertical([
-            Constraint::Fill(1),
-            Constraint::Length(the_rows_of_the_panel_of_the_item(
-                work_area.height,
-                4,
-                self.the_smallest_work_of_the_view(),
-            )),
-        ])
-        .areas(work_area);
-
         let state = crate::logic::new_podcast::state();
 
         let (title, lines) = match &state {
@@ -2163,6 +2172,33 @@ impl App {
                 Vec::new(),
             ),
         };
+
+        // **The footer of a view with no line names no key of a line** (T-360),
+        // therefore the number of the lines of this view stands before the text
+        // of the footer. The key `A` writes other words, and it needs no line:
+        // it stays.
+        let text_render_footer = crate::ui::keys::the_footer_of_a_list(
+            crate::ui::keys::FOOTER_OF_A_NEW_PODCAST,
+            lines.len(),
+        );
+        let text_render_footer = text_render_footer.as_str();
+        let rows_of_the_footer = self.the_rows_of_the_footer(text_render_footer, area);
+
+        let [header_area, work_area, footer_area] =
+            self.the_areas_of_this_view(area, rows_of_the_footer);
+
+        // **The list of a view goes away last** (T-342 and T-344): the panel
+        // of the item takes no row that the list needs for its border and one
+        // line.
+        let [main_area, item_area] = Layout::vertical([
+            Constraint::Fill(1),
+            Constraint::Length(the_rows_of_the_panel_of_the_item(
+                work_area.height,
+                4,
+                self.the_smallest_work_of_the_view(),
+            )),
+        ])
+        .areas(work_area);
 
         self.render_header(header_area, buf);
         App::render_footer(footer_area, buf, text_render_footer);
@@ -2199,13 +2235,6 @@ impl App {
     fn render_bookmarks(&mut self, area: Rect, buf: &mut Buffer) {
         // **The footer stands on the rows that it needs** (T-302): the
         // number of its rows is the number that the wrap of its text needs.
-        let text_render_footer =
-            crate::ui::keys::footer_with("go to the place", Some("remove the bookmark"));
-        let rows_of_the_footer = self.the_rows_of_the_footer(&text_render_footer, area);
-
-        let [header_area, main_area, footer_area] =
-            self.the_areas_of_this_view(area, rows_of_the_footer);
-
         // A write and a remove forget the answer. The view then asks the
         // server again, and the new list comes at the frame after it.
         self.take_the_bookmarks_again();
@@ -2245,6 +2274,19 @@ impl App {
                 ("The program asks the server…".to_string(), Vec::new())
             }
         };
+
+        // **The footer of a view with no line names no key of a line** (T-360),
+        // therefore the number of the lines of this view stands before the text
+        // of the footer: the key `l` goes to the place of no line, and the key
+        // `X` removes no bookmark.
+        let text_render_footer = crate::ui::keys::the_footer_of_a_list(
+            &crate::ui::keys::footer_with("go to the place", Some("remove the bookmark")),
+            lines.len(),
+        );
+        let rows_of_the_footer = self.the_rows_of_the_footer(&text_render_footer, area);
+
+        let [header_area, main_area, footer_area] =
+            self.the_areas_of_this_view(area, rows_of_the_footer);
 
         self.render_header(header_area, buf);
         App::render_footer(footer_area, buf, &text_render_footer);

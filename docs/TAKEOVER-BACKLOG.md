@@ -34452,3 +34452,150 @@ T-302), because the wrap of a footer of many parts gives more than one row.
 - Every candidate of the items before this one.
 
 **v0.8.190.**
+
+## T-360 — The footer of six more views with no line names the keys of a line
+
+**The condition.** The real program v0.8.190 inside tmux, at 160 columns and 45
+rows, of the sandbox (`docs/TEST-SERVER.md`). T-359 gave the rule "a footer must
+not promise a key that the view does not hold" (T-143, and T-79 for a key that
+does nothing) to eleven views, and it left the views whose count of the lines
+stands **after** the text of the footer of their render function: the item of
+T-359 names eight of them as a candidate. This item measures three of those
+eight in the real program, and it gives the rule to six.
+
+**The fault, of three views of one run.** The library of the account came of a
+`sqlite3` of `name_selected_lib` and of `id_selected_lib` (the traps 203 and
+204), `is_offline` was `false`, and no request came back with a fault.
+
+The bookmarks of "Large Book 0001" of the library `Large`, a book of no
+bookmark, at the key `V`:
+
+```text
+"Large Book 0001" has no bookmark. Press b while it plays.
+j/k: move  l: go to the place  X: remove the bookmark  h: back  ?: every key  Q: quit
+```
+
+Three of the six parts of that footer named a key of a line, and the view holds
+none.
+
+The lists that take a media, of that same library which holds no collection and
+no playlist (`GET /api/libraries/:id/collections` gave `total: 0`, and the
+playlists of it gave `total: 0`), at the key `m`:
+
+```text
+This library holds no collection and no playlist. Press c or p to make one.
+j/k: move  l: put it here  c: a collection  p: a playlist  h: back  ?: every key  Q: quit
+```
+
+The downloads of the server, of the library `Podcasts` whose queue held no
+episode, at the key `d`:
+
+```text
+The server downloads no episode. Press E on a podcast to get its new episodes.
+j/k: move  X: empty the queue of this podcast  h: back  ?: every key  Q: quit
+```
+
+**The controls of the same run.** A `POST /api/me/item/:id/bookmark` of
+`{"time": 42, "title": "…"}` gave that book one bookmark, and the same key `V`
+then said `The bookmarks of "Large Book 0001" [1 item]` over the footer with
+every key in it. The library `Books`, which holds one collection and one
+playlist, said `Put "A Long Test Book" in a list [2 items]` over
+`j/k: move  l: put it here  c: a collection  p: a playlist  …`. **A view of
+lines holds every one of those keys**, therefore the two roads of one view
+promised the same keys and one of the two could not keep the promise. The
+bookmark of the measurement went away with
+`DELETE /api/me/item/:id/bookmark/42` at the end, and the account took the
+library `Books` again (the trap 198).
+
+**Why.** Each of the six render functions of `src/ui/tui.rs` builds its
+`(title, lines)` **after** the text of its footer: `render_bookmarks` reads
+`crate::logic::bookmarks::state()` at the line 2245 and it writes the footer at
+the line 2234, and `render_the_downloads`, `render_the_ebooks`,
+`render_new_podcast`, and `render_the_devices_of_an_ereader` each hold the same
+sequence. `render_put_in_a_list` holds the count in `self.lists` at the first
+line of the function, and it read it for the title of the panel alone.
+
+**The correction.** The `(title, lines)` of each of the five views of a state
+moves above the text of its footer, and every one of the six views then takes
+`keys::the_footer_of_a_list(<the text of the view>, lines.len())` of T-359. The
+six: the bookmarks, the lists that take a media, the downloads of the server,
+the devices of an e-reader, the ebooks of a media, and a new podcast. The rows
+of the footer come of the corrected text, as the eleven views of T-359 do.
+**The keys that need no line stay**: the key `c` and the key `p` of the view
+that puts a media in a list make the first list of a library, and the key `A` of
+the view of a new podcast writes other words.
+
+**The corrected program of the same harness, of the same screens and of the same
+road:**
+
+```text
+the key V   →  h: back  ?: every key  Q: quit
+the key m   →  c: a collection  p: a playlist  h: back  ?: every key  Q: quit
+the key d   →  h: back  ?: every key  Q: quit
+```
+
+**The controls of the same run stayed as they were**: the bookmarks of one
+bookmark kept `j/k: move  l: go to the place  X: remove the bookmark`, and the
+lists that take a media of the library `Books` kept `j/k: move  l: put it here`.
+
+**The statistics and the sessions take no rule of this item, and that is a
+decision of this round.** The item of T-359 names those two views beside the six
+above, and their footers name `j/k: move` too. Those two views hold **no list at
+all**: `render_stats` and `render_sessions` draw a text of the server, and the
+keys `j` and `k` move the scroll of it. A text that fits the screen takes no
+scroll, therefore a rule of the shape of T-359 would take `j/k: move` out of the
+footer of a view of many lines whose terminal is high enough, and it would put
+it back when the user makes the terminal shorter. **A footer that moves while
+the user reads it is a fault of its own**, therefore those two views keep their
+text, and the road of a scroll that cannot move is the work of a round of its
+own with a rule of its own.
+
+**Three builds of the fault, and each of them fails
+`the_footer_of_a_view_of_a_list_with_no_line` of
+`tests/the_footer_of_a_view_of_a_list_with_no_line.rs`:**
+
+1. `lines.len() + 1` of the call of the bookmarks — the test says "the bookmarks
+   with no line must not name the key of the part `j/k: move`".
+2. `lines.len() + 1` of the call of the downloads — the test says "the downloads
+   of the server with no line must not name the key of the part `j/k: move`".
+3. `self.lists.len() + 1` of the call of the lists that take a media — the test
+   says "the lists that take a media with no line must not name the key of the
+   part `j/k: move`".
+
+That test holds the pure function of T-359 for the four footers of this item
+with no screen at all, and it then renders the **six** views of an `App::new`
+application on a `TestBackend` of 160 columns and 45 rows: an application of
+that shape asked no server for a bookmark, for a device of an e-reader, for a
+queue of the downloads, for an ebook, or for a podcast, therefore the state of
+each of those five is `Nothing`, and the offline mode gives the library no list.
+**The controls of the same run** are the view that puts a media in a list of one
+list, which is a field of the application, and the bookmarks of one bookmark,
+which is a box of `crate::logic::bookmarks` that `keep` writes: a correction
+that took the keys of a line away from every view would fail them. **The test
+reads the whole screen and not one row of it** (the trap 149 and T-302).
+
+**What this item leaves open, and each of them is a candidate and not an item:**
+
+- **The devices of an e-reader, the ebooks of a media, and a new podcast took
+  the correction and no measurement of the real program.** The sandbox holds two
+  devices of an e-reader (`POST /api/authorize` gives
+  `Kobo of the measurement` and `A device of every user`), therefore a
+  measurement of that view with no line needs a server that holds none, or the
+  proxy `docs/harness/a_status_of_one_path.py` of that path for the road of the
+  fault; the view of the ebooks of a media holds a list only for a media of more
+  than one book; and the view of a new podcast comes of a search of the feed of
+  a podcast, which asks the internet. Each of the three is a measurement of a
+  round of its own, and the render of each of them stands in the gate of this
+  item already.
+- **The statistics and the sessions**, of the paragraph of the decision above:
+  the rule of a view that holds a scroll and no list is the work of a round with
+  a rule of its own.
+- **The panel 4 of a view with no line takes the focus of a click and it says no
+  word of its own** of T-356, **the search view of a library with no hit puts
+  its reason in the place of the name** of T-358, **the footer of the panel 5
+  and of the panel 6 of a view with no media of a cell** of T-359, **the rows of
+  the band that does not fit** of T-353, and **the width of the panel 5 of a
+  media with no cover**.
+- Every candidate of the items before this one.
+
+**v0.8.191.**
