@@ -41,6 +41,26 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.164",
+        date: "17/08/2026",
+        body: &[
+            "Added:",
+            "- **The view of the chapters holds two bars over its list.** The \
+             first bar is the whole book, with a mark `│` at each boundary of \
+             a chapter, therefore you see the place of every chapter in the \
+             book. The second bar is the chapter of the cursor, therefore the \
+             keys `j` and `k` say how long each chapter is and where you \
+             stand in it. A chapter that the playback passed says 100%, and a \
+             chapter that it did not reach says 0%.",
+            "- The bar of the book holds no mark for a book of many short \
+             chapters, and none under 40 columns: the marks then stand beside \
+             each other, and they say less than a bar with no mark at all.",
+            "- A media that holds no chapter keeps the two bars, and the \
+             second of them says no number of a chapter. A view with no media \
+             holds no bar.",
+        ],
+    },
+    Entry {
         version: "0.8.163",
         date: "17/08/2026",
         body: &[

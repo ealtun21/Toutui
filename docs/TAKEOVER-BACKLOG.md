@@ -30909,6 +30909,89 @@ in 52 columns, of a book of 3 chapters in 52 columns, and of a book of no
 chapter at all; a test of the row of the table of a chapter of 7m50s at
 1:51:22; and a test of the key `Enter` of the view.
 
+#### The part 5, the two bars, is done, v0.8.164, of the round of the hundred and sixty-fourth turn
+
+**The part 5 holds three rounds, and this is the first of them**: the two bars.
+The table of the times and the key `Enter` of a chapter stay.
+
+**The data of this part is the program itself and one write of the sandbox**: no
+proxy, and no book of a harness. The note of the mockup names a book of 70
+chapters, and the two books of eight hours held three chapters each: the section
+6k of `docs/TEST-SERVER.md` gives "A Second Book Of Many Hours" 70 chapters of
+different lengths, and the book of the section 6i keeps its three, because T-162
+measures the distance between them.
+
+**The measurement of the real program v0.8.163 inside tmux**, of 160 columns and
+45 rows, of the library `Books` of the sandbox, with "A Book Of Many Hours" at
+3:20:00 of its eight hours and the key `C`. **The view held no bar at all**: the
+user read the number, the title, and the start of each chapter, and no place of
+their own inside the book or inside a chapter.
+
+```text
+─────────────The chapters of "A Book Of Many Hours" [3 items]─────────────
+    1. The hours of the start  (00:00)
+➤ ▶ 2. The hours of the middle  (2:46:40)
+    3. The hours of the end  (5:33:20)
+```
+
+**The corrected program of the same harness**: two bars stand over the list, with
+one row of nothing between them and the list.
+
+```text
+ Book ███████████████████████│██████████░░░░░░░░░░░░░░░░│░░░░░░░░░░░░░░░  42%
+ Ch 2 ███████████████████████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░  21%
+```
+
+**The controls of that same run.** The key `k` moved the cursor to the chapter 1,
+which the playback passed, and the bar of the chapter said `100%`; the key `G`
+moved it to the chapter 3, which the playback did not reach, and that bar said
+`0%`. A screen of 40 columns held the two bars with no mark in the bar of the
+book. A media of no chapter ("A Book That Ends Before Its Length") held the two
+bars, and the second of them said `Ch -` and no percent at all.
+
+**The rule of the marks turns.** The note of the mockup drops the marks under 40
+columns, and **a wide bar of many chapters passes that rule**: the book of 70
+chapters gave a bar of 150 cells of
+`█││█││█│█│█│██│█│██│██│█│░││░│░│░`, where the cells of the bar and the marks are
+one noise. The reason of the note is that the marks stand beside each other,
+therefore the bar holds no mark while a chapter of it holds fewer than two cells
+of its own (`THE_CELLS_OF_A_CHAPTER`). The rule of the 40 columns stays beside
+it.
+
+**The fault that the measurement of the corrected program found.** The key `Y`
+stopped the playback, and the engine keeps the length and the place of the media
+that played last: the two bars of that media then stood over the words `No media
+plays now.` **A playback that stopped gives no bar at all** (T-91), which is the
+rule that `the_header_of_the_view` holds already.
+
+**The decisions of this round.**
+- **A media of no chapter keeps the row of the second bar**, which is the rule of
+  the note, and that row says `Ch -` and no percent: the shape of the view does
+  not change with the media, and the view says no number that the program does
+  not have (T-91).
+- **The bar of the chapter is the chapter of the cursor**, and the place of the
+  user is clamped inside it: a chapter that the playback passed is whole, and a
+  chapter that it did not reach holds nothing.
+- **The rule of the 40 columns reads the width of the bar and not the width of
+  the screen**: the bar is the thing that the marks make unreadable.
+- **A row of fewer than eight cells of a bar holds no bar at all**
+  (`THE_SMALLEST_BAR`), and the list then takes every row of the view.
+
+**The correction is four files.** `src/logic/chapters.rs` takes the pure
+functions `the_bar_of_the_book`, `the_place_in_the_chapter_of_the_cursor`,
+`the_bars_of_the_view`, and `the_columns_of_the_name`;
+`src/ui/the_bars_of_the_chapters.rs` is new, and it holds the render;
+`src/ui/tui.rs` gives the view three rows over its list; and `src/ui/mod.rs`
+names the new module.
+
+**The gate is `tests/the_chapters_view_holds_the_two_bars.rs`, of 11 tests.**
+Ten of them are pure, and the eleventh draws the two bars into a `Buffer`,
+because **a gate of the pure function alone says nothing of the render** (the
+shape of T-256). **The build of the fault** (the trap 147), of four edits of one
+line each that keep every other line — no mark, no rule of the playback that
+stopped, no clamp of the place, and a render that comes back at once — made
+**six** of the 11 tests fail.
+
 ## T-331 — The new Home view of the bands of covers
 
 **The design is `docs/mockups/mockup-6.txt`, and `docs/mockups/mockup-6.md`

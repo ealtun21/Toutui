@@ -1794,6 +1794,27 @@ impl App {
         let state = self.player.state();
         let lines = crate::logic::chapters::lines(&state.chapters, state.position);
 
+        // **The two bars stand over the table** (T-330.5, and the note of
+        // `docs/mockups/mockup-7.md`): the bar of the whole book, with a mark at
+        // each boundary of a chapter, and the bar of the chapter of the cursor
+        // under it. They are a pure function, therefore they take a test with no
+        // screen at all.
+        let the_bars = crate::logic::chapters::the_bars_of_the_view(
+            area.width.saturating_sub(2),
+            &state.chapters,
+            state.position,
+            state.duration,
+            self.list_state_chapters.selected(),
+            state.status == PlaybackStatus::Stopped,
+        );
+
+        // The two bars and one row of nothing under them, or no row at all.
+        let rows_of_the_bars = if the_bars.is_some() { 3 } else { 0 };
+
+        let [bars_area, main_area] =
+            Layout::vertical([Constraint::Length(rows_of_the_bars), Constraint::Fill(1)])
+                .areas(main_area);
+
         // The header holds the three sentences of this view, and it is a pure
         // function of `crate::logic::chapters`: **the two headers of a media
         // name the episode of a podcast** (T-227), and a pure function takes a
@@ -1806,6 +1827,16 @@ impl App {
         );
 
         self.render_header(header_area, buf);
+
+        if let Some(the_bars) = the_bars {
+            crate::ui::the_bars_of_the_chapters::render(
+                bars_area,
+                buf,
+                &the_bars,
+                crate::logic::chapters::the_columns_of_the_name(state.chapters.len()),
+            );
+        }
+
         App::render_footer(footer_area, buf, &text_render_footer);
         self.render_list(
             main_area,

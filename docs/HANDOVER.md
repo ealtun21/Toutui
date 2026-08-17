@@ -181,6 +181,84 @@ test function.
 **Two runs of `cargo nextest run` under the load of 24 loops of a shell
 gave 1200 of 1200 at v0.8.49 too** (T-220).
 
+## The session of the hundred and sixty-fourth turn of 2026-08-17: the two bars of the view of the chapters
+
+**The item: T-330, the part 5, the two bars**, and the release **v0.8.164**.
+
+**The part 5 of the second report of the maintainer is the large one of the
+five**, and it holds three rounds: the two bars, the table of the times, and
+the key `Enter` of a chapter. **This round took the two bars.**
+
+**The fault, of the real program v0.8.163 inside tmux**, of 160 columns and 45
+rows, of the library `Books` of the sandbox, with "A Book Of Many Hours" at
+3:20:00 of its eight hours and the key `C`. The view said the number, the
+title, and the start of each chapter, and **no bar at all**:
+
+```text
+─────────────The chapters of "A Book Of Many Hours" [3 items]─────────────
+    1. The hours of the start  (00:00)
+➤ ▶ 2. The hours of the middle  (2:46:40)
+    3. The hours of the end  (5:33:20)
+```
+
+**The corrected program of the same harness**: two bars stand over the list,
+with one row of nothing between them and it. The bar of the whole book holds a
+mark `│` at each boundary of a chapter, and the bar under it is the chapter of
+the cursor.
+
+```text
+ Book ███████████████████████│██████████░░░░░░░░░░░░░░░░│░░░░░░░░░░░░░░░  42%
+ Ch 2 ███████████████████████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░  21%
+```
+
+**The controls of the same run.** The key `k` gave the chapter 1, which the
+playback passed, and its bar said `100%`; the key `G` gave the chapter 3,
+which it did not reach, and that bar said `0%`. A screen of 40 columns held
+the two bars with no mark in the bar of the book. "A Book That Ends Before Its
+Length", of no chapter at all, held the two bars, and the second of them said
+`Ch -` and no percent.
+
+**The data of this part is the program itself and one write of the sandbox.**
+The note of the mockup names a book of 70 chapters, and the two books of eight
+hours held three chapters each: **the section 6k of `docs/TEST-SERVER.md`
+gives "A Second Book Of Many Hours" 70 chapters of different lengths**, and
+the book of the section 6i keeps its three, because T-162 measures the
+distance between them.
+
+**The rule of the marks turns.** The note of the mockup drops the marks under
+40 columns, and **a wide bar of many chapters passes that rule**: the book of
+70 chapters gave a bar of 150 cells of `█││█││█│█│█│██│█│██│██│█│░││░│░│░`,
+where the cells of the bar and the marks of the boundaries are one noise. The
+reason that the note gives is that the marks stand beside each other,
+therefore **the bar holds no mark while a chapter of it holds fewer than two
+cells of its own**, and the rule of the 40 columns stays beside it.
+
+**The fault that the measurement of the corrected program found.** The key `Y`
+stopped the playback, and the engine keeps the length and the place of the
+media that played last: the two bars of that media then stood over the words
+`No media plays now.` **A playback that stopped gives no bar at all** (T-91),
+which is the rule that `the_header_of_the_view` holds already.
+
+**The correction is four files**: the four pure functions of
+`src/logic/chapters.rs`, the new module `src/ui/the_bars_of_the_chapters.rs`
+of the render, the three rows that `render_chapters` of `src/ui/tui.rs` gives
+over its list, and the name of the new module in `src/ui/mod.rs`.
+
+**The gate is `tests/the_chapters_view_holds_the_two_bars.rs`, of 11 tests.**
+Ten of them are pure, and the eleventh draws the two bars into a `Buffer`:
+**a gate of the pure function alone says nothing of the render** (the shape of
+T-256), and a view of a playback cannot be drawn in a test at all, because the
+state of the chapters comes of the engine. The render therefore stands in a
+module of `src/ui/` of its own. **The build of the fault** (the trap 147), of
+four edits of one line each that keep every other line — no mark, no rule of
+the playback that stopped, no clamp of the place, and a render that comes back
+at once — made **six** of the 11 tests fail.
+
+**The gates**: `cargo clippy --all-targets -- -D warnings` and `cargo fmt
+--check` are clean, `cargo nextest run` gives 1504 of 1504, `cargo nextest run
+--run-ignored all` gives 1530 of 1530 with the sandbox up, and `cargo test -j
+16 --no-fail-fast` gives no failure over three runs.
+
 ## The session of the hundred and sixty-third turn of 2026-08-17: a cell of the gallery holds the picture and its border alone
 
 **The item: T-330, the part 4**, and the release **v0.8.163**.
@@ -250,7 +328,8 @@ row first.
 
 **The next round takes the part 5 of T-330**, the Chapters view of the two
 bars and of the table of the times of `docs/mockups/mockup-7.txt`. **It is the
-large one of the five parts**, and it takes more than one round.
+large one of the five parts**, and it takes three rounds: the two bars, the
+table of the times, and the key `Enter` of a chapter.
 
 ## The session of the hundred and sixty-second turn of 2026-08-17: the picture of the panel 5 takes every free row
 
@@ -11949,16 +12028,18 @@ the maintainer gave it after that road finished its eight stages.
 | T-330.2 | The filters lose the empty words: `No filter`, `Finished`, `Started, not finished`, `Not started` — **done, v0.8.161** | `sort_filter::PROGRESS` of `src/logic/sort_filter.rs` |
 | T-330.3 | The picture of the panel 5 takes every row that the facts and the description leave — **done, v0.8.162** | `the_parts_of_the_panel` of `src/ui/the_panel_of_the_cover.rs` |
 | T-330.4 | The cell of the gallery holds the picture and its border alone — **done, v0.8.163** | `src/ui/the_panel_of_the_gallery.rs` and `render_the_gallery` of `src/ui/tui.rs` |
-| T-330.5 | The Chapters view of the two bars and of the table of the times | `docs/mockups/mockup-7.txt` and `mockup-7.md` |
+| T-330.5 | The Chapters view of the two bars and of the table of the times — **the two bars are done, v0.8.164**; the table of the times and the key `Enter` of a chapter stay | `docs/mockups/mockup-7.txt` and `mockup-7.md`, `src/logic/chapters.rs`, and `src/ui/the_bars_of_the_chapters.rs` |
 | T-331 | The Home view of the bands of covers, one band for each shelf of the server | `docs/mockups/mockup-6.txt` and `mockup-6.md` |
 
 **The five parts of T-330 come in that sequence**, because the words are small
 and safe and the Chapters view is large: **one part is one round and one
 commit, with a gate of its own**. **The part 1 is done, v0.8.160, the part 2 is
 done, v0.8.161, the part 3 is done, v0.8.162, and the part 4 is done,
-v0.8.163**, and the next round takes the part 5, the Chapters view of the two
-bars and of the table of the times of `docs/mockups/mockup-7.txt`. **That part
-is the large one of the five**, and it takes more than one round.
+v0.8.163**. **That part 5 is the large one of the five**, and it holds three
+rounds: **the two bars are done, v0.8.164**, and the next round takes the table
+of the times of `docs/mockups/mockup-7.txt` — the columns `Start` and `Length`
+of each row — and the round after it takes the key `Enter` and the click of a
+row that play that chapter.
 
 **T-331 starts at a spec** in `docs/superpowers/specs/` and not at code: it
 changes the meaning of the keys `h` and `l` of a view, it takes the table of
@@ -14279,6 +14360,89 @@ start needs `ls target/debug/toutui` before every other diagnosis** (with the
     the account started and never played holds `startedAt` and
     `progress: 0`, therefore the line of the day and the line of the place
     are two facts and not one.
+
+### The turn of the hundred and sixty-second: the picture of the panel 5 takes every free row (T-330.3 and T-332)
+
+  **The session of the hundred and sixty-second turn took the part 3 of the
+  second report of the maintainer, and the gate of CI gave it a second item**
+  (T-330.3 and T-332, v0.8.162).
+
+  **The fault of T-330.3.** The panel 5 gave the picture a **share** of its
+  height (`THE_SHARE_OF_THE_COVER` of `src/ui/the_panel_of_the_cover.rs`),
+  therefore a tall panel held a small picture over rows of nothing at all.
+
+  **The data of this part is the program itself**: no proxy, no book of a
+  harness, and no change of the sandbox. The account takes the library `Books`
+  of the sandbox with a `sqlite3` of `name_selected_lib` and of
+  `id_selected_lib` (the trap 203 and the trap 204), and 15 keys `j` of the
+  Library view give `Alice in Wonderland`, which is the media of that library
+  that the server holds with a cover and with a narrator. **The fault needs a
+  tall terminal**: `ROWS_OF_THE_SCREEN=60` of `docs/harness/drive.sh`, because
+  the panel 6 of the gallery takes the rest of the column at 45 rows and the
+  panel 5 then has few free rows to waste.
+
+  **The real program v0.8.161 inside tmux**, of 160 columns and 60 rows. The
+  panel held 27 rows inside its border: the picture took 14 of them, the facts
+  took 8, and the description of **one** line took 5.
+
+  ```text
+  │              ▄▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀              │   the picture: 14 rows
+  │Author    Lewis Carroll                         │   the facts: 8 rows
+  │Progress  0%, Not finished                      │
+  │░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░│
+  │No description available                        │   the description: 5 rows
+  │                                                │   ← four rows of nothing
+  │                                                │
+  │                                                │
+  │                                                │
+  └────────────────────────────────────────────────┘
+  ```
+
+  **The corrected program of the same harness**: the picture takes **18** rows,
+  the description takes 1, and **no row of the panel holds nothing at all**.
+
+  **The control of the same run**, of 160 columns and 45 rows: the panel of 20
+  rows held a picture of 10 rows and a description of 2 rows for a text of one
+  line, and the corrected program holds a picture of 11 rows and a description
+  of 1 row. **The rows of the facts do not move, and the panel 6 of the gallery
+  under it does not move.**
+
+  **The rule turns**: the facts and the description keep the rows that they
+  need, and every row that stays goes to the picture. `THE_SMALLEST_PICTURE`
+  stands in the place of the share, therefore **a description of many lines
+  does not take the picture away** — the keys `J` and `K` move that description
+  already.
+
+  **The trap of this part.** The layout needs the **text** of the description
+  before the render of it, and the eight views of `render_covers` each held a
+  render of their own for that text. `App::the_description_of_the_panel` of
+  `src/ui/tui.rs` names the same source for each of the eight, and the render
+  of each of them stays where it stood.
+
+  **The gate is `tests/the_picture_of_the_panel_takes_every_free_row.rs`, of
+  four tests.** **A test of one panel cannot tell a share of the height from
+  the rule of the free rows**: 55 percent of 20 rows is 11 rows, and the rule
+  of the free rows gives 11 rows of that same panel too. The second test
+  therefore reads 21 heights of one panel, and it holds that the picture grows
+  one row for one row of the panel. **The build of the fault** (the trap 147),
+  of a share of 40 per cent that comes back, made **three** of the four tests
+  fail.
+
+  **T-332, which the gate of CI found.** `cargo test -j 16 --no-fail-fast`
+  failed in this round, and **a worktree of `HEAD` said that it fails at
+  v0.8.161 with no change at all**, five runs of five.
+  `src/logic/the_scroll_of_a_panel.rs` holds the static `THE_LAST_SCROLL`, and
+  **three** test functions of it called `the_panel_of_the_render`, which writes
+  that box: `cargo test` gives each test a thread of one process. `cargo
+  nextest run` of that same tree gave 1490 of 1490, because it gives a process
+  to each test. The three tests become one, and
+  `tests/one_test_function_holds_the_box_of_the_scroll.rs` reads the module and
+  holds that rule for the rounds after this one. **A worktree of `HEAD` with a
+  `CARGO_TARGET_DIR` of its own is the road to a gate of the tree before the
+  round**, and it takes no `git stash` and no `git checkout` of a file.
+
+  **The next round takes the part 5 of T-330**, the Chapters view of the two
+  bars and of the table of the times of `docs/mockups/mockup-7.txt`.
 
 ## The session of the hundred and forty-ninth turn of 2026-08-16: the panels 2 and 3 of the sequence and of the filter, of the block of the prompt
 
@@ -23263,7 +23427,12 @@ that takes every row that the facts and the description leave:
 > hours then hold the queue open (T-161). **A measurement of two lists of
 > chapters needs the three chapters that a session gave the book of eight
 > hours** (the section 6i of `docs/TEST-SERVER.md`), because the queue takes 22
-> seconds to start that book (T-162). **A media that came to its end stays away
+> seconds to start that book (T-162).
+>
+> **A measurement of a bar of many boundaries needs the 70 chapters of
+> "A Second Book Of Many Hours"** (the section 6k of `docs/TEST-SERVER.md`,
+> T-330.5), and the book of the section 6i keeps its three chapters, because
+> T-162 measures the distance between them. **A media that came to its end stays away
 > from the shelf Continue Listening**, therefore a second run of such a
 > measurement needs `PATCH /api/me/progress/:id` with `{"isFinished": false}`
 > first and the place after it (T-163). **The log of the queue says `The queue
@@ -24090,7 +24259,9 @@ that takes every row that the facts and the description leave:
 >    leave; the cell of the gallery holds the picture and its border alone,
 >    with no percentage and no title; and the Chapters view takes the two bars
 >    and the table of `docs/mockups/mockup-7.txt`. **The parts 1 to 4 are
->    done** (v0.8.160 to v0.8.163), and the part 5 stays. T-331 is the new Home view
+>    done** (v0.8.160 to v0.8.163), and **the part 5 holds three rounds**: the
+>    two bars are done (v0.8.164), and the table of the times and the key
+>    `Enter` of a chapter stay. T-331 is the new Home view
 >    of the bands of covers of `docs/mockups/mockup-6.txt`, **and it starts at
 >    a spec in `docs/superpowers/specs/` and not at code**. **The mockups of
 >    the two of them are written already** (`mockup-6` and `mockup-7`, of
@@ -24138,7 +24309,85 @@ that takes every row that the facts and the description leave:
 >    this shape found a fault in one hundred and eleven sessions of one hundred
 >    and twelve.
 >
-> **The session of the hundred and sixty-third turn took the part 4 of the
+> **The session of the hundred and sixty-fourth turn took the two bars of the
+> part 5 of the second report of the maintainer** (T-330.5, v0.8.164). **The
+> part 5 holds three rounds**: the two bars, the table of the times, and the key
+> `Enter` of a chapter. **This round took the first of them**, and the next
+> round takes the table of the times.
+>
+> **The fault.** The view of the chapters said the number, the title, and the
+> start of each chapter, and **no bar at all**: the user read the list, and they
+> saw no place of their own inside the book and none inside a chapter.
+>
+> **The data of this part is the program itself and one write of the sandbox**:
+> no proxy, and no book of a harness. The note of the mockup names a book of 70
+> chapters, and the two books of eight hours held three chapters each: **the
+> section 6k of `docs/TEST-SERVER.md` gives "A Second Book Of Many Hours" 70
+> chapters of different lengths**, and the book of the section 6i keeps its
+> three, because T-162 measures the distance between them. The account takes the
+> library `Books` with a `sqlite3` of `name_selected_lib` and of
+> `id_selected_lib` (the trap 203 and the trap 204), and the library of the
+> start comes back at the end (the trap 198).
+>
+> **The real program v0.8.163 inside tmux**, of 160 columns and 45 rows, with
+> "A Book Of Many Hours" at 3:20:00 of its eight hours and the key `C`:
+>
+> ```text
+> ─────────────The chapters of "A Book Of Many Hours" [3 items]─────────────
+>     1. The hours of the start  (00:00)
+> ➤ ▶ 2. The hours of the middle  (2:46:40)
+>     3. The hours of the end  (5:33:20)
+> ```
+>
+> **The corrected program of the same harness**: two bars stand over the list,
+> with one row of nothing between them and it.
+>
+> ```text
+>  Book ███████████████████████│██████████░░░░░░░░░░░░░░░░│░░░░░░░░░░░░░░░  42%
+>  Ch 2 ███████████████████████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░  21%
+> ```
+>
+> **The controls of the same run**: the key `k` gave the chapter 1, which the
+> playback passed, and its bar said `100%`; the key `G` gave the chapter 3,
+> which it did not reach, and that bar said `0%`; a screen of 40 columns held
+> the two bars with no mark; and "A Book That Ends Before Its Length", of no
+> chapter at all, held the two bars with `Ch -` and no percent.
+>
+> **The rule of the marks turns.** The note of the mockup drops the marks under
+> 40 columns, and **a wide bar of many chapters passes that rule**: the book of
+> 70 chapters gave a bar of 150 cells of `█││█││█│█│█│██│█│██│██│█│░││░│░│░`.
+> The reason of the note is that the marks stand beside each other, therefore
+> **the bar holds no mark while a chapter of it holds fewer than two cells of
+> its own**, and the rule of the 40 columns stays beside it.
+>
+> **The fault that the corrected program found.** The key `Y` stopped the
+> playback, and the engine keeps the length and the place of the media that
+> played last: the two bars of that media then stood over the words `No media
+> plays now.` **A playback that stopped gives no bar at all** (T-91).
+>
+> **The correction is four files.** `src/logic/chapters.rs` takes the four pure
+> functions of the bars; `src/ui/the_bars_of_the_chapters.rs` is new and it
+> holds the render; `src/ui/tui.rs` gives the view three rows over its list; and
+> `src/ui/mod.rs` names the new module.
+>
+> **The gate is `tests/the_chapters_view_holds_the_two_bars.rs`, of 11 tests.**
+> Ten of them are pure, and the eleventh draws the two bars into a `Buffer`,
+> because **a gate of the pure function alone says nothing of the render** (the
+> shape of T-256): a view that makes the two bars and that draws no row of them
+> passes every pure test. **The build of the fault** (the trap 147), of four
+> edits of one line each that keep every other line, made **six** of the 11
+> tests fail.
+>
+> **The trap of this part.** **A render that stands in a private method of `App`
+> reaches no test**, and a view of a playback cannot be drawn in a test at all:
+> the state of the chapters comes of the engine. The render therefore moves into
+> a module of `src/ui/` of its own, and the gate calls it with a `Buffer` and no
+> `App`.
+>
+> **The next round takes the table of the times of `docs/mockups/mockup-7.txt`**:
+> the columns `Start` and `Length` of each row of the list of the chapters.
+>
+>> **The session of the hundred and sixty-third turn took the part 4 of the
 > second report of the maintainer** (T-330.4, v0.8.163): a cell of the panel 6
 > of the gallery holds the picture of the cover and its border, and no word at
 > all.
@@ -24214,87 +24463,6 @@ that takes every row that the facts and the description leave:
 > `position` is the road. **A row of a buffer of the screen is the whole row
 > and not the panel**, therefore a gate of the words of one panel takes the
 > columns of that panel out of the row first.
->
-> **The session of the hundred and sixty-second turn took the part 3 of the
-> second report of the maintainer, and the gate of CI gave it a second item**
-> (T-330.3 and T-332, v0.8.162).
->
-> **The fault of T-330.3.** The panel 5 gave the picture a **share** of its
-> height (`THE_SHARE_OF_THE_COVER` of `src/ui/the_panel_of_the_cover.rs`),
-> therefore a tall panel held a small picture over rows of nothing at all.
->
-> **The data of this part is the program itself**: no proxy, no book of a
-> harness, and no change of the sandbox. The account takes the library `Books`
-> of the sandbox with a `sqlite3` of `name_selected_lib` and of
-> `id_selected_lib` (the trap 203 and the trap 204), and 15 keys `j` of the
-> Library view give `Alice in Wonderland`, which is the media of that library
-> that the server holds with a cover and with a narrator. **The fault needs a
-> tall terminal**: `ROWS_OF_THE_SCREEN=60` of `docs/harness/drive.sh`, because
-> the panel 6 of the gallery takes the rest of the column at 45 rows and the
-> panel 5 then has few free rows to waste.
->
-> **The real program v0.8.161 inside tmux**, of 160 columns and 60 rows. The
-> panel held 27 rows inside its border: the picture took 14 of them, the facts
-> took 8, and the description of **one** line took 5.
->
-> ```text
-> │              ▄▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀              │   the picture: 14 rows
-> │Author    Lewis Carroll                         │   the facts: 8 rows
-> │Progress  0%, Not finished                      │
-> │░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░│
-> │No description available                        │   the description: 5 rows
-> │                                                │   ← four rows of nothing
-> │                                                │
-> │                                                │
-> │                                                │
-> └────────────────────────────────────────────────┘
-> ```
->
-> **The corrected program of the same harness**: the picture takes **18** rows,
-> the description takes 1, and **no row of the panel holds nothing at all**.
->
-> **The control of the same run**, of 160 columns and 45 rows: the panel of 20
-> rows held a picture of 10 rows and a description of 2 rows for a text of one
-> line, and the corrected program holds a picture of 11 rows and a description
-> of 1 row. **The rows of the facts do not move, and the panel 6 of the gallery
-> under it does not move.**
->
-> **The rule turns**: the facts and the description keep the rows that they
-> need, and every row that stays goes to the picture. `THE_SMALLEST_PICTURE`
-> stands in the place of the share, therefore **a description of many lines
-> does not take the picture away** — the keys `J` and `K` move that description
-> already.
->
-> **The trap of this part.** The layout needs the **text** of the description
-> before the render of it, and the eight views of `render_covers` each held a
-> render of their own for that text. `App::the_description_of_the_panel` of
-> `src/ui/tui.rs` names the same source for each of the eight, and the render
-> of each of them stays where it stood.
->
-> **The gate is `tests/the_picture_of_the_panel_takes_every_free_row.rs`, of
-> four tests.** **A test of one panel cannot tell a share of the height from
-> the rule of the free rows**: 55 percent of 20 rows is 11 rows, and the rule
-> of the free rows gives 11 rows of that same panel too. The second test
-> therefore reads 21 heights of one panel, and it holds that the picture grows
-> one row for one row of the panel. **The build of the fault** (the trap 147),
-> of a share of 40 per cent that comes back, made **three** of the four tests
-> fail.
->
-> **T-332, which the gate of CI found.** `cargo test -j 16 --no-fail-fast`
-> failed in this round, and **a worktree of `HEAD` said that it fails at
-> v0.8.161 with no change at all**, five runs of five.
-> `src/logic/the_scroll_of_a_panel.rs` holds the static `THE_LAST_SCROLL`, and
-> **three** test functions of it called `the_panel_of_the_render`, which writes
-> that box: `cargo test` gives each test a thread of one process. `cargo
-> nextest run` of that same tree gave 1490 of 1490, because it gives a process
-> to each test. The three tests become one, and
-> `tests/one_test_function_holds_the_box_of_the_scroll.rs` reads the module and
-> holds that rule for the rounds after this one. **A worktree of `HEAD` with a
-> `CARGO_TARGET_DIR` of its own is the road to a gate of the tree before the
-> round**, and it takes no `git stash` and no `git checkout` of a file.
->
-> **The next round takes the part 5 of T-330**, the Chapters view of the two
-> bars and of the table of the times of `docs/mockups/mockup-7.txt`.
 >
 >    **The turns before this one stand in `## The turns before the three
 >    newest ones` of this file**, above the heading of this prompt. **This item
@@ -24391,6 +24559,17 @@ that takes every row that the facts and the description leave:
 > started takes no line at all**, which is the rule of T-325; and **the line
 > takes no road of T-239 and of T-240**, because a live message of the server
 > names no day of a start (T-328).
+> **The bar of the book of the Chapters view holds no mark while a chapter of
+> it holds fewer than two cells of its own**, because the marks then stand
+> beside each other and the bar and the marks are one noise — the rule of 40
+> columns of `docs/mockups/mockup-7.md` reads the width alone, and a wide bar
+> of many chapters passes it; **the bar of the chapter is the chapter of the
+> cursor and the place of the user is clamped inside it**, therefore a chapter
+> that the playback passed says 100% and a chapter that it did not reach says
+> 0%; **a media of no chapter keeps the row of the second bar** with the name
+> `Ch -` and no percent at all (T-91); and **a playback that stopped gives no
+> bar**, because the engine keeps the length and the place of the media that
+> played last (T-330.5).
 > **The words of the sequence and of the filter of the status bar keep the
 > middle of the row while the middle is free**, therefore every screen that
 > stood before T-329 stands in the same shape; **they stand beside the part at
@@ -24530,7 +24709,10 @@ that takes every row that the facts and the description leave:
 > turns in it, and it did the same work, and the block then held about **85000**
 > bytes with **two** turns in it; the round of the hundred and sixty-third
 > found it at 84997 bytes with two turns in it, and it did the same work, and
-> the block then held about **86100** bytes with **two** turns in it.
+> the block then held about **86100** bytes with **two** turns in it; the round
+> of the hundred and sixty-fourth found it at 86393 bytes with two turns in it,
+> and it did the same work, and the block then held about **86100** bytes with
+> **two** turns in it.
 > **A block that stands at 80000 bytes or under holds two
 > turns**, and the turn of the stage before this one names the parts of that
 > stage which stay open. **The list of the decisions

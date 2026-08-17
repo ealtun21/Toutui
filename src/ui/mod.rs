@@ -10,6 +10,7 @@ pub mod sessions_tui;
 pub mod stats_tui;
 pub mod text_field;
 pub mod the_band_of_the_player;
+pub mod the_bars_of_the_chapters;
 pub mod the_list_of_a_view;
 pub mod the_message_of_a_view;
 pub mod the_mouse;

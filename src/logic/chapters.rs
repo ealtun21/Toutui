@@ -57,6 +57,248 @@ pub fn lines(chapters: &[Chapter], position: f64) -> Vec<String> {
         .collect()
 }
 
+/// The mark of a boundary of a chapter, in the bar of the whole book.
+pub const THE_MARK_OF_A_BOUNDARY: char = '│';
+
+/// The smallest bar of this view. A bar of fewer cells says nothing of a place
+/// at all, therefore the view then holds no bar and the list takes every row.
+pub const THE_SMALLEST_BAR: u16 = 8;
+
+/// The width under which the bar of the book holds no mark of a boundary.
+///
+/// **The marks then stand beside each other with no space at all** (the note of
+/// `docs/mockups/mockup-7.md`), and a bar of marks alone says less than a bar of
+/// no mark. **The rule reads the width of the bar and not the width of the
+/// screen**: the bar is the thing that the marks make unreadable, and the
+/// columns of the name and of the percent belong to no bar.
+pub const THE_WIDTH_OF_THE_MARKS: u16 = 40;
+
+/// The smallest number of cells of a chapter of the bar of the book, with the
+/// mark of its boundary.
+///
+/// A bar whose chapters hold fewer cells than this holds no mark at all.
+const THE_CELLS_OF_A_CHAPTER: usize = 3;
+
+/// The columns of the percent of a bar: four for the number, and one for `%`.
+const THE_COLUMNS_OF_THE_PERCENT: u16 = 5;
+
+/// The columns of the percent at the right of a bar of this view.
+pub fn the_columns_of_the_percent() -> u16 {
+    THE_COLUMNS_OF_THE_PERCENT
+}
+
+/// A number of seconds of the engine, as a whole number of seconds.
+///
+/// A value that is not finite, and a value under zero, give zero: the bars of
+/// this view say no place that the program does not have (T-91).
+fn the_seconds(of_the_engine: f64) -> u32 {
+    if !of_the_engine.is_finite() || of_the_engine <= 0.0 {
+        return 0;
+    }
+
+    of_the_engine as u32
+}
+
+/// One bar of the two bars of the view of the chapters.
+///
+/// `the_cells_that_played` is the number of cells at the start of `the_cells`
+/// that the playback passed: the render paints those cells with the accent of
+/// the program, as the band of the player does (T-322).
+///
+/// `the_percent` is `None` for a bar of a chapter that the media does not have:
+/// a media of no chapter keeps the row of the second bar, and it says no number
+/// at all (T-91).
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ABarOfTheView {
+    /// The name at the left of the bar: `Book`, or `Ch 12`.
+    pub the_name: String,
+    /// The cells of the bar.
+    pub the_cells: String,
+    /// The number of cells at the start that the playback passed.
+    pub the_cells_that_played: usize,
+    /// The percent of the part that played.
+    pub the_percent: Option<u32>,
+}
+
+/// The cells of the bar of the whole book, with a mark at each boundary of a
+/// chapter.
+///
+/// **Two boundaries of the same column take one mark** (the note of
+/// `docs/mockups/mockup-7.md`): a book of 70 chapters in 52 columns holds more
+/// boundaries than columns, and a mark for each chapter would be a bar of marks
+/// alone. The write of a mark in a cell that holds a mark already changes
+/// nothing.
+///
+/// **The start of the first chapter is no boundary**: it stands at the column 0,
+/// which is the start of the bar itself.
+///
+/// A media of no length gives a bar of cells that stay, as the band of the
+/// player does (T-180).
+pub fn the_bar_of_the_book(
+    width: u16,
+    position: f64,
+    duration: f64,
+    chapters: &[Chapter],
+) -> String {
+    let length = the_seconds(duration);
+    let mut cells: Vec<char> =
+        crate::ui::the_band_of_the_player::a_bar_of_a_part(width, the_seconds(position), length)
+            .chars()
+            .collect();
+
+    if length == 0 || width < THE_WIDTH_OF_THE_MARKS {
+        return cells.into_iter().collect();
+    }
+
+    let mut columns: Vec<usize> = chapters
+        .iter()
+        .skip(1)
+        .map(|chapter| {
+            (u64::from(width) * u64::from(the_seconds(chapter.start)) / u64::from(length)) as usize
+        })
+        // The column 0 is the start of the bar itself, and no boundary.
+        .filter(|column| *column > 0 && *column < cells.len())
+        .collect();
+
+    columns.dedup();
+
+    // **The marks go away while a chapter of the bar holds fewer than two cells
+    // of its own** (the note of `docs/mockups/mockup-7.md`): the marks then
+    // stand beside each other with no space at all, and the cells of the bar and
+    // the marks of the boundaries are one noise. The measurement of T-330.5: a
+    // bar of 150 cells of the book of 70 chapters of the sandbox gave
+    // `█││█││█│█│█│██│█│██│██│█│░││░│░│░`.
+    //
+    // **The rule of the note reads the width of the bar alone**
+    // (`THE_WIDTH_OF_THE_MARKS`), and a wide bar of many chapters passes it:
+    // this rule reads the reason that the note gives.
+    if columns
+        .windows(2)
+        .any(|two| two[1] - two[0] < THE_CELLS_OF_A_CHAPTER)
+    {
+        return cells.into_iter().collect();
+    }
+
+    for column in columns {
+        cells[column] = THE_MARK_OF_A_BOUNDARY;
+    }
+
+    cells.into_iter().collect()
+}
+
+/// The place of the user inside the chapter of the cursor, and the length of
+/// that chapter, in seconds.
+///
+/// **The bar of the chapter is the chapter of the cursor and not the chapter
+/// that plays** (the note of `docs/mockups/mockup-7.md`): the user reads the
+/// list of a book, and they move the cursor along it.
+///
+/// **The place goes inside the chapter of the cursor**: a chapter that stands
+/// before the place of the user is whole, and a chapter after it holds nothing.
+/// A chapter of no length, and a cursor that names no chapter, give `None`.
+pub fn the_place_in_the_chapter_of_the_cursor(
+    chapters: &[Chapter],
+    the_cursor: Option<usize>,
+    position: f64,
+) -> Option<(u32, u32)> {
+    let chapter = chapters.get(the_cursor?)?;
+    let length = chapter.end - chapter.start;
+
+    if length <= 0.0 {
+        return None;
+    }
+
+    let done = (position - chapter.start).clamp(0.0, length);
+
+    Some((the_seconds(done), the_seconds(length)))
+}
+
+/// The two bars of the view of the chapters, for a row of this width.
+///
+/// It gives `None` for a media of no length, and for a row that holds no bar of
+/// [`THE_SMALLEST_BAR`] cells: the view then holds no bar at all, and the list
+/// takes every row of it.
+///
+/// **A playback that stopped gives no bar at all**: the engine keeps the length
+/// and the place of the media that played last, and the two bars of that media
+/// stood over the words `No media plays now.` in the measurement of T-330.5. A
+/// view must say no state that the program does not have (T-91).
+///
+/// The cursor is the line of the list. A view with no line takes the chapter
+/// that plays, because the user then reads the place of the media and no place
+/// of their own.
+pub fn the_bars_of_the_view(
+    width: u16,
+    chapters: &[Chapter],
+    position: f64,
+    duration: f64,
+    the_cursor: Option<usize>,
+    the_playback_stopped: bool,
+) -> Option<[ABarOfTheView; 2]> {
+    if the_playback_stopped || the_seconds(duration) == 0 {
+        return None;
+    }
+
+    let of_the_cursor = the_cursor.or_else(|| chapter_at(chapters, position));
+    let the_columns_of_the_name = the_columns_of_the_name(chapters.len());
+    let of_the_bar = width
+        .checked_sub(the_columns_of_the_name + THE_COLUMNS_OF_THE_PERCENT)
+        .filter(|cells| *cells >= THE_SMALLEST_BAR)?;
+
+    let of_the_book = ABarOfTheView {
+        the_name: "Book".to_string(),
+        the_cells: the_bar_of_the_book(of_the_bar, position, duration, chapters),
+        the_cells_that_played: crate::ui::the_band_of_the_player::the_cells_that_played(
+            of_the_bar,
+            the_seconds(position),
+            the_seconds(duration),
+        ),
+        the_percent: Some(crate::ui::the_band_of_the_player::the_percent_of_a_part(
+            the_seconds(position),
+            the_seconds(duration),
+        )),
+    };
+
+    let the_place = the_place_in_the_chapter_of_the_cursor(chapters, of_the_cursor, position);
+
+    let of_the_chapter = match (of_the_cursor, the_place) {
+        (Some(number), Some((done, whole))) => ABarOfTheView {
+            the_name: format!("Ch {}", number + 1),
+            the_cells: crate::ui::the_band_of_the_player::a_bar_of_a_part(of_the_bar, done, whole),
+            the_cells_that_played: crate::ui::the_band_of_the_player::the_cells_that_played(
+                of_the_bar, done, whole,
+            ),
+            the_percent: Some(crate::ui::the_band_of_the_player::the_percent_of_a_part(
+                done, whole,
+            )),
+        },
+        // **A media of no chapter keeps the row of the second bar**, therefore
+        // the shape of the view does not change with the media. It names no
+        // number of a chapter, and it says no percent at all (T-91).
+        _ => ABarOfTheView {
+            the_name: "Ch -".to_string(),
+            the_cells: crate::ui::the_band_of_the_player::a_bar_of_a_part(of_the_bar, 0, 0),
+            the_cells_that_played: 0,
+            the_percent: None,
+        },
+    };
+
+    Some([of_the_book, of_the_chapter])
+}
+
+/// The columns of the name at the left of the two bars, with the space after
+/// it.
+///
+/// **The two names stand in one field**, therefore the two bars start at the
+/// same column. The field grows with the number of the chapters: `Ch 7` takes
+/// four columns and `Ch 137` takes six.
+pub fn the_columns_of_the_name(count: usize) -> u16 {
+    let digits = count.max(1).to_string().len() as u16;
+
+    // "Ch " and the digits, or "Book"; and one space after the longest of them.
+    (3 + digits).max(4) + 1
+}
+
 /// What the media of the view of the chapters is now. See T-162.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum TheMediaOfTheChapters {

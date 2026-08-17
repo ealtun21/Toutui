@@ -488,6 +488,54 @@ curl -s -X POST "http://127.0.0.1:13399/api/items/$ITEM/chapters" \
 15 gives the book its place 0 again: `PATCH /api/me/progress/:id` with
 `{"isFinished": false}`.
 
+## 6k. Give the second book of eight hours seventy chapters, for T-330.5
+
+**A bar of the whole book with a mark at each boundary of a chapter needs a book
+of many chapters** (T-330.5): the note of `docs/mockups/mockup-7.md` names a book
+of 70 chapters, and the two books of eight hours held three chapters each. The
+book of the section 6i keeps its three chapters, because T-162 measures the
+distance between them; **"A Second Book Of Many Hours" takes the 70**.
+
+The chapters are of different lengths, from 300 to 720 seconds, and they fill
+the 28800 seconds of the book: a book of chapters of one length gives marks of
+one distance, and the rule of the marks that stand beside each other then reads
+one number alone.
+
+```bash
+TOKEN=<the token of the login>
+ITEM=e2b76945-10de-45f9-a09c-86c4666b9808   # A Second Book Of Many Hours
+
+python3 - <<'EOF'
+import json, urllib.request, os
+total, count = 28800, 70
+lengths = [300 + (number * 37) % 420 for number in range(count)]
+lengths = [length * total // sum(lengths) for length in lengths]
+lengths[-1] += total - sum(lengths)
+
+chapters, start = [], 0
+for number, length in enumerate(lengths):
+    chapters.append({"id": number, "start": start, "end": start + length,
+                     "title": "Chapter %d of the second book" % (number + 1)})
+    start += length
+
+body = json.dumps({"chapters": chapters}).encode()
+request = urllib.request.Request(
+    "http://127.0.0.1:13399/api/items/%s/chapters" % os.environ["ITEM"],
+    data=body, method="POST",
+    headers={"Authorization": "Bearer " + os.environ["TOKEN"],
+             "Content-Type": "application/json"})
+print(urllib.request.urlopen(request).read().decode())
+EOF
+```
+
+The answer is `{"success":true,"updated":true}`. The first chapter stands at 0
+and it ends at 242, and the chapter 70 stands at 28496 and it ends at 28800.
+
+**The bar of that book holds no mark at any width of a terminal**, which is the
+rule of T-330.5: 69 boundaries in 150 cells give marks that stand beside each
+other. The book of the section 6i, of three chapters, is the control of that
+measurement, and its bar holds its two marks.
+
 ## 6j. A book whose audio ends before the length that the server holds, for T-213
 
 **The server marks a media finished by its own arithmetic when the place stands
