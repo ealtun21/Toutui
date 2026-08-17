@@ -199,6 +199,86 @@ fn a_row_of_the_band_that_the_screen_cuts_says_that_it_was_cut() {
     }
 }
 
+/// The row of the seek of a band that is too narrow for a bar says the two
+/// times alone, and it says the three points when the band cut them. See T-372.
+///
+/// The measurement of 2026-08-17, of the real program v0.8.202 inside tmux
+/// against the sandbox, of the same book of eight hours at the place 1:27:51,
+/// with `tmux resize-window` of each width. The row 2 of the band said:
+///
+/// ```text
+/// === 26 ===
+/// │ 1:27:51 / 8:00:00      │
+/// === 20 ===
+/// │ 1:27:51 / 8:00:00│
+/// === 16 ===
+/// │ 1:27:51 / 8:0│
+/// === 12 ===
+/// │ 1:27:51 /│
+/// ```
+///
+/// **ratatui draws no mark of that cut at all.** The band of 16 columns said a
+/// length of `8:0` for a book of `8:00:00`, and the band of 12 columns said no
+/// length at all: the row of the words above it and the row of the keys under
+/// it each said the three points at those same two widths, which is the
+/// control of the same run.
+///
+/// **The parts of this test stay in one function.**
+#[test]
+fn the_row_of_the_seek_that_the_screen_cuts_says_that_it_was_cut() {
+    // The two times of this media are `2:46:40` and `8:00:00`, therefore the
+    // row of the two times holds 18 columns.
+    const THE_COLUMNS_OF_THE_TWO_TIMES: usize = 18;
+
+    // **The control of the measurement**: a band of 30 columns and one of 26
+    // columns hold the whole of the two times, and neither of them says the
+    // three points. The first of the two holds a bar and the second holds no
+    // bar at all, therefore the control reads the two arms of that row.
+    for width in [30, 26, 20] {
+        let of_the_seek = &the_rows_of_the_band_of(width)[1];
+
+        assert!(
+            of_the_seek.contains("8:00:00"),
+            "the row of the seek of {width} columns lost the length of the media: {of_the_seek:?}"
+        );
+        assert!(
+            !of_the_seek.contains(THE_MARK_OF_A_CUT),
+            "the row of the seek of {width} columns says a cut that it does not have: \
+             {of_the_seek:?}"
+        );
+    }
+
+    // The two widths of the measurement that cut the two times. **A band of
+    // fewer than 20 columns holds fewer than 18 columns inside its border.**
+    for width in [16, 12] {
+        let of_the_seek = &the_rows_of_the_band_of(width)[1];
+
+        assert!(
+            usize::from(width - 2) < THE_COLUMNS_OF_THE_TWO_TIMES,
+            "the band of {width} columns holds the two times whole"
+        );
+
+        // **A row that the band cut says so.** That is the fault of T-372.
+        assert!(
+            of_the_seek.ends_with(THE_MARK_OF_A_CUT),
+            "the row of the seek of {width} columns says no cut: {of_the_seek:?}"
+        );
+
+        // **A row of the band stands inside the band**, and it keeps its start:
+        // the place of the user is the value of that row, and the length of the
+        // media is the part that the user can spare.
+        assert!(
+            the_columns_of(of_the_seek) <= usize::from(width - 2),
+            "the row of the seek of {width} columns holds {} columns: {of_the_seek:?}",
+            the_columns_of(of_the_seek)
+        );
+        assert!(
+            of_the_seek.trim_start().starts_with("2:46:40"),
+            "the row of the seek of {width} columns lost the place of the user: {of_the_seek:?}"
+        );
+    }
+}
+
 /// A band that is too narrow for a word of a row gives no panic, and the rows
 /// of it stay inside it. See T-369.
 ///

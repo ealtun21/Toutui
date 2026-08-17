@@ -41,6 +41,23 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.203",
+        date: "17/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The row of the seek of the band of the player that the screen \
+             cuts says that the screen cut it.** A band that is too narrow for \
+             a bar says the place of the user and the length of the media \
+             alone, and those two times hold 18 columns: a band of fewer than \
+             20 columns therefore lost the end of them with no mark at all. A \
+             terminal of 16 columns said a length of `8:0` for a book of \
+             `8:00:00`, and a terminal of 12 columns said no length at all, \
+             while the row of the words above it and the row of the keys under \
+             it each said the three points. That row now says the three points \
+             too, and it keeps the place of the user, which is the value of it.",
+        ],
+    },
+    Entry {
         version: "0.8.202",
         date: "17/08/2026",
         body: &[

@@ -322,8 +322,17 @@ fn render_the_seek(
         // **A row that is too narrow for a bar says the two times alone**: a
         // bar of three cells says nothing of a place, and a click of it would
         // move a book of eight hours by more than two hours.
+        //
+        // **A row that is too narrow for the two times says that the screen
+        // cut it** (T-372, and the rule of T-304 and of T-369): the two times
+        // hold 18 columns, therefore a band of fewer than 20 columns loses the
+        // end of them, and a length of `8:0` for a book of `8:00:00` is a
+        // measurement that the media does not have.
         Paragraph::new(Span::styled(
-            format!(" {of_the_place} / {of_the_length}"),
+            crate::logic::message::in_one_row(
+                &format!(" {of_the_place} / {of_the_length}"),
+                parts.the_seek.width,
+            ),
             Style::default().fg(Color::Yellow),
         ))
         .render(parts.the_seek, buf);

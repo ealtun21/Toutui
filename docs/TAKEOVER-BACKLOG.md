@@ -36162,3 +36162,92 @@ therefore it needs no terminal and no server.
 - **A value of a fact that holds an end of a line** stays open (T-370), and no
   media of the sandbox holds such a value.
 - Every candidate of the turns before this one stays open.
+
+## T-372 — The row of the seek of the band of the player that the screen cuts says that the screen cut it
+
+**The candidate of T-371.** That item gave the lines of the screen of the start
+the rule of the cut, and it left this line: "`src/ui/player_tui.rs:325` draws
+the row of the seek with no `wrap` and no cut". **The round of the two hundred
+and fifth found the correction, the test, the entry of the changelog, and the
+version of this item finished and uncommitted in the tree**: the round before
+it wrote them and it then stopped before the docs and the commit. This round
+verified the work, it made the measurement of the corrected program itself, and
+it shipped the item.
+
+**The measurement of the fault, of the real program v0.8.202 inside tmux
+against the sandbox.** The book of eight hours stood at the place 1:27:51, and
+`tmux resize-window` gave each width. The row 2 of the band said:
+
+```text
+=== 26 ===
+│ 1:27:51 / 8:00:00      │
+=== 20 ===
+│ 1:27:51 / 8:00:00│
+=== 16 ===
+│ 1:27:51 / 8:0│
+=== 12 ===
+│ 1:27:51 /│
+```
+
+**ratatui draws no mark of that cut at all.** The band of 16 columns said a
+length of `8:0` for a book of `8:00:00`, which is a measurement that the media
+does not have, and the band of 12 columns said no length at all. **The control
+of the same run** is the row of the words above it and the row of the keys
+under it, which each said the three points at those same two widths.
+
+**Why.** The arm of `render_the_seek` of `src/ui/player_tui.rs` for a band that
+is too narrow for a bar says the two times alone (T-322), and it drew
+`{the place} / {the length}` in a `Paragraph` with no `wrap`: a `Paragraph` of
+ratatui with no `wrap` cuts the row at the width of its area and it says
+nothing of the cut. The two times hold 18 columns, therefore a band of fewer
+than 20 columns loses the end of them.
+
+**The correction is one call.** The text of that arm goes through
+`crate::logic::message::in_one_row` with `parts.the_seek.width`: a row that the
+band cut now ends with the three points, and it keeps its start, which is the
+place of the user — the value of that row — and the length of the media is the
+part that the user can spare.
+
+**The corrected program of the same harness**, of v0.8.203 at the place
+1:20:08: the bands of 26 and of 20 columns said `1:20:08 / 8:00:00` whole with
+no mark, the band of 16 columns said `1:20:08 / 8:…`, and the band of 12
+columns said `1:20:08…`. **The control of the same run**: the row of the words
+above and the row of the keys under it said the three points at 16 and at 12
+columns, as the program of the fault did.
+
+**The build of the fault fails the gate**: `format!(" {of_the_place} /
+{of_the_length}")` in the place of the `in_one_row`, which is the program of
+v0.8.202, gave `the row of the seek of 16 columns says no cut: " 2:46:40 /
+8:0"`.
+
+**The gate** is `the_row_of_the_seek_that_the_screen_cuts_says_that_it_was_cut`
+of `tests/the_band_of_the_player_says_that_the_screen_cut_it.rs`. It reads the
+rows of the band of 30, of 26, and of 20 columns, which hold the two times
+whole with no mark, and of 16 and of 12 columns, which say the three points,
+stand inside the band, and keep the place of the user. It is pure, therefore it
+needs no terminal and no server.
+
+**The gates**: clippy and fmt clean, 1620 tests of nextest in 2.9 seconds,
+`cargo test -j 16 --no-fail-fast` three times with exit 0 and 238 blocks of
+`ok` each time, and `cargo nextest run --run-ignored all` with the sandbox up
+gave 1646 of 1646 two times — before the measurement of the corrected program
+inside tmux, and after the road back of it.
+
+**What this item leaves open, and each of them is a candidate and not an item.**
+
+- **`PATCH /api/me/progress/:id` with `{"isFinished": false}` writes
+  `currentTime: 0` for a media that was finished alone**: the road back of this
+  measurement sent it two times to a media that was **not** finished, and the
+  place 4808 stayed both times. The body `{"currentTime": 0, "progress": 0}`
+  wrote the zero. The rule of T-160 and of the section 15 of
+  `docs/TEST-SERVER.md` therefore holds one condition fewer than its words say.
+- **The key `l` of the Home view of the bands of the covers moves the cursor to
+  the right, and the key `Enter` starts the playback**: the trap 196 says that
+  `l` starts a playback, and that was the program before the bands of T-331.
+  The words of that trap are old, and a measurement that reads them loses a
+  round of keys.
+- The two rows of the words and of the keys of the band cut at the **line**,
+  and a row of one span cuts at the text: the three roads say the three points
+  in the same form, therefore no fault stands, and the difference is the shape
+  of the code alone.
+- Every candidate of the turns before this one stays open.
