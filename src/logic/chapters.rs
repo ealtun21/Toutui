@@ -597,20 +597,52 @@ pub fn the_text_of_the_media_that_went_away(title: &str, episode_title: Option<&
 ///
 /// A media that plays no more names no media at all, because the program then
 /// holds the name of no media of a chapter.
+///
+/// **This function gives the name of the list and never the reason of a list
+/// with no line** (T-361). The header of a view stands in the title of a
+/// block, and a title takes no wrap: the sentence
+/// `No media plays now. A media that plays gives its chapters. Press h to go
+/// back.` therefore read `No media plays now. A media that plays…` at 40
+/// columns, and the user lost the words of the work. The reason of a view with
+/// no line comes of `the_reason_of_no_chapter`, and it stands in the body of
+/// the panel, which holds a wrap.
 pub fn the_header_of_the_view(
     title: &str,
     episode_title: Option<&str>,
     count: usize,
     the_playback_stopped: bool,
 ) -> String {
-    if count > 0 {
-        return format!(
-            "The chapters of \"{}\" [{}]",
-            crate::logic::media_name::the_name_of_the_media(title, episode_title),
-            crate::ui::keys::items(count)
-        );
+    // A media that plays no more names no media at all, because the program
+    // then holds the name of no media of a chapter. See T-59.
+    if the_playback_stopped {
+        return format!("The chapters [{}]", crate::ui::keys::items(count));
     }
 
+    format!(
+        "The chapters of \"{}\" [{}]",
+        crate::logic::media_name::the_name_of_the_media(title, episode_title),
+        crate::ui::keys::items(count)
+    )
+}
+
+/// The reason of the view of the chapters that holds no line.
+///
+/// The list holds no line for two reasons, and the sentence must name the right
+/// one. A user who presses `C` with no media reads a different sentence from a
+/// user whose media holds no chapter. See T-59.
+///
+/// **The sentence of a media names the episode of a podcast** (T-227): the
+/// header said `"Arthur Gordon Pym" holds no chapter.` for the episode
+/// `Chapter 01` and, after the queue started `Chapter 00` of that same podcast
+/// with no key of the user, the same words again, while the row of the player
+/// of that same frame said which episode plays (T-225). The two episodes of one
+/// podcast gave one sentence, and the user could not tell which episode the
+/// view holds.
+pub fn the_reason_of_no_chapter(
+    title: &str,
+    episode_title: Option<&str>,
+    the_playback_stopped: bool,
+) -> String {
     if the_playback_stopped {
         return "No media plays now. A media that plays gives its chapters. Press h to go back."
             .to_string();

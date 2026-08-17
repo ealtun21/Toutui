@@ -26,7 +26,9 @@
 //! drops the episode, a header of the view that reads the title alone, and the
 //! sentence of the media that went away that reads the title alone.
 
-use toutui::logic::chapters::{the_header_of_the_view, the_text_of_the_media_that_went_away};
+use toutui::logic::chapters::{
+    the_header_of_the_view, the_reason_of_no_chapter, the_text_of_the_media_that_went_away,
+};
 use toutui::logic::media_name::the_name_of_the_media;
 
 /// The name of the podcast of the measurement.
@@ -69,16 +71,35 @@ fn the_three_sentences_of_the_view_name_the_episode() {
          a second episode with no key of the user (T-225 and T-227)"
     );
 
-    // The header of a media that holds no chapter. The episodes of the sandbox
-    // give 0 chapters, therefore this is the header of the measurement.
-    let of_no_chapter = the_header_of_the_view(THE_PODCAST, Some(THE_EPISODE), 0, false);
+    // The reason of a media that holds no chapter. The episodes of the sandbox
+    // give 0 chapters, therefore this is the sentence of the measurement.
+    //
+    // **The sentence of a view with no line stands in the body of the panel
+    // and never in the title of it** (T-361): a title takes no wrap, and the
+    // words of this sentence went away in a narrow terminal.
+    let of_no_chapter = the_reason_of_no_chapter(THE_PODCAST, Some(THE_EPISODE), false);
 
     assert_eq!(
         of_no_chapter, "\"Arthur Gordon Pym — Chapter 01\" holds no chapter. Press h to go back.",
-        "the header of an episode of no chapter names that episode (T-227)"
+        "the sentence of an episode of no chapter names that episode (T-227)"
     );
     assert_ne!(
         of_no_chapter,
+        the_reason_of_no_chapter(THE_PODCAST, Some(THE_SECOND_EPISODE), false),
+        "two episodes of one podcast must not give one sentence of no chapter \
+         (T-227)"
+    );
+
+    // **The header of that same view names the episode too** (T-227 and
+    // T-361): the name of the list stands in the title, with the count of its
+    // lines.
+    assert_eq!(
+        the_header_of_the_view(THE_PODCAST, Some(THE_EPISODE), 0, false),
+        "The chapters of \"Arthur Gordon Pym — Chapter 01\" [0 items]",
+        "the header of an episode of no chapter names that episode (T-227)"
+    );
+    assert_ne!(
+        the_header_of_the_view(THE_PODCAST, Some(THE_EPISODE), 0, false),
         the_header_of_the_view(THE_PODCAST, Some(THE_SECOND_EPISODE), 0, false),
         "two episodes of one podcast must not give one header of no chapter \
          (T-227)"
@@ -87,9 +108,14 @@ fn the_three_sentences_of_the_view_name_the_episode() {
     // A media that plays no more names no media at all: the program then holds
     // the name of no media of a chapter. See T-59.
     assert_eq!(
-        the_header_of_the_view(THE_PODCAST, Some(THE_EPISODE), 0, true),
+        the_reason_of_no_chapter(THE_PODCAST, Some(THE_EPISODE), true),
         "No media plays now. A media that plays gives its chapters. Press h to go back.",
         "a playback that stopped names no media (T-59)"
+    );
+    assert_eq!(
+        the_header_of_the_view(THE_PODCAST, Some(THE_EPISODE), 0, true),
+        "The chapters [0 items]",
+        "the header of a playback that stopped names no media either (T-59)"
     );
 
     // A book keeps its own name in the two headers.
@@ -99,7 +125,7 @@ fn the_three_sentences_of_the_view_name_the_episode() {
         "a book keeps its own name alone (T-91)"
     );
     assert_eq!(
-        the_header_of_the_view("A Long Test Book", None, 0, false),
+        the_reason_of_no_chapter("A Long Test Book", None, false),
         "\"A Long Test Book\" holds no chapter. Press h to go back.",
         "a book of no chapter keeps its own name alone (T-91)"
     );

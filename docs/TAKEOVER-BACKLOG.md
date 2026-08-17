@@ -34599,3 +34599,226 @@ reads the whole screen and not one row of it** (the trap 149 and T-302).
 - Every candidate of the items before this one.
 
 **v0.8.191.**
+
+## T-361 — A view with no line loses the words of its reason in a narrow terminal
+
+**The condition.** The real program v0.8.191 inside tmux, at **40 columns** and
+30 rows (`COLUMNS_OF_THE_SCREEN=40` of `docs/harness/drive.sh`, which is the
+narrowest terminal that this fork measures — the shape of T-301), against the
+sandbox (`docs/TEST-SERVER.md`). The library of the account came of a `sqlite3`
+of `name_selected_lib` and of `id_selected_lib` (the traps 203 and 204),
+`is_offline` was `false`, and no request came back with a fault. **The
+measurement needs no proxy, no book of a harness, and no change of the sandbox
+at all**: the size of the terminal is the data of the fault (T-301).
+
+T-358 gave the rule "a view with no line says the name of the list that holds
+no line" to six views outside the frame of the panels, and T-359 and T-360 gave
+those views a footer of the keys that they hold. **The sentence of a view of
+this item stands in the name of the panel itself**, therefore neither of those
+two items reached it.
+
+**The fault, of five views of two runs.** The library `Empty` gave the queue,
+the chapters, the authors, and the narrators; the library `Books` gave the
+bookmarks of "A Book Of An Epub With No Container", a book of no bookmark, and
+a search of the word `zzqqxnothingatall`:
+
+```text
+the key V   →  "A Book Of An Epub With No Container" h…
+the key q   →  The queue is empty. Press n on a media…─
+the key C   →  No media plays now. A media that plays…─
+the key v   →  This library has no narrator. A narrato…
+the search  →  The server found nothing for "zzqqxnoth…
+```
+
+**Every one of those rows is the whole panel.** A `cat -n` of the capture of
+tmux gave the row 1 of the header, the row 2 of the address, the row 3 above,
+**and no row of a word until the footer of the row 29**. The sentence stood in
+the title of the block, the body of the `Paragraph` under it was empty, and the
+mark `…` of `ratatui` stood where the width of the panel ended.
+
+**The user therefore read no key of the work at all** — not
+`Press b while it plays.`, not `Press n on a media to put it in the queue.`,
+not `Press h to go back.`, and not `Press / to write other words.` **A view
+says why it holds no line, and it says what the user can do** (T-91 and T-70):
+the second half of every one of those sentences is the half that the user
+needs, and the second half is the half that went away.
+
+**The key `a` of the same run stands beside them**: `This library has no
+author.` is 27 columns, therefore it fits a screen of 40 and it read whole.
+That is the same road with a shorter sentence, and not a different road.
+
+**The control of the same run**, of the views that T-358 corrected already. The
+Library view and the Collections view of the library `Empty`, at those same 40
+columns, each said the name of the list in the title and the whole reason under
+it, over three rows of a wrap:
+
+```text
+───────────Library [0 items]────────────
+      This library holds no media.
+  Press L to tell the server to examine
+              the library.
+
+──Collections and playlists [0 items]───
+  This library has no collection and no
+                playlist.
+           Press h to go back.
+```
+
+**Two roads of one program said two different things**, and the road of this
+item said the less of the two.
+
+**Why.** **A title of a block takes no wrap, and a body of a `Paragraph` takes
+one.** `ratatui` draws a title on one row and it cuts what stands over the
+width of the panel. `App::render_the_reason` of `src/ui/tui.rs` holds the shape
+that says both — the name of the list in the title of the block and the
+sentence in a `Paragraph` of `Wrap { trim: true }` — and **eleven views never
+reach it**: each of them gives its sentence to the `title` argument of
+`self.render_list`, whose block holds a title and whose body holds the lines of
+a list that the view does not have.
+
+A sweep of the 21 call sites of `render_list` of `src/ui/tui.rs` gave ten
+render functions of that shape, and the sentence of each comes of a branch of a
+count of 0 or of a state of the server:
+
+| The view | The function | The sentence of no line |
+|---|---|---|
+| The authors and the narrators | `render_authors` | `Kind::title_of_nothing` and `Kind::title_of_a_fault` of `src/logic/authors.rs` |
+| The lists that take a media | `render_put_in_a_list` | `the_lists::the_title_of_no_list` |
+| The devices of an e-reader | `render_the_devices_of_an_ereader` | three arms of a `match` of the state |
+| The downloads of the server | `render_the_downloads` | three arms of a `match` of the state |
+| The ebooks of a media | `render_the_ebooks` | three arms of a `match` of the state |
+| A new podcast | `render_new_podcast` | four arms of a `match` of the state |
+| The bookmarks | `render_bookmarks` | `bookmarks::the_title_of_no_bookmark` |
+| The queue | `render_queue` | an `if lines.is_empty()` of the render itself |
+| The chapters | `render_chapters` | `chapters::the_header_of_the_view` |
+| The search | `render_search_book` | `search::the_title_of_the_search` |
+
+**This is the fault that the `wrap` of T-278 corrected, and the road of a title
+brought it back.** The head of `render_the_message` of
+`src/ui/the_message_of_a_view.rs` says the rule already: "Without the `wrap` the
+widget draws one row and it cuts the rest away, therefore the user loses the
+reason and the program says a part of a sentence." T-278 gave the `wrap` to the
+body of a view of that shape; these eleven views never put their sentence in a
+body at all.
+
+**The correction**, of one method of `App`, of two pure functions, and of ten
+render functions:
+
+- `App::render_the_list_or_the_reason` takes a name, a reason, and the lines. It
+  calls `App::render_the_reason` for a list of no line and `App::render_list`
+  for every other list, therefore the shape of T-358 reaches every view of a
+  list with one call.
+- **The title of each of the ten views becomes the name of its list at every
+  count**, with the count of its lines in it: `The queue [0 items]`,
+  `The chapters [0 items]`, `Search result [0 items]`, `The authors [0 items]`,
+  `The bookmarks of "…" [0 items]`, and the same for the other five. A closure
+  of one line gives that name for the count 0 and for the count of the lines,
+  therefore the two roads of one view say one name.
+- `crate::logic::chapters::the_header_of_the_view` gives the name alone now, and
+  the new `the_reason_of_no_chapter` gives the sentence. **The header of a
+  playback that stopped is `The chapters [0 items]`**, because the program then
+  holds the name of no media of a chapter (T-59), and the header of a media of
+  no chapter names that media (T-227).
+- `crate::logic::search::the_title_of_the_search` gives the name alone now, and
+  the new `the_reason_of_no_hit` gives the three sentences of that view. The
+  argument `words` of the title went away with the sentence that held it.
+- **The Chapters view holds a table of its own**, therefore it takes no call of
+  the new method: the road with no line comes back before the bars and before
+  the header of the columns. A bar of no chapter holds no boundary and a header
+  of no column names no time.
+
+**The corrected program of the same harness, of the same screens and of the
+same road:**
+
+```text
+──────────The queue [0 items]───────────
+ The queue is empty. Press n on a media
+         to put it in the queue.
+
+─────────The chapters [0 items]─────────
+ No media plays now. A media that plays
+ gives its chapters. Press h to go back.
+
+─────────The authors [0 items]──────────
+       This library has no author.
+
+────────The narrators [0 items]─────────
+This library has no narrator. A narrator
+   comes from the metadata of a file.
+
+────────Search result [0 items]─────────
+      The server found nothing for
+  "zzqqxnothingatall". Press / to write
+              other words.
+
+With No Container" [0 items]────────────
+  "A Book Of An Epub With No Container"
+has no bookmark. Press b while it plays.
+```
+
+**The name of the bookmarks is longer than the screen, and the mark of the cut
+therefore stands at the left of that title.** That is the trade of T-358, and it
+is the right one: **a name that the user can read in part still names the list,
+and a reason that the user can read in part names no work at all.**
+
+**The controls of the same run**, at 160 columns and 45 rows of the library
+`Books`, stayed as they were: the authors kept `The authors [9 items]` over the
+nine lines of them, the lists that take a media kept
+`Put "A Book Of An Epub With No Container" in a list [2 items]` over its two
+lines, and a search of the word `Large` kept `Search result [1 item]` with the
+panel 5 of the cover beside it.
+
+**Three builds of the fault, and each of them fails
+`the_reason_of_a_view_with_no_line_holds_its_words` of
+`tests/the_reason_of_a_view_with_no_line_holds_its_words.rs`:**
+
+1. `if render_list_items.is_empty() && false` of
+   `App::render_the_list_or_the_reason` — the test says "the queue with no line
+   keeps every word of its reason in a terminal of 40 columns".
+2. `if lines.is_empty() && false` of the road with no line of `render_chapters`
+   — the test says the same of the chapters.
+3. `render_queue` gives its sentence to the title again and it gives the empty
+   text to the body — the test prints the screen of the fault beside the reason:
+   `media to put it in the queue.───────────` is every word of that panel.
+
+That test holds the two pure functions with no screen at all, and it then
+renders **four** views of an `App::new` application on a `TestBackend` of **40
+columns** and 30 rows: the queue of no media, the chapters of a playback that
+stands at nothing, the search that asked no server, and the bookmarks of a state
+of `Ready` with no line that the test writes. **It reads the rows of the screen
+together and it makes every run of the whitespace one space** (the trap 149 and
+T-302), because a sentence of a body stands on three rows of a screen of 40
+columns with a run of spaces at each side of each of them. **The controls of
+the same run** are the bookmarks of one bookmark, which must say `[1 item]` and
+no sentence of a reason at all, and the queue of a screen of 160 columns, which
+must say `The queue [0 items]` **and** the whole sentence under it: a correction
+that gave every view a reason and no name, or a name and no reason, would fail
+them.
+
+**What this item leaves open, and each of them is a candidate and not an item:**
+
+- **Six of the eleven views took the correction and no measurement of the real
+  program**: the devices of an e-reader, the ebooks of a media, a new podcast,
+  the lists that take a media, the downloads of the server, and the road of a
+  fault of the server of each of the eleven. The reason of each of the six is
+  the reason of T-360 — the sandbox holds two devices, a list of ebooks needs a
+  media of more than one book, and a search of a feed asks the internet — and
+  the render of each of them stands in the gate of this item and in the gate of
+  T-360 already.
+- **The name of a list that is longer than the screen holds no wrap either**,
+  and the bookmarks of the measurement showed it: `With No Container" [0
+  items]` is what the user reads of
+  `The bookmarks of "A Book Of An Epub With No Container" [0 items]`. Every view
+  of this program names its list in a title, therefore this is a class of its
+  own, and the rule of it is not the rule of this item: a name that is cut still
+  names, and a reason that is cut says nothing.
+- **The statistics and the sessions**, of the decision of T-360: those two views
+  hold a scroll and no list, and the rule of them is the work of a round with a
+  rule of its own.
+- **The panel 4 of a view with no line takes the focus of a click and it says no
+  word of its own** of T-356, **the footer of the panel 5 and of the panel 6 of
+  a view with no media of a cell** of T-359, **the rows of the band that does
+  not fit** of T-353, and **the width of the panel 5 of a media with no cover**.
+- Every candidate of the items before this one.
+
+**v0.8.192.**

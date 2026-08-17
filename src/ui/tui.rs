@@ -1789,29 +1789,40 @@ impl App {
         // list it holds. See T-73.
         let kind = crate::logic::authors::kind();
 
-        let (title, lines) = match &state {
+        // **The name of the list stands in the title and the reason stands in
+        // the body** (T-361): a title takes no wrap, therefore a reason of the
+        // title loses its words in a narrow terminal.
+        let (title, the_reason, lines) = match &state {
             crate::logic::authors::State::Ready(all) if all.is_empty() => {
-                (kind.title_of_nothing(), Vec::new())
+                (kind.title(0), kind.title_of_nothing(), Vec::new())
             }
             crate::logic::authors::State::Ready(all) => (
                 kind.title(all.len()),
+                String::new(),
                 crate::api::libraries::get_authors::lines(all),
             ),
-            crate::logic::authors::State::Waiting => {
-                ("The program asks the server…".to_string(), Vec::new())
+            crate::logic::authors::State::Waiting => (
+                kind.title(0),
+                "The program asks the server…".to_string(),
+                Vec::new(),
+            ),
+            crate::logic::authors::State::Fault(text) => {
+                (kind.title(0), kind.title_of_a_fault(text), Vec::new())
             }
-            crate::logic::authors::State::Fault(text) => (kind.title_of_a_fault(text), Vec::new()),
-            crate::logic::authors::State::Nothing => {
-                ("The program asks the server…".to_string(), Vec::new())
-            }
+            crate::logic::authors::State::Nothing => (
+                kind.title(0),
+                "The program asks the server…".to_string(),
+                Vec::new(),
+            ),
         };
 
         self.render_header(header_area, buf);
         App::render_footer(footer_area, buf, &text_render_footer);
-        self.render_list(
+        self.render_the_list_or_the_reason(
             main_area,
             buf,
             &title,
+            &the_reason,
             &lines,
             &mut self.list_state_authors.clone(),
         );
@@ -1868,35 +1879,41 @@ impl App {
         // A library holds no list until a user makes the first one. The title
         // says that condition, and it names the two keys that make a list:
         // an empty box says nothing. See T-88.
-        let title = match (self.the_media_of_the_list.as_ref(), self.lists.is_empty()) {
-            // A server that does not answer takes no new list, and it gave no
-            // list either. See T-91. **A request that came back with a fault is
-            // a third condition**, and this title says it too (T-169).
-            (_, true) => crate::logic::the_lists::the_title_of_no_list(
-                self.is_offline,
-                crate::logic::the_lists::the_fault_of(&self.id_selected_lib).as_deref(),
-            ),
-            (Some((_, _, name)), false) => {
+        //
+        // **The name of the list stands in the title and that condition stands
+        // in the body** (T-361): a title takes no wrap, therefore a reason of
+        // the title loses its words in a narrow terminal.
+        let title = match self.the_media_of_the_list.as_ref() {
+            Some((_, _, name)) => {
                 format!(
                     "Put \"{}\" in a list [{}]",
                     name,
                     crate::ui::keys::items(self.lists.len())
                 )
             }
-            (None, false) => format!(
+            None => format!(
                 "Put the media in a list [{}]",
                 crate::ui::keys::items(self.lists.len())
             ),
         };
 
+        // A server that does not answer takes no new list, and it gave no
+        // list either. See T-91. **A request that came back with a fault is
+        // a third condition**, and this sentence says it too (T-169).
+        let the_reason = crate::logic::the_lists::the_title_of_no_list(
+            self.is_offline,
+            crate::logic::the_lists::the_fault_of(&self.id_selected_lib).as_deref(),
+        );
+
         let lines: Vec<String> = self.lists.iter().map(|list| list.line()).collect();
 
         self.render_header(header_area, buf);
         App::render_footer(footer_area, buf, text_render_footer);
-        self.render_list(
+        self.render_the_list_or_the_reason(
             main_area,
             buf,
             &title,
+            &the_reason,
             &lines,
             &mut self.list_state_put_in_a_list.clone(),
         );
@@ -1922,33 +1939,44 @@ impl App {
         // **An empty list is an answer of the server**, and not a fault: the
         // server holds no device. The view therefore says the reason, and it is
         // a reason that the program has. See T-91.
-        let (title, lines) = match crate::logic::the_ereaders::state() {
+        //
+        // **The name of the list stands in the title and the reason stands in
+        // the body** (T-361): a title takes no wrap, therefore a reason of the
+        // title loses its words in a narrow terminal.
+        let the_name_of_the_list = |count: usize| match book.is_empty() {
+            true => format!(
+                "Send the ebook to a device [{}]",
+                crate::ui::keys::items(count)
+            ),
+            false => format!(
+                "Send \"{}\" to a device [{}]",
+                book,
+                crate::ui::keys::items(count)
+            ),
+        };
+
+        let (title, the_reason, lines) = match crate::logic::the_ereaders::state() {
             crate::logic::the_ereaders::State::Nothing
             | crate::logic::the_ereaders::State::Waiting => (
+                the_name_of_the_list(0),
                 "The program asks the server for the devices of an e-reader…".to_string(),
                 Vec::new(),
             ),
-            crate::logic::the_ereaders::State::Fault(reason) => {
-                (format!("The server gave no device: {}", reason), Vec::new())
-            }
+            crate::logic::the_ereaders::State::Fault(reason) => (
+                the_name_of_the_list(0),
+                format!("The server gave no device: {}", reason),
+                Vec::new(),
+            ),
             crate::logic::the_ereaders::State::Ready(all) if all.is_empty() => (
+                the_name_of_the_list(0),
                 "The server holds no device for an e-reader. An administrator of the server \
                  adds one."
                     .to_string(),
                 Vec::new(),
             ),
             crate::logic::the_ereaders::State::Ready(all) => (
-                match book.is_empty() {
-                    true => format!(
-                        "Send the ebook to a device [{}]",
-                        crate::ui::keys::items(all.len())
-                    ),
-                    false => format!(
-                        "Send \"{}\" to a device [{}]",
-                        book,
-                        crate::ui::keys::items(all.len())
-                    ),
-                },
+                the_name_of_the_list(all.len()),
+                String::new(),
                 all.iter().map(|device| device.line()).collect(),
             ),
         };
@@ -1981,10 +2009,11 @@ impl App {
 
         self.render_header(header_area, buf);
         App::render_footer(footer_area, buf, text_render_footer);
-        self.render_list(
+        self.render_the_list_or_the_reason(
             main_area,
             buf,
             &title,
+            &the_reason,
             &lines,
             &mut self.list_state_send_to_ereader.clone(),
         );
@@ -2008,25 +2037,40 @@ impl App {
 
         // **The footer stands on the rows that it needs** (T-302): the
         // number of its rows is the number that the wrap of its text needs.
-        let (title, lines) = match crate::logic::the_downloads::state() {
+        //
+        // **The name of the list stands in the title and the reason stands in
+        // the body** (T-361): a title takes no wrap, therefore a reason of the
+        // title loses its words in a narrow terminal.
+        let the_name_of_the_list = |count: usize| {
+            format!(
+                "The downloads of the server [{}]",
+                crate::ui::keys::items(count)
+            )
+        };
+
+        let (title, the_reason, lines) = match crate::logic::the_downloads::state() {
             crate::logic::the_downloads::State::Ready(all) if all.is_empty() => (
+                the_name_of_the_list(0),
                 "The server downloads no episode. Press E on a podcast to get its new \
                  episodes."
                     .to_string(),
                 Vec::new(),
             ),
             crate::logic::the_downloads::State::Ready(all) => (
-                format!(
-                    "The downloads of the server [{}]",
-                    crate::ui::keys::items(all.len())
-                ),
+                the_name_of_the_list(all.len()),
+                String::new(),
                 all.iter().map(|one| one.line()).collect(),
             ),
             crate::logic::the_downloads::State::Fault(text) => (
+                the_name_of_the_list(0),
                 format!("The server gave no queue of the downloads: {}", text),
                 Vec::new(),
             ),
-            _ => ("The program asks the server…".to_string(), Vec::new()),
+            _ => (
+                the_name_of_the_list(0),
+                "The program asks the server…".to_string(),
+                Vec::new(),
+            ),
         };
 
         // **The footer of a view with no line names no key of a line** (T-360),
@@ -2057,10 +2101,11 @@ impl App {
 
         self.render_header(header_area, buf);
         App::render_footer(footer_area, buf, text_render_footer);
-        self.render_list(
+        self.render_the_list_or_the_reason(
             main_area,
             buf,
             &title,
+            &the_reason,
             &lines,
             &mut self.list_state_downloads.clone(),
         );
@@ -2077,22 +2122,38 @@ impl App {
     fn render_the_ebooks(&mut self, area: Rect, buf: &mut Buffer) {
         // **The footer stands on the rows that it needs** (T-302): the
         // number of its rows is the number that the wrap of its text needs.
-        let (title, lines) = match crate::logic::the_ebooks::state() {
-            crate::logic::the_ebooks::State::Ready(all) if all.is_empty() => {
-                ("This media has no ebook.".to_string(), Vec::new())
-            }
+        //
+        // **The name of the list stands in the title and the reason stands in
+        // the body** (T-361): a title takes no wrap, therefore a reason of the
+        // title loses its words in a narrow terminal.
+        let the_name_of_the_list = |count: usize| {
+            format!(
+                "The books of this media [{}]",
+                crate::ui::keys::items(count)
+            )
+        };
+
+        let (title, the_reason, lines) = match crate::logic::the_ebooks::state() {
+            crate::logic::the_ebooks::State::Ready(all) if all.is_empty() => (
+                the_name_of_the_list(0),
+                "This media has no ebook.".to_string(),
+                Vec::new(),
+            ),
             crate::logic::the_ebooks::State::Ready(all) => (
-                format!(
-                    "The books of this media [{}]",
-                    crate::ui::keys::items(all.len())
-                ),
+                the_name_of_the_list(all.len()),
+                String::new(),
                 all.iter().map(|one| one.line()).collect(),
             ),
             crate::logic::the_ebooks::State::Fault(text) => (
+                the_name_of_the_list(0),
                 format!("The server gave no list of the books: {}", text),
                 Vec::new(),
             ),
-            _ => ("The program asks the server…".to_string(), Vec::new()),
+            _ => (
+                the_name_of_the_list(0),
+                "The program asks the server…".to_string(),
+                Vec::new(),
+            ),
         };
 
         // **The footer of a view with no line names no key of a line** (T-360),
@@ -2122,10 +2183,11 @@ impl App {
 
         self.render_header(header_area, buf);
         App::render_footer(footer_area, buf, &text_render_footer);
-        self.render_list(
+        self.render_the_list_or_the_reason(
             main_area,
             buf,
             &title,
+            &the_reason,
             &lines,
             &mut self.list_state_ebooks.clone(),
         );
@@ -2149,25 +2211,39 @@ impl App {
         // number of its rows is the number that the wrap of its text needs.
         let state = crate::logic::new_podcast::state();
 
-        let (title, lines) = match &state {
+        // **The name of the list stands in the title and the reason stands in
+        // the body** (T-361): a title takes no wrap, therefore a reason of the
+        // title loses its words in a narrow terminal.
+        let the_name_of_the_list = |count: usize| {
+            format!(
+                "A new podcast [{}]",
+                crate::ui::keys::counted(count, "answer")
+            )
+        };
+
+        let (title, the_reason, lines) = match &state {
             crate::logic::new_podcast::State::Ready(all) if all.is_empty() => (
+                the_name_of_the_list(0),
                 "The server found no podcast. Press A and write other words.".to_string(),
                 Vec::new(),
             ),
             crate::logic::new_podcast::State::Ready(all) => (
-                format!(
-                    "A new podcast [{}]",
-                    crate::ui::keys::counted(all.len(), "answer")
-                ),
+                the_name_of_the_list(all.len()),
+                String::new(),
                 crate::api::podcasts::lines(all),
             ),
-            crate::logic::new_podcast::State::Waiting => {
-                ("The server looks for the podcast…".to_string(), Vec::new())
-            }
-            crate::logic::new_podcast::State::Fault(text) => {
-                (format!("The server found nothing: {}", text), Vec::new())
-            }
+            crate::logic::new_podcast::State::Waiting => (
+                the_name_of_the_list(0),
+                "The server looks for the podcast…".to_string(),
+                Vec::new(),
+            ),
+            crate::logic::new_podcast::State::Fault(text) => (
+                the_name_of_the_list(0),
+                format!("The server found nothing: {}", text),
+                Vec::new(),
+            ),
             crate::logic::new_podcast::State::Nothing => (
+                the_name_of_the_list(0),
                 "Press A and write the name of a podcast.".to_string(),
                 Vec::new(),
             ),
@@ -2202,10 +2278,11 @@ impl App {
 
         self.render_header(header_area, buf);
         App::render_footer(footer_area, buf, text_render_footer);
-        self.render_list(
+        self.render_the_list_or_the_reason(
             main_area,
             buf,
             &title,
+            &the_reason,
             &lines,
             &mut self.list_state_new_podcast.clone(),
         );
@@ -2251,28 +2328,41 @@ impl App {
         // episode of it and the title names the podcast.
         let of_a_podcast = self.bookmarks_of_a_podcast;
 
-        let (title, lines) = match &state {
+        // **The name of the list stands in the title and the reason stands in
+        // the body** (T-361): a title takes no wrap, therefore a reason of the
+        // title loses its words in a narrow terminal — the bookmarks of a book
+        // of no bookmark said `"A Book Of An Epub With No Container" h…` at 40
+        // columns, and the user read no key of the work at all.
+        let the_name_of_the_list = |count: usize| {
+            crate::logic::bookmarks::the_title(&name, &crate::ui::keys::items(count), of_a_podcast)
+        };
+
+        let (title, the_reason, lines) = match &state {
             crate::logic::bookmarks::State::Ready(all) if all.is_empty() => (
+                the_name_of_the_list(0),
                 crate::logic::bookmarks::the_title_of_no_bookmark(&name, of_a_podcast),
                 Vec::new(),
             ),
             crate::logic::bookmarks::State::Ready(all) => (
-                crate::logic::bookmarks::the_title(
-                    &name,
-                    &crate::ui::keys::items(all.len()),
-                    of_a_podcast,
-                ),
+                the_name_of_the_list(all.len()),
+                String::new(),
                 crate::api::me::bookmarks::lines(all),
             ),
-            crate::logic::bookmarks::State::Waiting => {
-                ("The program asks the server…".to_string(), Vec::new())
-            }
-            crate::logic::bookmarks::State::Fault(text) => {
-                (format!("The server gave no bookmark: {}", text), Vec::new())
-            }
-            crate::logic::bookmarks::State::Nothing => {
-                ("The program asks the server…".to_string(), Vec::new())
-            }
+            crate::logic::bookmarks::State::Waiting => (
+                the_name_of_the_list(0),
+                "The program asks the server…".to_string(),
+                Vec::new(),
+            ),
+            crate::logic::bookmarks::State::Fault(text) => (
+                the_name_of_the_list(0),
+                format!("The server gave no bookmark: {}", text),
+                Vec::new(),
+            ),
+            crate::logic::bookmarks::State::Nothing => (
+                the_name_of_the_list(0),
+                "The program asks the server…".to_string(),
+                Vec::new(),
+            ),
         };
 
         // **The footer of a view with no line names no key of a line** (T-360),
@@ -2290,10 +2380,11 @@ impl App {
 
         self.render_header(header_area, buf);
         App::render_footer(footer_area, buf, &text_render_footer);
-        self.render_list(
+        self.render_the_list_or_the_reason(
             main_area,
             buf,
             &title,
+            &the_reason,
             &lines,
             &mut self.list_state_bookmarks.clone(),
         );
@@ -2320,18 +2411,19 @@ impl App {
         let [header_area, main_area, footer_area] =
             self.the_areas_of_this_view(area, rows_of_the_footer);
 
-        let title = if lines.is_empty() {
-            "The queue is empty. Press n on a media to put it in the queue.".to_string()
-        } else {
-            format!("The queue [{}]", crate::ui::keys::items(lines.len()))
-        };
+        // **The name of the list stands in the title and the reason stands in
+        // the body** (T-361): a title takes no wrap, therefore this sentence
+        // read `The queue is empty. Press n on a media…` at 40 columns.
+        let title = format!("The queue [{}]", crate::ui::keys::items(lines.len()));
+        let the_reason = "The queue is empty. Press n on a media to put it in the queue.";
 
         self.render_header(header_area, buf);
         App::render_footer(footer_area, buf, &text_render_footer);
-        self.render_list(
+        self.render_the_list_or_the_reason(
             main_area,
             buf,
             &title,
+            the_reason,
             &lines,
             &mut self.list_state_queue.clone(),
         );
@@ -2412,6 +2504,25 @@ impl App {
         );
 
         self.render_header(header_area, buf);
+
+        // **The name of the list stands in the title and the reason stands in
+        // the body** (T-361): a title takes no wrap, therefore the sentence of
+        // this view read `No media plays now. A media that plays…` at 40
+        // columns. This view holds a table of its own, therefore the road with
+        // no line comes back here and it draws no header of the columns and no
+        // bar at all: a bar of no chapter holds no boundary, and a header of no
+        // column names no time.
+        if lines.is_empty() {
+            let the_reason = crate::logic::chapters::the_reason_of_no_chapter(
+                &state.title,
+                state.episode_title.as_deref(),
+                state.status == PlaybackStatus::Stopped,
+            );
+
+            App::render_footer(footer_area, buf, &text_render_footer);
+            self.render_the_reason(main_area, buf, &title, &the_reason);
+            return;
+        }
 
         if let Some(the_bars) = the_bars {
             // **The render gives the cells of the bar of the book back**
@@ -3874,7 +3985,6 @@ impl App {
         let titles_search_book_or_pod: &[String] = &self.titles_search_book.clone();
 
         let render_list_title = crate::logic::search::the_title_of_the_search(
-            &self.search_query,
             from_the_server.is_some(),
             from_the_server
                 .as_ref()
@@ -3884,6 +3994,15 @@ impl App {
             the_podcasts_that_come,
         );
         let render_list_title = render_list_title.as_str();
+
+        // **The name of the list stands in the title and the reason stands in
+        // the body** (T-361): a title takes no wrap, therefore this sentence
+        // read `The server found nothing for "zzqqxnoth…` at 40 columns.
+        let the_reason = crate::logic::search::the_reason_of_no_hit(
+            &self.search_query,
+            from_the_server.is_some(),
+            the_podcasts_that_come,
+        );
 
         // Every list of the view holds one value for each line of the view.
         self.ids_search_book = found.iter().map(|one| one.id.clone()).collect();
@@ -3953,10 +4072,11 @@ impl App {
 
         self.render_header(header_area, buf);
         App::render_footer(footer_area, buf, text_render_footer);
-        self.render_list(
+        self.render_the_list_or_the_reason(
             list_area,
             buf,
             render_list_title,
+            &the_reason,
             &the_lines_of_the_search,
             &mut self.list_state_search_results.clone(),
         );
@@ -4647,6 +4767,39 @@ impl App {
             self.the_areas_of_the_mouse.the_panel_of_the_filter = area;
             self.the_areas_of_the_mouse.the_lines_of_the_filter = inner;
             self.the_areas_of_the_mouse.the_filters = lines;
+        }
+    }
+
+    /// Draws the list of a view, and the reason of a view that holds no line
+    /// under the name of the list that holds no line.
+    ///
+    /// **A reason of a view stands in the body of the panel and never in the
+    /// title of it** (T-361). The title of a block takes no wrap: `ratatui`
+    /// draws it on one row and it cuts what stands over the width of the
+    /// panel. Nine views gave their reason to the title of `render_list`, and
+    /// the user of a narrow terminal therefore read a part of a sentence —
+    /// `"A Book Of An Epub With No Container" h…` of the bookmarks, and
+    /// `The queue is empty. Press n on a media…` of the queue, at 40 columns.
+    /// **That is the fault that the `wrap` of T-278 corrected**, and the road
+    /// of a title brought it back.
+    ///
+    /// `App::render_the_reason` holds the shape that says both: the name of
+    /// the list in the title, and the sentence in a `Paragraph` of a `wrap`
+    /// (T-358). This function gives that shape to every view of a list, and
+    /// the road of the lines stays as it was.
+    fn render_the_list_or_the_reason(
+        &mut self,
+        area: Rect,
+        buf: &mut Buffer,
+        render_list_title: &str,
+        the_reason: &str,
+        render_list_items: &[String],
+        list_state: &mut ListState,
+    ) {
+        if render_list_items.is_empty() {
+            self.render_the_reason(area, buf, render_list_title, the_reason);
+        } else {
+            self.render_list(area, buf, render_list_title, render_list_items, list_state);
         }
     }
 

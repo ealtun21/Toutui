@@ -41,6 +41,30 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.192",
+        date: "17/08/2026",
+        body: &[
+            "Fixed:",
+            "- **A view with no line keeps every word of its reason in a narrow \
+             terminal.** The reason of eleven views stood in the name of the \
+             panel, and a name holds no wrap: a terminal of 40 columns \
+             therefore cut the sentence and the user lost the key of the work. \
+             The bookmarks of a media that holds no bookmark said `\"A Book Of \
+             An Epub With No Container\" h…` and no more, the queue said `The \
+             queue is empty. Press n on a media…`, the chapters said `No media \
+             plays now. A media that plays…`, and a search of no hit said `The \
+             server found nothing for \"zzqqxnoth…`. The rows under each of \
+             those held nothing at all. Every one of the eleven views now names \
+             its list in the panel, for example `The queue [0 items]`, and it \
+             says the whole reason under that name, over as many rows as the \
+             sentence needs. The eleven: the bookmarks, the queue, the chapters, \
+             the search, the authors, the narrators, the view that puts a media \
+             in a list, the downloads of the server, the devices of an \
+             e-reader, the ebooks of a media, and a new podcast. A view of one \
+             line or more keeps the list and the name that it held before.",
+        ],
+    },
+    Entry {
         version: "0.8.191",
         date: "17/08/2026",
         body: &[

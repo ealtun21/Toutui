@@ -15102,6 +15102,98 @@ width of the panel 5 of a media with no cover**; and every candidate of the
 turns before this one.
 
 
+**The session of the hundred and ninety-third turn took the item 1 of the list
+of the work**, and it took the **first candidate that the round before it
+left**: the eight views of a list that took no rule of T-359.
+
+**A `ps` of the machine at the start of the round found it clean**: no program
+of `toutui`, and no shell of a busy loop. The tree of git was clean, every
+commit of the round before it stood at the remote with its tag, the load
+average was 14 of a desktop of the user, and the disk held 446 gigabytes. The
+`cargo clean` of the round before it gave a cold build of 21 seconds for
+`cargo build -j 16`.
+
+**The fault, of the real program v0.8.190 inside tmux**, at 160 columns and 45
+rows, of three views of one run. The bookmarks of "Large Book 0001" of the
+library `Large`, a book of no bookmark, at the key `V`, said `"Large Book 0001"
+has no bookmark. Press b while it plays.` over the footer `j/k: move  l: go to
+the place  X: remove the bookmark  h: back  ?: every key  Q: quit`: three of the
+six parts named a key of a line. The lists that take a media of that same
+library, which holds no collection and no playlist, at the key `m`, said `This
+library holds no collection and no playlist. Press c or p to make one.` over
+`j/k: move  l: put it here  c: a collection  p: a playlist  …`. The downloads of
+the server of the library `Podcasts`, whose queue held no episode, at the key
+`d`, said `The server downloads no episode. Press E on a podcast to get its new
+episodes.` over `j/k: move  X: empty the queue of this podcast  …`.
+
+**The controls of the same run**: a `POST /api/me/item/:id/bookmark` of
+`{"time": 42}` gave that book one bookmark, and the key `V` then said `The
+bookmarks of "Large Book 0001" [1 item]` over the footer with every key in it;
+and the library `Books`, of one collection and one playlist, said `Put "A Long
+Test Book" in a list [2 items]` over `j/k: move  l: put it here  …`. **A view of
+lines holds every one of those keys.** The bookmark went away with
+`DELETE /api/me/item/:id/bookmark/42`, and the account took the library `Books`
+again (the trap 198).
+
+**Why**: each of six render functions of `src/ui/tui.rs` builds its
+`(title, lines)` **after** the text of its footer, therefore the count of the
+lines reaches no footer. `render_put_in_a_list` holds the count in `self.lists`
+at its first line, and it read that count for the title of the panel alone.
+
+**The correction**: the `(title, lines)` of the five views of a state moves
+above the text of the footer, and the six views then take
+`keys::the_footer_of_a_list(<the text of the view>, lines.len())` of T-359: the
+bookmarks, the lists that take a media, the downloads of the server, the devices
+of an e-reader, the ebooks of a media, and a new podcast. **The keys that need
+no line stay**: the key `c` and the key `p` make the first list of a library,
+and the key `A` writes other words for a new podcast. **The corrected program of
+the same harness**: the key `V` and the key `d` each said `h: back  ?: every
+key  Q: quit`, and the key `m` said `c: a collection  p: a playlist  h: back
+?: every key  Q: quit`. **The controls of the same run stayed as they were.**
+**v0.8.191.**
+
+**The statistics and the sessions take no rule of this item, and that is a
+decision of this round.** T-359 names those two views beside the six above, and
+their footers name `j/k: move` too, but those two views hold **no list at all**:
+the keys move the scroll of a text of the server. A text that fits the screen
+takes no scroll, therefore a rule of that shape would take `j/k: move` out of
+the footer of a view of many lines whose terminal is high enough and it would
+put it back when the terminal becomes shorter, and **a footer that moves while
+the user reads it is a fault of its own**.
+
+**Three builds of the fault, and each of them fails
+`tests/the_footer_of_a_view_of_a_list_with_no_line.rs`**: `lines.len() + 1` of
+the call of the bookmarks, of the call of the downloads, and
+`self.lists.len() + 1` of the call of the lists that take a media, each of which
+gives "… with no line must not name the key of the part `j/k: move`".
+
+**The gates**: clippy and fmt clean, 1592 tests of nextest in 3.6 seconds,
+`cargo test -j 16 --no-fail-fast` four times with no failure, and
+`cargo nextest run --run-ignored all` with the sandbox up gave 1618 of 1618.
+
+**What this round leaves open, and each of them is a candidate and not an
+item**: **three of the six views took the correction and no measurement of the
+real program** — the devices of an e-reader (the sandbox holds two devices,
+therefore that road needs a server of none or the proxy
+`a_status_of_one_path.py` of that path), the ebooks of a media (a list comes of
+a media of more than one book), and a new podcast (a search of a feed asks the
+internet), and the render of each of the three stands in the gate of T-360
+already; **the statistics and the sessions**, of the decision above; **the
+footer of the panel 5 and of the panel 6 of a view with no media of a cell** of
+T-359; **the search view of a library with no hit puts its reason in the place
+of the name** of T-358; **the panel 4 of a view with no line takes the focus of
+a click and it says no word of its own** of T-356; **the rows of the band that
+does not fit** of T-353; **the width of the panel 5 of a media with no cover**;
+and every candidate of the turns before this one.
+
+
+
+
+
+
+
+
+
 ## The session of the hundred and forty-ninth turn of 2026-08-16: the panels 2 and 3 of the sequence and of the filter, of the block of the prompt
 
   **The session of the hundred and forty-ninth turn took a part of the
@@ -27267,96 +27359,110 @@ with no cover**; and every candidate of the turns before this one.
 >
 >
 >
-> **The session of the hundred and ninety-third turn took the item 1 of the list
+> **The session of the hundred and ninety-fourth turn took the item 1 of the list
 > of the work**, and it took the **first candidate that the round before it
-> left**: the eight views of a list that took no rule of T-359.
+> left**: the search view of a library with no hit that puts its reason in the
+> place of the name. The measurement of that candidate found a class of eleven
+> views and a fault of the words themselves, and the item is T-361.
 >
 > **A `ps` of the machine at the start of the round found it clean**: no program
 > of `toutui`, and no shell of a busy loop. The tree of git was clean, every
 > commit of the round before it stood at the remote with its tag, the load
-> average was 14 of a desktop of the user, and the disk held 446 gigabytes. The
-> `cargo clean` of the round before it gave a cold build of 21 seconds for
+> average was 5.6 of a desktop of the user, and the disk held 446 gigabytes. The
+> `cargo clean` of the round before it gave a cold build of 23 seconds for
 > `cargo build -j 16`.
 >
-> **The fault, of the real program v0.8.190 inside tmux**, at 160 columns and 45
-> rows, of three views of one run. The bookmarks of "Large Book 0001" of the
-> library `Large`, a book of no bookmark, at the key `V`, said `"Large Book 0001"
-> has no bookmark. Press b while it plays.` over the footer `j/k: move  l: go to
-> the place  X: remove the bookmark  h: back  ?: every key  Q: quit`: three of the
-> six parts named a key of a line. The lists that take a media of that same
-> library, which holds no collection and no playlist, at the key `m`, said `This
-> library holds no collection and no playlist. Press c or p to make one.` over
-> `j/k: move  l: put it here  c: a collection  p: a playlist  …`. The downloads of
-> the server of the library `Podcasts`, whose queue held no episode, at the key
-> `d`, said `The server downloads no episode. Press E on a podcast to get its new
-> episodes.` over `j/k: move  X: empty the queue of this podcast  …`.
+> **The fault, of the real program v0.8.191 inside tmux, at 40 columns and 30
+> rows** — `COLUMNS_OF_THE_SCREEN=40` of `docs/harness/drive.sh`, the narrowest
+> terminal that this fork measures (T-301). **The size of the terminal is the
+> data of the fault**, and the round needed no proxy, no book of a harness, and
+> no change of the sandbox at all. The library `Empty` gave the queue, the
+> chapters, the authors, and the narrators; the library `Books` gave the
+> bookmarks of a book of no bookmark and a search of `zzqqxnothingatall`:
 >
-> **The controls of the same run**: a `POST /api/me/item/:id/bookmark` of
-> `{"time": 42}` gave that book one bookmark, and the key `V` then said `The
-> bookmarks of "Large Book 0001" [1 item]` over the footer with every key in it;
-> and the library `Books`, of one collection and one playlist, said `Put "A Long
-> Test Book" in a list [2 items]` over `j/k: move  l: put it here  …`. **A view of
-> lines holds every one of those keys.** The bookmark went away with
-> `DELETE /api/me/item/:id/bookmark/42`, and the account took the library `Books`
-> again (the trap 198).
+> ```text
+> the key V   ->  "A Book Of An Epub With No Container" h...
+> the key q   ->  The queue is empty. Press n on a media...
+> the key C   ->  No media plays now. A media that plays...
+> the key v   ->  This library has no narrator. A narrato...
+> the search  ->  The server found nothing for "zzqqxnoth...
+> ```
 >
-> **Why**: each of six render functions of `src/ui/tui.rs` builds its
-> `(title, lines)` **after** the text of its footer, therefore the count of the
-> lines reaches no footer. `render_put_in_a_list` holds the count in `self.lists`
-> at its first line, and it read that count for the title of the panel alone.
+> **Every one of those rows is the whole panel.** A `cat -n` of the capture of
+> tmux gave the header, the address, that row, **and no row of a word until the
+> footer of the row 29**. The user therefore read no key of the work at all —
+> not `Press b while it plays.`, not `Press n on a media to put it in the
+> queue.`, not `Press h to go back.`, and not `Press / to write other words.`
+> **A view says why it holds no line, and it says what the user can do** (T-91
+> and T-70), and the half that the user needs is the half that went away.
 >
-> **The correction**: the `(title, lines)` of the five views of a state moves
-> above the text of the footer, and the six views then take
-> `keys::the_footer_of_a_list(<the text of the view>, lines.len())` of T-359: the
-> bookmarks, the lists that take a media, the downloads of the server, the devices
-> of an e-reader, the ebooks of a media, and a new podcast. **The keys that need
-> no line stay**: the key `c` and the key `p` make the first list of a library,
-> and the key `A` writes other words for a new podcast. **The corrected program of
-> the same harness**: the key `V` and the key `d` each said `h: back  ?: every
-> key  Q: quit`, and the key `m` said `c: a collection  p: a playlist  h: back
-> ?: every key  Q: quit`. **The controls of the same run stayed as they were.**
-> **v0.8.191.**
+> **The control of the same run**, of the views that T-358 corrected already: the
+> Library view and the Collections view of the library `Empty`, at those same 40
+> columns, each said the name of the list in the title and the whole reason under
+> it over three rows of a wrap. **Two roads of one program said two different
+> things.**
 >
-> **The statistics and the sessions take no rule of this item, and that is a
-> decision of this round.** T-359 names those two views beside the six above, and
-> their footers name `j/k: move` too, but those two views hold **no list at all**:
-> the keys move the scroll of a text of the server. A text that fits the screen
-> takes no scroll, therefore a rule of that shape would take `j/k: move` out of
-> the footer of a view of many lines whose terminal is high enough and it would
-> put it back when the terminal becomes shorter, and **a footer that moves while
-> the user reads it is a fault of its own**.
+> **Why**: **a title of a block takes no wrap, and a body of a `Paragraph` takes
+> one.** `App::render_the_reason` holds the shape that says both, and eleven
+> views never reach it: each of them gives its sentence to the `title` argument
+> of `self.render_list`. A sweep of the 21 call sites of `render_list` of
+> `src/ui/tui.rs` gave ten render functions of that shape. **This is the fault
+> that the `wrap` of T-278 corrected, and the road of a title brought it back.**
+>
+> **The correction**: a new `App::render_the_list_or_the_reason` calls
+> `render_the_reason` for a list of no line and `render_list` for every other
+> list; the title of each of the ten views becomes the name of its list at every
+> count, with the count of its lines in it; `chapters::the_header_of_the_view`
+> and `search::the_title_of_the_search` give the name alone now, and the new
+> `chapters::the_reason_of_no_chapter` and `search::the_reason_of_no_hit` give
+> the sentences. **The Chapters view holds a table of its own**, therefore its
+> road with no line comes back before the bars and before the header of the
+> columns. **The corrected program of the same harness** said
+> `The queue [0 items]`, `The chapters [0 items]`, `The authors [0 items]`,
+> `The narrators [0 items]`, and `Search result [0 items]` over the whole
+> sentence of each, wrapped over as many rows as it needs. **The controls of the
+> same run stayed as they were**: `The authors [9 items]`,
+> `Put "A Book Of An Epub With No Container" in a list [2 items]`, and
+> `Search result [1 item]` with the panel 5 beside it. **v0.8.192.**
+>
+> **The name of a list that is longer than the screen holds no wrap either**, and
+> the bookmarks of the measurement showed it: the mark of the cut stands at the
+> left of that title. **That is the trade of T-358, and it is the right one**: a
+> name that the user reads in part still names the list, and a reason that the
+> user reads in part names no work at all. The class of the names is a candidate
+> of its own.
 >
 > **Three builds of the fault, and each of them fails
-> `tests/the_footer_of_a_view_of_a_list_with_no_line.rs`**: `lines.len() + 1` of
-> the call of the bookmarks, of the call of the downloads, and
-> `self.lists.len() + 1` of the call of the lists that take a media, each of which
-> gives "… with no line must not name the key of the part `j/k: move`".
+> `tests/the_reason_of_a_view_with_no_line_holds_its_words.rs`**:
+> `if render_list_items.is_empty() && false` of the new method,
+> `if lines.is_empty() && false` of the road with no line of `render_chapters`,
+> and a `render_queue` that gives its sentence to the title again. That test
+> renders four views on a `TestBackend` of **40 columns**, and it reads the rows
+> of the screen together with every run of the whitespace made one space, because
+> a sentence of a body stands on three rows of such a screen.
 >
-> **The gates**: clippy and fmt clean, 1592 tests of nextest in 3.6 seconds,
-> `cargo test -j 16 --no-fail-fast` four times with no failure, and
-> `cargo nextest run --run-ignored all` with the sandbox up gave 1618 of 1618.
+> **The gates**: clippy and fmt clean, 1593 tests of nextest in 3.1 seconds,
+> `cargo test -j 16 --no-fail-fast` three times with no failure, and
+> `cargo nextest run --run-ignored all` with the sandbox up gave 1619 of 1619.
 >
 > **What this round leaves open, and each of them is a candidate and not an
-> item**: **three of the six views took the correction and no measurement of the
-> real program** — the devices of an e-reader (the sandbox holds two devices,
-> therefore that road needs a server of none or the proxy
-> `a_status_of_one_path.py` of that path), the ebooks of a media (a list comes of
-> a media of more than one book), and a new podcast (a search of a feed asks the
-> internet), and the render of each of the three stands in the gate of T-360
-> already; **the statistics and the sessions**, of the decision above; **the
-> footer of the panel 5 and of the panel 6 of a view with no media of a cell** of
-> T-359; **the search view of a library with no hit puts its reason in the place
-> of the name** of T-358; **the panel 4 of a view with no line takes the focus of
-> a click and it says no word of its own** of T-356; **the rows of the band that
-> does not fit** of T-353; **the width of the panel 5 of a media with no cover**;
-> and every candidate of the turns before this one.
+> item**: **six of the eleven views took the correction and no measurement of the
+> real program** — the devices of an e-reader, the ebooks of a media, a new
+> podcast, the lists that take a media, the downloads of the server, and the road
+> of a fault of the server of each of the eleven, for the reasons of T-360, and
+> the render of each of them stands in the gate of this item already; **the name
+> of a list that is longer than the screen**, of the paragraph above; **the
+> statistics and the sessions**, of the decision of T-360; **the panel 4 of a
+> view with no line takes the focus of a click and it says no word of its own**
+> of T-356; **the footer of the panel 5 and of the panel 6 of a view with no
+> media of a cell** of T-359; **the rows of the band that does not fit** of
+> T-353; **the width of the panel 5 of a media with no cover**; and every
+> candidate of the turns before this one.
+>
 >
 >
 >
 
->
->
->
 >    **The turns before this one stand in `## The turns before the three
 >    newest ones` of this file**, above the heading of this prompt. **This item
 >    held three turns, and the block then stood above its limit of size**
@@ -27590,7 +27696,10 @@ with no cover**; and every candidate of the turns before this one.
 > work, and the block then held **85749** bytes with **one** turn in it. The round
 > of the hundred and ninety-third found it at 85928 bytes with one turn in it,
 > and it did the same work, and the block then held **84776** bytes with **one**
-> turn in it.
+> turn in it. The round of the hundred and ninety-fourth found it at 84954 bytes
+> with one turn in it, and it did the same work: the block held **79553** bytes
+> with no turn at all after the removal, and it holds **85700** bytes with
+> **one** turn in it now.
 > **A block that stands at 80000 bytes or under holds two
 > turns**, and the turn of the stage before this one names the parts of that
 > stage which stay open. **The list of the decisions
