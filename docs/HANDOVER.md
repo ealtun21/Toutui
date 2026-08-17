@@ -27602,12 +27602,74 @@ media with no cover; and every candidate of the turns before this one.
   width of the panel 5 of a media with no cover; and every candidate of the turns
   before this one.
 
+## The session of the two hundred and fifth turn of 2026-08-17: T-372, the row of the seek of the band of the player, of the block of the prompt
+
+**The session of the two hundred and fifth turn shipped T-372**: the row of the
+seek of the band of the player that the screen cuts now says that the screen cut
+it. **The round before this one wrote the correction, the test, the entry of the
+changelog, and the version 0.8.203, and it stopped before the docs and the
+commit**: this round found that work in the tree of git at its start, which is
+the rule of the memory, and it shipped that work before it took an item of its
+own.
+
+**The candidate came of T-371**, which left this line:
+"`src/ui/player_tui.rs:325` draws the row of the seek with no `wrap` and no
+cut". The arm of `render_the_seek` for a band that is too narrow for a bar says
+the two times alone (T-322), and it drew them in a `Paragraph` with no `wrap`:
+the two times hold 18 columns, therefore a band of fewer than 20 columns lost
+the end of them with no mark at all. The measurement of the fault, of v0.8.202
+inside tmux with the book of eight hours at 1:27:51: the band of 16 columns
+said ` 1:27:51 / 8:0`, which is a length that the media does not have, and the
+band of 12 columns said ` 1:27:51 /`. **The control of the same run**: the row
+of the words above it and the row of the keys under it each said the three
+points at those same two widths.
+
+**The correction is one call**: the text of that arm goes through
+`crate::logic::message::in_one_row` with `parts.the_seek.width`. A row that the
+band cut ends with the three points, and it keeps its start, which is the place
+of the user — the length of the media is the part that the user can spare.
+**v0.8.203.**
+
+**This round verified the work before it shipped it.** The build of the fault —
+the `format!` alone in the place of the `in_one_row`, which is the program of
+v0.8.202 — failed the gate with `the row of the seek of 16 columns says no cut:
+" 2:46:40 / 8:0"`. The corrected program inside tmux, at the place 1:20:08:
+whole at 26 and at 20 columns with no mark, `1:20:08 / 8:…` at 16 columns, and
+`1:20:08…` at 12 columns, and the two rows of the control did not change.
+
+**The gates**: clippy and fmt clean, 1620 tests of nextest in 2.9 seconds,
+`cargo test -j 16 --no-fail-fast` three times with exit 0 and 238 blocks of
+`ok` each time, and `cargo nextest run --run-ignored all` with the sandbox up
+gave 1646 of 1646 **two times**: before the measurement of tmux, and after the
+road back of it.
+
+**Two facts of this round that the docs did not hold.**
+`PATCH /api/me/progress/:id` with `{"isFinished": false}` did **not** write
+`currentTime: 0` for a media that was not finished: the place stayed through
+two such requests, and `{"currentTime": 0, "progress": 0}` wrote the zero — the
+rule of T-160 and of the section 15 therefore holds for a media that **was**
+finished alone. And **the key `l` of the Home view of the bands of the covers
+moves the cursor to the right, and the key `Enter` starts the playback**: the
+words of the trap 196 are the program before the bands of T-331, and a
+measurement that reads them loses a round of keys.
+
+**What this round leaves open, and each of them is a candidate and not an
+item**: the box of the screen of the start holds no rule of the rows of the
+screen (T-371); the advice of 89 columns still takes two rows of every
+terminal, which is the work of a design and not the work of a fault; a value of
+a fact that holds an end of a line (T-370), and no media of the sandbox holds
+such a value; the title of a panel that holds a name of the server, which
+T-361, T-363, and T-367 each left open; the keys `4`, `j`, `k`, and `l` of the
+panel 4 of a view with no line; the footers of the panel 5 and of the panel 6
+(T-354); the rows of the band that does not fit (T-353); the width of the panel
+5 of a media with no cover; and every candidate of the turns before this one.
+
 ## The prompt for the next session
 
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.202**; `Cargo.toml` is at 0.8.202. The
+> AlbanDAVID/Toutui. Newest release **v0.8.204**; `Cargo.toml` is at 0.8.204. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -28620,69 +28682,61 @@ media with no cover; and every candidate of the turns before this one.
 > 1. **A condition of the program that no measurement has reached.** A sweep of
 >    this shape found a fault in one hundred and seventeen sessions of one
 >    hundred and eighteen.
-> **The session of the two hundred and fifth turn shipped T-372**: the row of the
-> seek of the band of the player that the screen cuts now says that the screen cut
-> it. **The round before this one wrote the correction, the test, the entry of the
-> changelog, and the version 0.8.203, and it stopped before the docs and the
-> commit**: this round found that work in the tree of git at its start, which is
-> the rule of the memory, and it shipped that work before it took an item of its
-> own.
+> **The session of the two hundred and sixth turn shipped T-373**: the title of
+> a view with no line that the screen cuts keeps its start now, and the three
+> points say that the screen cut it. **The candidate came of T-367 and of
+> T-361**, which left "the title of a panel that holds a name of the server"
+> open.
 >
-> **The candidate came of T-371**, which left this line:
-> "`src/ui/player_tui.rs:325` draws the row of the seek with no `wrap` and no
-> cut". The arm of `render_the_seek` for a band that is too narrow for a bar says
-> the two times alone (T-322), and it drew them in a `Paragraph` with no `wrap`:
-> the two times hold 18 columns, therefore a band of fewer than 20 columns lost
-> the end of them with no mark at all. The measurement of the fault, of v0.8.202
-> inside tmux with the book of eight hours at 1:27:51: the band of 16 columns
-> said ` 1:27:51 / 8:0`, which is a length that the media does not have, and the
-> band of 12 columns said ` 1:27:51 /`. **The control of the same run**: the row
-> of the words above it and the row of the keys under it each said the three
-> points at those same two widths.
+> **The fault was the T-304 shape on the two roads that T-304 did not reach.**
+> ratatui gives a centered title that is wider than the block a smaller area,
+> and it draws the title right-aligned in it: the title loses its start and its
+> end together, with no mark of either. T-304 gave the road of a view **with**
+> lines the cut of `in_one_row`, and the two roads of a view with **no** line —
+> `App::render_the_reason` of `src/ui/tui.rs` and `render_the_message` of
+> `src/ui/the_message_of_a_view.rs` — passed the title raw. The measurement of
+> the fault, of v0.8.203 inside tmux at 40 columns: the key `V` of the book
+> `A Book Of An Epub With No Container` gave the bookmarks view with no line,
+> and the row of the title said `With No Container" [0 items]` — no start, no
+> mark, and no word that named the view. **The control of the same run**: the
+> reason under the title wrapped whole (T-361), and the search view of the same
+> terminal — a view with lines — cut its long line with the three points.
 >
-> **The correction is one call**: the text of that arm goes through
-> `crate::logic::message::in_one_row` with `parts.the_seek.width`. A row that the
-> band cut ends with the three points, and it keeps its start, which is the place
-> of the user — the length of the media is the part that the user can spare.
-> **v0.8.203.**
+> **The correction is two calls of `in_one_row`**: `render_the_reason` gives
+> the branch of `a_panel` the width `area.width.saturating_sub(6)` (the T-304
+> rule of the corners and of the number) and the plain branch `area.width`, and
+> `render_the_message` gives `area.width`. The corrected program at 40 columns
+> said `The bookmarks of "A Book Of An Epub Wit…`, and at 160 columns the whole
+> title stood with no mark. **v0.8.204.**
 >
-> **This round verified the work before it shipped it.** The build of the fault —
-> the `format!` alone in the place of the `in_one_row`, which is the program of
-> v0.8.202 — failed the gate with `the row of the seek of 16 columns says no cut:
-> " 2:46:40 / 8:0"`. The corrected program inside tmux, at the place 1:20:08:
-> whole at 26 and at 20 columns with no mark, `1:20:08 / 8:…` at 16 columns, and
-> `1:20:08…` at 12 columns, and the two rows of the control did not change.
+> **The build of the fault** — the two calls with `u16::MAX` in the place of
+> the width, which is the program of v0.8.203 — **failed the two new tests**:
+> `a_title_longer_than_the_screen_keeps_its_start` of
+> `src/ui/the_message_of_a_view.rs`, and
+> `tests/the_title_of_a_view_with_no_line_says_the_screen_cut_it.rs` (a
+> `TestBackend` of 40 columns, the Bookmarks view, the box of the bookmarks at
+> `Ready` of no row).
 >
-> **The gates**: clippy and fmt clean, 1620 tests of nextest in 2.9 seconds,
-> `cargo test -j 16 --no-fail-fast` three times with exit 0 and 238 blocks of
-> `ok` each time, and `cargo nextest run --run-ignored all` with the sandbox up
-> gave 1646 of 1646 **two times**: before the measurement of tmux, and after the
-> road back of it.
->
-> **Two facts of this round that the docs did not hold.**
-> `PATCH /api/me/progress/:id` with `{"isFinished": false}` did **not** write
-> `currentTime: 0` for a media that was not finished: the place stayed through
-> two such requests, and `{"currentTime": 0, "progress": 0}` wrote the zero — the
-> rule of T-160 and of the section 15 therefore holds for a media that **was**
-> finished alone. And **the key `l` of the Home view of the bands of the covers
-> moves the cursor to the right, and the key `Enter` starts the playback**: the
-> words of the trap 196 are the program before the bands of T-331, and a
-> measurement that reads them loses a round of keys.
+> **One gate of T-361 read the new mark as the old fault.** The second
+> assertion of `tests/the_reason_of_a_view_with_no_line_holds_its_words.rs`
+> said that no `…` stands on the screen of a view with no line: that mark
+> could only mean a reason that the title cut when the round of T-361 wrote
+> it, and it is the mark of a title that says the cut now. The assertion now
+> reads the rows: a row that holds the mark must hold the start of the title
+> of its view, and a mark on a row of the body is the fault of T-361 again.
+> The first assertion — the whole reason stands — did not change.
 >
 > **What this round leaves open, and each of them is a candidate and not an
-> item**: the box of the screen of the start holds no rule of the rows of the
-> screen (T-371); the advice of 89 columns still takes two rows of every
-> terminal, which is the work of a design and not the work of a fault; a value of
-> a fact that holds an end of a line (T-370), and no media of the sandbox holds
-> such a value; the title of a panel that holds a name of the server, which
-> T-361, T-363, and T-367 each left open; the keys `4`, `j`, `k`, and `l` of the
-> panel 4 of a view with no line; the footers of the panel 5 and of the panel 6
-> (T-354); the rows of the band that does not fit (T-353); the width of the panel
-> 5 of a media with no cover; and every candidate of the turns before this one.
->
->
->
->
+> item**: the raw titles of a `Block` that hold static words
+> (`sessions_tui.rs`, `reader_tui.rs`, `stats_tui.rs`, and the reader with no
+> book of `tui.rs`), which a terminal of 40 columns can still cut; the title
+> `Player` of `a_band`, static too; the title of a view with no line of a name
+> of an East Asian language, and no media of the sandbox holds such a name;
+> the box of the screen of the start and the rule of the rows (T-371); a value
+> of a fact that holds an end of a line (T-370); the keys `4`, `j`, `k`, and
+> `l` of the panel 4 of a view with no line; the footers of the panel 5 and of
+> the panel 6 (T-354); the rows of the band that does not fit (T-353); and
+> every candidate of the turns before this one.
 >    **The turns before this one stand in `## The turns before the three
 >    newest ones` of this file**, above the heading of this prompt. **This item
 >    held three turns, and the block then stood above its limit of size**
@@ -28949,7 +29003,7 @@ media with no cover; and every candidate of the turns before this one.
 > and it held **88074** bytes with **one** turn in it. The round of the two
 > hundred and fifth found it at 88308 bytes with one turn in it, and it did the
 > same work: the block held **81281** bytes with no turn at all after the
-> removal, and it holds **85713** bytes with **one** turn in it now.
+> removal, and it held **85713** bytes with **one** turn in it. The round of the two hundred and sixth found it at 85713 bytes with one turn in it, and it did the same work: it holds about **86000** bytes with **one** turn in it now.
 > **A block that stands at 80000 bytes or under holds two
 > turns**, and the turn of the stage before this one names the parts of that
 > stage which stay open. **The list of the decisions

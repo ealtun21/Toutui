@@ -52,6 +52,13 @@ use ratatui::widgets::{Block, Borders, Paragraph, Widget, Wrap};
 /// `crate::ui::the_list_of_a_view` draws the same rule with the same title for
 /// a view of lines: the two roads of one view therefore say one name.
 pub fn render_the_message(title: &str, text: &str, area: Rect, buf: &mut Buffer) {
+    // **The title of a view with no line keeps its start** (T-373, and the
+    // rule of T-304): ratatui gives a centered title that is wider than the
+    // block a smaller area and it draws the title right-aligned in it,
+    // therefore the title loses its start and its end together, with no mark
+    // of the cut. The three points say that the screen cut it.
+    let title = crate::logic::message::in_one_row(title, area.width);
+
     Paragraph::new(text)
         .centered()
         .wrap(Wrap { trim: true })
@@ -135,6 +142,35 @@ mod tests {
                 "the screen of {width} columns names the key of the road back: {words}"
             );
         }
+    }
+
+    /// A title that is wider than the screen keeps its start, and the three
+    /// points say that the screen cut it. See T-373 and T-304.
+    ///
+    /// The words of a row of the buffer, in the sequence of the screen: the
+    /// title stands on the first row, over the border.
+    #[test]
+    fn a_title_longer_than_the_screen_keeps_its_start() {
+        let title = "The bookmarks of \"A Book Of An Epub With No Container\" [0 items]";
+        let mut buffer = Buffer::empty(Rect::new(0, 0, 40, 20));
+
+        render_the_message(
+            title,
+            "Press h to go back.",
+            Rect::new(0, 0, 40, 20),
+            &mut buffer,
+        );
+
+        let the_title_row: String = (0..40).map(|column| buffer[(column, 0)].symbol()).collect();
+
+        assert!(
+            the_title_row.contains("The bookmarks of"),
+            "the title of 40 columns keeps its start: {the_title_row}"
+        );
+        assert!(
+            the_title_row.contains('…'),
+            "the three points say that the screen cut the title: {the_title_row}"
+        );
     }
 
     /// The sentence of the offline mode of that view is 94 characters long, and

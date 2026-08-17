@@ -36251,3 +36251,77 @@ inside tmux, and after the road back of it.
   in the same form, therefore no fault stands, and the difference is the shape
   of the code alone.
 - Every candidate of the turns before this one stays open.
+
+## T-373 — The title of a view with no line that the screen cuts keeps its start and says that the screen cut it
+
+**The candidate of T-367 and of T-361.** Those two items left "the title of a
+panel that holds a name of the server" open, and the road to it found that the
+raw title of a view with no line loses its start with no mark at all — the
+T-304 shape, on the two roads that T-304 did not reach.
+
+**The measurement of the fault, of the real program v0.8.203 inside tmux
+against the sandbox, at 40 columns** (`COLUMNS_OF_THE_SCREEN=40` of
+`docs/harness/drive.sh`). The book `A Book Of An Epub With No Container` of
+the library `Books`, found with the search `/`, and the key `V` of its line
+opened the bookmarks view with no line. The title of that view holds 65
+characters, and the row of the title said:
+
+```text
+With No Container" [0 items]────────────
+```
+
+The start `The bookmarks of "A Book Of An Epub ` was gone, no word of the
+screen named the view, and no mark said that the screen cut it.
+
+**The control of the same run.** The reason under the title wrapped whole
+(`"A Book Of An Epub With No Container" has no bookmark. Press b while it
+plays.`, the rule of T-361), and the search view of the same terminal — the
+road of a view **with** lines — cut its long line with the three points
+(`A Book Of An Epub With No Contain…`, the rule of T-304).
+
+**Why.** ratatui gives a centered title that is wider than the block a smaller
+area (`width - (title - width) / 2` columns), and it draws that title
+right-aligned inside it: the title loses its start and its end together, with
+no mark of either. T-304 corrected the road of a view with lines
+(`render_the_table_of_a_panel` cuts with `in_one_row`, the width minus 6 for
+the panel 4), and the two roads of a view with no line —
+`App::render_the_reason` of `src/ui/tui.rs` and `render_the_message` of
+`src/ui/the_message_of_a_view.rs` — passed the title raw into the title of the
+Block.
+
+**The correction is two files.** The two roads cut the title with
+`crate::logic::message::in_one_row` before the Block takes it.
+`render_the_reason` gives the branch of `a_panel` the width
+`area.width.saturating_sub(6)` (the two corners and the number of the panel,
+the T-304 rule) and the plain branch `area.width`; `render_the_message` gives
+`area.width`. **v0.8.204.**
+
+**The corrected program of the same harness**, at 40 columns:
+
+```text
+The bookmarks of "A Book Of An Epub Wit…
+```
+
+The start stands, the three points mark the cut, and the body stayed whole. At
+160 columns the whole title stood centered with no mark.
+
+**The build of the fault fails the gate.** The two calls with `u16::MAX` in
+the place of the width — which is the program of v0.8.203 — failed the two new
+tests: the in-module test `a_title_longer_than_the_screen_keeps_its_start` of
+`src/ui/the_message_of_a_view.rs`, which is pure, and the integration test
+`tests/the_title_of_a_view_with_no_line_says_the_screen_cut_it.rs`, which
+draws a `TestBackend` of 40 columns, opens the Bookmarks view with the name of
+the measurement, and sets the box of the bookmarks to `Ready` of no row.
+
+**What this item leaves open, and each of them is a candidate and not an
+item.**
+
+- The other raw titles of a `Block` hold static words and no name of the
+  server (`sessions_tui.rs` "The sessions that you played", `reader_tui.rs`,
+  `stats_tui.rs`, and `tui.rs` "The reader of the ebook"), and a terminal of
+  40 columns can still cut them. No measurement of this round reached them.
+- The title of `a_band` of the band of the player ("Player") is static too.
+- The title of a view with no line of a name of an East Asian language:
+  `the_columns_of` reads the width of two columns, and no media of the sandbox
+  holds such a name, therefore no measurement of this round reached it.
+- Every candidate of the turns before this one stays open.

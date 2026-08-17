@@ -212,30 +212,37 @@ async fn the_reason_of_a_view_with_no_line_holds_its_words() {
     app.bookmarks_of_name = "A Book Of An Epub With No Container".to_string();
     app.bookmarks_of_a_podcast = false;
 
+    // The fourth part of a row is the start of the title of the view: the mark
+    // of a cut belongs to the row of the title alone (T-373), and the start of
+    // a title stands through every cut (T-304).
     let the_views_with_no_line = [
         (
             AppView::Queue,
             "the queue",
             "The queue is empty. Press n on a media to put it in the queue.",
+            "The queue [",
         ),
         (
             AppView::Chapters,
             "the chapters",
             "No media plays now. A media that plays gives its chapters. Press h to go back.",
+            "The chapters [",
         ),
         (
             AppView::SearchBook,
             "the search",
             "The program looks in its own titles. The answer of the server comes.",
+            "Search result [",
         ),
         (
             AppView::Bookmarks,
             "the bookmarks",
             "\"A Book Of An Epub With No Container\" has no bookmark. Press b while it plays.",
+            "The bookmarks of \"",
         ),
     ];
 
-    for (view, name, the_reason) in the_views_with_no_line {
+    for (view, name, the_reason, the_start_of_the_title) in the_views_with_no_line {
         app.view_state = view;
 
         terminal
@@ -250,13 +257,24 @@ async fn the_reason_of_a_view_with_no_line_holds_its_words() {
              {THE_NARROW_SCREEN} columns.\nthe reason: {the_reason}\nthe screen: {words}"
         );
 
-        // **A title that holds no wrap ends with the mark of a cut**, and a
-        // body that holds one never does: the screen of the fault said
-        // `The queue is empty. Press n on a media…`.
-        assert!(
-            !words.contains('…') || !the_reason.contains("Press"),
-            "{name} with no line draws no cut of its reason: {words}"
-        );
+        // **A body that holds a wrap never ends with the mark of a cut**: the
+        // screen of the fault said `The queue is empty. Press n on a media…`
+        // on the row of the border. **The title of the view can hold that mark
+        // now** (T-373): a title that is wider than the screen keeps its start
+        // and it says that the screen cut it. A row that holds the mark must
+        // therefore hold the start of the title too, and a mark on a row of
+        // the body is the fault of T-361 again.
+        let buffer = terminal.backend().buffer().clone();
+        for row in 0..buffer.area.height {
+            let the_row: String = (0..buffer.area.width)
+                .map(|column| buffer[(column, row)].symbol())
+                .collect();
+
+            assert!(
+                !the_row.contains('…') || the_row.contains(the_start_of_the_title),
+                "{name} with no line draws no cut of a row of its body: {the_row}"
+            );
+        }
     }
 
     // ## 3. The controls of the same run

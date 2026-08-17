@@ -3126,10 +3126,30 @@ impl App {
         // `crate::ui::the_list_of_a_view` gives that same rule the same title
         // for a view of lines, therefore the two roads of one view now say one
         // name.
+        // **The title of a view with no line keeps its start** (T-373, and the
+        // rule of T-304): ratatui gives a centered title that is wider than
+        // the block a smaller area and it draws the title right-aligned in it,
+        // therefore the title loses its start and its end together, with no
+        // mark of the cut. The road of the lines cuts its title already
+        // (`render_the_table_of_a_panel`), and this road did not: the
+        // bookmarks of "A Book Of An Epub With No Container" said
+        // `With No Container" [0 items]` at 40 columns, and no word of the
+        // screen named the view. **The title of the panel 4 keeps the two
+        // corners of its border and the number of the panel** (T-304): those
+        // six columns come away before the title takes what stays.
+        let title = crate::logic::message::in_one_row(
+            title,
+            if self.the_frame_of_the_panels_stands() {
+                area.width.saturating_sub(6)
+            } else {
+                area.width
+            },
+        );
+
         let block = if self.the_frame_of_the_panels_stands() {
             crate::ui::frame::a_panel(
                 crate::ui::frame::ThePanel::TheList.the_number(),
-                title,
+                &title,
                 self.the_panel_of_the_focus == crate::ui::frame::ThePanel::TheList,
             )
         } else {

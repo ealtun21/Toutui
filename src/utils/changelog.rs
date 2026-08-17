@@ -41,6 +41,26 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.204",
+        date: "17/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The title of a view with no line that the screen cuts keeps \
+             its start, and it says that the screen cut it.** The title of \
+             such a view holds the name of its list, and that name can come \
+             of the server: the bookmarks of \"A Book Of An Epub With No \
+             Container\" hold a title of 65 characters. The screen draws a \
+             centered title that is wider than its box in a smaller area, at \
+             the right of it, therefore the title lost its start and its end \
+             together with no mark: a terminal of 40 columns said `With No \
+             Container\" [0 items]` and no word of it named the view. A view \
+             with its lines cuts its title already, and the two roads of a \
+             view with no line now cut it in the same way: the title keeps \
+             its start, which names the view, and the three points say that \
+             the screen cut it.",
+        ],
+    },
+    Entry {
         version: "0.8.203",
         date: "17/08/2026",
         body: &[
