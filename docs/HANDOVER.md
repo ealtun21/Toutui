@@ -25060,12 +25060,89 @@ of the mouse that no stage reached; **each of them is a candidate and not an
 item.**
 
 
+## The session of the hundred and eighty-first turn of 2026-08-17: T-348, the width of the panel of a media with no cover, of the block of the prompt
+
+**The session of the hundred and eighty-first turn took the item 1 of the list
+of the work**, and it took the rule that the turn before it wrote: a sweep of
+the rows of a screen belongs at 160 columns and at 100 columns together. **The
+condition that no measurement had reached stood in the panel 5 of the cover**,
+which the five rounds of T-342 to T-347 each left alone.
+
+**A `ps` of the machine at the start of the round is a measurement of its own**
+(T-271), and this round paid for skipping it for two minutes: the build stood
+at 0.8 percent of a processor while **34** shells of `zsh` in a busy loop —
+the load tests of past rounds, whose `kill` at the end never ran — held the
+load average of a machine of 32 processors at **47**, and six of them had
+stood for **2 days and 11 hours**. `ps -eo pid,pcpu,comm --sort=-pcpu | head`
+named them, and a `kill -9` of the list of their identities gave the machine
+back. **That `ps` belongs beside the `ps -C toutui` of T-271 now.**
+
+**The fault, of the real program v0.8.178 inside tmux**, of the library
+`Large` of the sandbox, whose media the server holds **with no cover at all**
+(`GET /api/items/:id/cover` answers **404**), in the Home view, with
+`tmux resize-window -t check -x 160 -y N` after the first frame. At 16 rows:
+
+```text
+│  Authors                      a│║┃Book    ┃ │Book    │ …║ │No description      │
+│  Narrators                    v│║┃0001    ┃ │0002    │ …║ │available           │
+```
+
+The panel 5 took **22 columns**, and it cut `Files     1 file, 0.0 MB` after
+`0.` — in the middle of a number — and it broke `No description available`
+over two lines. **The same panel of the same media at 30 rows took 48 columns
+and it said the two lines whole.** The fault stood at 16, 14, and 13 rows, and
+the panel goes away at 12 rows and fewer. **It stood at 100 columns too**,
+which is the shape of two columns.
+
+**Why**: `cover::split_for_covers` clamps the width with
+`width_that_the_height_can_use(area.height, font, WIDEST_COVER)`, and that
+limit is the limit of a **picture** (T-50) — "a panel that is wider than this
+value gives the picture no more pixels, and it takes columns of the text for
+nothing." **A panel that holds no picture takes no such limit**: a media that
+the server holds with no cover gives every row of the panel to the words
+(T-319), and the height of it says nothing at all about the columns that those
+words need.
+
+**The correction**: `split_for_covers` takes `a_picture_comes` now. Two new
+methods of `App` carry that answer to the layout, which stands before the
+render — `the_media_of_the_panel_of_the_cover` and
+`a_picture_comes_in_the_panel_of_the_cover` — and they read the **same**
+`cover::no_picture_comes` that `the_parts_of_the_panel` reads for the rows of
+the panel. The eight views that draw a panel of a cover pass it, and the
+reader of a page of a PDF passes `true` (T-54).
+
+**The corrected program of the same harness**: at 16, 14, and 13 rows the
+panel holds 48 columns and it says the two lines whole, which is the panel of
+the same media at 30 rows, character for character. **The control is the
+library `Books`**, whose media hold a cover: 48 columns at 30 rows, 28 at 20,
+and 22 at 16 and 14, before the correction and after it, character for
+character. **The correction gives a screen of few rows the panel that a screen
+of many rows had already, and it changes no panel that holds a picture.**
+
+The correction failed its gate with the fault built back in: the arm of the
+pure function went away with `if a_picture_comes || true`, and
+`a_panel_of_no_picture_keeps_its_width_at_a_screen_of_few_rows` then said
+`left: 22, right: 50`. **The third test of the item passed with the fault in
+place**, because it is the control of the rule of T-50. **v0.8.179.**
+
+**What this round leaves open, and each of them is a candidate and not an
+item**: **the height of the panel 5 of a media with no cover** —
+`MIN_HEIGHT_FOR_COVER` of 8 rows is the height of a **picture** too, and the
+whole panel goes away at 12 rows of the screen, while a panel of the words
+alone needs three rows and a border; **the panel 5 of a media that holds a
+picture at a screen of few rows**, where the picture stands in 6 rows and
+`THE_SMALLEST_PICTURE` is 8; **the panel 6 of the gallery under 20 rows**,
+which no measurement of tmux has driven; and every candidate of the turns
+before this one. **A media of the sandbox with no cover is data of a fault
+that needs no proxy and no change of the sandbox at all**, and the library
+`Large` is that data.
+
 ## The prompt for the next session
 
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.178**; `Cargo.toml` is at 0.8.178. The
+> AlbanDAVID/Toutui. Newest release **v0.8.180**; `Cargo.toml` is at 0.8.180. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -25909,8 +25986,8 @@ item.**
 > `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`, and
 > `cargo nextest run` with `ALSA_CONFIG_PATH` pointing at a null asound file of
 > two lines (`pcm.!default { type null }` and `ctl.!default { type null }`).
-> Baseline: **1576 tests in 3.1 seconds of nextest**, and `cargo nextest run --run-ignored
-> all` gives **1602 of 1602** with the sandbox up, in about 62 seconds. **Run that
+> Baseline: **1580 tests in 3.1 seconds of nextest**, and `cargo nextest run --run-ignored
+> all` gives **1606 of 1606** with the sandbox up, in about 60 seconds. **Run that
 > second command at the end of the session too**: it found T-132 and T-111.
 > **And `cargo clean` is the last command of the round**, after the push: the
 > maintainer asked for it on 2026-08-17, and the paragraph of the disk above
@@ -26082,80 +26159,75 @@ item.**
 
 >
 >
-> **The session of the hundred and eighty-first turn took the item 1 of the list
-> of the work**, and it took the rule that the turn before it wrote: a sweep of
-> the rows of a screen belongs at 160 columns and at 100 columns together. **The
-> condition that no measurement had reached stood in the panel 5 of the cover**,
-> which the five rounds of T-342 to T-347 each left alone.
+> **The session of the hundred and eighty-second turn took the item 1 of the
+> list of the work**, and it took **the first candidate that the turn before it
+> left open**: T-348 corrected the width of the panel 5 of a media with no
+> cover, and the height of that same panel held the same fault one gate later.
 >
-> **A `ps` of the machine at the start of the round is a measurement of its own**
-> (T-271), and this round paid for skipping it for two minutes: the build stood
-> at 0.8 percent of a processor while **34** shells of `zsh` in a busy loop —
-> the load tests of past rounds, whose `kill` at the end never ran — held the
-> load average of a machine of 32 processors at **47**, and six of them had
-> stood for **2 days and 11 hours**. `ps -eo pid,pcpu,comm --sort=-pcpu | head`
-> named them, and a `kill -9` of the list of their identities gave the machine
-> back. **That `ps` belongs beside the `ps -C toutui` of T-271 now.**
+> **A `ps` of the machine at the start of the round found it clean**: no program
+> of `toutui`, and no shell of a busy loop of the rounds before it. The tree of
+> git was clean too, and `cargo clean` of the round before this one gave a cold
+> build of `cargo build -j 16` in **21.65 seconds**, which is the measurement of
+> T-64.
 >
-> **The fault, of the real program v0.8.178 inside tmux**, of the library
+> **The fault, of the real program v0.8.179 inside tmux**, of the library
 > `Large` of the sandbox, whose media the server holds **with no cover at all**
 > (`GET /api/items/:id/cover` answers **404**), in the Home view, with
-> `tmux resize-window -t check -x 160 -y N` after the first frame. At 16 rows:
+> `tmux resize-window -t check -x 160 -y N` after the first frame. At 13 rows
+> the panel stood and the list named four media:
 >
 > ```text
-> │  Authors                      a│║┃Book    ┃ │Book    │ …║ │No description      │
-> │  Narrators                    v│║┃0001    ┃ │0002    │ …║ │available           │
+> │  Authors                      a│║    Large Book 0002    <1m  -│║ │Time      0m                │
+> │  Narrators                    v│║    Large Book 0003    <1m  -│║ │Files     1 file, 0.0 MB    │
+> │  Collections                  c│║    Large Book 0004    <1m  -│║ │No description available    │
 > ```
 >
-> The panel 5 took **22 columns**, and it cut `Files     1 file, 0.0 MB` after
-> `0.` — in the middle of a number — and it broke `No description available`
-> over two lines. **The same panel of the same media at 30 rows took 48 columns
-> and it said the two lines whole.** The fault stood at 16, 14, and 13 rows, and
-> the panel goes away at 12 rows and fewer. **It stood at 100 columns too**,
-> which is the shape of two columns.
+> At 12 rows, one row fewer, **the panel went away**, the list named **one**
+> media, and the two rows under it said `Author: N/A - Year: N/A - Duration: 0m`
+> and `Progress:  N/A%,   N/A`, which are the two lines of the program before
+> the panel of T-325 stood — and which **say less than the panel said**. The
+> fault stood at 12, 11, and 10 rows, and **it stood at 100 columns too**: the
+> panel of 38 columns went away at 12 rows there, and the list fell from six
+> media to three.
 >
-> **Why**: `cover::split_for_covers` clamps the width with
-> `width_that_the_height_can_use(area.height, font, WIDEST_COVER)`, and that
-> limit is the limit of a **picture** (T-50) — "a panel that is wider than this
-> value gives the picture no more pixels, and it takes columns of the text for
-> nothing." **A panel that holds no picture takes no such limit**: a media that
-> the server holds with no cover gives every row of the panel to the words
-> (T-319), and the height of it says nothing at all about the columns that those
-> words need.
+> **Why**: the gate of `cover::split_for_covers` reads
+> `area.height < MIN_HEIGHT_FOR_COVER`, and that constant is the smallest height
+> of a **picture** — `the_panel_of_the_cover::THE_SMALLEST_PICTURE` is the same
+> number. **The limit of the height stands twice, and T-348 corrected one of
+> them.**
 >
-> **The correction**: `split_for_covers` takes `a_picture_comes` now. Two new
-> methods of `App` carry that answer to the layout, which stands before the
-> render — `the_media_of_the_panel_of_the_cover` and
-> `a_picture_comes_in_the_panel_of_the_cover` — and they read the **same**
-> `cover::no_picture_comes` that `the_parts_of_the_panel` reads for the rows of
-> the panel. The eight views that draw a panel of a cover pass it, and the
-> reader of a page of a PDF passes `true` (T-54).
+> **The correction**: one pure function, `cover::the_smallest_panel_of_the_cover`.
+> A panel that holds a picture keeps `MIN_HEIGHT_FOR_COVER`, and a panel that
+> holds no picture takes the border of the panel and `THE_ROWS_OF_THE_FACTS` —
+> **five rows** — because the facts are the value of that panel. The gate reads
+> that function, and the views pass the `a_picture_comes` of T-348 already.
 >
-> **The corrected program of the same harness**: at 16, 14, and 13 rows the
-> panel holds 48 columns and it says the two lines whole, which is the panel of
-> the same media at 30 rows, character for character. **The control is the
-> library `Books`**, whose media hold a cover: 48 columns at 30 rows, 28 at 20,
-> and 22 at 16 and 14, before the correction and after it, character for
-> character. **The correction gives a screen of few rows the panel that a screen
-> of many rows had already, and it changes no panel that holds a picture.**
+> **The corrected program of the same harness**: at 12, 11, and 10 rows the panel
+> holds 48 columns and it says the three lines whole, which is the panel of the
+> same media at 13 rows, character for character, and the list names three, two,
+> and one media with no line of the program before T-325 under it. **The control
+> is the library `Books`**, whose media hold a cover: its panel stood at 13 rows
+> and it went away at 12, 11, and 10 rows, before the correction and after it,
+> character for character. **v0.8.180.**
 >
-> The correction failed its gate with the fault built back in: the arm of the
-> pure function went away with `if a_picture_comes || true`, and
-> `a_panel_of_no_picture_keeps_its_width_at_a_screen_of_few_rows` then said
-> `left: 22, right: 50`. **The third test of the item passed with the fault in
-> place**, because it is the control of the rule of T-50. **v0.8.179.**
+> **A test that takes its own bounds of the function that it measures cannot
+> fail**, and this round paid for that: the first form of two tests of the item
+> read `the_smallest_panel_of_the_cover(false)` for the start of their sweep of
+> the rows, the fault made that value 8, the range `8..8` held no row at all, and
+> **the two tests passed with the fault built in**. The numbers of a test of this
+> shape are the numbers of the measurement, and 5 is that number. The second
+> form failed with the fault and it passed without it.
 >
 > **What this round leaves open, and each of them is a candidate and not an
-> item**: **the height of the panel 5 of a media with no cover** —
-> `MIN_HEIGHT_FOR_COVER` of 8 rows is the height of a **picture** too, and the
-> whole panel goes away at 12 rows of the screen, while a panel of the words
-> alone needs three rows and a border; **the panel 5 of a media that holds a
-> picture at a screen of few rows**, where the picture stands in 6 rows and
-> `THE_SMALLEST_PICTURE` is 8; **the panel 6 of the gallery under 20 rows**,
-> which no measurement of tmux has driven; and every candidate of the turns
-> before this one. **A media of the sandbox with no cover is data of a fault
-> that needs no proxy and no change of the sandbox at all**, and the library
-> `Large` is that data.
+> item**: **the height of the panel 5 of a media that holds a picture**, where
+> the gate compares the height of the whole panel with `MIN_HEIGHT_FOR_COVER`
+> while `the_parts_of_the_panel` compares the height **inside** the border with
+> `THE_SMALLEST_PICTURE`, which is the same number — the picture of the smallest
+> panel therefore stands in 6 rows while the constant says 8; **the words of the
+> panel 5 at a screen of 9 rows and fewer**, where the panel goes away and the
+> row under the list says `Author: N/A - Year: N/A - Duration: 0m` alone; **the
+> panel 6 of the gallery under 20 rows**, which no measurement of tmux has
+> driven; and every candidate of the turns before this one.
 >
 >    **The turns before this one stand in `## The turns before the three
 >    newest ones` of this file**, above the heading of this prompt. **This item
@@ -26285,6 +26357,20 @@ item.**
 > and the library `Books` of the sandbox is the control of it; and **a media
 > of the sandbox with no cover is data of a fault that needs no proxy and no
 > change of the sandbox at all** (T-348).
+> **The height of the panel of the cover comes of the picture that stands in it
+> too, and the gate of that height stands twice**: `MIN_HEIGHT_FOR_COVER` is
+> the smallest height of a picture and `THE_SMALLEST_PICTURE` is the same
+> number, therefore a screen of 160 columns and 12 rows took that panel away
+> from a media with no cover, the list of it named one media where the same
+> list of 13 rows named four, and the two rows under it said `Author: N/A -
+> Year: N/A - Duration: 0m` and `Progress:  N/A%,   N/A`, which say less than
+> the panel said; **the smallest panel of the words is the border of the panel
+> and `THE_ROWS_OF_THE_FACTS`**, which is five rows, because the facts are the
+> value of that panel and a panel that says fewer facts than the row under the
+> list says takes the columns of the list for nothing; **a panel that holds a
+> picture keeps the height that it had**; and **a test that takes its own
+> bounds of the function that it measures cannot fail**, therefore the numbers
+> of such a test are the numbers of the measurement (T-349).
 > **The bands of covers of the Home view stand where the table of the panel 4
 > stands**, therefore a screen under 120 columns keeps the list of one column
 > that it had, and a panel that has no room for one whole band keeps the table
@@ -26557,7 +26643,9 @@ item.**
 > it, and it did the same work, and the block then held about **95000** bytes
 > with **one** turn in it; the round of the hundred and eighty-first found it
 > at 95969 bytes with one turn in it, and it did the same work, and the block
-> then held **94214** bytes with **one** turn in it.
+> then held **94214** bytes with **one** turn in it; the round of the hundred
+> and eighty-second found it at 96015 bytes with one turn in it, and it did the
+> same work, and the block then held **96726** bytes with **one** turn in it.
 > **A block that stands at 80000 bytes or under holds two
 > turns**, and the turn of the stage before this one names the parts of that
 > stage which stay open. **The list of the decisions
