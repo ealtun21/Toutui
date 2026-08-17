@@ -2647,7 +2647,14 @@ impl App {
         let [header_area, main_area, footer_area] =
             self.the_areas_of_this_view(area, rows_of_the_footer);
 
-        let lines = crate::ui::keys::lines();
+        // **The lines of this view hold the columns of its panel** (T-362): a
+        // line of a list stands on one row and it takes no wrap (T-311),
+        // therefore the work of every key of a terminal of 40 columns stood
+        // outside the screen. The keys of the move read this number too.
+        self.the_columns_of_the_lines_of_the_keys =
+            crate::ui::the_list_of_a_view::the_columns_of_a_line(main_area);
+
+        let lines = crate::ui::keys::lines_of_a_width(self.the_columns_of_the_lines_of_the_keys);
 
         self.render_header(header_area, buf);
         App::render_footer(footer_area, buf, text_render_footer);

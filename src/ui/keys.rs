@@ -480,11 +480,85 @@ pub fn line_of_a_group(name: &str) -> String {
 /// The key stands in a column of 15 characters, therefore the work of every key
 /// starts at the same column.
 pub fn line_of_a_key(one: &Key) -> String {
-    format!("   {:<15} {}", one.key, one.what)
+    the_line_of_a_key_and_its_work(one.key, one.what)
 }
 
-/// Every line of the view of the keys.
+/// The line of one key with a part of the work of that key.
+///
+/// **The work of a key takes a wrap of its own** (T-362), therefore the first row
+/// of that wrap stands beside the key and the rows after it stand under it.
+fn the_line_of_a_key_and_its_work(key: &str, work: &str) -> String {
+    format!("   {:<15} {}", key, work)
+}
+
+/// The column where the work of a key starts, in the line of the two columns.
+///
+/// The three spaces of the indent, the fifteen columns of the key, and the space
+/// after them.
+pub const THE_COLUMN_OF_THE_WORK: u16 = 19;
+
+/// The columns that the work of a key needs beside the key itself.
+///
+/// **A word of the work of a key is longer than a column of few columns**: the
+/// longest of them holds eleven columns, therefore a column of twenty holds the
+/// words of a wrap of that text. A panel that gives the work fewer columns than
+/// this draws the key and the work of it on the rows below it. See T-362.
+pub const THE_SMALLEST_COLUMN_OF_THE_WORK: u16 = 20;
+
+/// The indent of the work of a key, in the lines of one column.
+pub const THE_INDENT_OF_THE_WORK: u16 = 5;
+
+/// Says whether the two columns of the design stand in a panel of `columns`
+/// columns.
+///
+/// **The two columns hold while the work of a key has the columns that it needs**
+/// (T-362): a panel of 37 columns gives that work 18 of them, and a wrap of 18
+/// columns takes the work of one key over four rows. The key of such a panel
+/// stands on a row of its own, and the work of it under that row.
+///
+/// The value 0 is a caller with no width, and the two columns hold for it.
+pub fn the_two_columns_stand(columns: u16) -> bool {
+    columns == 0 || columns >= THE_COLUMN_OF_THE_WORK + THE_SMALLEST_COLUMN_OF_THE_WORK
+}
+
+/// The columns that the wrap of the work of a key has, in a panel of `columns`
+/// columns.
+///
+/// A caller with no width gives 0, which is the wrap of no limit at all.
+pub fn the_columns_of_the_work(columns: u16) -> u16 {
+    if columns == 0 {
+        return 0;
+    }
+
+    let of_the_indent = if the_two_columns_stand(columns) {
+        THE_COLUMN_OF_THE_WORK
+    } else {
+        THE_INDENT_OF_THE_WORK
+    };
+
+    columns.saturating_sub(of_the_indent).max(1)
+}
+
+/// Every line of the view of the keys, with no wrap at all.
+///
+/// **A view of no width is a view of no wrap**: a caller that has the columns of
+/// its panel gives them to [`lines_of_a_width`], and the count of the lines of
+/// this view then holds the width of the panel too.
 pub fn lines() -> Vec<String> {
+    lines_of_a_width(0)
+}
+
+/// Every line of the view of the keys, in a panel of `columns` columns.
+///
+/// **A line of a list stands on one row, and a row that is too narrow loses the
+/// end of its line** (T-311 and T-362): the view of every key of the program
+/// gave the work of each key to a column of the line, therefore a terminal of 40
+/// columns drew the key and no word of the work of it at all. The lines of the
+/// work stand under the key now, and the name of a group takes the rows that it
+/// needs.
+///
+/// **The value 0 gives the lines with no wrap**, for a caller that has no width.
+pub fn lines_of_a_width(columns: u16) -> Vec<String> {
     let mut lines: Vec<String> = Vec::new();
 
     for group in GROUPS {
@@ -492,14 +566,98 @@ pub fn lines() -> Vec<String> {
             lines.push(String::new());
         }
 
-        lines.push(line_of_a_group(group.name));
+        lines.extend(the_lines_of_a_group(group.name, columns));
 
         for one in group.keys {
-            lines.push(line_of_a_key(one));
+            lines.extend(the_lines_of_a_key(one, columns));
         }
     }
 
     lines
+}
+
+/// The lines of the name of a group of the view, in a panel of `columns`
+/// columns.
+///
+/// The mark of the group stands on the first row alone, and the rows after it
+/// keep the columns of that mark.
+fn the_lines_of_a_group(name: &str, columns: u16) -> Vec<String> {
+    let of_the_mark = crate::logic::message::the_columns_of("▌ ");
+    let of_the_mark = u16::try_from(of_the_mark).unwrap_or(2);
+
+    // **The mark of the group takes its columns of the name too.**
+    let of_the_name = if columns == 0 {
+        0
+    } else {
+        columns.saturating_sub(of_the_mark).max(1)
+    };
+
+    the_parts_of(name, of_the_name, of_the_mark)
+        .into_iter()
+        .enumerate()
+        .map(|(row, part)| {
+            if row == 0 {
+                line_of_a_group(part.trim_start())
+            } else {
+                part
+            }
+        })
+        .collect()
+}
+
+/// The lines of one key of the view, in a panel of `columns` columns.
+fn the_lines_of_a_key(one: &Key, columns: u16) -> Vec<String> {
+    // **The two columns stand while the work has the columns that it needs**,
+    // and a panel that is narrower gives the work the rows under the key.
+    if the_two_columns_stand(columns) {
+        let of_the_work = the_parts_of(
+            one.what,
+            the_columns_of_the_work(columns),
+            THE_COLUMN_OF_THE_WORK,
+        );
+        let mut lines: Vec<String> = Vec::new();
+
+        for (row, part) in of_the_work.into_iter().enumerate() {
+            if row == 0 {
+                // The first row of the work stands beside the key.
+                lines.push(the_line_of_a_key_and_its_work(one.key, part.trim_start()));
+            } else {
+                lines.push(part);
+            }
+        }
+
+        return lines;
+    }
+
+    let mut lines = vec![format!("   {}", one.key)];
+
+    lines.extend(the_parts_of(
+        one.what,
+        the_columns_of_the_work(columns),
+        THE_INDENT_OF_THE_WORK,
+    ));
+
+    lines
+}
+
+/// The rows of a text of a wrap of `of_the_text` columns, each of them after an
+/// indent of `indent` columns.
+///
+/// **The columns of the indent are not the columns of the text**: a wrap of the
+/// whole width would give the last word of a row no room, therefore the caller
+/// gives the columns that the text itself has. The value 0 is a wrap of no
+/// limit at all.
+fn the_parts_of(text: &str, of_the_text: u16, indent: u16) -> Vec<String> {
+    let of_the_indent = " ".repeat(usize::from(indent));
+
+    if of_the_text == 0 {
+        return vec![format!("{}{}", of_the_indent, text)];
+    }
+
+    crate::logic::message::the_parts_of_a_wrap(text, usize::from(of_the_text))
+        .into_iter()
+        .map(|part| format!("{}{}", of_the_indent, part))
+        .collect()
 }
 
 /// Inside the view of the queue and inside the view of the bookmarks, the key

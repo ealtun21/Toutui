@@ -41,6 +41,29 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.193",
+        date: "17/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The view of every key of the program says what each key does in \
+             a narrow terminal.** A line of a list stands on one row and it \
+             takes no wrap, therefore the work of a key that is longer than \
+             the panel lost its end with no mark of a cut. A terminal of 40 \
+             columns gave that work 16 columns: the view said `The focus goes \
+             to` for six keys, `Hide the panels 1,` for the key `z`, and `The \
+             line of the po` for a click of the mouse, and **no key of the 83 \
+             keys of the program said what it does**. The name of a group went \
+             the same road, and the words `and more, Home and Library` of the \
+             group of the panels stood outside the screen. The work of a key \
+             now takes the rows that it needs: the two columns of the design \
+             hold while the work has 20 columns beside the key, and a panel \
+             that is narrower draws the key on a row of its own with the work \
+             under it. The keys `j`, `k`, and `G` of that view move over those \
+             rows. A terminal of 160 columns draws every row of the view as it \
+             drew it before.",
+        ],
+    },
+    Entry {
         version: "0.8.192",
         date: "17/08/2026",
         body: &[

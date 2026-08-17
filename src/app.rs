@@ -676,6 +676,16 @@ pub struct App {
     /// start holds no cell at all, therefore a report that comes before the
     /// first frame names no panel.
     pub the_areas_of_the_mouse: crate::ui::the_mouse::TheAreasOfTheMouse,
+    /// The columns that a line of the view of the keys had at the last frame.
+    /// See T-362.
+    ///
+    /// **The render writes it, and the keys of the move read it**: the number of
+    /// the lines of that view comes of the wrap of the work of every key,
+    /// therefore the cursor of `j`, of `k`, and of `G` needs the width of the
+    /// panel that the user sees. The value of the start is 0, which gives the
+    /// lines with no wrap: the view draws a frame before the user presses a key
+    /// of it.
+    pub the_columns_of_the_lines_of_the_keys: u16,
     /// Says if the program reads the reports of the mouse. See T-316.
     ///
     /// **A capture of the mouse takes the selection of the text away from the
@@ -2221,6 +2231,7 @@ impl App {
                 of_the_filter
             },
             the_areas_of_the_mouse: crate::ui::the_mouse::TheAreasOfTheMouse::default(),
+            the_columns_of_the_lines_of_the_keys: 0,
             // **The mouse of the start stands** (T-316): the terminal takes the
             // request of the capture with the raw mode and the alternate
             // screen, and the key `Ctrl+o` stops it for a user who wants the
@@ -10213,6 +10224,15 @@ impl App {
         ));
     }
 
+    /// The lines of the view of the keys, of the width of the last frame of it.
+    ///
+    /// **The number of those lines comes of the width of the panel** (T-362): the
+    /// work of a key takes the rows of a wrap of its own, therefore the keys of
+    /// the move must not count the lines of a screen that the user does not have.
+    pub fn the_lines_of_the_view_of_the_keys(&self) -> Vec<String> {
+        crate::ui::keys::lines_of_a_width(self.the_columns_of_the_lines_of_the_keys)
+    }
+
     /// Shows every key of the program. The key is `?`. See T-49.
     ///
     /// The key a second time gives the view of the user back. Therefore the
@@ -10817,7 +10837,7 @@ impl App {
             // The view of the keys is a list of text. The move goes to the
             // next line, and the list scrolls. See T-49.
             AppView::Keys => {
-                let count = crate::ui::keys::lines().len();
+                let count = self.the_lines_of_the_view_of_the_keys().len();
                 let from = self.list_state_keys.selected().unwrap_or(0);
 
                 self.list_state_keys.select(if from + 1 < count {
@@ -11034,7 +11054,10 @@ impl App {
     pub fn select_last(&mut self) {
         match self.view_state {
             AppView::Keys => {
-                let last = crate::ui::keys::lines().len().saturating_sub(1);
+                let last = self
+                    .the_lines_of_the_view_of_the_keys()
+                    .len()
+                    .saturating_sub(1);
                 self.list_state_keys.select(Some(last));
             }
             AppView::Home => self

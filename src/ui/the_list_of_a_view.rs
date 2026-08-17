@@ -30,6 +30,27 @@ use ratatui::{
 /// `HighlightSpacing::Always`). See T-321.
 pub const THE_SIGN_OF_THE_CURSOR: u16 = 2;
 
+/// The columns of the bar of the scroll of a list.
+pub const THE_BAR_OF_THE_SCROLL: u16 = 1;
+
+/// The columns that the text of a line has, in a panel of `area` columns.
+///
+/// **A line that is longer than this loses its end** (T-362), because a line of a
+/// list stands on one row of the panel (T-311) and a `ListItem` holds no wrap. A
+/// caller that makes the text of its lines of this number therefore keeps every
+/// word of them on the screen.
+///
+/// The block of a list holds one border at the top and none at the sides,
+/// therefore the whole width of the panel stands for the lines. **The number
+/// holds the bar of the scroll at every count of the lines**: a list that stands
+/// whole in its rows has one column more, and a line of one column fewer than
+/// the panel loses no word.
+pub fn the_columns_of_a_line(area: Rect) -> u16 {
+    area.width
+        .saturating_sub(THE_BAR_OF_THE_SCROLL)
+        .saturating_sub(THE_SIGN_OF_THE_CURSOR)
+}
+
 /// Gives the background of the line `i` of a list. The even lines take one
 /// colour of the user and the odd lines take the other.
 ///

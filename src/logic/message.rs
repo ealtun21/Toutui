@@ -252,9 +252,39 @@ pub(crate) fn the_rows_of_a_text(text: &str, width: usize) -> usize {
 /// The text of one call holds no end of a line: a caller that has one splits
 /// its text at every `\n` and it adds the answers.
 pub(crate) fn the_rows_of_one_line(text: &str, width: usize) -> usize {
-    let mut rows = 1usize;
+    the_parts_of_one_line(text, width).len()
+}
+
+/// Gives the rows of a whole text in a wrap of `width` columns, as text.
+///
+/// **A count of the rows is not the rows themselves** (T-362). The two counts of
+/// a wrap of this program say how many rows a text takes, and the view of every
+/// key of the program needs the rows: a list of ratatui draws one row for each
+/// line of the list (T-311), therefore a line of that list that is longer than
+/// the panel loses its end with no wrap of its own. This function makes those
+/// lines, and [`the_rows_of_a_text`] counts them.
+///
+/// The parts hold no whitespace at the start and none at the end, in the same
+/// way as a `Paragraph` of `Wrap { trim: true }` draws them.
+pub fn the_parts_of_a_wrap(text: &str, width: usize) -> Vec<String> {
+    text.split('\n')
+        .flat_map(|line| the_parts_of_one_line(line, width))
+        .collect()
+}
+
+/// Gives the rows that one row of a text takes in a wrap of `width` columns, as
+/// text.
+///
+/// **This is the one place of the loop of the wrap of this program** (T-362).
+/// [`the_rows_of_one_line`] counted the rows with a loop of its own, and a count
+/// that does not agree with the rows is a screen that cuts a word: the loop
+/// stands here now, and that count is the number of the parts of it.
+pub(crate) fn the_parts_of_one_line(text: &str, width: usize) -> Vec<String> {
+    let mut parts: Vec<String> = Vec::new();
+    let mut row = String::new();
     let mut column = 0usize;
     let mut spaces = 0usize;
+    let mut the_whitespace = String::new();
 
     for part in text.split_inclusive(char::is_whitespace) {
         // **A character is not a column** (T-305): the wrap of ratatui measures
@@ -265,38 +295,49 @@ pub(crate) fn the_rows_of_one_line(text: &str, width: usize) -> usize {
 
         if word.is_empty() {
             spaces += after;
+            the_whitespace.push_str(part);
             continue;
         }
+
+        let after_the_word = &part[word.len()..];
 
         let length = the_columns_of(word);
         let room = the_room_of_a_word(word);
 
         // The word stands at the end of the row that the word before it holds.
         if column > 0 && column + spaces + room <= width {
+            row.push_str(&the_whitespace);
+            row.push_str(word);
             column += spaces + length;
             spaces = after;
+            the_whitespace = after_the_word.to_string();
             continue;
         }
 
         // The word takes a row of its own.
         if column > 0 {
-            rows += 1;
+            parts.push(std::mem::take(&mut row));
         }
 
         if room <= width {
+            row.push_str(word);
             column = length;
         } else {
             // A word that is longer than the width goes over more than one row.
-            let (lines, last) = the_lines_of_one_word(word, width);
+            let of_the_word = the_parts_of_one_word(word, width);
+            let (before, last) = of_the_word.split_at(of_the_word.len() - 1);
 
-            rows += lines - 1;
-            column = last;
+            parts.extend(before.iter().cloned());
+            row.push_str(&last[0]);
+            column = the_columns_of(&last[0]);
         }
 
         spaces = after;
+        the_whitespace = after_the_word.to_string();
     }
 
-    rows
+    parts.push(row);
+    parts
 }
 
 /// Gives the first row and the number of rows of a message of a view.
@@ -404,8 +445,7 @@ pub(crate) fn the_room_of_a_word(word: &str) -> usize {
     size.saturating_sub(of_the_last.saturating_sub(1))
 }
 
-/// Gives the number of the lines that one word takes alone in a panel of
-/// `width` columns, and the columns of the last of those lines.
+/// Gives the lines that one word takes alone in a panel of `width` columns.
 ///
 /// **A character of two columns that meets the last column of a row stays
 /// outside that row** (T-305), because a half of a character is no character.
@@ -413,8 +453,12 @@ pub(crate) fn the_room_of_a_word(word: &str) -> usize {
 /// says a number that the screen does not have: a panel of 79 columns holds 39
 /// characters of the Han script, which is 78 columns, and one column of every
 /// row of such a word stays empty.
-pub(crate) fn the_lines_of_one_word(word: &str, width: usize) -> (usize, usize) {
-    let mut count = 1usize;
+///
+/// **This is the one place of the rule of a word that is longer than the panel**
+/// (T-362), and the count of the rows of a text reads the number of these lines.
+pub(crate) fn the_parts_of_one_word(word: &str, width: usize) -> Vec<String> {
+    let mut parts: Vec<String> = Vec::new();
+    let mut row = String::new();
     let mut length = 0usize;
     let mut buffer = [0u8; 4];
 
@@ -422,14 +466,16 @@ pub(crate) fn the_lines_of_one_word(word: &str, width: usize) -> (usize, usize) 
         let columns = the_columns_of(character.encode_utf8(&mut buffer));
 
         if length > 0 && length + columns > width {
-            count += 1;
+            parts.push(std::mem::take(&mut row));
             length = 0;
         }
 
+        row.push(character);
         length += columns;
     }
 
-    (count, length)
+    parts.push(row);
+    parts
 }
 
 /// The number of the columns of the terminal that a text takes.

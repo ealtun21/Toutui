@@ -34822,3 +34822,186 @@ them.
 - Every candidate of the items before this one.
 
 **v0.8.192.**
+
+## T-362 — The view of every key loses the words of the work of a key in a narrow terminal
+
+**The condition.** The real program v0.8.192 inside tmux, at **40 columns** and
+30 rows (`COLUMNS_OF_THE_SCREEN=40` of `docs/harness/drive.sh`, the narrowest
+terminal that this fork measures, T-301), against the sandbox on `:13399`, the
+account `toutuitest`, the library `Books`. No proxy, no change of the sandbox,
+and no build of the fault at all: **the size of the terminal is the data of
+this fault**.
+
+The view of the key `?` ("Every key of the program") holds 13 groups and 83
+keys. Each key has a key name and a text of the work of it.
+`src/ui/keys.rs` made one line of a list for each key with
+`format!("   {:<15} {}", one.key, one.what)` — three columns of indent, fifteen
+columns of the key, one space, and the work. The name of a group made one
+line, `▌ <the name>`. A line of a list stands on one row of the panel (T-311),
+and a `ListItem` of ratatui holds no wrap: a line that is longer than the
+panel loses its end, with no mark of a cut.
+
+**The fault.** The key `?` of the Home view gave:
+
+```text
+────────Every key of the program────────
+➤ ▌ The panels (a screen of 120 columns█
+     1               The focus goes to █
+     2               The focus goes to █
+     3               The focus goes to █
+     Ctrl+h          The focus goes to │
+     l / → / Enter   The panel 1 opens │
+     h / ←           A panel of the sta│
+     z               Hide the panels 1,│
+     Click           The line of the po│
+     Wheel           One line up or dow│
+     Shift+Click     Most terminals giv│
+```
+
+A panel of 40 columns gives a line 37 columns — the width of the panel, less
+one column of the bar of the scroll and two columns of the sign of the
+cursor. The prefix of a line takes 19 of them, therefore 18 columns stayed
+for the work (the capture above holds 16 columns of the work plus the two of
+the cursor sign at the left of each row). **No key of the 83 keys of the
+program said what it does.** The name of the group `The panels (a screen of
+120 columns and more, Home and Library)` gave `The panels (a screen of 120
+columns`, and the words that name the two views of those panels stood outside
+the screen.
+
+**The view of the key `?` is the one text of this program that says what a key
+does**, therefore a user of a narrow terminal read the keys and no word of
+their work. `src/ui/keys.rs` holds the list for the user and `src/app.rs` holds the
+handler.
+
+**The correction**, of four files and one new test file:
+
+- `src/logic/message.rs`: new `the_parts_of_a_wrap(text, width) -> Vec<String>`
+  and `the_parts_of_one_line`, which give the rows of a wrap as text.
+  `the_rows_of_one_line` (the count of T-309) is now the number of those
+  parts, therefore the loop of the wrap of this program stands in one place.
+  `the_lines_of_one_word` became `the_parts_of_one_word` in the same way.
+  Every one of the 1593 tests of the program before this one passed with no
+  change, and `the_count_of_the_rows_of_a_message_is_the_count_of_ratatui` is
+  one of them: that test measures the count against a real `Paragraph` of
+  ratatui.
+- `src/ui/the_list_of_a_view.rs`: new `the_columns_of_a_line(area) -> u16` —
+  the columns that the text of a line has, which is the width of the panel
+  less the bar of the scroll and the sign of the cursor. The block of a list
+  holds one border at the top and none at the sides.
+- `src/ui/keys.rs`: new `lines_of_a_width(columns)`,
+  `the_two_columns_stand(columns)`, `the_columns_of_the_work(columns)`,
+  `THE_COLUMN_OF_THE_WORK` (19), `THE_SMALLEST_COLUMN_OF_THE_WORK` (20), and
+  `THE_INDENT_OF_THE_WORK` (5). `lines()` is `lines_of_a_width(0)`, which is
+  the wrap of no limit. The two columns of the design hold while the work has
+  20 columns beside the key; a panel that is narrower draws the key on a row
+  of its own and the work under it at an indent of 5. Every row of a wrap is
+  a **line** of the list, therefore the rule of T-311 holds and the bar of the
+  scroll counts them.
+- `src/ui/tui.rs`: `render_keys` writes
+  `App::the_columns_of_the_lines_of_the_keys` of
+  `the_columns_of_a_line(main_area)` and it gives that number to
+  `lines_of_a_width`.
+- `src/app.rs`: a new field `the_columns_of_the_lines_of_the_keys` (0 at the
+  start) and a new method `the_lines_of_the_view_of_the_keys`, which the keys
+  `j` and `G` of that view read for the count of the lines. A count of
+  another width gives a cursor that the user cannot reach or one that goes
+  past the last line.
+
+**The corrected program**, of the same harness, at 40, 60, and 160 columns:
+
+```text
+(40 columns)
+➤ ▌ The panels (a screen of 120 columns█
+    and more, Home and Library)        █
+     1                                 │
+       The focus goes to the panel 1 of│
+       the views                       │
+     2                                 │
+       The focus goes to the panel 2 of│
+       the sequence                    │
+
+(60 columns)
+➤ ▌ The panels (a screen of 120 columns and more, Home and █
+    Library)                                               █
+     1               The focus goes to the panel 1 of the  █
+                     views                                 │
+     2               The focus goes to the panel 2 of the  │
+                     sequence                              │
+
+(160 columns, every row as it stood before this item)
+➤ ▌ The panels (a screen of 120 columns and more, Home and Library)
+     1               The focus goes to the panel 1 of the views
+     2               The focus goes to the panel 2 of the sequence
+     z               Hide the panels 1, 2, and 3, and show them again
+```
+
+The key `G` of each of the three widths gave the last line of the view,
+therefore the count of the lines reads the width of the panel of the user.
+
+**The gate**, of one test function (the rule of T-144 and T-157: the test
+writes `XDG_CONFIG_HOME` of the process),
+`tests/the_view_of_every_key_holds_the_words_of_its_work.rs`. It needs no
+sandbox and no server (a port that nothing listens on gives the offline mode,
+T-25). It holds three parts: the pure functions with no screen (no line of the
+view is longer than the columns of its panel, at 20, 30, 37, 55, 100, and 157
+columns; every word of the work of every one of the 83 keys and of the name of
+every one of the 13 groups stands in the lines of 37 columns; the work of a
+key never has fewer than 20 columns while a form of this view can give it
+that many); the render on a `TestBackend` of 40 columns and 30 rows; and the
+control of a `TestBackend` of 160 columns, where the work of the key `z`
+stands beside that key and the name of the group of the panels stands on one
+row.
+
+**Four builds of the fault**, each of one edit that keeps every other line,
+and each of them fails that test:
+
+1. `true ||` on the guard of `the_two_columns_stand` — the two columns at
+   every width: `a panel of 25 columns gives the work of a key 6 columns, and
+   it needs 20`.
+2. `lines.push(line_of_a_group(group.name))` in the place of the wrap of the
+   name of a group: `no line of the view of the keys is longer than the 37
+   columns of its panel: "▌ The panels (a screen of 120 columns and more,
+   Home and Library)" holds 65 columns`.
+3. `keys::lines()` in the place of `keys::lines_of_a_width(...)` of
+   `render_keys` — the render gives no width, and the screen of the fault
+   comes back.
+4. `crate::ui::keys::lines().len()` in the place of
+   `self.the_lines_of_the_view_of_the_keys().len()` of `select_last` — the
+   key `G` goes to a line that the width of the panel does not have.
+
+A first form of the test passed the build 1: a wrap of 18 columns keeps every
+word too. The words alone therefore do not say which form the view draws, and
+the item needed the pure function `the_columns_of_the_work` and the rule of
+the 20 columns.
+
+**The gates**: clippy and fmt clean, 1594 tests of nextest in 3.3 seconds, and
+`cargo test -j 16 --no-fail-fast` three times with no failure.
+
+**What this item leaves open, and each of them is a candidate and not an
+item:**
+
+- The two other views of a list of text of this program hold no wrap of
+  their own: the statistics and the sessions each hold a scroll and no list
+  (the decision of T-360), and each of them wraps its text at the width of
+  its panel already — a measurement of the two of them at 40 columns is the
+  work of a round of its own.
+- `the_two_columns_stand` reads the width alone and never the texts: a group
+  whose keys all hold a short work would keep the two columns at a narrower
+  panel, and a translation of this program that gives a longer work would
+  need more columns than the number of this item.
+- The name of a list that is longer than the screen holds no wrap (T-361),
+  and the title of this view (`Every key of the program`) is short enough
+  for 40 columns.
+- The panel 4 of a view with no line takes the focus of a click and it says
+  no word of its own (T-356), the footer of the panel 5 and of the panel 6 of
+  a view with no media of a cell (T-359), the rows of the band that does not
+  fit (T-353), and the width of the panel 5 of a media with no cover.
+- **The cursor of this view can stand on a row that names no key.** The last
+  line of the view at 40 columns is the row of the work of the key `Q / Esc`,
+  and the key `G` puts the sign `➤` on it. The list of this view is a look at
+  the keys and it takes no place of the work (T-49), therefore that sign moves
+  the panel alone: a view whose cursor names the key of every row is the work
+  of a round of its own.
+- Every candidate of the items before this one.
+
+**v0.8.193.**
