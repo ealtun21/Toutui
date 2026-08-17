@@ -34009,3 +34009,126 @@ correction that gave the whole screen to the panel 4 would fail it.
 - Every candidate of the items before this one.
 
 **v0.8.187.**
+
+---
+
+## T-357 — Six views with no line hold a panel of the cover with nothing in it
+
+**The condition.** The real program v0.8.187 inside tmux, at 160 columns and 45
+rows, of the library `Empty` of the sandbox (the section 5 of
+`docs/TEST-SERVER.md`). That library holds no media, no collection, and no
+playlist. The server answers, therefore `is_offline` holds `false`. The account
+took the library `Empty` in `name_selected_lib` and in `id_selected_lib` (the
+trap 203 and the trap 204).
+
+**The fault.** The key `c` gave the Collections view, which says `This library
+has no collection and no playlist.` and `Press h to go back.` The panel 5 of the
+cover stood beside that sentence, from the column 97 to the column 160 — **64
+columns** of the 160 of the screen — and it held **40 rows**, and no cell of it
+held one character. The sentence said its words in the 95 columns that stayed.
+This screen is the capture of tmux:
+
+```text
+─────────────────────────────────────────────────────────────────────────────────────────────── ┌5 Cover ──────────────────────────────────────────────────────┐
+                        This library has no collection and no playlist.                         │                                                              │
+                                      Press h to go back.                                       │                                                              │
+                                                                                                │                     … 36 rows of nothing …                   │
+                                                                                                └──────────────────────────────────────────────────────────────┘
+```
+
+The search view of the same run, of the words `zzzznohitatall`, gave the same 64
+columns and the same 40 rows of nothing beside `The server found nothing for
+"zzzznohitatall". Press / to write other words.`
+
+**The control of the same run.** The Collections view of the library `Books` of
+the sandbox, which holds one collection and one playlist, kept the panel 5 of 64
+columns and 40 rows, and the picture of the collection of the cursor stood in it
+(`▀  ▄▀` of the capture with no `-e`; a picture of few colours draws few
+characters).
+
+**Why.** `cover::split_for_covers` cuts the column of the covers, and the guard
+of it reads whether covers are on, the width of the screen, the height of the
+area, and whether a picture comes (T-50, T-348, and T-349). **None of the four
+says that the view holds no line.** T-354 gave the Home view and the Library
+view the guard
+`cover::the_panels_of_the_covers_stand(the_lines_of_the_view, a_media_of_the_panel_comes)`,
+and the six other views that call `render_covers` of `src/ui/tui.rs` took no
+guard at all: `render_series`, `render_series_book`, `render_lists`,
+`render_list_entries`, `render_search_book`, and `render_pod_ep` each called
+`cover::split_for_covers` directly. **The frame of the panels stands in the Home
+view and in the Library view alone** (T-320), therefore those six views draw no
+panel 6 of the gallery, and the panel 5 of them takes the whole height of the
+column: 40 rows of a screen of 45.
+
+**This is the sixth face of the fault of T-319.** T-348 and T-349 read a media
+with no cover, T-352 and T-353 read the rows and the columns that the picture of
+such a media cannot use, T-354 read a view with no line of the two views of the
+frame of the panels, and this one reads that same view of the six views outside
+that frame.
+
+**The correction.** `App::the_column_of_the_covers` of `src/ui/tui.rs` holds the
+guard and the cut together, and the six views call it with the number of the
+lines of each of them:
+
+- `render_series`: `self.series.len()`
+- `render_series_book`: `self.series_book_lines().len()`
+- `render_lists`: `self.lists.len()`
+- `render_list_entries`: `self.list_entry_lines().len()`
+- `render_search_book`: `self.titles_search_book.len()`
+- `render_pod_ep`: `App::the_lines_of_the_episodes_of_this_view`, a new function
+  of `src/app.rs` that reads `titles_pod_ep_search` on the road of a search and
+  `titles_pod_ep` on the road of the library.
+
+**The lines of the search view come after the cut of the area**, therefore the
+number of that view is the number of the frame before this one. That is the rule
+that the width of the panel holds already:
+`a_picture_comes_in_the_panel_of_the_cover` reads that same state before the cut
+(T-348).
+
+**A media that plays keeps the column** (T-23), therefore the guard reads the
+media of the panel beside the lines (`the_panels_of_the_covers_stand` gives
+`the_lines > 0 || a_media_of_the_panel_comes`).
+
+**The corrected program of the same harness**, of the same screen and of the
+same run: the Collections view of the library `Empty` gave no panel 5 at all,
+and its sentence stood in the whole 160 columns; the search view of
+`zzzznohitatall` of the same run gave the same answer; the Collections view of
+the library `Books` of the same run kept the panel 5 of 64 columns with the
+picture of its collection in it; and the program stood.
+
+```text
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                         This library has no collection and no playlist.
+                                                                       Press h to go back.
+```
+
+**The build of the fault**: the guard of `the_column_of_the_covers` becomes
+`if false && !cover::the_panels_of_the_covers_stand(…)`, and
+`the_column_of_the_covers_of_a_view_with_no_line` of
+`tests/the_column_of_the_covers_of_a_view_with_no_line.rs` then says "the Series
+view with no line takes no column of the panel 5 of the cover". That test
+renders the six views of an application of `App::new` on a `TestBackend` of 160
+columns and 45 rows, and the **control of the same run** is the Collections view
+of one collection of one media and the view of the media of it: a correction
+that took the column away from every view would fail it. The test reads the two
+roads of `the_lines_of_the_episodes_of_this_view` too.
+
+**What this item leaves open, and each of them is a candidate and not an item:**
+
+- **The panel 4 of a view with no line takes the focus of a click and it says no
+  word of its own** (of T-356), and the keys `j` and `k` of that focus then move
+  a cursor of no line.
+- **The six views of this item write no area of the mouse of the panel 4 at
+  all.** `render_lists` draws its sentence with a `Paragraph` of `Borders::TOP`
+  of its own and not with `App::render_the_reason`, therefore the correction of
+  T-356 does not reach it: a click inside the sentence of the Collections view
+  of a library with no collection reads the panel of the list of the frame
+  before it.
+- **The sentence of the six views stands under one line at the top with no
+  border**, which is the fault of T-355 for the views outside the frame of the
+  panels.
+- **The rows of the band that does not fit** of T-353, and **the width of the
+  panel 5 of a media with no cover**.
+- Every candidate of the items before this one.
+
+**v0.8.188.**

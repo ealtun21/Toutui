@@ -5528,6 +5528,20 @@ impl App {
     /// open of this view. A different client of the same account moved in that
     /// episode, and the line then shows the new place at the next frame, as the
     /// line of the Home view does (T-47 and T-228).
+    /// The number of the lines of the episodes that the Episodes view draws.
+    /// See T-357.
+    ///
+    /// **The view holds two roads of one list**: a search of a podcast gives
+    /// `titles_pod_ep_search`, and the road of the library gives
+    /// `titles_pod_ep`. `render_pod_ep` reads the same mark for the two of them.
+    pub fn the_lines_of_the_episodes_of_this_view(&self) -> usize {
+        if self.is_from_search_pod {
+            self.titles_pod_ep_search.len()
+        } else {
+            self.titles_pod_ep.len()
+        }
+    }
+
     pub fn pod_ep_lines(&self) -> Vec<String> {
         self.the_lines_of_this_podcast(
             self.the_podcast_of_the_episodes(),

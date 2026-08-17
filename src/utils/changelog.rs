@@ -41,6 +41,25 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.188",
+        date: "17/08/2026",
+        body: &[
+            "Fixed:",
+            "- **Six views with no line take no column of the covers.** The \
+             view of the series, the view of the books of a series, the view of \
+             the collections, the view of the media of a collection, the view \
+             of a search, and the view of the episodes of a podcast each held a \
+             panel of the cover with no character in it while they held no \
+             line: that panel took 64 columns of a screen of 160 and 40 rows, \
+             and the sentence that says why the view holds no line said its \
+             words in the columns that stayed. The panel of the cover holds a \
+             picture of a media and the facts of it, and a view of no line \
+             gives it no media at all. The two views of the frame of the \
+             panels held this rule from the version 0.8.185, and the six views \
+             hold it now. A media that plays keeps that panel.",
+        ],
+    },
+    Entry {
         version: "0.8.187",
         date: "17/08/2026",
         body: &[

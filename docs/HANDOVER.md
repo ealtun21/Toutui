@@ -4,8 +4,10 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.8.186.** The item T-355 belongs to this
+**The newest release is v0.8.188.** The item T-357 belongs to this
 session. The
+item T-356 belongs to the session before it. The
+item T-355 belongs to the session before it. The
 item T-354 belongs to the session before it. The
 item T-353 belongs to the session before it. The
 item T-352 belongs to the session before it. The
@@ -25918,12 +25920,85 @@ its reason reaches no screen of today; **the rows of the band that does not
 fit** of T-353; **the width of the panel 5 of a media with no cover**; and
 every candidate of the turns before this one.
 
+**The session of the hundred and eighty-ninth turn took the item 1 of the
+list of the work**, and it took the **first candidate that the round before it
+left**: the areas of the mouse of the panel 4 of a view with no line.
+
+**A `ps` of the machine at the start of the round found it clean**: no program
+of `toutui`, and no shell of a busy loop. The tree of git was clean, every
+commit and every tag of the round before it stood at the remote, the load
+average was 6, and the disk held 446 gigabytes. The `cargo clean` of the round
+before it gave a cold build of 12 seconds for `cargo build -j 16`.
+
+**The fault, of the real program v0.8.186 inside tmux**, at 160 columns and 45
+rows. The account took the library `Books` in `name_selected_lib` and in
+`id_selected_lib` (the trap 203 and the trap 204), the key `Tab` gave the
+Library view of the 18 items of it, and the key `BTab` (the trap 70) then gave
+the library `Empty`, which holds no media at all. The key `1` gave the focus to
+the panel 1, and **no click of the panel 4 gave that panel the focus**: nine
+columns of the row 10, from the column 40 to the column 155, each left the
+border of the panel 1 at `╔1`, and a click of the row of the sentence itself
+did the same.
+
+**The two controls of the same run.** A click of the column 10 of the row 6
+gave the focus to the panel 1 **and** the cursor to the line `Sequence and
+filter`, therefore the mouse reached the program in that view and the panel 4
+alone was dead to it. And the same click of the column 45 of the row 10 of the
+Library view of `Books`, of the same run, moved the focus to the panel 4 at
+once.
+
+**Why**: `the_areas_of_the_list_of_the_mouse` stands inside
+`render_the_list_of_the_panel_4` and inside `render_the_bands_of_the_panel_4`
+alone, therefore the empty road of `render_library`, of `render_home`, and of
+`render_series` writes no area of the panel 4 at all, and no line of `src/`
+resets those areas. **The key of the next library makes a new application**
+(`must_refresh` of `src/main.rs`, and the key `R` makes the same one), whose
+`the_areas_of_the_mouse` is `TheAreasOfTheMouse::default()`: the panel of the
+list then holds `Rect::default()`, which holds no cell of the screen, and
+`the_target_of_a_point` gave `TheTarget::Nothing` for every point of the panel
+that the user could see. A diagnostic of a `TestBackend` said the same numbers.
+
+**The correction**: `App::render_the_reason` takes `&mut self`, and after it
+draws the sentence it writes
+`self.the_areas_of_the_list_of_the_mouse(area, Rect::default(), 0, &ListState::default())`.
+The rows of the lines are `Rect::default()` and the number of the lines is 0,
+therefore a click of that panel names it and it reads **no row** of a list that
+the view does not hold, and a step of the wheel over it moves nothing. That is
+the rule of the bands of the Home view of T-321.
+
+**The corrected program of the same harness**, of the same screen and of the
+same road: a click of the column 45 and a click of the column 130 of the row 10
+each gave the panel 4 the focus, the Home view of the same library gave the
+same answer for a click of the column 100 of the row 12, two steps of the wheel
+over that panel moved nothing, and the program stood. The test of the gate
+renders the two views on a `TestBackend` of 160 columns and 45 rows, and the
+**control of the same run** is a click of the column 10 of the row 6, which
+must stay `ThePanelOfTheViews`: a correction that gave the whole screen to the
+panel 4 fails it. **v0.8.187.**
+
+**The gates**: clippy and fmt clean, 1588 tests of nextest in 2.9 seconds,
+`cargo test -j 16 --no-fail-fast` twice with no failure, and
+`cargo nextest run --run-ignored all` gave **1614 of 1614** in 60.1 seconds
+with the sandbox up.
+
+**What this round leaves open, and each of them is a candidate and not an
+item**: **the panel 4 of a view with no line takes the focus of a click and it
+says no word of its own**, and the keys `j` and `k` of that focus then move a
+cursor of no line; **the Series view holds no frame of the panels**, therefore
+its reason writes the areas of a panel that no border of the screen shows;
+**the panel 5 and the panel 6 of a view with no line write no area either**,
+because `render_covers` never runs on that road (T-354), and the fault of this
+round stands for them at every width that draws them; **the rows of the band
+that does not fit** of T-353; **the width of the panel 5 of a media with no
+cover**; and every candidate of the turns before this one.
+
+
 ## The prompt for the next session
 
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.186**; `Cargo.toml` is at 0.8.186. The
+> AlbanDAVID/Toutui. Newest release **v0.8.188**; `Cargo.toml` is at 0.8.188. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -26754,7 +26829,7 @@ every candidate of the turns before this one.
 > makes no request: a measurement of two roads of the header needs a key of a
 > fresh request, and the key `R` alone forgets the state of a view.
 > Verify with a second program: `curl`, `podman logs abs-test`, or a browser.
-> Write the measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-356 and
+> Write the measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-357 and
 > up), and name that item in the commit.
 >
 > **`String::find` gives the index of a byte and not the column of the screen**
@@ -26767,8 +26842,8 @@ every candidate of the turns before this one.
 > `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`, and
 > `cargo nextest run` with `ALSA_CONFIG_PATH` pointing at a null asound file of
 > two lines (`pcm.!default { type null }` and `ctl.!default { type null }`).
-> Baseline: **1586 tests in 2.9 seconds of nextest**, and `cargo nextest run --run-ignored
-> all` gives **1612 of 1612** with the sandbox up, in about 60 seconds. **Run that
+> Baseline: **1589 tests in 3.0 seconds of nextest**, and `cargo nextest run --run-ignored
+> all` gives **1615 of 1615** with the sandbox up, in about 60 seconds. **Run that
 > second command at the end of the session too**: it found T-132 and T-111.
 > **And `cargo clean` is the last command of the round**, after the push: the
 > maintainer asked for it on 2026-08-17, and the paragraph of the disk above
@@ -26941,77 +27016,77 @@ every candidate of the turns before this one.
 >
 >
 >
-> **The session of the hundred and eighty-ninth turn took the item 1 of the
-> list of the work**, and it took the **first candidate that the round before it
-> left**: the areas of the mouse of the panel 4 of a view with no line.
+> **The session of the hundred and ninetieth turn took the item 1 of the list
+> of the work**, and it took the **third candidate that the round before it
+> left**: the panels of the covers of a view with no line, of the views that the
+> correction of T-354 did not reach.
 >
 > **A `ps` of the machine at the start of the round found it clean**: no program
-> of `toutui`, and no shell of a busy loop. The tree of git was clean, every
-> commit and every tag of the round before it stood at the remote, the load
-> average was 6, and the disk held 446 gigabytes. The `cargo clean` of the round
-> before it gave a cold build of 12 seconds for `cargo build -j 16`.
+> of `toutui`, and no shell of a busy loop. The tree of git was clean, the commit
+> and the tag of the round before it stood at the remote, the load average was 4,
+> and the disk held 446 gigabytes. The `cargo clean` of the round before it gave
+> a cold build of 12 seconds for `cargo build -j 16`.
 >
-> **The fault, of the real program v0.8.186 inside tmux**, at 160 columns and 45
-> rows. The account took the library `Books` in `name_selected_lib` and in
-> `id_selected_lib` (the trap 203 and the trap 204), the key `Tab` gave the
-> Library view of the 18 items of it, and the key `BTab` (the trap 70) then gave
-> the library `Empty`, which holds no media at all. The key `1` gave the focus to
-> the panel 1, and **no click of the panel 4 gave that panel the focus**: nine
-> columns of the row 10, from the column 40 to the column 155, each left the
-> border of the panel 1 at `╔1`, and a click of the row of the sentence itself
-> did the same.
+> **The fault, of the real program v0.8.187 inside tmux**, at 160 columns and 45
+> rows, of the library `Empty` of the sandbox, which holds no media, no
+> collection, and no playlist. The key `c` gave the Collections view, and the
+> **panel 5 of the cover stood beside its sentence with no character in it**:
+> from the column 97 to the column 160, which is **64 columns** of the 160 of the
+> screen, and **40 rows** of the 45. The sentence `This library has no collection
+> and no playlist.` said its words in the 95 columns that stayed. The search view
+> of the same run, of the words `zzzznohitatall`, gave the same 64 columns and
+> the same 40 rows of nothing.
 >
-> **The two controls of the same run.** A click of the column 10 of the row 6
-> gave the focus to the panel 1 **and** the cursor to the line `Sequence and
-> filter`, therefore the mouse reached the program in that view and the panel 4
-> alone was dead to it. And the same click of the column 45 of the row 10 of the
-> Library view of `Books`, of the same run, moved the focus to the panel 4 at
-> once.
+> **The control of the same run**: the Collections view of the library `Books`,
+> of two lines, kept that panel and the picture of the collection of the cursor
+> stood in it.
 >
-> **Why**: `the_areas_of_the_list_of_the_mouse` stands inside
-> `render_the_list_of_the_panel_4` and inside `render_the_bands_of_the_panel_4`
-> alone, therefore the empty road of `render_library`, of `render_home`, and of
-> `render_series` writes no area of the panel 4 at all, and no line of `src/`
-> resets those areas. **The key of the next library makes a new application**
-> (`must_refresh` of `src/main.rs`, and the key `R` makes the same one), whose
-> `the_areas_of_the_mouse` is `TheAreasOfTheMouse::default()`: the panel of the
-> list then holds `Rect::default()`, which holds no cell of the screen, and
-> `the_target_of_a_point` gave `TheTarget::Nothing` for every point of the panel
-> that the user could see. A diagnostic of a `TestBackend` said the same numbers.
+> **Why**: T-354 gave the guard `cover::the_panels_of_the_covers_stand` to
+> `render_home` and to `render_library` alone, and the **six** other views that
+> call `render_covers` of `src/ui/tui.rs` took no guard at all —
+> `render_series`, `render_series_book`, `render_lists`, `render_list_entries`,
+> `render_search_book`, and `render_pod_ep` each called
+> `cover::split_for_covers` directly, and that function reads the width of the
+> screen, the height of the area, and whether a picture comes, and never the
+> lines of the view. **The frame of the panels stands in the Home view and in
+> the Library view alone** (T-320), therefore the six views draw no panel 6 of
+> the gallery and the panel 5 of them takes the whole height of the column.
 >
-> **The correction**: `App::render_the_reason` takes `&mut self`, and after it
-> draws the sentence it writes
-> `self.the_areas_of_the_list_of_the_mouse(area, Rect::default(), 0, &ListState::default())`.
-> The rows of the lines are `Rect::default()` and the number of the lines is 0,
-> therefore a click of that panel names it and it reads **no row** of a list that
-> the view does not hold, and a step of the wheel over it moves nothing. That is
-> the rule of the bands of the Home view of T-321.
+> **The correction**: `App::the_column_of_the_covers` holds the guard and the cut
+> together, and each of the six views gives it the number of its own lines —
+> `self.series.len()`, `self.series_book_lines().len()`, `self.lists.len()`,
+> `self.list_entry_lines().len()`, `self.titles_search_book.len()`, and
+> `App::the_lines_of_the_episodes_of_this_view`, which is a new function of
+> `src/app.rs` that reads the two roads of the list of the episodes. **The lines
+> of the search view come after the cut**, therefore that number is the number
+> of the frame before this one, which is the rule that the width of the panel
+> holds already (T-348). **A media that plays keeps the column** (T-23).
 >
 > **The corrected program of the same harness**, of the same screen and of the
-> same road: a click of the column 45 and a click of the column 130 of the row 10
-> each gave the panel 4 the focus, the Home view of the same library gave the
-> same answer for a click of the column 100 of the row 12, two steps of the wheel
-> over that panel moved nothing, and the program stood. The test of the gate
-> renders the two views on a `TestBackend` of 160 columns and 45 rows, and the
-> **control of the same run** is a click of the column 10 of the row 6, which
-> must stay `ThePanelOfTheViews`: a correction that gave the whole screen to the
-> panel 4 fails it. **v0.8.187.**
+> same road: the Collections view and the search view of the library `Empty` each
+> gave no panel 5 at all and the sentence of each took the whole 160 columns, and
+> **the five views of lines of a second run of the library `Books`** — the
+> Series view of 3 series, the books of a series, the Collections view of 2
+> lines, the media of the collection, and the search of 14 hits — each kept the
+> panel, and the Episodes view of 57 episodes of the library `Podcasts` kept it
+> too. **v0.8.188.**
 >
-> **The gates**: clippy and fmt clean, 1588 tests of nextest in 2.9 seconds,
+> **The gates**: clippy and fmt clean, 1589 tests of nextest in 3.0 seconds,
 > `cargo test -j 16 --no-fail-fast` twice with no failure, and
-> `cargo nextest run --run-ignored all` gave **1614 of 1614** in 60.1 seconds
-> with the sandbox up.
+> `cargo nextest run --run-ignored all` with the sandbox up.
 >
 > **What this round leaves open, and each of them is a candidate and not an
-> item**: **the panel 4 of a view with no line takes the focus of a click and it
-> says no word of its own**, and the keys `j` and `k` of that focus then move a
-> cursor of no line; **the Series view holds no frame of the panels**, therefore
-> its reason writes the areas of a panel that no border of the screen shows;
-> **the panel 5 and the panel 6 of a view with no line write no area either**,
-> because `render_covers` never runs on that road (T-354), and the fault of this
-> round stands for them at every width that draws them; **the rows of the band
-> that does not fit** of T-353; **the width of the panel 5 of a media with no
-> cover**; and every candidate of the turns before this one.
+> item**: **the six views of this item write no area of the mouse of the panel 4
+> at all** — `render_lists` draws its sentence with a `Paragraph` of
+> `Borders::TOP` of its own and not with `App::render_the_reason`, therefore the
+> correction of T-356 does not reach it; **the sentence of those six views stands
+> under one line at the top with no border, no number, and no name**, which is
+> the fault of T-355 outside the frame of the panels; **the panel 4 of a view
+> with no line takes the focus of a click and it says no word of its own**, and
+> the keys `j` and `k` of that focus then move a cursor of no line; **the rows of
+> the band that does not fit** of T-353; **the width of the panel 5 of a media
+> with no cover**; and every candidate of the turns before this one.
+>
 >    **The turns before this one stand in `## The turns before the three
 >    newest ones` of this file**, above the heading of this prompt. **This item
 >    held three turns, and the block then stood above its limit of size**
@@ -27236,6 +27311,9 @@ every candidate of the turns before this one.
 > then held **82820** bytes with **one** turn in it. The round of the hundred
 > and eighty-ninth found it at 82820 bytes with one turn in it, and it did the
 > same work, and the block then held **83163** bytes with **one** turn in it.
+> The round of the hundred and ninetieth found it at 83341 bytes with one turn
+> in it, and it did the same work, and the block then held about **83400** bytes
+> with **one** turn in it.
 > **A block that stands at 80000 bytes or under holds two
 > turns**, and the turn of the stage before this one names the parts of that
 > stage which stay open. **The list of the decisions

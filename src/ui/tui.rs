@@ -1136,6 +1136,44 @@ impl App {
         playing.is_some() || !selected.is_empty()
     }
 
+    /// Cuts the column of the panels of the covers of a view that stands outside
+    /// the frame of the panels. See T-357.
+    ///
+    /// `the_lines` is the number of the lines of the list of the view, and
+    /// `a_picture_comes` says that one media of the panel holds a picture that
+    /// the panel can draw (T-348).
+    ///
+    /// **A view with no line and no media of the panel takes no column at all**
+    /// (T-354): the panel 5 of such a view holds no picture, no fact, and no
+    /// description, therefore every cell of it says nothing. The Home view and
+    /// the Library view read that rule at T-354, and the six views outside the
+    /// frame of the panels read it nowhere: each of them cut 64 columns of a
+    /// screen of 160 for a panel with no character in it.
+    ///
+    /// **A media that plays keeps the column** (T-23), therefore the rule reads
+    /// the media of the panel and not the lines alone.
+    fn the_column_of_the_covers(
+        &self,
+        main_area: Rect,
+        the_width_of_the_screen: u16,
+        a_picture_comes: bool,
+        the_lines: usize,
+    ) -> (Rect, Option<Rect>) {
+        if !cover::the_panels_of_the_covers_stand(
+            the_lines,
+            self.a_media_of_the_panel_of_the_cover_comes(),
+        ) {
+            return (main_area, None);
+        }
+
+        cover::split_for_covers(
+            main_area,
+            the_width_of_the_screen,
+            cover::picker().font_size(),
+            a_picture_comes,
+        )
+    }
+
     /// Draws the panel 5 of the cover, and it gives the area of the facts of
     /// the media and the area of the description of it. See T-319.
     ///
@@ -3043,11 +3081,14 @@ impl App {
         // (T-50), therefore the layout needs to know whether a picture comes
         // at all before it cuts the area (T-348).
         let a_picture_comes = self.a_picture_comes_in_the_panel_of_the_cover();
-        let (main_area, cover_panel) = cover::split_for_covers(
+        // **A view with no line takes no column of the covers** (T-357),
+        // therefore the number of the lines of this view stands before the
+        // cut of the area. `render_series` draws one line for each series.
+        let (main_area, cover_panel) = self.the_column_of_the_covers(
             main_area,
             area.width,
-            cover::picker().font_size(),
             a_picture_comes,
+            self.series.len(),
         );
         let the_words_of_the_panel = self.render_covers(cover_panel, buf);
 
@@ -3127,11 +3168,15 @@ impl App {
         // (T-50), therefore the layout needs to know whether a picture comes
         // at all before it cuts the area (T-348).
         let a_picture_comes = self.a_picture_comes_in_the_panel_of_the_cover();
-        let (main_area, cover_panel) = cover::split_for_covers(
+        // **A view with no line takes no column of the covers** (T-357),
+        // therefore the number of the lines of this view stands before the
+        // cut of the area. `render_series_book` draws one line for each book
+        // of the series of the cursor.
+        let (main_area, cover_panel) = self.the_column_of_the_covers(
             main_area,
             area.width,
-            cover::picker().font_size(),
             a_picture_comes,
+            self.series_book_lines().len(),
         );
         let the_words_of_the_panel = self.render_covers(cover_panel, buf);
 
@@ -3208,12 +3253,12 @@ impl App {
         // (T-50), therefore the layout needs to know whether a picture comes
         // at all before it cuts the area (T-348).
         let a_picture_comes = self.a_picture_comes_in_the_panel_of_the_cover();
-        let (main_area, cover_panel) = cover::split_for_covers(
-            main_area,
-            area.width,
-            cover::picker().font_size(),
-            a_picture_comes,
-        );
+        // **A view with no line takes no column of the covers** (T-357),
+        // therefore the number of the lines of this view stands before the
+        // cut of the area. `render_lists` draws one line for each collection
+        // and for each playlist.
+        let (main_area, cover_panel) =
+            self.the_column_of_the_covers(main_area, area.width, a_picture_comes, self.lists.len());
         let the_words_of_the_panel = self.render_covers(cover_panel, buf);
 
         let [list_area, item_area1, item_area2] =
@@ -3306,11 +3351,15 @@ impl App {
         // (T-50), therefore the layout needs to know whether a picture comes
         // at all before it cuts the area (T-348).
         let a_picture_comes = self.a_picture_comes_in_the_panel_of_the_cover();
-        let (main_area, cover_panel) = cover::split_for_covers(
+        // **A view with no line takes no column of the covers** (T-357),
+        // therefore the number of the lines of this view stands before the
+        // cut of the area. `render_list_entries` draws one line for each
+        // media of the list of the cursor.
+        let (main_area, cover_panel) = self.the_column_of_the_covers(
             main_area,
             area.width,
-            cover::picker().font_size(),
             a_picture_comes,
+            self.list_entry_lines().len(),
         );
         let the_words_of_the_panel = self.render_covers(cover_panel, buf);
 
@@ -3581,11 +3630,17 @@ impl App {
         // (T-50), therefore the layout needs to know whether a picture comes
         // at all before it cuts the area (T-348).
         let a_picture_comes = self.a_picture_comes_in_the_panel_of_the_cover();
-        let (main_area, cover_panel) = cover::split_for_covers(
+        // **A view with no line takes no column of the covers** (T-357),
+        // therefore the number of the lines of this view stands before the
+        // cut of the area. **The lines of this view come after the cut**,
+        // therefore this number is the number of the frame before this one,
+        // which is the rule that the width of the panel holds already
+        // (`a_picture_comes` reads the same state, T-348).
+        let (main_area, cover_panel) = self.the_column_of_the_covers(
             main_area,
             area.width,
-            cover::picker().font_size(),
             a_picture_comes,
+            self.titles_search_book.len(),
         );
         let the_words_of_the_panel = self.render_covers(cover_panel, buf);
 
@@ -3772,11 +3827,15 @@ impl App {
         // (T-50), therefore the layout needs to know whether a picture comes
         // at all before it cuts the area (T-348).
         let a_picture_comes = self.a_picture_comes_in_the_panel_of_the_cover();
-        let (main_area, cover_panel) = cover::split_for_covers(
+        // **A view with no line takes no column of the covers** (T-357),
+        // therefore the number of the lines of this view stands before the
+        // cut of the area. `render_pod_ep` draws one line for each episode,
+        // of the road of a search and of the road of the library.
+        let (main_area, cover_panel) = self.the_column_of_the_covers(
             main_area,
             area.width,
-            cover::picker().font_size(),
             a_picture_comes,
+            self.the_lines_of_the_episodes_of_this_view(),
         );
         let the_words_of_the_panel = self.render_covers(cover_panel, buf);
 
