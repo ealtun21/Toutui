@@ -32,9 +32,11 @@
 use ratatui::buffer::Buffer;
 use ratatui::layout::Rect;
 use ratatui::style::{Color, Style};
+use ratatui::text::Line;
 use ratatui::widgets::{Block, Borders, Paragraph, Widget, Wrap};
 
-/// Draws the sentence of a view that holds no line.
+/// Draws the sentence of a view that holds no line, under the name of the list
+/// that holds no line.
 ///
 /// **The `wrap` is the rule of this function** (T-278): a sentence of a view
 /// says why the view holds no line, and that sentence holds the words of the
@@ -42,12 +44,20 @@ use ratatui::widgets::{Block, Borders, Paragraph, Widget, Wrap};
 /// that names what the server said goes past it. Without the `wrap` the widget
 /// draws one row and it cuts the rest away, therefore the user loses the reason
 /// and the program says a part of a sentence.
-pub fn render_the_message(text: &str, area: Rect, buf: &mut Buffer) {
+///
+/// **The title is the second rule of this function** (T-358). The block held
+/// one border at the top and no word in it, therefore the Episodes view of a
+/// podcast that gave no episode drew a rule of 160 columns with nothing in it,
+/// and no word of the screen said which list holds no line. `render_list` of
+/// `crate::ui::the_list_of_a_view` draws the same rule with the same title for
+/// a view of lines: the two roads of one view therefore say one name.
+pub fn render_the_message(title: &str, text: &str, area: Rect, buf: &mut Buffer) {
     Paragraph::new(text)
         .centered()
         .wrap(Wrap { trim: true })
         .block(
             Block::new()
+                .title(Line::raw(title).centered())
                 .borders(Borders::TOP)
                 .border_style(Style::new().fg(Color::DarkGray)),
         )
@@ -104,7 +114,12 @@ mod tests {
         for width in [40u16, 60, 80] {
             let mut buffer = Buffer::empty(Rect::new(0, 0, width, 20));
 
-            render_the_message(&text, Rect::new(0, 0, width, 20), &mut buffer);
+            render_the_message(
+                "Episodes [0 items]",
+                &text,
+                Rect::new(0, 0, width, 20),
+                &mut buffer,
+            );
 
             let words = the_words_of(&buffer);
 
@@ -133,7 +148,12 @@ mod tests {
 
         let mut buffer = Buffer::empty(Rect::new(0, 0, 80, 20));
 
-        render_the_message(&text, Rect::new(0, 0, 80, 20), &mut buffer);
+        render_the_message(
+            "Episodes [0 items]",
+            &text,
+            Rect::new(0, 0, 80, 20),
+            &mut buffer,
+        );
 
         let words = the_words_of(&buffer);
 

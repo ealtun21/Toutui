@@ -41,6 +41,24 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.189",
+        date: "17/08/2026",
+        body: &[
+            "Fixed:",
+            "- **A view with no line says the name of the list that holds no \
+             line.** The view of the collections and the playlists, the view of \
+             the series, and the view of the episodes of a podcast each drew a \
+             line over the whole width of the screen with no word in it while \
+             they held no line, and no word of the screen then said which list \
+             is empty. The same view with its lines says the name of that list \
+             in that same line, for example `Collections and playlists [2 \
+             items]`, therefore the two roads of one view said two different \
+             things. Each of the three views now says the name of its list and \
+             the number of its lines, for example `Series [0 items]`, above the \
+             sentence that says why it holds no line.",
+        ],
+    },
+    Entry {
         version: "0.8.188",
         date: "17/08/2026",
         body: &[

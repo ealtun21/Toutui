@@ -2910,6 +2910,14 @@ impl App {
         // **The frame stands in the Home view and in the Library view alone**,
         // and a terminal under 120 columns holds no frame at all: the sentence
         // of such a screen keeps the block of one border at the top that it had.
+        //
+        // **A view with no line says the name of the list that holds no line**
+        // (T-358). The block of one border at the top took the title of the
+        // caller and it drew nothing of it, therefore the user read a rule with
+        // no word in it and no view said which list is empty. `render_list` of
+        // `crate::ui::the_list_of_a_view` gives that same rule the same title
+        // for a view of lines, therefore the two roads of one view now say one
+        // name.
         let block = if self.the_frame_of_the_panels_stands() {
             crate::ui::frame::a_panel(
                 crate::ui::frame::ThePanel::TheList.the_number(),
@@ -2918,6 +2926,7 @@ impl App {
             )
         } else {
             Block::new()
+                .title(ratatui::text::Line::raw(title).centered())
                 .borders(Borders::TOP)
                 .border_style(Style::new().fg(Color::DarkGray))
         };
@@ -3113,11 +3122,13 @@ impl App {
             );
 
             // **The Series view holds no frame of the panels** (T-320): the
-            // frame stands in the Home view and in the Library view alone,
-            // therefore this title reaches no screen of today. It stays with
-            // the title of the same view with its lines, for the day when a
-            // stage of the road of the panels gives the Series view a panel.
-            self.render_the_reason(main_area, buf, "Series", &text);
+            // frame stands in the Home view and in the Library view alone.
+            // The title therefore reaches the rule of one border at the top
+            // (T-358), and it says the same words as the title of the same
+            // view with its lines.
+            let the_title = format!("Series [{}]", crate::ui::keys::items(self.series.len()));
+
+            self.render_the_reason(main_area, buf, &the_title, &text);
             return;
         }
 
@@ -3288,16 +3299,20 @@ impl App {
             // therefore it is longer than the two sentences before it. A
             // paragraph with no wrap cuts the words at the edge of the panel:
             // the measurement of T-169 read "The server reported a fault.
-            // Status" with the number outside the screen.
-            Paragraph::new(text)
-                .centered()
-                .wrap(Wrap { trim: true })
-                .block(
-                    Block::new()
-                        .borders(Borders::TOP)
-                        .border_style(Style::new().fg(Color::DarkGray)),
-                )
-                .render(main_area, buf);
+            // Status" with the number outside the screen. `render_the_reason`
+            // holds that `wrap`.
+            //
+            // **This road held a `Paragraph` of its own** (T-358), and that
+            // widget drew a rule with no word in it: the view said nothing of
+            // the list that holds no line, and it wrote no area of the mouse of
+            // the panel of that list (T-356). The shared function gives the
+            // name and the area together.
+            let the_title = format!(
+                "Collections and playlists [{}]",
+                crate::ui::keys::items(self.lists.len())
+            );
+
+            self.render_the_reason(main_area, buf, &the_title, &text);
             return;
         }
 
@@ -3884,8 +3899,15 @@ impl App {
             if self.titles_pod_ep_search.is_empty() {
                 // **The sentence of this view holds the words of the server,
                 // and a terminal of 80 columns cuts it** (T-278). The widget of
-                // it stands in a function of its own, with the `wrap`.
+                // it stands in a function of its own, with the `wrap`. It says
+                // the name of the list that holds no line beside it (T-358).
+                let the_title = format!(
+                    "Episodes [{}]",
+                    crate::ui::keys::items(self.titles_pod_ep_search.len())
+                );
+
                 crate::ui::the_message_of_a_view::render_the_message(
+                    &the_title,
                     no_episodes_message,
                     main_area,
                     buf,
@@ -3907,9 +3929,15 @@ impl App {
             }
         } else {
             if self.titles_pod_ep.is_empty() {
-                // The same rule of T-278, for the road of the view that no
-                // search opened.
+                // The same rule of T-278 and of T-358, for the road of the view
+                // that no search opened.
+                let the_title = format!(
+                    "Episodes [{}]",
+                    crate::ui::keys::items(self.titles_pod_ep.len())
+                );
+
                 crate::ui::the_message_of_a_view::render_the_message(
+                    &the_title,
                     no_episodes_message,
                     main_area,
                     buf,

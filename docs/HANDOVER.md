@@ -4,8 +4,9 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.8.188.** The item T-357 belongs to this
+**The newest release is v0.8.189.** The item T-358 belongs to this
 session. The
+item T-357 belongs to the session before it. The
 item T-356 belongs to the session before it. The
 item T-355 belongs to the session before it. The
 item T-354 belongs to the session before it. The
@@ -25992,13 +25993,84 @@ round stands for them at every width that draws them; **the rows of the band
 that does not fit** of T-353; **the width of the panel 5 of a media with no
 cover**; and every candidate of the turns before this one.
 
+**The session of the hundred and ninetieth turn took the item 1 of the list
+of the work**, and it took the **third candidate that the round before it
+left**: the panels of the covers of a view with no line, of the views that the
+correction of T-354 did not reach.
+
+**A `ps` of the machine at the start of the round found it clean**: no program
+of `toutui`, and no shell of a busy loop. The tree of git was clean, the commit
+and the tag of the round before it stood at the remote, the load average was 4,
+and the disk held 446 gigabytes. The `cargo clean` of the round before it gave
+a cold build of 12 seconds for `cargo build -j 16`.
+
+**The fault, of the real program v0.8.187 inside tmux**, at 160 columns and 45
+rows, of the library `Empty` of the sandbox, which holds no media, no
+collection, and no playlist. The key `c` gave the Collections view, and the
+**panel 5 of the cover stood beside its sentence with no character in it**:
+from the column 97 to the column 160, which is **64 columns** of the 160 of the
+screen, and **40 rows** of the 45. The sentence `This library has no collection
+and no playlist.` said its words in the 95 columns that stayed. The search view
+of the same run, of the words `zzzznohitatall`, gave the same 64 columns and
+the same 40 rows of nothing.
+
+**The control of the same run**: the Collections view of the library `Books`,
+of two lines, kept that panel and the picture of the collection of the cursor
+stood in it.
+
+**Why**: T-354 gave the guard `cover::the_panels_of_the_covers_stand` to
+`render_home` and to `render_library` alone, and the **six** other views that
+call `render_covers` of `src/ui/tui.rs` took no guard at all —
+`render_series`, `render_series_book`, `render_lists`, `render_list_entries`,
+`render_search_book`, and `render_pod_ep` each called
+`cover::split_for_covers` directly, and that function reads the width of the
+screen, the height of the area, and whether a picture comes, and never the
+lines of the view. **The frame of the panels stands in the Home view and in
+the Library view alone** (T-320), therefore the six views draw no panel 6 of
+the gallery and the panel 5 of them takes the whole height of the column.
+
+**The correction**: `App::the_column_of_the_covers` holds the guard and the cut
+together, and each of the six views gives it the number of its own lines —
+`self.series.len()`, `self.series_book_lines().len()`, `self.lists.len()`,
+`self.list_entry_lines().len()`, `self.titles_search_book.len()`, and
+`App::the_lines_of_the_episodes_of_this_view`, which is a new function of
+`src/app.rs` that reads the two roads of the list of the episodes. **The lines
+of the search view come after the cut**, therefore that number is the number
+of the frame before this one, which is the rule that the width of the panel
+holds already (T-348). **A media that plays keeps the column** (T-23).
+
+**The corrected program of the same harness**, of the same screen and of the
+same road: the Collections view and the search view of the library `Empty` each
+gave no panel 5 at all and the sentence of each took the whole 160 columns, and
+**the five views of lines of a second run of the library `Books`** — the
+Series view of 3 series, the books of a series, the Collections view of 2
+lines, the media of the collection, and the search of 14 hits — each kept the
+panel, and the Episodes view of 57 episodes of the library `Podcasts` kept it
+too. **v0.8.188.**
+
+**The gates**: clippy and fmt clean, 1589 tests of nextest in 3.0 seconds,
+`cargo test -j 16 --no-fail-fast` twice with no failure, and
+`cargo nextest run --run-ignored all` with the sandbox up.
+
+**What this round leaves open, and each of them is a candidate and not an
+item**: **the six views of this item write no area of the mouse of the panel 4
+at all** — `render_lists` draws its sentence with a `Paragraph` of
+`Borders::TOP` of its own and not with `App::render_the_reason`, therefore the
+correction of T-356 does not reach it; **the sentence of those six views stands
+under one line at the top with no border, no number, and no name**, which is
+the fault of T-355 outside the frame of the panels; **the panel 4 of a view
+with no line takes the focus of a click and it says no word of its own**, and
+the keys `j` and `k` of that focus then move a cursor of no line; **the rows of
+the band that does not fit** of T-353; **the width of the panel 5 of a media
+with no cover**; and every candidate of the turns before this one.
+
 
 ## The prompt for the next session
 
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.188**; `Cargo.toml` is at 0.8.188. The
+> AlbanDAVID/Toutui. Newest release **v0.8.189**; `Cargo.toml` is at 0.8.189. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -27016,76 +27088,80 @@ cover**; and every candidate of the turns before this one.
 >
 >
 >
-> **The session of the hundred and ninetieth turn took the item 1 of the list
-> of the work**, and it took the **third candidate that the round before it
-> left**: the panels of the covers of a view with no line, of the views that the
-> correction of T-354 did not reach.
+> **The session of the hundred and ninety-first turn took the item 1 of the list
+> of the work**, and it took the **second candidate that the round before it
+> left**: the sentence of the six views outside the frame of the panels stands
+> under a rule that says no name of the list at all.
 >
 > **A `ps` of the machine at the start of the round found it clean**: no program
-> of `toutui`, and no shell of a busy loop. The tree of git was clean, the commit
-> and the tag of the round before it stood at the remote, the load average was 4,
-> and the disk held 446 gigabytes. The `cargo clean` of the round before it gave
-> a cold build of 12 seconds for `cargo build -j 16`.
+> of `toutui`, and no shell of a busy loop. The tree of git was clean, the load
+> average was 4, and the disk held 445 gigabytes. The `cargo clean` of the round
+> before it gave a cold build of 16 seconds for `cargo build -j 16`.
 >
-> **The fault, of the real program v0.8.187 inside tmux**, at 160 columns and 45
+> **The fault, of the real program v0.8.188 inside tmux**, at 160 columns and 45
 > rows, of the library `Empty` of the sandbox, which holds no media, no
 > collection, and no playlist. The key `c` gave the Collections view, and the
-> **panel 5 of the cover stood beside its sentence with no character in it**:
-> from the column 97 to the column 160, which is **64 columns** of the 160 of the
-> screen, and **40 rows** of the 45. The sentence `This library has no collection
-> and no playlist.` said its words in the 95 columns that stayed. The search view
-> of the same run, of the words `zzzznohitatall`, gave the same 64 columns and
-> the same 40 rows of nothing.
+> rule at the top of that view held **160 columns and no word at all** over
+> `This library has no collection and no playlist.` The key `s` of the same run
+> gave the Series view, and it drew the same bare rule over `This library has no
+> series.` The Episodes view of the podcast `Letters of Two Brides`, with
+> `one_path_fails.py 13500 13399` on the path of its item and the account at
+> `http://127.0.0.1:13500` (the trap 129), drew it over `The server did not give
+> the episodes of this podcast: The server reported a fault. Status 500.`
+> **Three views, and no word of any of the three screens said which list is
+> empty.**
 >
-> **The control of the same run**: the Collections view of the library `Books`,
-> of two lines, kept that panel and the picture of the collection of the cursor
-> stood in it.
+> **The three controls of the same run**, of the library `Books`: the Collections
+> view of two lines drew that same rule with `Collections and playlists [2
+> items]` in the middle of it, the Series view drew `Series [3 items]`, and the
+> search of the word `book` drew `Search result [14 items]`. **A view of lines
+> names its list already**, therefore the two roads of one view said two
+> different things.
 >
-> **Why**: T-354 gave the guard `cover::the_panels_of_the_covers_stand` to
-> `render_home` and to `render_library` alone, and the **six** other views that
-> call `render_covers` of `src/ui/tui.rs` took no guard at all —
-> `render_series`, `render_series_book`, `render_lists`, `render_list_entries`,
-> `render_search_book`, and `render_pod_ep` each called
-> `cover::split_for_covers` directly, and that function reads the width of the
-> screen, the height of the area, and whether a picture comes, and never the
-> lines of the view. **The frame of the panels stands in the Home view and in
-> the Library view alone** (T-320), therefore the six views draw no panel 6 of
-> the gallery and the panel 5 of them takes the whole height of the column.
+> **Why**: `render_list` of `src/ui/the_list_of_a_view.rs` gives the rule of a
+> view outside the frame of the panels the title of its caller, and the **three**
+> widgets of a view with no line did not. `App::render_the_reason` of
+> `src/ui/tui.rs` takes a title and it gives it to `crate::ui::frame::a_panel` in
+> the arm of the frame of the panels alone; the other arm dropped it, and the
+> frame stands in the Home view and in the Library view alone (T-320) — the
+> comment of `render_series` said that its title "reaches no screen of today"
+> already. `render_lists` built a `Paragraph` of its own with **no title at
+> all**, and it made its `render_list_title` after the `return` of that road.
+> `crate::ui::the_message_of_a_view::render_the_message` took no title at all.
 >
-> **The correction**: `App::the_column_of_the_covers` holds the guard and the cut
-> together, and each of the six views gives it the number of its own lines —
-> `self.series.len()`, `self.series_book_lines().len()`, `self.lists.len()`,
-> `self.list_entry_lines().len()`, `self.titles_search_book.len()`, and
-> `App::the_lines_of_the_episodes_of_this_view`, which is a new function of
-> `src/app.rs` that reads the two roads of the list of the episodes. **The lines
-> of the search view come after the cut**, therefore that number is the number
-> of the frame before this one, which is the rule that the width of the panel
-> holds already (T-348). **A media that plays keeps the column** (T-23).
+> **The correction**, of three sites: the arm of the screen with no frame of
+> `render_the_reason` takes `.title(Line::raw(title).centered())`, which is the
+> block of `render_list`; `render_the_message` takes a title before its text, and
+> `render_pod_ep` gives it the title of the list of its own road;
+> and `render_lists` gives its `Paragraph` away and it calls `render_the_reason`,
+> **which writes the area of the mouse of its panel too** (T-356) — that is the
+> candidate 2 of T-357, and it closes with this correction. `render_series` gives
+> the title `Series [0 items]` in the place of the bare word `Series`.
 >
-> **The corrected program of the same harness**, of the same screen and of the
-> same road: the Collections view and the search view of the library `Empty` each
-> gave no panel 5 at all and the sentence of each took the whole 160 columns, and
-> **the five views of lines of a second run of the library `Books`** — the
-> Series view of 3 series, the books of a series, the Collections view of 2
-> lines, the media of the collection, and the search of 14 hits — each kept the
-> panel, and the Episodes view of 57 episodes of the library `Podcasts` kept it
-> too. **v0.8.188.**
+> **The corrected program of the same harness**, of the same screens and of the
+> same road: the Collections view of `Empty` drew `Collections and playlists [0
+> items]` in its rule, the Series view drew `Series [0 items]`, and the Episodes
+> view of the podcast that fails drew `Episodes [0 items]`, each above the
+> sentence of its reason. **The three controls of the library `Books` stayed as
+> they were.** **v0.8.189.**
 >
-> **The gates**: clippy and fmt clean, 1589 tests of nextest in 3.0 seconds,
-> `cargo test -j 16 --no-fail-fast` twice with no failure, and
-> `cargo nextest run --run-ignored all` with the sandbox up.
+> **The gates**: clippy and fmt clean, 1590 tests of nextest in 3.0 seconds,
+> `cargo test -j 16 --no-fail-fast` four times with no failure, and
+> `cargo nextest run --run-ignored all` with the sandbox up gave 1616 of 1616.
 >
 > **What this round leaves open, and each of them is a candidate and not an
-> item**: **the six views of this item write no area of the mouse of the panel 4
-> at all** — `render_lists` draws its sentence with a `Paragraph` of
-> `Borders::TOP` of its own and not with `App::render_the_reason`, therefore the
-> correction of T-356 does not reach it; **the sentence of those six views stands
-> under one line at the top with no border, no number, and no name**, which is
-> the fault of T-355 outside the frame of the panels; **the panel 4 of a view
-> with no line takes the focus of a click and it says no word of its own**, and
-> the keys `j` and `k` of that focus then move a cursor of no line; **the rows of
-> the band that does not fit** of T-353; **the width of the panel 5 of a media
-> with no cover**; and every candidate of the turns before this one.
+> item**: **the search view of a library with no hit puts its reason in the place
+> of the name** — the rule of that view held `The server found nothing for
+> "zzzznohitatall". Press / to write other words.` where the same view of hits
+> holds `Search result [14 items]`, which is the same trade in the other
+> direction; **the footer of a view with no line names the keys of a line** — the
+> Collections view of `Empty` said `j/k: move  l: the media  r/D: a
+> name/description  X: remove`, and no line of that view holds a media, a name,
+> or a description, which is the rule of T-143 for the six views; **the panel 4
+> of a view with no line takes the focus of a click and it says no word of its
+> own** of T-356; **the rows of the band that does not fit** of T-353; **the
+> width of the panel 5 of a media with no cover**; and every candidate of the
+> turns before this one.
 >
 >    **The turns before this one stand in `## The turns before the three
 >    newest ones` of this file**, above the heading of this prompt. **This item
@@ -27313,7 +27389,9 @@ cover**; and every candidate of the turns before this one.
 > same work, and the block then held **83163** bytes with **one** turn in it.
 > The round of the hundred and ninetieth found it at 83341 bytes with one turn
 > in it, and it did the same work, and the block then held about **83400** bytes
-> with **one** turn in it.
+> with **one** turn in it. The round of the hundred and ninety-first found it at
+> 83478 bytes with one turn in it, and it did the same work, and the block then
+> held **83776** bytes with **one** turn in it.
 > **A block that stands at 80000 bytes or under holds two
 > turns**, and the turn of the stage before this one names the parts of that
 > stage which stay open. **The list of the decisions

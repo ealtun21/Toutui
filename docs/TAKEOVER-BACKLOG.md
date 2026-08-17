@@ -34132,3 +34132,138 @@ roads of `the_lines_of_the_episodes_of_this_view` too.
 - Every candidate of the items before this one.
 
 **v0.8.188.**
+
+---
+
+## T-358 — A view with no line says no name of the list that holds no line
+
+**The condition.** The real program v0.8.188 inside tmux, at 160 columns and 45
+rows, of the library `Empty` of the sandbox (the section 5 of
+`docs/TEST-SERVER.md`), which holds no media, no collection, and no playlist.
+The account took `Empty` in `name_selected_lib` and in `id_selected_lib` (the
+traps 203 and 204), `is_offline` was `false`, and no request came back with a
+fault. The correction of T-357 took the panel of the cover of such a view away,
+therefore the sentence of each view stood over the whole width of the screen.
+
+**The fault.** The key `c` gave the Collections view, and the rule at the top of
+that view held **160 columns and no word at all**:
+
+```text
+────────────────────────────────────────────────────────────────────────────────
+                 This library has no collection and no playlist.
+                               Press h to go back.
+```
+
+The key `s` of the same run gave the Series view, and it drew the same bare rule
+over `This library has no series.` The Episodes view of the podcast
+`Letters of Two Brides`, with
+`python3 docs/harness/one_path_fails.py 13500 13399 <the log>
+/api/items/9fa45bd1-66bc-4c17-ba49-a5a6a5ec8806` and the account at
+`http://127.0.0.1:13500` (the trap 129), drew it over
+`The server did not give the episodes of this podcast: The server reported a
+fault. Status 500.` **Three views, and no word of any of the three screens said
+which list is empty.**
+
+**The three controls of the same run**, of the library `Books`: the Collections
+view of two lines drew that same rule with
+`Collections and playlists [2 items]` in the middle of it, the Series view of
+three series drew `Series [3 items]`, and the search of the word `book` drew
+`Search result [14 items]`. **A view of lines names its list already**,
+therefore the two roads of one view said two different things, and the road with
+no line said the less of the two.
+
+**Why.** `render_list` of `src/ui/the_list_of_a_view.rs` gives the rule of a
+view outside the frame of the panels the title of its caller:
+`Block::new().title(Line::raw(title).centered()).borders(Borders::TOP)`. **The
+three widgets of a view with no line did not.** `App::render_the_reason` of
+`src/ui/tui.rs` takes a title, and it gives that title to
+`crate::ui::frame::a_panel` in the arm of the frame of the panels alone: the
+other arm builds a block of one border at the top and it drops the title, and
+**the frame stands in the Home view and in the Library view alone** (T-320) —
+the comment of `render_series` said that its title "reaches no screen of today"
+already. `render_lists` of the same file built a `Paragraph` of its own with a
+block of one border at the top and **no title at all**, and it made its
+`render_list_title` after the `return` of that road.
+`crate::ui::the_message_of_a_view::render_the_message`, which draws the two
+roads of the Episodes view, **took no title at all**.
+
+**This is the seventh face of the fault of T-354, and the fault of T-355 for
+the views outside the frame of the panels.** T-355 gave the panel 4 of a view
+with no line its border, its number, and its name; the six views outside that
+frame keep the rule of one border at the top, and that rule had no name.
+
+**The correction**, of three sites:
+
+- the arm of the screen with no frame of `App::render_the_reason` takes
+  `.title(ratatui::text::Line::raw(title).centered())`, which is the block of
+  `render_list`;
+- `render_the_message` of `src/ui/the_message_of_a_view.rs` takes a title
+  before its text and it gives it to the same block; `render_pod_ep` gives it
+  `format!("Episodes [{}]", keys::items(…))` of the list of its own road —
+  `titles_pod_ep_search` on the road of a search, and `titles_pod_ep` on the
+  road of the library;
+- `render_lists` gives its `Paragraph` away and it calls `render_the_reason`
+  with `format!("Collections and playlists [{}]", keys::items(self.lists.len()))`.
+  **That call gives the view the area of the mouse of its panel too** (T-356),
+  which the `Paragraph` of its own never wrote: that is the candidate 2 of
+  T-357, and it closes with this correction.
+
+`render_series` gives `render_the_reason` the title
+`format!("Series [{}]", keys::items(self.series.len()))` in the place of the
+bare word `Series`, therefore the two roads of that view say one name.
+
+**The corrected program of the same harness**, of the same screens and of the
+same road:
+
+```text
+────────────────────────Collections and playlists [0 items]─────────────────────
+                 This library has no collection and no playlist.
+                               Press h to go back.
+
+────────────────────────────────Series [0 items]────────────────────────────────
+                          This library has no series.
+                               Press h to go back.
+
+──────────────────────────────Episodes [0 items]────────────────────────────────
+The server did not give the episodes of this podcast: The server reported a fau…
+                               Press h to go back.
+```
+
+**The three controls of the same run stayed as they were**:
+`Collections and playlists [2 items]`, `Series [3 items]`, and
+`Search result [14 items]`.
+
+**The build of the fault**: the title of the two blocks becomes
+`Line::raw(if false { title } else { "" })`, and
+`a_view_with_no_line_says_the_name_of_its_list` of
+`tests/a_view_with_no_line_says_the_name_of_its_list.rs` then says "the
+Collections view with no line says the name of the list that holds no line".
+That test renders the Collections view, the Series view, and the two roads of
+the Episodes view of an `App::new` application on a `TestBackend` of 160
+columns and 45 rows, and the **control of the same run** is the Collections
+view of one collection of one media, which must say
+`Collections and playlists [1 item]`: a correction that gives the rule of a
+view with no line a word of its own, and not the title of the view of lines,
+would fail it.
+
+**What this item leaves open, and each of them is a candidate and not an
+item:**
+
+- **The search view of a library with no hit puts its reason in the place of
+  the name.** The rule of that view held
+  `The server found nothing for "zzzznohitatall". Press / to write other
+  words.` where the same view of hits holds `Search result [14 items]`: the
+  view says its reason and it loses the name of its list, which is the same
+  trade in the other direction.
+- **The panel 4 of a view with no line takes the focus of a click and it says
+  no word of its own** (of T-356), and the keys `j` and `k` of that focus then
+  move a cursor of no line while the footer names those keys.
+- **The footer of a view with no line names the keys of a line.** The
+  Collections view of the library `Empty` said `j/k: move  l: the media
+  r/D: a name/description  X: remove`, and no line of that view holds a media,
+  a name, or a description. That is the rule of T-143 for the six views.
+- **The rows of the band that does not fit** of T-353, and **the width of the
+  panel 5 of a media with no cover**.
+- Every candidate of the items before this one.
+
+**v0.8.189.**
