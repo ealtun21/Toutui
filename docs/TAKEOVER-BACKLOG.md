@@ -36696,3 +36696,77 @@ draws — the collapse of this round takes that road away for the words of
 the header. (3) The candidates of T-375 (the cursor of an empty list at
 large, the nine sibling views of `src/app.rs`; a fact value of an East Asian
 language in the panel 5).
+
+## T-379 — The header names the filter that the user took
+
+**The candidate came of T-378.** The second finding of that measurement:
+an application of a filter rebuilds the application in the way of the key
+`R`, and `src/main.rs:785` calls `logic::sort_filter::from_the_server::forget()`
+— the header then names the group and not the name that the user just
+took, until the view of the key `f` asks the server again.
+
+**The fault, measured in the real program v0.8.209 inside tmux at 100
+columns against the sandbox on `:13399`, library `Books`.** The view of
+the key `f` applied the genre `Fiction`, the Library view held `[1 item]`,
+and the second row of the header read `⇅ The sequence of the server ▣ A
+genre` — the group and not the name that the user just took. The control
+of the same run: a second `f` filled the choices of the server again, the
+key `h` went back, and the header then read `▣ Fiction`. A second
+measurement: a restart of the program with the filter standing gave `▣ A
+genre` at the start too, because the choices come at the key `f` alone.
+
+**The root.** The road of an application sets `must_refresh`, the loop of
+`src/main.rs` rebuilds the application in the way of the key `R`, and line
+785 calls `logic::sort_filter::from_the_server::forget()` — rightly,
+because a library switch takes the same road (`src/app.rs:10694`) and the
+choices belong to one library. `the_name_of_a_filter` of
+`src/ui/the_panels_of_the_stack.rs` then finds the value in no list and it
+names the group.
+
+**The correction, v0.8.210, two parts.**
+
+1. `decode_base64` in `src/logic/sort_filter.rs` — the value of a genre,
+   of a tag, of a narrator, of a language, and of a publisher holds the
+   name itself in base64 (`choices` of `get_filter_data`), therefore the
+   program reads the name of such a filter back with no request and no
+   list. This corrects the application and the start together.
+2. `sort_filter::the_name_that_stands` — a box that keeps the pair
+   (value, label) at the moment of an application, because the value of
+   an author and of a series holds an identity and no arithmetic gives
+   the name back. Written at the two apply sites:
+   `apply_the_row_of_the_sequence_or_the_filter` (the `Row::Filter` arm)
+   and `show_the_books_of_the_author` of `src/app.rs`. `forget()` of the
+   choices does not touch it.
+
+`the_name_of_a_filter` takes: the choices first, then the decode for the
+five name kinds, then the box, then the group names. Every name goes
+through `in_one_line` (the rule of T-378).
+
+**The control of the corrected binary, same data.** After the
+application of `Fiction` the header read `▣ Fiction` at once; after the
+application of the author `Lewis Carroll` (an identity value) it read
+`▣ Lewis Carroll`; a restart with the filter standing read `▣ Fiction` at
+the start.
+
+**The test.** `tests/the_header_names_the_filter_that_the_user_took.rs`,
+one test function (the rule of the box of the process). It reads the
+decode (the road there and back, and three texts that do not obey
+base64), the name of a genre of an empty list, the name of two lines in
+one line, the group of an author with no application, the name of the
+box after `keep`, and that the name of the box reaches no other value.
+The build of the fault — the two fallbacks disabled — fails it with
+`left: "A genre", right: "Fiction"`.
+
+**The road back of the sandbox.** No media changed and no playback ran;
+`sqlite3` gave the row of the account `library_sort`, `library_desc`, and
+`library_filter` of the start back (the measurement wrote a sequence and
+a filter into that row).
+
+**What this round leaves open, each a candidate and not an item.** (1) An
+author or a series filter that stands at the start of the program (a
+restart) still names the group — the box lives in the process, and the
+row of the account holds the value alone. (2) The header reads `▣ No
+filter` after a removal of the filter — the words could omit the mark
+when no filter stands. (3) The candidates of T-378 that stay: the cursor
+of an empty list at large, the nine sibling views of `src/app.rs`; a fact
+value of an East Asian language in the panel 5.

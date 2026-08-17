@@ -41,6 +41,22 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.210",
+        date: "18/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The header names the filter that the user took.** An \
+             application of a filter refreshes the whole screen, and the \
+             refresh forgot the names of the filters of the server: the \
+             header then named the group, for example \"A genre\", and not \
+             the name that the user just took. The header now reads the name \
+             of a genre, of a tag, of a narrator, of a language, and of a \
+             publisher out of the filter itself — at the start of the \
+             program too — and it keeps the name of an author and of a \
+             series at the moment of the application.",
+        ],
+    },
+    Entry {
         version: "0.8.209",
         date: "18/08/2026",
         body: &[

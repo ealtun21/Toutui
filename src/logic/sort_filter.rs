@@ -169,6 +169,63 @@ pub fn encode_base64(text: &str) -> String {
     out
 }
 
+/// Reads a text of base64 back.
+///
+/// The value of a filter of a genre, of a tag, of a narrator, of a language,
+/// and of a publisher holds the name itself in base64 (`choices` of
+/// `get_filter_data`), therefore the program can read the name of such a
+/// filter with no request and no list (T-379). A text that does not obey the
+/// rule of base64, and bytes that are not UTF-8, give `None`.
+pub fn decode_base64(text: &str) -> Option<String> {
+    let bytes = text.as_bytes();
+
+    if bytes.is_empty() || !bytes.len().is_multiple_of(4) {
+        return None;
+    }
+
+    let mut out = Vec::with_capacity(bytes.len() / 4 * 3);
+    let mut the_end_came = false;
+
+    for group in bytes.chunks(4) {
+        let mut three: u32 = 0;
+        let mut pads = 0;
+
+        for (place, &byte) in group.iter().enumerate() {
+            let part = if byte == b'=' {
+                // A full stop of base64 stands in the last two places alone.
+                if place < 2 {
+                    return None;
+                }
+
+                pads += 1;
+                the_end_came = true;
+                0
+            } else {
+                // No letter stands after a full stop of base64.
+                if the_end_came {
+                    return None;
+                }
+
+                ALPHABET.iter().position(|&one| one == byte)? as u32
+            };
+
+            three = (three << 6) | part;
+        }
+
+        out.push((three >> 16) as u8);
+
+        if pads < 2 {
+            out.push((three >> 8) as u8);
+        }
+
+        if pads < 1 {
+            out.push(three as u8);
+        }
+    }
+
+    String::from_utf8(out).ok()
+}
+
 /// One choice of the filter.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct FilterChoice {
@@ -404,6 +461,41 @@ pub mod from_the_server {
     /// Forgets the answer. A refresh of the program asks the server again.
     pub fn forget() {
         keep(State::Nothing);
+    }
+}
+
+/// The name of the filter that the user took.
+///
+/// An application of a filter rebuilds the application in the way of the key
+/// `R`, and that road calls `from_the_server::forget` (T-379): the header then
+/// knew no name for the value that stands, and it named the group alone. The
+/// value of a filter of an author and of a series holds an identity in base64,
+/// therefore no arithmetic gives the name of it back: this box keeps the pair
+/// at the moment of the application, and the forget of the choices does not
+/// touch it.
+pub mod the_name_that_stands {
+    use std::sync::{Mutex, OnceLock};
+
+    fn box_of_the_name() -> &'static Mutex<Option<(String, String)>> {
+        static NAME: OnceLock<Mutex<Option<(String, String)>>> = OnceLock::new();
+        NAME.get_or_init(|| Mutex::new(None))
+    }
+
+    /// Keeps the name of the filter that the user took.
+    pub fn keep(value: &str, label: &str) {
+        if let Ok(mut place) = box_of_the_name().lock() {
+            *place = Some((value.to_string(), label.to_string()));
+        }
+    }
+
+    /// Gives the name, when the value is the value of the last application.
+    pub fn label_of(value: &str) -> Option<String> {
+        match box_of_the_name().lock() {
+            Ok(place) => place
+                .as_ref()
+                .and_then(|(of_the_box, label)| (of_the_box == value).then(|| label.clone())),
+            Err(_) => None,
+        }
     }
 }
 

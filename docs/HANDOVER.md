@@ -15366,6 +15366,48 @@ and every candidate of the turns before this one.
 
 
 
+### The turn of the two hundred and eleventh round (T-378)
+
+**The session of the two hundred and eleventh turn shipped T-378**: the
+name of a filter of the server stands in one row of the header now.
+**The candidate came of T-377** (the words of the sequence and of the
+filter go into a `Paragraph` of one row with no collapse).
+
+**The fault**, of v0.8.208 inside tmux at 100 columns against the
+sandbox: `PATCH /api/items/:id/media` gave `A Long Test Book` the genre
+`Alpha\nOMEGAEND`, a restart of the sandbox refreshed the cache of
+`filterdata`, and the view of the key `f` applied that genre. The second
+row of the header read `⇅ The time when the book came, the smallest
+first ▣ Alpha` — **the word OMEGAEND was gone with no mark at all**: a
+`Paragraph::new(String)` splits its text at a `\n`, and the row of one
+height shows the first line alone. The control of the same run: the
+genre `Fiction` gave `▣ Fiction` whole.
+
+**The correction is one collapse with `in_one_line` at the composition
+of the label in `the_name_of_a_filter`** of
+`src/ui/the_panels_of_the_stack.rs`. **v0.8.209.** The control of the
+corrected binary and the same data gave `▣ Alpha OMEGAEND` in one row.
+The build of the fault — the collapse removed — fails the new test
+`tests/a_name_of_a_filter_stands_in_one_row.rs`. The sandbox holds the
+genres `Fiction, Adventure` again, and the row of the account holds the
+sequence and the filter of the start again.
+
+**A second finding of the measurement, a candidate and not an item**:
+an application of a filter rebuilds the application in the way of the
+key `R`, and `src/main.rs:785` then calls `from_the_server::forget()` —
+the header therefore names the group (`▣ A genre`) and not the name
+that the user just took, until the view of the key `f` asks the server
+again.
+
+**What this round leaves open, and each of them is a candidate and not
+an item**: the forget of the choices after an application (the second
+finding above); the cursor of an empty list at large — the nine sibling
+views of `src/app.rs:10805-10922`, and every read absorbs it with
+`.get` today; a fact value of an East Asian language in the panel 5,
+and no media of the sandbox holds one; and every candidate of the turns
+before this one.
+
+
 ### The turn of the two hundred and tenth round (T-377)
 
 **The session of the two hundred and tenth turn shipped T-377**: a name
@@ -27922,7 +27964,7 @@ every candidate of the turns before this one.
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.208**; `Cargo.toml` is at 0.8.208. The
+> AlbanDAVID/Toutui. Newest release **v0.8.210**; `Cargo.toml` is at 0.8.210. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -28933,46 +28975,51 @@ every candidate of the turns before this one.
 >    holds three decisions that a round must not take alone. Read it first.
 >
 > 1. **A condition of the program that no measurement has reached.** A sweep of
->    this shape found a fault in one hundred and eighteen sessions of one
->    hundred and nineteen.
-> **The session of the two hundred and eleventh turn shipped T-378**: the
-> name of a filter of the server stands in one row of the header now.
-> **The candidate came of T-377** (the words of the sequence and of the
-> filter go into a `Paragraph` of one row with no collapse).
+>    this shape found a fault in one hundred and nineteen sessions of one
+>    hundred and twenty.
+> **The session of the two hundred and twelfth turn shipped T-379**: the
+> header names the filter that the user took now.
+> **The candidate came of T-378** (the second finding: the refresh of an
+> application calls `from_the_server::forget()`).
 >
-> **The fault**, of v0.8.208 inside tmux at 100 columns against the
-> sandbox: `PATCH /api/items/:id/media` gave `A Long Test Book` the genre
-> `Alpha\nOMEGAEND`, a restart of the sandbox refreshed the cache of
-> `filterdata`, and the view of the key `f` applied that genre. The second
-> row of the header read `⇅ The time when the book came, the smallest
-> first ▣ Alpha` — **the word OMEGAEND was gone with no mark at all**: a
-> `Paragraph::new(String)` splits its text at a `\n`, and the row of one
-> height shows the first line alone. The control of the same run: the
-> genre `Fiction` gave `▣ Fiction` whole.
+> **The fault**, of v0.8.209 inside tmux at 100 columns against the
+> sandbox: the view of the key `f` applied the genre `Fiction`, the
+> Library view held `[1 item]`, and the second row of the header read
+> `⇅ The sequence of the server ▣ A genre` — the group, and not the name
+> that the user just took. A restart of the program with the filter
+> standing gave the same group at the start, because the choices come at
+> the key `f` alone. The control of the same run: a second `f` filled the
+> choices again, and the header then read `▣ Fiction`. The forget is
+> right (a library switch takes the same road, and the choices belong to
+> one library), therefore the name must come of another place.
 >
-> **The correction is one collapse with `in_one_line` at the composition
-> of the label in `the_name_of_a_filter`** of
-> `src/ui/the_panels_of_the_stack.rs`. **v0.8.209.** The control of the
-> corrected binary and the same data gave `▣ Alpha OMEGAEND` in one row.
-> The build of the fault — the collapse removed — fails the new test
-> `tests/a_name_of_a_filter_stands_in_one_row.rs`. The sandbox holds the
-> genres `Fiction, Adventure` again, and the row of the account holds the
-> sequence and the filter of the start again.
->
-> **A second finding of the measurement, a candidate and not an item**:
-> an application of a filter rebuilds the application in the way of the
-> key `R`, and `src/main.rs:785` then calls `from_the_server::forget()` —
-> the header therefore names the group (`▣ A genre`) and not the name
-> that the user just took, until the view of the key `f` asks the server
-> again.
+> **The correction, v0.8.210, two parts**: `decode_base64` of
+> `src/logic/sort_filter.rs` reads the name of a genre, of a tag, of a
+> narrator, of a language, and of a publisher out of the value itself,
+> because the value holds the name in base64 — this corrects the
+> application and the start together; and the box
+> `sort_filter::the_name_that_stands` keeps the pair (value, label) at
+> the moment of an application, because the value of an author and of a
+> series holds an identity. `the_name_of_a_filter` takes the choices,
+> then the decode, then the box, then the group names, and every name
+> goes through `in_one_line` (the rule of T-378). The control of the
+> corrected binary: `▣ Fiction` at once after the application, at the
+> start too, and `▣ Lewis Carroll` after the application of an author.
+> The build of the fault — the two fallbacks disabled — fails the new
+> test `tests/the_header_names_the_filter_that_the_user_took.rs`. The
+> row of the account holds the sequence and the filter of the start
+> again, and no media of the sandbox changed.
 >
 > **What this round leaves open, and each of them is a candidate and not
-> an item**: the forget of the choices after an application (the second
-> finding above); the cursor of an empty list at large — the nine sibling
-> views of `src/app.rs:10805-10922`, and every read absorbs it with
-> `.get` today; a fact value of an East Asian language in the panel 5,
-> and no media of the sandbox holds one; and every candidate of the turns
-> before this one.
+> an item**: an author or a series filter that stands at a restart still
+> names the group, because the box lives in the process and the row of
+> the account holds the value alone; the header reads `▣ No filter`
+> after a removal of the filter, and the words could omit the mark; the
+> cursor of an empty list at large — the nine sibling views of
+> `src/app.rs:10805-10922`, and every read absorbs it with `.get` today;
+> a fact value of an East Asian language in the panel 5, and no media of
+> the sandbox holds one; and every candidate of the turns before this
+> one.
 >    **The turns before this one stand in `## The turns before the three
 >    newest ones` of this file**, above the heading of this prompt. **This item
 >    held three turns, and the block then stood above its limit of size**
@@ -29239,7 +29286,7 @@ every candidate of the turns before this one.
 > and it held **88074** bytes with **one** turn in it. The round of the two
 > hundred and fifth found it at 88308 bytes with one turn in it, and it did the
 > same work: the block held **81281** bytes with no turn at all after the
-> removal, and it held **85713** bytes with **one** turn in it. The round of the two hundred and sixth found it at 85713 bytes with one turn in it, and it did the same work: it holds about **86000** bytes with **one** turn in it now. The round of the two hundred and seventh found it at 85815 bytes with one turn in it, and it did the same work. The round of the two hundred and eighth found it at 85404 bytes with one turn in it, and it did the same work. The round of the two hundred and ninth found it at 85391 bytes with one turn in it, and it did the same work. The round of the two hundred and tenth found it at 85549 bytes with one turn in it, and it did the same work. The round of the two hundred and eleventh found it at 85579 bytes with one turn in it, and it did the same work.
+> removal, and it held **85713** bytes with **one** turn in it. The round of the two hundred and sixth found it at 85713 bytes with one turn in it, and it did the same work: it holds about **86000** bytes with **one** turn in it now. The round of the two hundred and seventh found it at 85815 bytes with one turn in it, and it did the same work. The round of the two hundred and eighth found it at 85404 bytes with one turn in it, and it did the same work. The round of the two hundred and ninth found it at 85391 bytes with one turn in it, and it did the same work. The round of the two hundred and tenth found it at 85549 bytes with one turn in it, and it did the same work. The round of the two hundred and eleventh found it at 85579 bytes with one turn in it, and it did the same work. The round of the two hundred and twelfth found it at 85050 bytes with one turn in it, and it did the same work.
 > **A block that stands at 80000 bytes or under holds two
 > turns**, and the turn of the stage before this one names the parts of that
 > stage which stay open. **The list of the decisions

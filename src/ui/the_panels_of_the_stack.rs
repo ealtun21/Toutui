@@ -176,12 +176,20 @@ pub fn the_three_panels(
 
 /// The name for the user of the filter that stands.
 ///
-/// **The value of a filter of the server is a name in base64 of an identity**
-/// (`authors.Y2M1ODkxZDMt…`), therefore no arithmetic gives the name of it
-/// back: the name comes of the list of the choices. The three places of the
-/// user stand in this program (`sort_filter::PROGRESS`), and every other choice
-/// comes of `GET /api/libraries/:id/filterdata`, which the view of the key `f`
-/// asks for.
+/// The name comes of the list of the choices first. The three places of the
+/// user stand in this program (`sort_filter::PROGRESS`), and every other
+/// choice comes of `GET /api/libraries/:id/filterdata`, which the view of the
+/// key `f` asks for.
+///
+/// **An application of a filter forgets that list** (T-379): the road of it
+/// rebuilds the application in the way of the key `R`, and the header of
+/// v0.8.209 then named the group (`▣ A genre`) and not the name that the user
+/// just took. The value of a genre, of a tag, of a narrator, of a language,
+/// and of a publisher holds the name itself in base64, therefore
+/// `decode_base64` gives it back with no list at all — at the start of the
+/// program too. The value of an author and of a series holds an identity
+/// (`authors.Y2M1ODkxZDMt…`), and the name of the last application stands in
+/// `sort_filter::the_name_that_stands`.
 ///
 /// **A filter whose name did not come names its group and no word more**: the
 /// user then reads that a filter stands, and the view of the key `f` gives the
@@ -204,7 +212,23 @@ pub fn the_name_of_a_filter(value: &str, of_the_server: &[FilterChoice]) -> Stri
         }
     }
 
-    match value.split('.').next().unwrap_or_default() {
+    let mut parts = value.splitn(2, '.');
+    let kind = parts.next().unwrap_or_default();
+
+    if matches!(
+        kind,
+        "genres" | "tags" | "narrators" | "languages" | "publishers"
+    ) {
+        if let Some(name) = sort_filter::decode_base64(parts.next().unwrap_or_default()) {
+            return crate::logic::message::in_one_line(&name).into_owned();
+        }
+    }
+
+    if let Some(label) = sort_filter::the_name_that_stands::label_of(value) {
+        return crate::logic::message::in_one_line(&label).into_owned();
+    }
+
+    match kind {
         "authors" => "An author".to_string(),
         "series" => "A series".to_string(),
         "narrators" => "A narrator".to_string(),

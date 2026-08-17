@@ -5822,6 +5822,11 @@ impl App {
 
         self.library_filter = crate::logic::authors::kind().filter_of(author);
 
+        // The value of this filter holds the identity of the author, and the
+        // refresh after this application forgets the choices of the server:
+        // the header takes the name of the author here. See T-379.
+        crate::logic::sort_filter::the_name_that_stands::keep(&self.library_filter, &author.name);
+
         if !self.the_disk_takes_the_sequence_of_the_library(of_the_old) {
             return;
         }
@@ -7748,12 +7753,17 @@ impl App {
             }
             Row::Direction => self.library_desc = !self.library_desc,
             Row::NoFilter => self.library_filter = String::new(),
-            Row::Filter { value, .. } => {
+            Row::Filter { label, value } => {
                 // The same filter a second time removes it.
                 if self.library_filter == *value {
                     self.library_filter = String::new();
                 } else {
                     self.library_filter = value.clone();
+
+                    // The refresh after this application forgets the choices
+                    // of the server, and the header must still name the
+                    // filter that the user took. See T-379.
+                    crate::logic::sort_filter::the_name_that_stands::keep(value, label);
                 }
             }
         }
