@@ -36,6 +36,9 @@ pub const MIN_WIDTH_FOR_COVER: u16 = 84;
 /// The smallest height of the panel that shows a cover.
 pub const MIN_HEIGHT_FOR_COVER: u16 = 8;
 
+/// The rows of the panel of the cover that its border takes.
+const THE_ROWS_OF_THE_BORDER: u16 = 2;
+
 /// The share of the width that the panel of the covers takes, in percent.
 ///
 /// The user asked for a larger picture on 2026-08-11. The panel took 30 per
@@ -575,6 +578,33 @@ pub fn width_that_the_height_can_use(height: u16, font: FontSize, ratio: f32) ->
     columns.min(f32::from(u16::MAX)) as u16
 }
 
+/// Gives the smallest panel of the cover, in rows of the screen.
+///
+/// **`MIN_HEIGHT_FOR_COVER` is the height of a picture**, therefore a panel
+/// that holds no picture does not take it (T-349). A media that the server
+/// holds with no cover gives every row of that panel to the words (T-319), and
+/// those words need the rows of the facts and no row of a picture at all.
+///
+/// The smallest panel of the words is the border of the panel and
+/// `THE_ROWS_OF_THE_FACTS`, because **the facts are the value of that panel**:
+/// a panel that says fewer facts than the row of the facts under the list says
+/// takes the columns of the list for nothing.
+///
+/// **A panel that goes away costs the list the rows of that row of the facts**
+/// (`the_areas_of_a_list` of `crate::ui::tui` gives them out of the work of the
+/// view, and the panel stands beside that work and it costs it no row at all).
+/// A screen of 160 columns and 13 rows held six lines of the list and the three
+/// facts of the media; the same screen of 12 rows held three lines of the list,
+/// and the two rows under it then said `Author: N/A - Year: N/A - Duration: 0m`
+/// and `Progress:  N/A%,   N/A`, which say less than the panel said.
+pub fn the_smallest_panel_of_the_cover(a_picture_comes: bool) -> u16 {
+    if a_picture_comes {
+        MIN_HEIGHT_FOR_COVER
+    } else {
+        THE_ROWS_OF_THE_BORDER + crate::ui::the_panel_of_the_cover::THE_ROWS_OF_THE_FACTS
+    }
+}
+
 /// Cuts the main area into the area of the text and the area of the covers.
 ///
 /// The function gives no area for the covers when the screen is too narrow.
@@ -588,6 +618,10 @@ pub fn width_that_the_height_can_use(height: u16, font: FontSize, ratio: f32) ->
 /// screen of 160 columns and 16 rows gave that panel 22 columns, and it then
 /// cut `Files     1 file, 0.0 MB` after `0.` — a text that the panel cuts says
 /// nothing to the user (T-91).
+///
+/// **The limit of the height stands twice**, and `the_smallest_panel_of_the_cover`
+/// holds the second one (T-349): the panel of a media with no cover went away
+/// at a screen of 12 rows, where the words of it need five rows alone.
 pub fn split_for_covers(
     area: Rect,
     screen_width: u16,
@@ -598,7 +632,9 @@ pub fn split_for_covers(
         return (area, None);
     }
 
-    if screen_width < MIN_WIDTH_FOR_COVER || area.height < MIN_HEIGHT_FOR_COVER {
+    if screen_width < MIN_WIDTH_FOR_COVER
+        || area.height < the_smallest_panel_of_the_cover(a_picture_comes)
+    {
         return (area, None);
     }
 
@@ -1369,6 +1405,93 @@ mod tests {
                 panel.width,
                 the_longest_line,
                 height
+            );
+        }
+    }
+
+    /// **A panel that holds no picture takes no limit of the height, and the
+    /// gate of that limit stands twice** (T-349). T-348 took the limit out of
+    /// the width of such a panel and it left it in the gate that gives the panel
+    /// or nothing: `MIN_HEIGHT_FOR_COVER` is the height of a **picture**, and
+    /// the words of a media with no cover need the rows of the facts alone.
+    ///
+    /// The measurement of the real program of v0.8.179 inside tmux, at 160
+    /// columns, of the library `Large` of the sandbox, whose media hold no
+    /// cover: a screen of 13 rows gave the work of the view seven rows, and the
+    /// panel stood with `Time      0m`, `Files     1 file, 0.0 MB`, and `No
+    /// description available`, while the list held six lines. A screen of 12
+    /// rows gave that work seven rows too, and the panel went away.
+    #[test]
+    fn a_panel_of_no_picture_stands_at_a_screen_of_few_rows() {
+        let _covers = WithCovers::on();
+
+        // The numbers of this test are the numbers of the measurement, and not
+        // the value of the function that it measures: a range of
+        // `the_smallest_panel_of_the_cover(false)..MIN_HEIGHT_FOR_COVER` is
+        // empty while the fault stands, and such a test says nothing at all.
+        let the_rows_of_the_words = 5;
+
+        for height in the_rows_of_the_words..MIN_HEIGHT_FOR_COVER {
+            assert!(
+                split_for_covers(area(126, height), 160, FONT, false)
+                    .1
+                    .is_some(),
+                "the panel of the words of a media with no cover must stand at \
+                 {height} rows, because those words need \
+                 {the_rows_of_the_words} rows"
+            );
+        }
+
+        assert_eq!(
+            the_smallest_panel_of_the_cover(false),
+            the_rows_of_the_words,
+            "a border of two rows and the three facts of the media"
+        );
+    }
+
+    /// The other side of the rule above: **a panel that holds a picture keeps
+    /// the height of a picture** (T-50). A picture of fewer rows than
+    /// `MIN_HEIGHT_FOR_COVER` says less than the words that stand under the
+    /// list, therefore that panel goes away as it did before T-349.
+    ///
+    /// The control of the measurement is the library `Books` of the sandbox,
+    /// whose media hold a cover: the panel of it went away at a screen of 12
+    /// rows before the correction and after it.
+    #[test]
+    fn a_panel_of_a_picture_goes_away_under_the_height_of_a_picture() {
+        let _covers = WithCovers::on();
+
+        for height in 0..MIN_HEIGHT_FOR_COVER {
+            assert!(
+                split_for_covers(area(126, height), 160, FONT, true)
+                    .1
+                    .is_none(),
+                "a panel of a picture of {height} rows gives the picture too \
+                 few rows, therefore it must go away"
+            );
+        }
+    }
+
+    /// **A panel of the words that says fewer facts than the row under the list
+    /// says takes the columns of the list for nothing** (T-349).
+    ///
+    /// `the_areas_of_a_list` of `crate::ui::tui` gives the row of the facts its
+    /// rows out of the work of the view, and the panel stands beside that work
+    /// and it costs it no row at all. The panel therefore stands while it holds
+    /// the three facts, and it goes away under them.
+    #[test]
+    fn a_panel_of_no_picture_goes_away_under_the_rows_of_its_facts() {
+        let _covers = WithCovers::on();
+
+        // The number of this test is the number of the measurement, for the
+        // reason of the test above.
+        for height in 0..5 {
+            assert!(
+                split_for_covers(area(126, height), 160, FONT, false)
+                    .1
+                    .is_none(),
+                "a panel of {height} rows holds fewer than the three facts of \
+                 the media, therefore it must go away"
             );
         }
     }

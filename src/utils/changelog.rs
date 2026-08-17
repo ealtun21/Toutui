@@ -41,6 +41,23 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.180",
+        date: "17/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The panel of the cover of a media that has no cover stands in \
+             a terminal of few rows.** That panel went away when it had fewer \
+             rows than a picture needs. A media that the server holds with no \
+             cover at all shows the words of the media alone there, and those \
+             words need the three facts of the media and no row of a picture: \
+             a terminal of 160 columns and 12 rows therefore lost the panel, \
+             the list of it lost three lines, and the two lines under that \
+             list said less than the panel said. The panel of such a media \
+             stands while it has room for its facts now, and a panel that \
+             holds a picture keeps the height that it had.",
+        ],
+    },
+    Entry {
         version: "0.8.179",
         date: "17/08/2026",
         body: &[

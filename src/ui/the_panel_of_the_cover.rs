@@ -339,6 +339,45 @@ mod tests {
         assert_eq!(parts.description.height, 1);
     }
 
+    /// **The smallest panel of a media with no cover holds the whole of the
+    /// facts** (T-349).
+    ///
+    /// `crate::ui::cover::the_smallest_panel_of_the_cover` gives the rows of
+    /// that panel, and the border of it takes one row at each end. The rows that
+    /// stay inside must hold the three facts of the media, because a panel that
+    /// says fewer facts than the row under the list says takes the columns of
+    /// the list for nothing.
+    ///
+    /// **The parts of this test stay in one function.**
+    #[test]
+    fn the_smallest_panel_of_no_picture_holds_the_whole_of_the_facts() {
+        let of_the_border = 2;
+
+        // The number is the number of the measurement, and not the value of the
+        // function: a test that takes its own bounds of the function that it
+        // measures cannot fail while that function holds a fault.
+        assert_eq!(
+            crate::ui::cover::the_smallest_panel_of_the_cover(false),
+            THE_ROWS_OF_THE_FACTS + of_the_border
+        );
+
+        let inside = Rect::new(111, 3, 48, THE_ROWS_OF_THE_FACTS);
+
+        let parts = the_parts_of_the_panel(
+            inside,
+            false,
+            THE_ROWS_OF_THE_FACTS,
+            THE_ROWS_OF_A_DESCRIPTION,
+        );
+
+        assert_eq!(parts.cover, None);
+        assert_eq!(
+            parts.facts.height, THE_ROWS_OF_THE_FACTS,
+            "the smallest panel of a media with no cover must say every fact"
+        );
+        assert!(parts.the_words_stand_here());
+    }
+
     /// A panel of no cell at all holds no part.
     ///
     /// **The parts of this test stay in one function.**

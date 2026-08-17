@@ -33135,3 +33135,134 @@ built back in**, because it is the control of the rule of T-50.
   --sort=-pcpu | head` belongs beside the `ps -C toutui` of T-271** at the
   start of every round.
 - **Every candidate of the turns before this one stays open.**
+
+## T-349 — The panel of the cover of a media with no cover goes away at a screen of few rows, and the words that take its place say less
+
+**The condition**: the Home view or the Library view of a screen of 84 columns
+and more, whose media the server holds **with no cover at all**, on a terminal
+of 12 rows and fewer. The library `Large` of the sandbox is such a library:
+`GET /api/items/1ebcade0-ed5b-453f-a278-95cd1c5ab1c6/cover` of `Large Book
+2056` answers the status **404**, therefore `cover::no_picture_comes` gives
+`true` and the panel 5 holds the words of the media alone (T-319). **This item
+is the first candidate that T-348 left open**, and it needs no proxy and no
+change of the sandbox at all.
+
+**The measurement, of the real program v0.8.179 inside tmux**, of the library
+`Large`, in the Home view, with `tmux resize-window -t check -x 160 -y N` after
+the first frame. At 13 rows:
+
+```text
+┌1 Views ────────────────────────┐╔4 Home [20 items] ═════…═════╗ ┌5 Cover ────────────────────────────────────────┐
+│➤ Home                       Tab│║    Title           Author   ║ │Time      0m                                    │
+│  Library                    Tab│║  ▌ Recently Added          █║ │Files     1 file, 0.0 MB                        │
+│  Sequence and filter          f│║➤   Large Book 0001    <1m  -│║ │No description available                        │
+│  Authors                      a│║    Large Book 0002    <1m  -│║ │                                                │
+│  Narrators                    v│║    Large Book 0003    <1m  -│║ │                                                │
+│  Collections                  c│║    Large Book 0004    <1m  -│║ │                                                │
+└────────────────────────────────┘╚═════════════════════════════╝ └────────────────────────────────────────────────┘
+```
+
+At 12 rows, one row fewer:
+
+```text
+┌1 Views ────────────────────────┐╔4 Home [20 items] ══════════════════════…════════════════════╗
+│➤ Home                       Tab│║    Title                          Author           Time Done ║
+│  Library                    Tab│║  ▌ Recently Added                                           █║
+│  Sequence and filter          f│║➤   Large Book 0001                                 <1m     -│║
+│  Authors                      a│╚═════════════════════════════════════…═══════════════════════╝
+│  Narrators                    v│Author: N/A - Year: N/A - Duration: 0m
+└────────────────────────────────┘Progress:  N/A%,   N/A
+```
+
+**The panel went away, and the words that took its place say less than it
+said.** The panel said `Time      0m`, `Files     1 file, 0.0 MB`, and `No
+description available`; the two lines under the list say `Author: N/A - Year:
+N/A - Duration: 0m` and `Progress:  N/A%,   N/A`, which are the two lines of
+the program before the panel of T-325 stood. **The list lost the rows of those
+two lines**: it named four media at 13 rows (`Large Book 0001` to `Large Book
+0004`) and it named **one** at 12 rows, because `the_areas_of_a_list` of
+`crate::ui::tui` gives the row of the facts its rows out of the work of the
+view, while the panel stands **beside** that work and it costs it no row at
+all. The fault stood at 12, 11, and 10 rows, and the list named one media at
+each of the three.
+
+**The same fault stood at 100 columns**, which is the shape of one column of
+`frame::the_shape_of`: the panel of 38 columns stood at 13 rows with the same
+three lines and the list named six media, and at 12 rows the panel went away,
+the list named three, and the two lines of the program before T-325 stood under
+it. **The sweep of the rows of a screen belongs at 160 columns and at 100
+columns together** (T-347).
+
+**Why**: the gate of `cover::split_for_covers` reads
+`area.height < MIN_HEIGHT_FOR_COVER`, and that constant is **the smallest
+height of a picture**: `the_panel_of_the_cover::THE_SMALLEST_PICTURE` is the
+same number. T-348 took the limit of a picture out of the **width** of a panel
+that holds no picture and it left it in the gate that gives the panel or
+nothing. **The limit of the height stands twice, and T-348 corrected one of
+them.** A media that the server holds with no cover gives every row of that
+panel to the words (T-319), and those words need the rows of the facts and no
+row of a picture at all.
+
+**The correction**: one pure function, `cover::the_smallest_panel_of_the_cover`,
+holds the rule now. A panel that holds a picture keeps `MIN_HEIGHT_FOR_COVER`,
+and a panel that holds no picture takes the border of the panel and
+`the_panel_of_the_cover::THE_ROWS_OF_THE_FACTS` — **five rows**, because **the
+facts are the value of that panel**: a panel that says fewer facts than the row
+of the facts under the list says takes the columns of the list for nothing. The
+gate of `split_for_covers` reads that function, and the eight views and the
+reader of a page of a PDF pass the answer of
+`App::a_picture_comes_in_the_panel_of_the_cover` that T-348 gave them already.
+
+**The corrected program of the same harness**: at 12, 11, and 10 rows the panel
+holds 48 columns and it says the three lines whole, which is the panel of the
+same media at 13 rows, character for character, and the list holds five, four,
+and three lines of a media with no line of the program before T-325 under it.
+The panel goes away at 9 rows, where the work of the view keeps four rows and
+the words of it need five. **At 100 columns the same rows give the same panel of
+38 columns**, and the list holds five, four, and three lines there too.
+
+**The control is the library `Books`** of the sandbox, whose media hold a cover
+(`GET /api/items/9a671047-6146-4003-8510-.../cover` of `A Long Test Book`
+answers 200): the panel of it stood at 13 rows with 20 columns and the words of
+the media under the list, and it went away at 12, 11, and 10 rows, **before the
+correction and after it, character for character.** The correction therefore
+gives a screen of few rows the panel that a screen of 13 rows had already, and
+it changes no panel that holds a picture.
+
+**The build of the fault**: the arm of the pure function went away with
+`if a_picture_comes || true`, and
+`a_panel_of_no_picture_stands_at_a_screen_of_few_rows` then said `the panel of
+the words of a media with no cover must stand at 5 rows, because those words
+need 5 rows`, and
+`the_smallest_panel_of_no_picture_holds_the_whole_of_the_facts` said
+`left: 8, right: 5`. The third test of the item,
+`a_panel_of_a_picture_goes_away_under_the_height_of_a_picture`, **passed with
+the fault built back in**, because it is the control of the rule of T-50.
+
+**A test that takes its own bounds of the function that it measures cannot
+fail.** The first form of the two tests of this item read
+`the_smallest_panel_of_the_cover(false)` for the start of the range of their
+sweep of the rows: the fault made that value 8, the range `8..8` held no row at
+all, and the two tests **passed with the fault in place**. The numbers of a
+test of this shape are the numbers of the measurement, and 5 is that number.
+
+**v0.8.180.**
+
+**What this item leaves open, and each of them is a candidate and not an item**:
+
+- **The height of the panel 5 of a media that holds a picture.** The gate of
+  `split_for_covers` compares the height of the whole panel with
+  `MIN_HEIGHT_FOR_COVER`, and `the_parts_of_the_panel` compares the height
+  **inside** the border with `THE_SMALLEST_PICTURE`, which is the same number:
+  the picture of the smallest panel therefore stands in 6 rows while the
+  constant of the smallest picture says 8. This is the second candidate of
+  T-348, and this round did not measure what that picture looks like.
+- **The words of the panel 5 at a screen of 9 rows and fewer.** The panel goes
+  away there and the row of the facts under the list says `Author: N/A - Year:
+  N/A - Duration: 0m` alone, because the work of the view keeps four rows. No
+  round has decided whether the three facts of T-325 belong in that row of the
+  list.
+- **The panel 6 of the gallery of a screen of few rows**: `the_two_panels`
+  takes the border of each panel into its arithmetic, and no measurement of
+  tmux has driven it under 20 rows.
+- **Every candidate of the turns before this one stays open.**
