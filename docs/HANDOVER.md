@@ -12264,6 +12264,13 @@ that file, or the test `every_key_of_the_handler_stands_in_the_list` fails.
 
 ## What is open
 
+**The newest release is v0.8.179** (T-348, 2026-08-17): the panel of the cover
+of a media that the server holds with no cover says its words whole in a
+terminal of few rows. **The sweep of the rows of a screen belongs at 160
+columns and at 100 columns together** (T-347), and the item T-348 of
+`docs/TAKEOVER-BACKLOG.md` names the three candidates of the panel 5 and of the
+panel 6 that it leaves open.
+
 ### 0.a The second report of the maintainer of 2026-08-16 (T-330 and T-331)
 
 **The maintainer read the program v0.8.158 and they gave six points.** Five of
@@ -22946,6 +22953,105 @@ of the mouse that no stage reached; **each of them is a candidate and not an
 item.**
 
 
+**The session of the hundred and eightieth turn took the item 1 of the list of
+the work**: a condition of the program that no measurement has reached. The
+turn before this one left two candidates of the same field, and **a read and an
+arithmetic refuted the two of them before any measurement ran**. The third
+reader of `self.rows_of_the_footer`,
+`the_rows_of_the_band_of_a_screen`, gives the band
+`h - rows_of_the_footer - 5` rows, and
+`the_rows_around_the_work_of_a_view` of T-345 leaves the band that same number
+at **every** height of a screen and at every footer: the two functions take one
+`rows_of_the_footer` and they cannot disagree. The map of the mouse of a screen
+of few rows holds no area of the header, of the row of the message, or of the
+footer at all, and the areas of the band and of the list are the areas of the
+last frame already. **A candidate that a proof takes away costs a round
+minutes, and a measurement of it would cost an hour.**
+
+**The condition that no measurement had reached stood in the width and not in
+the rows.** Every measurement of the rows of a screen of this fork — T-342,
+T-343, T-344, T-345, and T-346 — ran at **100 columns**, and
+`crate::ui::frame::the_shape_of` gives the frame of the panels at **120 columns
+and more** alone: the five rounds of that seam therefore measured the block of
+a border at the top, and no panel of the frame at all. This round drove the
+same harness at 160 columns, which is the default of `drive.sh`, and it needed
+no proxy, no book of a harness, and no change of the sandbox.
+
+**The fault, of the real program v0.8.177 inside tmux at 160 columns**, of the
+library `Large`, in the Home view, with `tmux resize-window -t check -x 160 -y
+N` after the first frame. At 8 rows:
+
+```text
+┌1 Views ────────────────────────┐╔4 Home [20 items] ═════════════════════════
+│➤ Home                       Tab│╚═══════════════════════════════════════════
+└────────────────────────────────┘Author: N/A - Year: N/A - Duration: 0m
+```
+
+The panel said `4 Home [20 items]` in the title of its border, it held its two
+rows of the border, and **no line at all**, while the panel of the item under
+it still held a row of its own. At 6, 5, 4, 3, and 2 rows the panel held its
+two rows of the border and no line.
+
+**Why**: `THE_SMALLEST_LIST` of `src/ui/tui.rs` is 2, and its own words held
+the reason — "The list of every view of this program stands in a `Block` of
+`Borders::TOP`, therefore a list of one line needs two rows." **That sentence
+is not true of the frame of the panels**: `crate::ui::frame::a_panel` holds
+`Borders::ALL`, therefore a list of one line needs **three** rows there. The
+four functions of the rows of a screen — `the_rows_around_the_work_of_a_view`,
+`the_rows_of_the_band_of_a_screen`, `the_rows_of_the_panel_of_the_item`, and
+`the_rows_of_the_row_of_the_item` — each read that constant, and the border
+took the two rows that they kept for the line.
+
+**The correction**: one new pure function of `src/ui/tui.rs`,
+`the_smallest_work_of_a_view(the_frame_of_the_panels_stands)`, which gives 3
+for the frame and 2 outside it, and `App::the_smallest_work_of_the_view`, which
+reads `App::the_frame_of_the_panels_stands` — the same condition that
+`render_the_list_of_the_panel_4` reads for its border of four sides. **No
+function of the rows of a screen reads `THE_SMALLEST_LIST` by itself now.** The
+twenty-seven views that called `the_areas_of_a_view` with three numbers call
+`App::the_areas_of_this_view(area, rows_of_the_footer)` now.
+
+**The corrected program of the same harness**: at 14, 12, and 10 rows it is the
+screen of the program before it, character for character. At 8, 6, 5, 4, and 3
+rows the panel holds its border and the line `➤     Large Book 0001`. **The
+footer goes away at 3 rows now**, and it went away at 2 rows before this round:
+the work of a view keeps its border and one line before the three parts around
+it keep their rows (the decision of T-345), and the work of this view needs one
+row more. At 2 rows and 1 row the screens are the screens of the program before
+it, because a border of four sides and one line need three rows. The Library
+view holds its line in the same way, and **the control of 100 columns gives the
+screens that T-345 wrote, character for character**.
+
+The correction failed its gate with the fault built back in: the arm of the
+pure function went away with `&& false`, and
+`the_panel_of_the_frame_keeps_its_border_of_four_sides_and_one_line` then said
+`left: 2, right: 3`; with the two numbers of that function taken out of the
+test, the areas of the screen said `a screen of 2 rows gives the work of the
+view 2 rows, and its border takes 2 of them: the list holds no line at all`.
+**v0.8.178.**
+
+**What this round leaves open, and each of them is a candidate and not an
+item**: **the panel 5 of the cover and the panel 6 of the gallery of a screen
+of few rows** — the cover panel went away at 12 rows and fewer of this
+measurement, and no round has measured which of the two gives way first or what
+a grid of no whole row draws; **the stack of the panels of a screen of few
+rows**, where the panel 1 held one line of its ten at 8 rows and the panels 2
+and 3 were away, in a sequence that no round decided; a band of 3, 4, or 5
+rows, and no measurement of tmux of a terminal of 10, 11, or 12 rows ran; the
+map of the mouse of a band that is not whole, and of a screen of few rows; and
+five of the seven views of T-344 were not driven in tmux. **The two views of
+the frame of the panels are the two views of this program whose width decides
+the shape of their work**, therefore a sweep of the rows of a screen belongs at
+160 columns and at 100 columns together from this round on.
+
+The next round takes the item 1 again. **The parts of a stage of the road of
+the panels that stay open** stand in the section
+`### 0. The road of the panels (T-316 to T-323)` of `## What is open`, and
+the item T-323 of `docs/TAKEOVER-BACKLOG.md` names every region of the map
+of the mouse that no stage reached; **each of them is a candidate and not an
+item.**
+
+
 ## The decisions of T-201 to T-343 that do not open again
 
 These decisions stood in the block of the prompt of the next session until the
@@ -25487,7 +25593,16 @@ item.**
 > **A `ps` of the machine at the start of a round is a measurement of its own**
 > (T-271): three programs of the round of 2026-08-15 stood at 131 percent of one
 > processor for three hours each, and `ps -o pid,pcpu,etime -C toutui` named
-> them.
+> them. **`ps -eo pid,pcpu,comm --sort=-pcpu | head` belongs beside
+> it** (T-348): the round of the hundred and eighty-first started with **34**
+> shells of `zsh` in a busy loop, of the load tests of past rounds
+> (`for i in $(seq 1 24); do (while :; do :; done) & done`) whose `kill` at the
+> end never ran — six of them stood for **2 days and 11 hours** — and the load
+> average of a machine of 32 processors was **47** while the build of that
+> round ran at 0.8 percent of a processor. A `kill -9` of the list of their
+> identities gives the machine back, and **`pkill -f` of them kills the shell
+> of this harness** (the trap 114). A round that writes such a loop must give
+> it a `trap` of the shell.
 >
 > **A second writer of the database of the program is
 > `docs/harness/hold_the_lock.py`** (T-199). **A fault of the database needs no
@@ -25794,8 +25909,8 @@ item.**
 > `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`, and
 > `cargo nextest run` with `ALSA_CONFIG_PATH` pointing at a null asound file of
 > two lines (`pcm.!default { type null }` and `ctl.!default { type null }`).
-> Baseline: **1570 tests in 29.2 seconds**, and `cargo nextest run --run-ignored
-> all` gives **1596 of 1596** with the sandbox up, in about 81 seconds. **Run that
+> Baseline: **1576 tests in 3.1 seconds of nextest**, and `cargo nextest run --run-ignored
+> all` gives **1602 of 1602** with the sandbox up, in about 62 seconds. **Run that
 > second command at the end of the session too**: it found T-132 and T-111.
 > **And `cargo clean` is the last command of the round**, after the push: the
 > maintainer asked for it on 2026-08-17, and the paragraph of the disk above
@@ -25967,103 +26082,80 @@ item.**
 
 >
 >
-> **The session of the hundred and eightieth turn took the item 1 of the list of
-> the work**: a condition of the program that no measurement has reached. The
-> turn before this one left two candidates of the same field, and **a read and an
-> arithmetic refuted the two of them before any measurement ran**. The third
-> reader of `self.rows_of_the_footer`,
-> `the_rows_of_the_band_of_a_screen`, gives the band
-> `h - rows_of_the_footer - 5` rows, and
-> `the_rows_around_the_work_of_a_view` of T-345 leaves the band that same number
-> at **every** height of a screen and at every footer: the two functions take one
-> `rows_of_the_footer` and they cannot disagree. The map of the mouse of a screen
-> of few rows holds no area of the header, of the row of the message, or of the
-> footer at all, and the areas of the band and of the list are the areas of the
-> last frame already. **A candidate that a proof takes away costs a round
-> minutes, and a measurement of it would cost an hour.**
+> **The session of the hundred and eighty-first turn took the item 1 of the list
+> of the work**, and it took the rule that the turn before it wrote: a sweep of
+> the rows of a screen belongs at 160 columns and at 100 columns together. **The
+> condition that no measurement had reached stood in the panel 5 of the cover**,
+> which the five rounds of T-342 to T-347 each left alone.
 >
-> **The condition that no measurement had reached stood in the width and not in
-> the rows.** Every measurement of the rows of a screen of this fork — T-342,
-> T-343, T-344, T-345, and T-346 — ran at **100 columns**, and
-> `crate::ui::frame::the_shape_of` gives the frame of the panels at **120 columns
-> and more** alone: the five rounds of that seam therefore measured the block of
-> a border at the top, and no panel of the frame at all. This round drove the
-> same harness at 160 columns, which is the default of `drive.sh`, and it needed
-> no proxy, no book of a harness, and no change of the sandbox.
+> **A `ps` of the machine at the start of the round is a measurement of its own**
+> (T-271), and this round paid for skipping it for two minutes: the build stood
+> at 0.8 percent of a processor while **34** shells of `zsh` in a busy loop —
+> the load tests of past rounds, whose `kill` at the end never ran — held the
+> load average of a machine of 32 processors at **47**, and six of them had
+> stood for **2 days and 11 hours**. `ps -eo pid,pcpu,comm --sort=-pcpu | head`
+> named them, and a `kill -9` of the list of their identities gave the machine
+> back. **That `ps` belongs beside the `ps -C toutui` of T-271 now.**
 >
-> **The fault, of the real program v0.8.177 inside tmux at 160 columns**, of the
-> library `Large`, in the Home view, with `tmux resize-window -t check -x 160 -y
-> N` after the first frame. At 8 rows:
+> **The fault, of the real program v0.8.178 inside tmux**, of the library
+> `Large` of the sandbox, whose media the server holds **with no cover at all**
+> (`GET /api/items/:id/cover` answers **404**), in the Home view, with
+> `tmux resize-window -t check -x 160 -y N` after the first frame. At 16 rows:
 >
 > ```text
-> ┌1 Views ────────────────────────┐╔4 Home [20 items] ═════════════════════════
-> │➤ Home                       Tab│╚═══════════════════════════════════════════
-> └────────────────────────────────┘Author: N/A - Year: N/A - Duration: 0m
+> │  Authors                      a│║┃Book    ┃ │Book    │ …║ │No description      │
+> │  Narrators                    v│║┃0001    ┃ │0002    │ …║ │available           │
 > ```
 >
-> The panel said `4 Home [20 items]` in the title of its border, it held its two
-> rows of the border, and **no line at all**, while the panel of the item under
-> it still held a row of its own. At 6, 5, 4, 3, and 2 rows the panel held its
-> two rows of the border and no line.
+> The panel 5 took **22 columns**, and it cut `Files     1 file, 0.0 MB` after
+> `0.` — in the middle of a number — and it broke `No description available`
+> over two lines. **The same panel of the same media at 30 rows took 48 columns
+> and it said the two lines whole.** The fault stood at 16, 14, and 13 rows, and
+> the panel goes away at 12 rows and fewer. **It stood at 100 columns too**,
+> which is the shape of two columns.
 >
-> **Why**: `THE_SMALLEST_LIST` of `src/ui/tui.rs` is 2, and its own words held
-> the reason — "The list of every view of this program stands in a `Block` of
-> `Borders::TOP`, therefore a list of one line needs two rows." **That sentence
-> is not true of the frame of the panels**: `crate::ui::frame::a_panel` holds
-> `Borders::ALL`, therefore a list of one line needs **three** rows there. The
-> four functions of the rows of a screen — `the_rows_around_the_work_of_a_view`,
-> `the_rows_of_the_band_of_a_screen`, `the_rows_of_the_panel_of_the_item`, and
-> `the_rows_of_the_row_of_the_item` — each read that constant, and the border
-> took the two rows that they kept for the line.
+> **Why**: `cover::split_for_covers` clamps the width with
+> `width_that_the_height_can_use(area.height, font, WIDEST_COVER)`, and that
+> limit is the limit of a **picture** (T-50) — "a panel that is wider than this
+> value gives the picture no more pixels, and it takes columns of the text for
+> nothing." **A panel that holds no picture takes no such limit**: a media that
+> the server holds with no cover gives every row of the panel to the words
+> (T-319), and the height of it says nothing at all about the columns that those
+> words need.
 >
-> **The correction**: one new pure function of `src/ui/tui.rs`,
-> `the_smallest_work_of_a_view(the_frame_of_the_panels_stands)`, which gives 3
-> for the frame and 2 outside it, and `App::the_smallest_work_of_the_view`, which
-> reads `App::the_frame_of_the_panels_stands` — the same condition that
-> `render_the_list_of_the_panel_4` reads for its border of four sides. **No
-> function of the rows of a screen reads `THE_SMALLEST_LIST` by itself now.** The
-> twenty-seven views that called `the_areas_of_a_view` with three numbers call
-> `App::the_areas_of_this_view(area, rows_of_the_footer)` now.
+> **The correction**: `split_for_covers` takes `a_picture_comes` now. Two new
+> methods of `App` carry that answer to the layout, which stands before the
+> render — `the_media_of_the_panel_of_the_cover` and
+> `a_picture_comes_in_the_panel_of_the_cover` — and they read the **same**
+> `cover::no_picture_comes` that `the_parts_of_the_panel` reads for the rows of
+> the panel. The eight views that draw a panel of a cover pass it, and the
+> reader of a page of a PDF passes `true` (T-54).
 >
-> **The corrected program of the same harness**: at 14, 12, and 10 rows it is the
-> screen of the program before it, character for character. At 8, 6, 5, 4, and 3
-> rows the panel holds its border and the line `➤     Large Book 0001`. **The
-> footer goes away at 3 rows now**, and it went away at 2 rows before this round:
-> the work of a view keeps its border and one line before the three parts around
-> it keep their rows (the decision of T-345), and the work of this view needs one
-> row more. At 2 rows and 1 row the screens are the screens of the program before
-> it, because a border of four sides and one line need three rows. The Library
-> view holds its line in the same way, and **the control of 100 columns gives the
-> screens that T-345 wrote, character for character**.
+> **The corrected program of the same harness**: at 16, 14, and 13 rows the
+> panel holds 48 columns and it says the two lines whole, which is the panel of
+> the same media at 30 rows, character for character. **The control is the
+> library `Books`**, whose media hold a cover: 48 columns at 30 rows, 28 at 20,
+> and 22 at 16 and 14, before the correction and after it, character for
+> character. **The correction gives a screen of few rows the panel that a screen
+> of many rows had already, and it changes no panel that holds a picture.**
 >
 > The correction failed its gate with the fault built back in: the arm of the
-> pure function went away with `&& false`, and
-> `the_panel_of_the_frame_keeps_its_border_of_four_sides_and_one_line` then said
-> `left: 2, right: 3`; with the two numbers of that function taken out of the
-> test, the areas of the screen said `a screen of 2 rows gives the work of the
-> view 2 rows, and its border takes 2 of them: the list holds no line at all`.
-> **v0.8.178.**
+> pure function went away with `if a_picture_comes || true`, and
+> `a_panel_of_no_picture_keeps_its_width_at_a_screen_of_few_rows` then said
+> `left: 22, right: 50`. **The third test of the item passed with the fault in
+> place**, because it is the control of the rule of T-50. **v0.8.179.**
 >
 > **What this round leaves open, and each of them is a candidate and not an
-> item**: **the panel 5 of the cover and the panel 6 of the gallery of a screen
-> of few rows** — the cover panel went away at 12 rows and fewer of this
-> measurement, and no round has measured which of the two gives way first or what
-> a grid of no whole row draws; **the stack of the panels of a screen of few
-> rows**, where the panel 1 held one line of its ten at 8 rows and the panels 2
-> and 3 were away, in a sequence that no round decided; a band of 3, 4, or 5
-> rows, and no measurement of tmux of a terminal of 10, 11, or 12 rows ran; the
-> map of the mouse of a band that is not whole, and of a screen of few rows; and
-> five of the seven views of T-344 were not driven in tmux. **The two views of
-> the frame of the panels are the two views of this program whose width decides
-> the shape of their work**, therefore a sweep of the rows of a screen belongs at
-> 160 columns and at 100 columns together from this round on.
->
-> The next round takes the item 1 again. **The parts of a stage of the road of
-> the panels that stay open** stand in the section
-> `### 0. The road of the panels (T-316 to T-323)` of `## What is open`, and
-> the item T-323 of `docs/TAKEOVER-BACKLOG.md` names every region of the map
-> of the mouse that no stage reached; **each of them is a candidate and not an
-> item.**
+> item**: **the height of the panel 5 of a media with no cover** —
+> `MIN_HEIGHT_FOR_COVER` of 8 rows is the height of a **picture** too, and the
+> whole panel goes away at 12 rows of the screen, while a panel of the words
+> alone needs three rows and a border; **the panel 5 of a media that holds a
+> picture at a screen of few rows**, where the picture stands in 6 rows and
+> `THE_SMALLEST_PICTURE` is 8; **the panel 6 of the gallery under 20 rows**,
+> which no measurement of tmux has driven; and every candidate of the turns
+> before this one. **A media of the sandbox with no cover is data of a fault
+> that needs no proxy and no change of the sandbox at all**, and the library
+> `Large` is that data.
 >
 >    **The turns before this one stand in `## The turns before the three
 >    newest ones` of this file**, above the heading of this prompt. **This item
@@ -26180,6 +26272,19 @@ item.**
 > belongs at 160 columns and at 100 columns together**, because the two views
 > of the frame are the two views whose width decides the shape of their work,
 > and the five rounds of T-342 to T-346 each ran at 100 columns alone (T-347).
+> **The width of the panel of the cover comes of the picture that stands in
+> it, and a panel that holds no picture takes no limit of its height**: the
+> limit of `width_that_the_height_can_use` is the limit of a picture (T-50),
+> and a media that the server holds with no cover gives every row of that
+> panel to the words (T-319), therefore a screen of 160 columns and 16 rows
+> gave that panel 22 columns and it cut `Files     1 file, 0.0 MB` after `0.`
+> while the same panel of the same media at 30 rows took 48 columns; the
+> layout therefore reads `cover::no_picture_comes` before the render, which
+> is the **same** value that `the_parts_of_the_panel` reads for the rows of
+> that panel; **a panel that holds a picture keeps the limit that it had**,
+> and the library `Books` of the sandbox is the control of it; and **a media
+> of the sandbox with no cover is data of a fault that needs no proxy and no
+> change of the sandbox at all** (T-348).
 > **The bands of covers of the Home view stand where the table of the panel 4
 > stands**, therefore a screen under 120 columns keeps the list of one column
 > that it had, and a panel that has no room for one whole band keeps the table
@@ -26450,7 +26555,9 @@ item.**
 > found it at 92431 bytes with one turn in it, and it did the same work; the
 > round of the hundred and eightieth found it at 93270 bytes with one turn in
 > it, and it did the same work, and the block then held about **95000** bytes
-> with **one** turn in it.
+> with **one** turn in it; the round of the hundred and eighty-first found it
+> at 95969 bytes with one turn in it, and it did the same work, and the block
+> then held **94214** bytes with **one** turn in it.
 > **A block that stands at 80000 bytes or under holds two
 > turns**, and the turn of the stage before this one names the parts of that
 > stage which stay open. **The list of the decisions
