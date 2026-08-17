@@ -159,9 +159,18 @@ impl Widget for &mut App {
 /// work of the view, in the same way as the message of T-299: a list of the
 /// view loses a line, and the key `j` moves the list, therefore no line of it
 /// goes out of the reach of the user.
-fn the_areas_of_a_view(area: Rect, rows_of_the_player: u16, rows_of_the_footer: u16) -> [Rect; 3] {
-    let [header_area, main_area, _band_area, _message_area, footer_area] =
-        the_five_areas(area, rows_of_the_player, rows_of_the_footer);
+fn the_areas_of_a_view(
+    area: Rect,
+    rows_of_the_player: u16,
+    rows_of_the_footer: u16,
+    the_smallest_work: u16,
+) -> [Rect; 3] {
+    let [header_area, main_area, _band_area, _message_area, footer_area] = the_five_areas(
+        area,
+        rows_of_the_player,
+        rows_of_the_footer,
+        the_smallest_work,
+    );
 
     [header_area, main_area, footer_area]
 }
@@ -179,15 +188,30 @@ fn the_areas_of_a_view(area: Rect, rows_of_the_player: u16, rows_of_the_footer: 
 /// the band then drew over the last six lines of the reader of an ebook, of the
 /// Chapters view, of the view of every key, and of the twelve views beside them.
 /// Every view of this program takes its areas of [`the_areas_of_a_view`] now.
-fn the_area_of_the_band(area: Rect, rows_of_the_player: u16, rows_of_the_footer: u16) -> Rect {
-    the_five_areas(area, rows_of_the_player, rows_of_the_footer)[2]
+fn the_area_of_the_band(
+    area: Rect,
+    rows_of_the_player: u16,
+    rows_of_the_footer: u16,
+    the_smallest_work: u16,
+) -> Rect {
+    the_five_areas(
+        area,
+        rows_of_the_player,
+        rows_of_the_footer,
+        the_smallest_work,
+    )[2]
 }
 
 /// The five areas of the screen of a view: the header, the work of the view,
 /// the band of the player, the row of the message, and the footer.
-fn the_five_areas(area: Rect, rows_of_the_player: u16, rows_of_the_footer: u16) -> [Rect; 5] {
+fn the_five_areas(
+    area: Rect,
+    rows_of_the_player: u16,
+    rows_of_the_footer: u16,
+    the_smallest_work: u16,
+) -> [Rect; 5] {
     let [rows_of_the_header, rows_of_the_message, rows_that_the_footer_keeps] =
-        the_rows_around_the_work_of_a_view(area.height, rows_of_the_footer);
+        the_rows_around_the_work_of_a_view(area.height, rows_of_the_footer, the_smallest_work);
 
     Layout::vertical([
         Constraint::Length(rows_of_the_header),
@@ -196,6 +220,7 @@ fn the_five_areas(area: Rect, rows_of_the_player: u16, rows_of_the_footer: u16) 
             area.height,
             rows_of_the_player,
             rows_of_the_footer,
+            the_smallest_work,
         )),
         Constraint::Length(rows_of_the_message),
         Constraint::Length(rows_that_the_footer_keeps),
@@ -228,14 +253,17 @@ fn the_five_areas(area: Rect, rows_of_the_player: u16, rows_of_the_footer: u16) 
 ///    no other screen of this program names them.
 ///
 /// A screen of 7 rows and more holds the three of them whole, therefore this
-/// rule reaches a terminal of 6 rows and fewer alone.
+/// rule reaches a terminal of 6 rows and fewer alone. **The rows that the work
+/// of the view keeps come of `the_smallest_work`** (T-347), because the panel 4
+/// of the frame of the panels holds a border of four sides.
 fn the_rows_around_the_work_of_a_view(
     rows_of_the_screen: u16,
     rows_of_the_footer: u16,
+    the_smallest_work: u16,
 ) -> [u16; 3] {
     // The work of the view keeps its border and one line before every part
     // that stands around it.
-    let mut room = rows_of_the_screen.saturating_sub(THE_SMALLEST_LIST);
+    let mut room = rows_of_the_screen.saturating_sub(the_smallest_work);
 
     let footer = rows_of_the_footer.min(room);
     room -= footer;
@@ -277,9 +305,10 @@ fn the_place_of_the_message_of_a_frame(
     area: Rect,
     rows_of_the_footer: u16,
     rows_that_it_needs: u16,
+    the_smallest_work: u16,
 ) -> Option<(u16, u16)> {
     let [rows_of_the_header, _, rows_that_the_footer_keeps] =
-        the_rows_around_the_work_of_a_view(area.height, rows_of_the_footer);
+        the_rows_around_the_work_of_a_view(area.height, rows_of_the_footer, the_smallest_work);
 
     crate::logic::message::the_place_of_a_message(
         area.y,
@@ -311,13 +340,14 @@ fn the_rows_of_the_band_of_a_screen(
     rows_of_the_screen: u16,
     rows_of_the_band: u16,
     rows_of_the_footer: u16,
+    the_smallest_work: u16,
 ) -> u16 {
     // The header, the row of the message, the footer, and the smallest work of
     // a view stand before the band.
     let of_the_others = HEADER_HEIGHT
         .saturating_add(1)
         .saturating_add(rows_of_the_footer)
-        .saturating_add(THE_SMALLEST_LIST);
+        .saturating_add(the_smallest_work);
 
     let rows = rows_of_the_band.min(rows_of_the_screen.saturating_sub(of_the_others));
 
@@ -384,9 +414,13 @@ fn the_rows_of_the_bars_of_the_chapters(rows_of_the_panel: u16, the_bars_stand: 
 ///
 /// **The list is the work of the view, and it goes away last**: the row of the
 /// item takes no row that the list needs for its border and one line
-/// (`THE_SMALLEST_LIST`). A screen that held the two rows of that row keeps
+/// (`the_smallest_work`). A screen that held the two rows of that row keeps
 /// them, therefore this rule reaches a terminal of 8 rows and fewer alone.
-fn the_areas_of_a_list(main_area: Rect, rows_that_the_player_left: u16) -> [Rect; 3] {
+fn the_areas_of_a_list(
+    main_area: Rect,
+    rows_that_the_player_left: u16,
+    the_smallest_work: u16,
+) -> [Rect; 3] {
     // 13 rows give the list 5 lines with the split of a large terminal. Fewer
     // rows than that give every row to the list: the lines are the work of the
     // view, and a description of one row says almost nothing.
@@ -396,7 +430,10 @@ fn the_areas_of_a_list(main_area: Rect, rows_that_the_player_left: u16) -> [Rect
             // The row of the item takes two rows, because its text wraps in a
             // terminal of 80 columns. See T-94. It takes fewer of them, and
             // none at all, before the list loses its one line. See T-342.
-            Constraint::Length(the_rows_of_the_row_of_the_item(main_area.height)),
+            Constraint::Length(the_rows_of_the_row_of_the_item(
+                main_area.height,
+                the_smallest_work,
+            )),
             Constraint::Length(0),
         ])
         .areas(main_area);
@@ -410,12 +447,39 @@ fn the_areas_of_a_list(main_area: Rect, rows_that_the_player_left: u16) -> [Rect
     .areas(main_area)
 }
 
-/// The rows that the list of a view keeps for itself: the border with the title
-/// at the top, and one line. See T-342.
+/// The rows that a list of a border at the top keeps for itself: that border
+/// with the title, and one line. See T-342.
 ///
-/// The list of every view of this program stands in a `Block` of
-/// `Borders::TOP`, therefore a list of one line needs two rows.
+/// A list of this shape stands in a `Block` of `Borders::TOP`, therefore a list
+/// of one line needs two rows. **The panel 4 of the frame of the panels holds a
+/// border of four sides**, and it therefore needs one row more: that number is
+/// [`the_smallest_work_of_a_view`], and no function of the rows of a screen
+/// reads this constant by itself (T-347).
 const THE_SMALLEST_LIST: u16 = 2;
+
+/// The rows that the work of a view needs for its border and one line. See
+/// T-347.
+///
+/// **The panel 4 of the frame of the panels holds a border of four sides**
+/// (T-320), and the block of every other view of this program holds the one
+/// border at the top that it had: a list of one line therefore needs three rows
+/// of the frame and two rows outside it.
+///
+/// The measurement of 2026-08-17, of the real program v0.8.177 inside tmux at
+/// **160 columns**, where the frame of the panels stands: the panel 4 of the
+/// Home view held its two rows of the border and **no line at all** at 6 rows
+/// and fewer, and at 8 rows the panel of the item under it still held a row of
+/// its own. Every measurement of the rows of a screen before this one ran at
+/// 100 columns, where the frame does not stand (T-342 to T-346).
+fn the_smallest_work_of_a_view(the_frame_of_the_panels_stands: bool) -> u16 {
+    if the_frame_of_the_panels_stands {
+        // The border of the panel 4 takes one row above the lines and one row
+        // under them.
+        return THE_SMALLEST_LIST + 1;
+    }
+
+    THE_SMALLEST_LIST
+}
 
 /// The rows of the row of the item under a list of few rows. See T-342.
 ///
@@ -425,10 +489,10 @@ const THE_SMALLEST_LIST: u16 = 2;
 /// sees: it therefore takes its two rows out of what the list does not need.
 ///
 /// A view of 4 rows and more keeps the two rows that it had.
-fn the_rows_of_the_row_of_the_item(rows_of_the_view: u16) -> u16 {
+fn the_rows_of_the_row_of_the_item(rows_of_the_view: u16, the_smallest_work: u16) -> u16 {
     // The row of the item takes two rows, because its text wraps in a terminal
     // of 80 columns. See T-94.
-    the_rows_of_the_panel_of_the_item(rows_of_the_view, 2)
+    the_rows_of_the_panel_of_the_item(rows_of_the_view, 2, the_smallest_work)
 }
 
 /// The rows of the panel of the item under a list of few rows. See T-344.
@@ -447,13 +511,43 @@ fn the_rows_of_the_row_of_the_item(rows_of_the_view: u16) -> u16 {
 /// line that the user sees: it therefore takes the rows that it wants out of
 /// what the list does not need. A view that held the whole panel keeps it,
 /// therefore this rule reaches a terminal of few rows alone.
-fn the_rows_of_the_panel_of_the_item(rows_of_the_view: u16, rows_that_it_wants: u16) -> u16 {
+fn the_rows_of_the_panel_of_the_item(
+    rows_of_the_view: u16,
+    rows_that_it_wants: u16,
+    the_smallest_work: u16,
+) -> u16 {
     rows_of_the_view
-        .saturating_sub(THE_SMALLEST_LIST)
+        .saturating_sub(the_smallest_work)
         .min(rows_that_it_wants)
 }
 
 impl App {
+    /// The rows that the work of this view needs for its border and one line.
+    /// See T-347.
+    ///
+    /// The panel 4 of the frame of the panels draws a border of four sides, and
+    /// `render_the_list_of_the_panel_4` draws that panel while
+    /// [`App::the_frame_of_the_panels_stands`] answers `true`: the two functions
+    /// therefore read one condition.
+    fn the_smallest_work_of_the_view(&self) -> u16 {
+        the_smallest_work_of_a_view(self.the_frame_of_the_panels_stands())
+    }
+
+    /// The three areas of this view: the header, the work of the view, and the
+    /// footer. See T-343 and T-347.
+    ///
+    /// Every view of this program takes its areas here, therefore the band of
+    /// the player, the row of the message, and the work of the view cannot
+    /// disagree on one row of the screen.
+    fn the_areas_of_this_view(&self, area: Rect, rows_of_the_footer: u16) -> [Rect; 3] {
+        the_areas_of_a_view(
+            area,
+            self.the_rows_of_the_band(),
+            rows_of_the_footer,
+            self.the_smallest_work_of_the_view(),
+        )
+    }
+
     /// Draws the newest message of the program, if one is fresh.
     ///
     /// The message stands after the view and before the bar of the downloads: a
@@ -483,9 +577,12 @@ impl App {
         // that holds no such row draws no message.
         let rows_that_it_needs = crate::logic::message::the_rows_of_a_message(&text, area.width);
 
-        let Some((y, rows)) =
-            the_place_of_the_message_of_a_frame(area, self.rows_of_the_footer, rows_that_it_needs)
-        else {
+        let Some((y, rows)) = the_place_of_the_message_of_a_frame(
+            area,
+            self.rows_of_the_footer,
+            rows_that_it_needs,
+            self.the_smallest_work_of_the_view(),
+        ) else {
             return;
         };
 
@@ -1249,7 +1346,11 @@ impl App {
     ) -> [Rect; 3] {
         match the_words {
             Some((facts, description)) => [main_area, facts, description],
-            None => the_areas_of_a_list(main_area, self.the_rows_that_the_player_left()),
+            None => the_areas_of_a_list(
+                main_area,
+                self.the_rows_that_the_player_left(),
+                self.the_smallest_work_of_the_view(),
+            ),
         }
     }
 }
@@ -1278,7 +1379,7 @@ impl App {
             let rows_of_the_footer = self.the_rows_of_the_footer(text_render_footer, area);
 
             let [header_area, main_area, footer_area] =
-                the_areas_of_a_view(area, self.the_rows_of_the_band(), rows_of_the_footer);
+                self.the_areas_of_this_view(area, rows_of_the_footer);
 
             let message = self
                 .reader_message
@@ -1316,7 +1417,7 @@ impl App {
         let rows_of_the_footer = self.the_rows_of_the_footer(keys, area);
 
         let [header_area, main_area, footer_area] =
-            the_areas_of_a_view(area, self.the_rows_of_the_band(), rows_of_the_footer);
+            self.the_areas_of_this_view(area, rows_of_the_footer);
 
         self.render_header(header_area, buf);
 
@@ -1420,7 +1521,7 @@ impl App {
         let rows_of_the_footer = self.the_rows_of_the_footer(text_render_footer, area);
 
         let [header_area, main_area, footer_area] =
-            the_areas_of_a_view(area, self.the_rows_of_the_band(), rows_of_the_footer);
+            self.the_areas_of_this_view(area, rows_of_the_footer);
 
         self.render_header(header_area, buf);
         App::render_footer(footer_area, buf, text_render_footer);
@@ -1450,7 +1551,7 @@ impl App {
         let rows_of_the_footer = self.the_rows_of_the_footer(text_render_footer, area);
 
         let [header_area, main_area, footer_area] =
-            the_areas_of_a_view(area, self.the_rows_of_the_band(), rows_of_the_footer);
+            self.the_areas_of_this_view(area, rows_of_the_footer);
 
         self.render_header(header_area, buf);
         App::render_footer(footer_area, buf, text_render_footer);
@@ -1555,14 +1656,18 @@ impl App {
         let rows_of_the_footer = self.the_rows_of_the_footer(&text_render_footer, area);
 
         let [header_area, work_area, footer_area] =
-            the_areas_of_a_view(area, self.the_rows_of_the_band(), rows_of_the_footer);
+            self.the_areas_of_this_view(area, rows_of_the_footer);
 
         // **The list of a view goes away last** (T-342 and T-344): the panel
         // of the item takes no row that the list needs for its border and one
         // line.
         let [main_area, item_area] = Layout::vertical([
             Constraint::Fill(1),
-            Constraint::Length(the_rows_of_the_panel_of_the_item(work_area.height, 4)),
+            Constraint::Length(the_rows_of_the_panel_of_the_item(
+                work_area.height,
+                4,
+                self.the_smallest_work_of_the_view(),
+            )),
         ])
         .areas(work_area);
 
@@ -1625,14 +1730,18 @@ impl App {
         let rows_of_the_footer = self.the_rows_of_the_footer(text_render_footer, area);
 
         let [header_area, work_area, footer_area] =
-            the_areas_of_a_view(area, self.the_rows_of_the_band(), rows_of_the_footer);
+            self.the_areas_of_this_view(area, rows_of_the_footer);
 
         // **The list of a view goes away last** (T-342 and T-344): the panel
         // of the item takes no row that the list needs for its border and one
         // line.
         let [main_area, item_area] = Layout::vertical([
             Constraint::Fill(1),
-            Constraint::Length(the_rows_of_the_panel_of_the_item(work_area.height, 4)),
+            Constraint::Length(the_rows_of_the_panel_of_the_item(
+                work_area.height,
+                4,
+                self.the_smallest_work_of_the_view(),
+            )),
         ])
         .areas(work_area);
 
@@ -1688,14 +1797,18 @@ impl App {
         let rows_of_the_footer = self.the_rows_of_the_footer(text_render_footer, area);
 
         let [header_area, work_area, footer_area] =
-            the_areas_of_a_view(area, self.the_rows_of_the_band(), rows_of_the_footer);
+            self.the_areas_of_this_view(area, rows_of_the_footer);
 
         // **The list of a view goes away last** (T-342 and T-344): the panel
         // of the item takes no row that the list needs for its border and one
         // line.
         let [main_area, item_area] = Layout::vertical([
             Constraint::Fill(1),
-            Constraint::Length(the_rows_of_the_panel_of_the_item(work_area.height, 4)),
+            Constraint::Length(the_rows_of_the_panel_of_the_item(
+                work_area.height,
+                4,
+                self.the_smallest_work_of_the_view(),
+            )),
         ])
         .areas(work_area);
 
@@ -1772,14 +1885,18 @@ impl App {
         let rows_of_the_footer = self.the_rows_of_the_footer(text_render_footer, area);
 
         let [header_area, work_area, footer_area] =
-            the_areas_of_a_view(area, self.the_rows_of_the_band(), rows_of_the_footer);
+            self.the_areas_of_this_view(area, rows_of_the_footer);
 
         // **The list of a view goes away last** (T-342 and T-344): the panel
         // of the item takes no row that the list needs for its border and one
         // line.
         let [main_area, item_area] = Layout::vertical([
             Constraint::Fill(1),
-            Constraint::Length(the_rows_of_the_panel_of_the_item(work_area.height, 4)),
+            Constraint::Length(the_rows_of_the_panel_of_the_item(
+                work_area.height,
+                4,
+                self.the_smallest_work_of_the_view(),
+            )),
         ])
         .areas(work_area);
 
@@ -1830,14 +1947,18 @@ impl App {
         let rows_of_the_footer = self.the_rows_of_the_footer(&text_render_footer, area);
 
         let [header_area, work_area, footer_area] =
-            the_areas_of_a_view(area, self.the_rows_of_the_band(), rows_of_the_footer);
+            self.the_areas_of_this_view(area, rows_of_the_footer);
 
         // **The list of a view goes away last** (T-342 and T-344): the panel
         // of the item takes no row that the list needs for its border and one
         // line.
         let [main_area, item_area] = Layout::vertical([
             Constraint::Fill(1),
-            Constraint::Length(the_rows_of_the_panel_of_the_item(work_area.height, 4)),
+            Constraint::Length(the_rows_of_the_panel_of_the_item(
+                work_area.height,
+                4,
+                self.the_smallest_work_of_the_view(),
+            )),
         ])
         .areas(work_area);
 
@@ -1890,14 +2011,18 @@ impl App {
         let rows_of_the_footer = self.the_rows_of_the_footer(text_render_footer, area);
 
         let [header_area, work_area, footer_area] =
-            the_areas_of_a_view(area, self.the_rows_of_the_band(), rows_of_the_footer);
+            self.the_areas_of_this_view(area, rows_of_the_footer);
 
         // **The list of a view goes away last** (T-342 and T-344): the panel
         // of the item takes no row that the list needs for its border and one
         // line.
         let [main_area, item_area] = Layout::vertical([
             Constraint::Fill(1),
-            Constraint::Length(the_rows_of_the_panel_of_the_item(work_area.height, 4)),
+            Constraint::Length(the_rows_of_the_panel_of_the_item(
+                work_area.height,
+                4,
+                self.the_smallest_work_of_the_view(),
+            )),
         ])
         .areas(work_area);
 
@@ -1967,7 +2092,7 @@ impl App {
         let rows_of_the_footer = self.the_rows_of_the_footer(&text_render_footer, area);
 
         let [header_area, main_area, footer_area] =
-            the_areas_of_a_view(area, self.the_rows_of_the_band(), rows_of_the_footer);
+            self.the_areas_of_this_view(area, rows_of_the_footer);
 
         // A write and a remove forget the answer. The view then asks the
         // server again, and the new list comes at the frame after it.
@@ -2031,7 +2156,7 @@ impl App {
         let rows_of_the_footer = self.the_rows_of_the_footer(&text_render_footer, area);
 
         let [header_area, main_area, footer_area] =
-            the_areas_of_a_view(area, self.the_rows_of_the_band(), rows_of_the_footer);
+            self.the_areas_of_this_view(area, rows_of_the_footer);
 
         let queue = crate::logic::queue::snapshot();
         let lines = self.queue_lines(queue.entries());
@@ -2064,7 +2189,7 @@ impl App {
         let rows_of_the_footer = self.the_rows_of_the_footer(&text_render_footer, area);
 
         let [header_area, main_area, footer_area] =
-            the_areas_of_a_view(area, self.the_rows_of_the_band(), rows_of_the_footer);
+            self.the_areas_of_this_view(area, rows_of_the_footer);
 
         let state = self.player.state();
 
@@ -2180,7 +2305,7 @@ impl App {
         let rows_of_the_footer = self.the_rows_of_the_footer(text_render_footer, area);
 
         let [header_area, main_area, footer_area] =
-            the_areas_of_a_view(area, self.the_rows_of_the_band(), rows_of_the_footer);
+            self.the_areas_of_this_view(area, rows_of_the_footer);
 
         let rows = self.sort_filter_rows();
 
@@ -2242,7 +2367,7 @@ impl App {
         let rows_of_the_footer = self.the_rows_of_the_footer(text_render_footer, area);
 
         let [header_area, main_area, footer_area] =
-            the_areas_of_a_view(area, self.the_rows_of_the_band(), rows_of_the_footer);
+            self.the_areas_of_this_view(area, rows_of_the_footer);
 
         let lines = crate::ui::keys::lines();
 
@@ -2294,7 +2419,7 @@ impl App {
             .the_rows_of_the_footer(&of_the_table, area)
             .max(self.the_rows_of_the_footer(&of_the_bands, area));
         let [header_area, main_area, footer_area] =
-            the_areas_of_a_view(area, self.the_rows_of_the_band(), rows_of_the_footer);
+            self.the_areas_of_this_view(area, rows_of_the_footer);
 
         // **The stack of the panels of the frame stands at the left** (T-320),
         // and it takes its 34 columns of a screen of three columns alone.
@@ -2560,7 +2685,12 @@ impl App {
         // **A screen of few rows gives the band no row at all** (T-343): the
         // work of the view goes away last, therefore this area holds no row
         // when the view needs every one of them.
-        let band = the_area_of_the_band(area, self.the_rows_of_the_band(), self.rows_of_the_footer);
+        let band = the_area_of_the_band(
+            area,
+            self.the_rows_of_the_band(),
+            self.rows_of_the_footer,
+            self.the_smallest_work_of_the_view(),
+        );
 
         if band.height == 0 {
             // **A frame that draws no band takes no click of it** (T-316).
@@ -2664,7 +2794,7 @@ impl App {
         let text_render_footer = text_render_footer.as_str();
         let rows_of_the_footer = self.the_rows_of_the_footer(text_render_footer, area);
         let [header_area, main_area, footer_area] =
-            the_areas_of_a_view(area, self.the_rows_of_the_band(), rows_of_the_footer);
+            self.the_areas_of_this_view(area, rows_of_the_footer);
 
         // **The stack of the panels of the frame stands at the left** (T-320),
         // and it takes its 34 columns of a screen of three columns alone.
@@ -2760,7 +2890,7 @@ impl App {
         let text_render_footer = crate::ui::keys::FOOTER_OF_A_LIST;
         let rows_of_the_footer = self.the_rows_of_the_footer(text_render_footer, area);
         let [header_area, main_area, footer_area] =
-            the_areas_of_a_view(area, self.the_rows_of_the_band(), rows_of_the_footer);
+            self.the_areas_of_this_view(area, rows_of_the_footer);
 
         // The panel of the covers stands at the right of the list and of the
         // description. It is always visible. See T-23.
@@ -2831,7 +2961,7 @@ impl App {
         let text_render_footer = crate::ui::keys::FOOTER_OF_A_LIST_OF_MEDIA;
         let rows_of_the_footer = self.the_rows_of_the_footer(text_render_footer, area);
         let [header_area, main_area, footer_area] =
-            the_areas_of_a_view(area, self.the_rows_of_the_band(), rows_of_the_footer);
+            self.the_areas_of_this_view(area, rows_of_the_footer);
 
         // The panel of the covers stands at the right of the list and of the
         // description. It is always visible. See T-23.
@@ -2904,7 +3034,7 @@ impl App {
         let text_render_footer = crate::ui::keys::FOOTER_OF_THE_LISTS;
         let rows_of_the_footer = self.the_rows_of_the_footer(text_render_footer, area);
         let [header_area, main_area, footer_area] =
-            the_areas_of_a_view(area, self.the_rows_of_the_band(), rows_of_the_footer);
+            self.the_areas_of_this_view(area, rows_of_the_footer);
 
         // The panel of the covers stands at the right of the list and of the
         // description. It is always visible. See T-23.
@@ -2994,7 +3124,7 @@ impl App {
         let text_render_footer = crate::ui::keys::FOOTER_OF_THE_MEDIA_OF_A_LIST;
         let rows_of_the_footer = self.the_rows_of_the_footer(text_render_footer, area);
         let [header_area, main_area, footer_area] =
-            the_areas_of_a_view(area, self.the_rows_of_the_band(), rows_of_the_footer);
+            self.the_areas_of_this_view(area, rows_of_the_footer);
 
         // The panel of the covers stands at the right of the list and of the
         // description. It is always visible. See T-23.
@@ -3074,10 +3204,13 @@ impl App {
         let text_render_footer = crate::ui::keys::FOOTER_OF_A_LIST;
         let rows_of_the_footer = self.the_rows_of_the_footer(text_render_footer, area);
         let [header_area, main_area, footer_area] =
-            the_areas_of_a_view(area, self.the_rows_of_the_band(), rows_of_the_footer);
+            self.the_areas_of_this_view(area, rows_of_the_footer);
 
-        let [list_area, item_area1, item_area2] =
-            the_areas_of_a_list(main_area, self.the_rows_that_the_player_left());
+        let [list_area, item_area1, item_area2] = the_areas_of_a_list(
+            main_area,
+            self.the_rows_that_the_player_left(),
+            self.the_smallest_work_of_the_view(),
+        );
 
         let render_list_title = "Settings";
 
@@ -3101,7 +3234,7 @@ impl App {
         let text_render_footer = crate::ui::keys::FOOTER_OF_THE_ACCOUNTS;
         let rows_of_the_footer = self.the_rows_of_the_footer(text_render_footer, area);
         let [header_area, main_area, footer_area] =
-            the_areas_of_a_view(area, self.the_rows_of_the_band(), rows_of_the_footer);
+            self.the_areas_of_this_view(area, rows_of_the_footer);
 
         let [list_area, item_area] =
             Layout::vertical([Constraint::Fill(1), Constraint::Fill(1)]).areas(main_area);
@@ -3152,14 +3285,18 @@ impl App {
         let rows_of_the_footer = self.the_rows_of_the_footer(&text_render_footer, area);
 
         let [header_area, work_area, footer_area] =
-            the_areas_of_a_view(area, self.the_rows_of_the_band(), rows_of_the_footer);
+            self.the_areas_of_this_view(area, rows_of_the_footer);
 
         // **The list of a view goes away last** (T-342 and T-344): the panel
         // of the item takes no row that the list needs for its border and one
         // line.
         let [main_area, item_area] = Layout::vertical([
             Constraint::Fill(1),
-            Constraint::Length(the_rows_of_the_panel_of_the_item(work_area.height, 5)),
+            Constraint::Length(the_rows_of_the_panel_of_the_item(
+                work_area.height,
+                5,
+                self.the_smallest_work_of_the_view(),
+            )),
         ])
         .areas(work_area);
 
@@ -3194,7 +3331,7 @@ impl App {
         let text_render_footer = crate::ui::keys::FOOTER_OF_THE_LIBRARY_OF_THE_USER;
         let rows_of_the_footer = self.the_rows_of_the_footer(text_render_footer, area);
         let [header_area, main_area, footer_area] =
-            the_areas_of_a_view(area, self.the_rows_of_the_band(), rows_of_the_footer);
+            self.the_areas_of_this_view(area, rows_of_the_footer);
 
         let [list_area, item_area] =
             Layout::vertical([Constraint::Fill(1), Constraint::Fill(1)]).areas(main_area);
@@ -3254,7 +3391,7 @@ impl App {
         let text_render_footer = crate::ui::keys::FOOTER_OF_THE_SEARCH;
         let rows_of_the_footer = self.the_rows_of_the_footer(text_render_footer, area);
         let [header_area, main_area, footer_area] =
-            the_areas_of_a_view(area, self.the_rows_of_the_band(), rows_of_the_footer);
+            self.the_areas_of_this_view(area, rows_of_the_footer);
 
         // The panel of the covers stands at the right of the list and of the
         // description. It is always visible. See T-23.
@@ -3437,7 +3574,7 @@ impl App {
         let text_render_footer = crate::ui::keys::FOOTER_OF_A_LIST_OF_MEDIA;
         let rows_of_the_footer = self.the_rows_of_the_footer(text_render_footer, area);
         let [header_area, main_area, footer_area] =
-            the_areas_of_a_view(area, self.the_rows_of_the_band(), rows_of_the_footer);
+            self.the_areas_of_this_view(area, rows_of_the_footer);
 
         // The panel of the covers stands at the right of the list and of the
         // description. It is always visible. See T-23.
@@ -4891,9 +5028,10 @@ mod tests {
             height: 18,
         };
 
-        let [header, main, footer] = the_areas_of_a_view(screen, PLAYER_HEIGHT, FOOTER_HEIGHT);
+        let [header, main, footer] =
+            the_areas_of_a_view(screen, PLAYER_HEIGHT, FOOTER_HEIGHT, THE_SMALLEST_LIST);
         let [header_of_no_playback, main_of_no_playback, footer_of_no_playback] =
-            the_areas_of_a_view(screen, 0, FOOTER_HEIGHT);
+            the_areas_of_a_view(screen, 0, FOOTER_HEIGHT, THE_SMALLEST_LIST);
 
         assert_eq!(main.height, 7, "the areas of a playback do not change");
         assert_eq!(
@@ -4934,11 +5072,14 @@ mod tests {
                 height,
             };
 
-            let [_, of_a_playback, _] = the_areas_of_a_view(screen, PLAYER_HEIGHT, FOOTER_HEIGHT);
-            let [_, of_no_playback, _] = the_areas_of_a_view(screen, 0, FOOTER_HEIGHT);
+            let [_, of_a_playback, _] =
+                the_areas_of_a_view(screen, PLAYER_HEIGHT, FOOTER_HEIGHT, THE_SMALLEST_LIST);
+            let [_, of_no_playback, _] =
+                the_areas_of_a_view(screen, 0, FOOTER_HEIGHT, THE_SMALLEST_LIST);
 
-            let [list_of_a_playback, ..] = the_areas_of_a_list(of_a_playback, 0);
-            let [list_of_no_playback, ..] = the_areas_of_a_list(of_no_playback, PLAYER_HEIGHT);
+            let [list_of_a_playback, ..] = the_areas_of_a_list(of_a_playback, 0, THE_SMALLEST_LIST);
+            let [list_of_no_playback, ..] =
+                the_areas_of_a_list(of_no_playback, PLAYER_HEIGHT, THE_SMALLEST_LIST);
 
             assert!(
                 list_of_no_playback.height >= list_of_a_playback.height,
@@ -4969,17 +5110,17 @@ mod tests {
         // every screen that stood before T-342 stands in the same shape.
         for rows_of_the_view in 4..=12u16 {
             assert_eq!(
-                the_rows_of_the_row_of_the_item(rows_of_the_view),
+                the_rows_of_the_row_of_the_item(rows_of_the_view, THE_SMALLEST_LIST),
                 2,
                 "the view of {rows_of_the_view} rows must keep the row of the item"
             );
         }
 
         // A view of fewer rows gives the list its border and one line first.
-        assert_eq!(the_rows_of_the_row_of_the_item(3), 1);
-        assert_eq!(the_rows_of_the_row_of_the_item(2), 0);
-        assert_eq!(the_rows_of_the_row_of_the_item(1), 0);
-        assert_eq!(the_rows_of_the_row_of_the_item(0), 0);
+        assert_eq!(the_rows_of_the_row_of_the_item(3, THE_SMALLEST_LIST), 1);
+        assert_eq!(the_rows_of_the_row_of_the_item(2, THE_SMALLEST_LIST), 0);
+        assert_eq!(the_rows_of_the_row_of_the_item(1, THE_SMALLEST_LIST), 0);
+        assert_eq!(the_rows_of_the_row_of_the_item(0, THE_SMALLEST_LIST), 0);
 
         // The areas themselves, of a screen of 100 columns. A screen of 8 rows
         // gives the work of a view 3 rows: the header takes 2, the row of the
@@ -4996,8 +5137,9 @@ mod tests {
                 height: rows_of_the_screen,
             };
 
-            let [_, main_area, _] = the_areas_of_a_view(screen, 0, FOOTER_HEIGHT);
-            let [list, of_the_item, _] = the_areas_of_a_list(main_area, 0);
+            let [_, main_area, _] =
+                the_areas_of_a_view(screen, 0, FOOTER_HEIGHT, THE_SMALLEST_LIST);
+            let [list, of_the_item, _] = the_areas_of_a_list(main_area, 0, THE_SMALLEST_LIST);
 
             assert_eq!(
                 list.height, rows_of_the_list,
@@ -5044,32 +5186,62 @@ mod tests {
         // every screen that stood before T-344 stands in the same shape.
         for rows_of_the_view in 6..=40u16 {
             assert_eq!(
-                the_rows_of_the_panel_of_the_item(rows_of_the_view, 4),
+                the_rows_of_the_panel_of_the_item(rows_of_the_view, 4, THE_SMALLEST_LIST),
                 4,
                 "the view of {rows_of_the_view} rows must keep the panel of the item"
             );
         }
 
         // A view of fewer rows gives the list its border and one line first.
-        assert_eq!(the_rows_of_the_panel_of_the_item(5, 4), 3);
-        assert_eq!(the_rows_of_the_panel_of_the_item(4, 4), 2);
-        assert_eq!(the_rows_of_the_panel_of_the_item(3, 4), 1);
-        assert_eq!(the_rows_of_the_panel_of_the_item(2, 4), 0);
-        assert_eq!(the_rows_of_the_panel_of_the_item(1, 4), 0);
-        assert_eq!(the_rows_of_the_panel_of_the_item(0, 4), 0);
+        assert_eq!(
+            the_rows_of_the_panel_of_the_item(5, 4, THE_SMALLEST_LIST),
+            3
+        );
+        assert_eq!(
+            the_rows_of_the_panel_of_the_item(4, 4, THE_SMALLEST_LIST),
+            2
+        );
+        assert_eq!(
+            the_rows_of_the_panel_of_the_item(3, 4, THE_SMALLEST_LIST),
+            1
+        );
+        assert_eq!(
+            the_rows_of_the_panel_of_the_item(2, 4, THE_SMALLEST_LIST),
+            0
+        );
+        assert_eq!(
+            the_rows_of_the_panel_of_the_item(1, 4, THE_SMALLEST_LIST),
+            0
+        );
+        assert_eq!(
+            the_rows_of_the_panel_of_the_item(0, 4, THE_SMALLEST_LIST),
+            0
+        );
 
         // The settings of the reader hold a panel of five rows, and that panel
         // takes the same road.
-        assert_eq!(the_rows_of_the_panel_of_the_item(7, 5), 5);
-        assert_eq!(the_rows_of_the_panel_of_the_item(6, 5), 4);
-        assert_eq!(the_rows_of_the_panel_of_the_item(3, 5), 1);
-        assert_eq!(the_rows_of_the_panel_of_the_item(2, 5), 0);
+        assert_eq!(
+            the_rows_of_the_panel_of_the_item(7, 5, THE_SMALLEST_LIST),
+            5
+        );
+        assert_eq!(
+            the_rows_of_the_panel_of_the_item(6, 5, THE_SMALLEST_LIST),
+            4
+        );
+        assert_eq!(
+            the_rows_of_the_panel_of_the_item(3, 5, THE_SMALLEST_LIST),
+            1
+        );
+        assert_eq!(
+            the_rows_of_the_panel_of_the_item(2, 5, THE_SMALLEST_LIST),
+            0
+        );
 
         // The rule of T-342 is the same rule with two rows.
         for rows_of_the_view in 0..=40u16 {
             assert_eq!(
-                the_rows_of_the_row_of_the_item(rows_of_the_view),
-                the_rows_of_the_panel_of_the_item(rows_of_the_view, 2),
+                the_rows_of_the_row_of_the_item(rows_of_the_view, THE_SMALLEST_LIST),
+                the_rows_of_the_panel_of_the_item(rows_of_the_view, 2, THE_SMALLEST_LIST),
                 "the row of the item of {rows_of_the_view} rows takes the same road"
             );
         }
@@ -5088,11 +5260,16 @@ mod tests {
                 height: rows_of_the_screen,
             };
 
-            let [_, work_area, _] = the_areas_of_a_view(screen, 0, FOOTER_HEIGHT);
+            let [_, work_area, _] =
+                the_areas_of_a_view(screen, 0, FOOTER_HEIGHT, THE_SMALLEST_LIST);
 
             let [list, of_the_item] = Layout::vertical([
                 Constraint::Fill(1),
-                Constraint::Length(the_rows_of_the_panel_of_the_item(work_area.height, 4)),
+                Constraint::Length(the_rows_of_the_panel_of_the_item(
+                    work_area.height,
+                    4,
+                    THE_SMALLEST_LIST,
+                )),
             ])
             .areas(work_area);
 
@@ -5134,7 +5311,12 @@ mod tests {
         // that stood before T-343 stands in the same shape.
         for rows_of_the_screen in 13..=45u16 {
             assert_eq!(
-                the_rows_of_the_band_of_a_screen(rows_of_the_screen, PLAYER_HEIGHT, FOOTER_HEIGHT),
+                the_rows_of_the_band_of_a_screen(
+                    rows_of_the_screen,
+                    PLAYER_HEIGHT,
+                    FOOTER_HEIGHT,
+                    THE_SMALLEST_LIST
+                ),
                 PLAYER_HEIGHT,
                 "a screen of {rows_of_the_screen} rows must keep the whole band"
             );
@@ -5144,15 +5326,15 @@ mod tests {
         // line first: the header takes 2 rows, the row of the message takes 1,
         // and the footer takes the rows of its text.
         assert_eq!(
-            the_rows_of_the_band_of_a_screen(12, PLAYER_HEIGHT, FOOTER_HEIGHT),
+            the_rows_of_the_band_of_a_screen(12, PLAYER_HEIGHT, FOOTER_HEIGHT, THE_SMALLEST_LIST),
             5
         );
         assert_eq!(
-            the_rows_of_the_band_of_a_screen(11, PLAYER_HEIGHT, FOOTER_HEIGHT),
+            the_rows_of_the_band_of_a_screen(11, PLAYER_HEIGHT, FOOTER_HEIGHT, THE_SMALLEST_LIST),
             4
         );
         assert_eq!(
-            the_rows_of_the_band_of_a_screen(10, PLAYER_HEIGHT, FOOTER_HEIGHT),
+            the_rows_of_the_band_of_a_screen(10, PLAYER_HEIGHT, FOOTER_HEIGHT, THE_SMALLEST_LIST),
             3
         );
 
@@ -5161,7 +5343,12 @@ mod tests {
         // reads no media and no place.
         for rows_of_the_screen in 0..=9u16 {
             assert_eq!(
-                the_rows_of_the_band_of_a_screen(rows_of_the_screen, PLAYER_HEIGHT, FOOTER_HEIGHT),
+                the_rows_of_the_band_of_a_screen(
+                    rows_of_the_screen,
+                    PLAYER_HEIGHT,
+                    FOOTER_HEIGHT,
+                    THE_SMALLEST_LIST
+                ),
                 0,
                 "a screen of {rows_of_the_screen} rows must give the band no row"
             );
@@ -5177,8 +5364,10 @@ mod tests {
                 height: rows_of_the_screen,
             };
 
-            let [_, main_area, _] = the_areas_of_a_view(screen, PLAYER_HEIGHT, FOOTER_HEIGHT);
-            let band = the_area_of_the_band(screen, PLAYER_HEIGHT, FOOTER_HEIGHT);
+            let [_, main_area, _] =
+                the_areas_of_a_view(screen, PLAYER_HEIGHT, FOOTER_HEIGHT, THE_SMALLEST_LIST);
+            let band =
+                the_area_of_the_band(screen, PLAYER_HEIGHT, FOOTER_HEIGHT, THE_SMALLEST_LIST);
 
             let of_the_others = HEADER_HEIGHT + 1 + FOOTER_HEIGHT;
 
@@ -5242,13 +5431,15 @@ mod tests {
                 height: rows_of_the_screen,
             };
 
-            let [_, _, _, message_area, footer_area] = the_five_areas(screen, 0, FOOTER_HEIGHT);
+            let [_, _, _, message_area, footer_area] =
+                the_five_areas(screen, 0, FOOTER_HEIGHT, THE_SMALLEST_LIST);
 
             // **A screen of one row and more says the message of the program.**
-            let (y, rows) = the_place_of_the_message_of_a_frame(screen, FOOTER_HEIGHT, 1)
-                .unwrap_or_else(|| {
-                    panic!("a screen of {rows_of_the_screen} rows says no message at all")
-                });
+            let (y, rows) =
+                the_place_of_the_message_of_a_frame(screen, FOOTER_HEIGHT, 1, THE_SMALLEST_LIST)
+                    .unwrap_or_else(|| {
+                        panic!("a screen of {rows_of_the_screen} rows says no message at all")
+                    });
 
             assert!(rows >= 1, "a message of no row says nothing");
 
@@ -5290,11 +5481,11 @@ mod tests {
         };
 
         assert_eq!(
-            the_place_of_the_message_of_a_frame(tall, FOOTER_HEIGHT, 4),
+            the_place_of_the_message_of_a_frame(tall, FOOTER_HEIGHT, 4, THE_SMALLEST_LIST),
             Some((39, 4))
         );
         assert_eq!(
-            the_place_of_the_message_of_a_frame(tall, FOOTER_HEIGHT, 100),
+            the_place_of_the_message_of_a_frame(tall, FOOTER_HEIGHT, 100, THE_SMALLEST_LIST),
             Some((HEADER_HEIGHT, 41))
         );
 
@@ -5308,7 +5499,7 @@ mod tests {
         };
 
         assert_eq!(
-            the_place_of_the_message_of_a_frame(short, 3, 1),
+            the_place_of_the_message_of_a_frame(short, 3, 1, THE_SMALLEST_LIST),
             Some((1, 1))
         );
     }
@@ -5329,7 +5520,11 @@ mod tests {
         // every screen that stood before T-345 stands in the same shape.
         for rows_of_the_screen in 7..=45u16 {
             assert_eq!(
-                the_rows_around_the_work_of_a_view(rows_of_the_screen, FOOTER_HEIGHT),
+                the_rows_around_the_work_of_a_view(
+                    rows_of_the_screen,
+                    FOOTER_HEIGHT,
+                    THE_SMALLEST_LIST
+                ),
                 [HEADER_HEIGHT, 1, FOOTER_HEIGHT],
                 "a screen of {rows_of_the_screen} rows must keep the three parts"
             );
@@ -5338,39 +5533,48 @@ mod tests {
         // The header goes away first, one row at a time; the row of the message
         // after it; and the footer last.
         assert_eq!(
-            the_rows_around_the_work_of_a_view(6, FOOTER_HEIGHT),
+            the_rows_around_the_work_of_a_view(6, FOOTER_HEIGHT, THE_SMALLEST_LIST),
             [1, 1, 2]
         );
         assert_eq!(
-            the_rows_around_the_work_of_a_view(5, FOOTER_HEIGHT),
+            the_rows_around_the_work_of_a_view(5, FOOTER_HEIGHT, THE_SMALLEST_LIST),
             [0, 1, 2]
         );
         assert_eq!(
-            the_rows_around_the_work_of_a_view(4, FOOTER_HEIGHT),
+            the_rows_around_the_work_of_a_view(4, FOOTER_HEIGHT, THE_SMALLEST_LIST),
             [0, 0, 2]
         );
         assert_eq!(
-            the_rows_around_the_work_of_a_view(3, FOOTER_HEIGHT),
+            the_rows_around_the_work_of_a_view(3, FOOTER_HEIGHT, THE_SMALLEST_LIST),
             [0, 0, 1]
         );
         assert_eq!(
-            the_rows_around_the_work_of_a_view(2, FOOTER_HEIGHT),
+            the_rows_around_the_work_of_a_view(2, FOOTER_HEIGHT, THE_SMALLEST_LIST),
             [0, 0, 0]
         );
         assert_eq!(
-            the_rows_around_the_work_of_a_view(1, FOOTER_HEIGHT),
+            the_rows_around_the_work_of_a_view(1, FOOTER_HEIGHT, THE_SMALLEST_LIST),
             [0, 0, 0]
         );
         assert_eq!(
-            the_rows_around_the_work_of_a_view(0, FOOTER_HEIGHT),
+            the_rows_around_the_work_of_a_view(0, FOOTER_HEIGHT, THE_SMALLEST_LIST),
             [0, 0, 0]
         );
 
         // A footer of three rows takes the same road: it keeps its rows while
         // the work of the view holds its border and one line.
-        assert_eq!(the_rows_around_the_work_of_a_view(8, 3), [2, 1, 3]);
-        assert_eq!(the_rows_around_the_work_of_a_view(5, 3), [0, 0, 3]);
-        assert_eq!(the_rows_around_the_work_of_a_view(4, 3), [0, 0, 2]);
+        assert_eq!(
+            the_rows_around_the_work_of_a_view(8, 3, THE_SMALLEST_LIST),
+            [2, 1, 3]
+        );
+        assert_eq!(
+            the_rows_around_the_work_of_a_view(5, 3, THE_SMALLEST_LIST),
+            [0, 0, 3]
+        );
+        assert_eq!(
+            the_rows_around_the_work_of_a_view(4, 3, THE_SMALLEST_LIST),
+            [0, 0, 2]
+        );
 
         // The areas themselves: the work of every view keeps its border and one
         // line while the screen holds two rows at all.
@@ -5382,7 +5586,8 @@ mod tests {
                 height: rows_of_the_screen,
             };
 
-            let [_, main_area, _] = the_areas_of_a_view(screen, PLAYER_HEIGHT, FOOTER_HEIGHT);
+            let [_, main_area, _] =
+                the_areas_of_a_view(screen, PLAYER_HEIGHT, FOOTER_HEIGHT, THE_SMALLEST_LIST);
 
             assert!(
                 main_area.height >= THE_SMALLEST_LIST.min(rows_of_the_screen),
@@ -5403,7 +5608,8 @@ mod tests {
                 height: rows_of_the_screen,
             };
 
-            let [_, main_area, _] = the_areas_of_a_view(screen, PLAYER_HEIGHT, FOOTER_HEIGHT);
+            let [_, main_area, _] =
+                the_areas_of_a_view(screen, PLAYER_HEIGHT, FOOTER_HEIGHT, THE_SMALLEST_LIST);
 
             assert_eq!(
                 main_area.height, rows_of_the_view,
@@ -5440,7 +5646,7 @@ mod tests {
 
             assert_eq!(rows, rows_that_it_needs, "the rows at {} columns", width);
 
-            let [header, main, footer] = the_areas_of_a_view(screen, 0, rows);
+            let [header, main, footer] = the_areas_of_a_view(screen, 0, rows, THE_SMALLEST_LIST);
 
             assert_eq!(footer.height, rows_that_it_needs);
             assert_eq!(
@@ -5495,12 +5701,131 @@ mod tests {
 
             for rows_of_the_band in [PLAYER_HEIGHT, PLAYER_HEIGHT - 1, 0] {
                 let [header, main, footer] =
-                    the_areas_of_a_view(screen, rows_of_the_band, FOOTER_HEIGHT);
+                    the_areas_of_a_view(screen, rows_of_the_band, FOOTER_HEIGHT, THE_SMALLEST_LIST);
 
                 assert!(header.y + header.height <= screen.height.max(1) + 1);
                 assert!(main.y >= header.y);
                 assert!(footer.y + footer.height <= screen.y + screen.height + FOOTER_HEIGHT);
             }
         }
+    }
+
+    /// **The panel of the frame of the panels keeps its border of four sides
+    /// and one line** (T-347, and the decision of T-342).
+    ///
+    /// Every measurement of the rows of a screen before this one ran at 100
+    /// columns, where the frame of the panels does not stand (T-342 to T-346).
+    /// The measurement of the real program v0.8.177 inside tmux at **160
+    /// columns**, of the Home view of the library `Large`: the panel 4 said
+    /// `4 Home [20 items]` in the title of its border and it held **no line at
+    /// all** at 8, 6, 5, 4, 3, and 2 rows, and at 8 rows the panel of the item
+    /// under it still held a row of its own.
+    ///
+    /// **The parts of this test stay in one function.**
+    #[test]
+    fn the_panel_of_the_frame_keeps_its_border_of_four_sides_and_one_line() {
+        // The panel 4 draws a border above its lines and one under them, and
+        // every other view of this program draws the one border at the top that
+        // it had.
+        assert_eq!(the_smallest_work_of_a_view(true), 3);
+        assert_eq!(the_smallest_work_of_a_view(false), THE_SMALLEST_LIST);
+
+        for the_frame_stands in [true, false] {
+            let the_smallest_work = the_smallest_work_of_a_view(the_frame_stands);
+
+            // The rows of the border of the work of the view. A block of
+            // `Borders::TOP` takes one row, and the panel 4 takes two.
+            let of_the_border = if the_frame_stands { 2 } else { 1 };
+
+            for rows_of_the_screen in 1..=45u16 {
+                let screen = Rect {
+                    x: 0,
+                    y: 0,
+                    width: 160,
+                    height: rows_of_the_screen,
+                };
+
+                let [_, work_area, _] =
+                    the_areas_of_a_view(screen, 0, FOOTER_HEIGHT, the_smallest_work);
+
+                // **The work of the view keeps its border and one line while
+                // the screen holds the rows of them at all** (T-342 and T-345).
+                let of_the_line = work_area.height.saturating_sub(of_the_border);
+
+                assert!(
+                    of_the_line >= 1 || rows_of_the_screen < the_smallest_work,
+                    "a screen of {rows_of_the_screen} rows gives the work of \
+                     the view {} rows, and its border takes {of_the_border} of \
+                     them: the list holds no line at all",
+                    work_area.height
+                );
+
+                // **The panel of the item goes away before the list** (T-344),
+                // therefore it takes no row that the border and the line of the
+                // list need.
+                let [list, of_the_item, _] = the_areas_of_a_list(work_area, 0, the_smallest_work);
+
+                // A view of 13 rows and more keeps the split of a large
+                // terminal, where the description takes the rows under the
+                // panel of the item.
+                if work_area.height <= 12 {
+                    assert_eq!(
+                        list.height + of_the_item.height,
+                        work_area.height,
+                        "the list and the panel of the item hold every row of \
+                         the work of a screen of {rows_of_the_screen} rows"
+                    );
+                }
+                assert!(
+                    list.height.saturating_sub(of_the_border) >= 1
+                        || rows_of_the_screen < the_smallest_work,
+                    "a screen of {rows_of_the_screen} rows gives the list {} \
+                     rows and the panel of the item {} rows",
+                    list.height,
+                    of_the_item.height
+                );
+
+                // **The band of the player goes away before the work of the
+                // view** (T-343), and it reads the same number.
+                let band =
+                    the_area_of_the_band(screen, PLAYER_HEIGHT, FOOTER_HEIGHT, the_smallest_work);
+                let [_, work_of_a_playback, _] =
+                    the_areas_of_a_view(screen, PLAYER_HEIGHT, FOOTER_HEIGHT, the_smallest_work);
+
+                assert!(
+                    work_of_a_playback.height.saturating_sub(of_the_border) >= 1
+                        || rows_of_the_screen < the_smallest_work,
+                    "a screen of {rows_of_the_screen} rows with a band of {} \
+                     rows gives the work of the view {} rows",
+                    band.height,
+                    work_of_a_playback.height
+                );
+            }
+        }
+
+        // The numbers of the frame of the panels, of a screen of few rows and a
+        // footer of two rows: the work of the view keeps three rows while the
+        // screen holds them, and the footer, the row of the message, and the
+        // header take what stays (T-345).
+        assert_eq!(
+            the_rows_around_the_work_of_a_view(8, FOOTER_HEIGHT, 3),
+            [2, 1, 2]
+        );
+        assert_eq!(
+            the_rows_around_the_work_of_a_view(6, FOOTER_HEIGHT, 3),
+            [0, 1, 2]
+        );
+        assert_eq!(
+            the_rows_around_the_work_of_a_view(5, FOOTER_HEIGHT, 3),
+            [0, 0, 2]
+        );
+        assert_eq!(
+            the_rows_around_the_work_of_a_view(4, FOOTER_HEIGHT, 3),
+            [0, 0, 1]
+        );
+        assert_eq!(
+            the_rows_around_the_work_of_a_view(3, FOOTER_HEIGHT, 3),
+            [0, 0, 0]
+        );
     }
 }

@@ -41,6 +41,23 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.178",
+        date: "17/08/2026",
+        body: &[
+            "Fixed:",
+            "- **A terminal of few rows shows a line of the list again in a \
+             screen of 120 columns and more.** The panel of the list of the \
+             Home view and of the Library view holds a border of four sides in \
+             such a screen, and the rows that the program kept for that list \
+             were the rows of a border at the top alone: a terminal of 6 rows \
+             and fewer therefore held the two rows of the border and no line at \
+             all, and a terminal of 8 rows gave a row to the panel of the item \
+             while the list had no line. The program keeps the rows of the \
+             border of the panel now. A terminal of 9 rows and more stands in \
+             the shape that it had.",
+        ],
+    },
+    Entry {
         version: "0.8.177",
         date: "17/08/2026",
         body: &[

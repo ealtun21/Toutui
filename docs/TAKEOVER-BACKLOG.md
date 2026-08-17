@@ -32895,3 +32895,146 @@ measurement):
 - **The message of a screen of few rows in the views that hold no footer of
   two rows.**
 - **Every candidate of the turns before this one stays open.**
+
+## T-347 — The panel of the frame of the panels holds its border and no line of the list
+
+**The condition**: the real program v0.8.177 inside tmux, of the harness
+`docs/harness/drive.sh`, at **160 columns**, against the sandbox on `:13399`,
+with the account `toutuitest` and the library `Large` of 2056 items, the Home
+view. No proxy, no book of a harness, and no change of the sandbox at all: the
+size of the terminal is the data of the fault (T-301, T-340, and T-342 to
+T-346). The harness started at 45 rows, and
+`tmux resize-window -t check -x 160 -y N` gave each size after it.
+
+**Every measurement of the rows of a screen before this one ran at 100
+columns** (T-342, T-343, T-344, T-345, and T-346), and the frame of the panels
+does not stand at that width: `crate::ui::frame::the_shape_of` gives
+`TheShape::ThreeColumns` at 120 columns and more alone. The five rounds of that
+seam therefore measured the block of a border at the top and no panel of the
+frame at all.
+
+**The fault**, of v0.8.177, at 160 columns:
+
+- 8 rows: the panel said `4 Home [20 items]` in the title of its border, it
+  held its two rows of the border, and **no line at all**, while the panel of
+  the item under it said `Author: N/A - Year: N/A - Duration: 0m`.
+
+```text
+👋 Connected as toutuitest                          📖 Large (book)
+🔗 localhost:13399
+┌1 Views ────────────────────────┐╔4 Home [20 items] ═════════════════════════
+│➤ Home                       Tab│╚═══════════════════════════════════════════
+└────────────────────────────────┘Author: N/A - Year: N/A - Duration: 0m
+
+  j/k: move  l: play or open  Tab: home/library  S-Tab: the next library  …
+```
+
+- 6 rows, 5 rows, 4 rows, 3 rows, and 2 rows: the panel held its two rows of
+  the border and **no line at all**.
+- 1 row: the top border of the panel alone, which no round can change.
+
+**Why.** `THE_SMALLEST_LIST` of `src/ui/tui.rs` is 2, and its own words said
+the reason: "The list of every view of this program stands in a `Block` of
+`Borders::TOP`, therefore a list of one line needs two rows." **That sentence
+is not true of the frame of the panels.** `crate::ui::frame::a_panel` holds
+`Borders::ALL`, and `render_the_list_of_the_panel_4` draws that panel while
+`App::the_frame_of_the_panels_stands` answers `true`: a list of one line needs
+**three** rows there, and the four functions of the rows of a screen —
+`the_rows_around_the_work_of_a_view` (T-345),
+`the_rows_of_the_band_of_a_screen` (T-343), `the_rows_of_the_panel_of_the_item`
+(T-344), and `the_rows_of_the_row_of_the_item` (T-342) — each kept two rows for
+the work of the view. The border took the two of them, and the line of the list
+stood outside the panel.
+
+**The correction.** One new pure function of `src/ui/tui.rs`:
+
+```rust
+fn the_smallest_work_of_a_view(the_frame_of_the_panels_stands: bool) -> u16
+```
+
+It gives `THE_SMALLEST_LIST + 1` for the frame of the panels and
+`THE_SMALLEST_LIST` for every other view. `App::the_smallest_work_of_the_view`
+reads `App::the_frame_of_the_panels_stands`, which is the same condition that
+`render_the_list_of_the_panel_4` reads for the border of four sides, and the
+number goes to the four functions above. **No function of the rows of a screen
+reads `THE_SMALLEST_LIST` by itself now**, therefore the border of a panel and
+the rows that the program keeps for its line cannot disagree again.
+
+The twenty-seven views that called `the_areas_of_a_view` with three numbers
+call `App::the_areas_of_this_view(area, rows_of_the_footer)` now, which is one
+place for the band of the player, the row of the message, and the work of the
+view.
+
+**The corrected program**, of the same harness. At 14 rows, at 12 rows, and at
+10 rows it is the screen of the program before it, **character for character**.
+At 8 rows:
+
+```text
+👋 Connected as toutuitest                          📖 Large (book)
+🔗 localhost:13399
+┌1 Views ────────────────────────┐╔4 Home [20 items] ═════════════════════════
+│➤ Home                       Tab│║➤     Large Book 0001
+└────────────────────────────────┘╚═══════════════════════════════════════════
+
+  j/k: move  l: play or open  Tab: home/library  S-Tab: the next library  …
+```
+
+- 6 rows, 5 rows, 4 rows, and 3 rows: the border of the panel, the line
+  `➤     Large Book 0001`, and the border under it. **The footer goes away at 3
+  rows**, and it went away at 2 rows before this round: the work of the view
+  keeps its border and one line before the three parts around it keep their rows
+  (the decision of T-345), and the work of this view needs one row more.
+- 2 rows and 1 row: the screens of the program before it. A border of four sides
+  and one line need three rows, and no round gives them to a terminal of two.
+
+The Library view of 160 columns and 8 rows holds the line
+`➤     Large Book 2056` of `4 Library [500 items of 2056]` in the same way.
+**The control of 100 columns**, where the frame does not stand: the screens of
+8, 6, 5, 4, 3, 2, and 1 rows are the screens that T-345 wrote, character for
+character.
+
+**The gate**:
+`the_panel_of_the_frame_keeps_its_border_of_four_sides_and_one_line` of the
+tests of `src/ui/tui.rs`. It reads the two numbers of the pure function; and for
+the frame of the panels and for every other view it walks the screens of 1 row
+to 45 rows and it holds that the work of the view, the list under the panel of
+the item, and the work of a view with a band of a playback each keep one row
+more than the border of that view, while the screen holds the rows of them at
+all. **The parts of this test stay in one function.**
+
+The correction failed its gate with the fault built back in: the arm of the
+pure function went away with `if the_frame_of_the_panels_stands && false`, and
+the test then said `left: 2, right: 3`. With the two numbers of the pure
+function taken out of the test, the areas of the screen said
+`a screen of 2 rows gives the work of the view 2 rows, and its border takes 2 of
+them: the list holds no line at all`, which is the fault of the measurement of
+tmux.
+
+**v0.8.178.**
+
+**The decision of this round: the rows that the program keeps for the work of a
+view come of the border that the view draws.** The frame of the panels holds a
+border of four sides, and every other view of this program holds the one border
+at the top that it had.
+
+**What this item leaves open** (each of them a candidate and not a
+measurement):
+
+- **The panel 5 of the cover and the panel 6 of the gallery of a screen of few
+  rows.** The cover panel goes away at 12 rows and fewer of this measurement,
+  and no round has measured which of the two gives way first, or what the panel
+  6 of a grid of no whole row draws.
+- **The stack of the panels of a screen of few rows.** The panel 1 of the views
+  held one line of its ten at 8 rows and fewer, and the panels 2 and 3 were
+  away: no round has measured the sequence of that loss.
+- **A band of 3, 4, or 5 rows loses its buttons, its bars, and its seek in that
+  sequence**, and no measurement of tmux of a terminal of 10, 11, or 12 rows
+  ran. **The two readers of `rows_of_the_footer` agree**, and the arithmetic of
+  the round of T-347 holds that: `the_rows_of_the_band_of_a_screen` gives
+  `h - fr - 5` and `the_rows_around_the_work_of_a_view` leaves the band that
+  same number at every height, therefore the candidate of the turn of T-346 is
+  no fault.
+- **The map of the mouse of a band that is not whole**, and **the map of the
+  mouse of a screen of few rows**.
+- **Five of the seven views of T-344 were not driven in tmux.**
+- **Every candidate of the turns before this one stays open.**
