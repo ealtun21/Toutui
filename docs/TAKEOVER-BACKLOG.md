@@ -35912,3 +35912,118 @@ times with exit 0 and 238 blocks of `ok` each time (237 before this item), and
   the frame of T-320 in the Home view and in the Library view alone. **That is
   the work of a stage of the road of the panels and not the work of a fault.**
 - Every candidate of the turns before this one stays open.
+
+## T-370 — A line of the facts of the panel of the cover that the screen cuts says that the screen cut it
+
+**The candidate of T-369.** That item gave the two rows of the band of the
+player the rule of one row, and it left this line: "the panel 5 of the facts and
+the panel 6 of the gallery draw texts of a fixed number of rows, and no
+measurement of this round read them at a narrow width". **The panel 5 of the
+facts holds such a text**, and it lost the columns of its end with no mark at
+all.
+
+**The measurement, of the real program v0.8.200 inside tmux against the
+sandbox.** **The data of this fault is the size of the terminal** (T-301) **and
+the text of the server**, therefore it needs no proxy, no book of a harness, and
+no change of the sandbox at all. The media is `Depthless Hunger, Book 2` of the
+library `Books`: its genre of the server is
+`Science Fiction & Fantasy, Fantasy, Fairy Tales` of 46 characters, and its name
+of a series is `Depthless Hunger, Book #2` of 25 characters. The road is the
+Home view, three presses of `j` to the shelf `Discover`, four presses of `l` to
+the cover of that book, and then `tmux resize-window -t check -x <the width> -y
+45` of each width.
+
+At 160 columns, where the panel 5 holds 48 columns inside:
+
+```text
+│Genre     Science Fiction & Fantasy, Fantasy, Fa│
+```
+
+At 85 columns, where the panel 5 holds 31 columns inside:
+
+```text
+│Series    Depthless Hunger, Book│
+│Genre     Science Fiction & Fant│
+```
+
+**ratatui draws no mark of that cut at all.** The user reads a genre and a name
+of a series that the media does not have.
+
+**The control of the same run** is the seven other lines of that same panel —
+`Author    Sarah Lin`, `Narrator  Jonathan Davis`, `Year      2026`,
+`Time      10m`, `Started   11 Aug 2026`, `Files     1 file, 8.5 MB`, and
+`Progress  1%, Not finished` — which stood whole at 160, at 100, at 90, and at
+85 columns, and the description under them, which wraps.
+
+**Why.** `the_lines_of_the_facts` of `src/logic/the_facts_of_a_media.rs` takes a
+`width`, and it gave that width to the bar of the progress alone.
+`line_of(label, value)` pads the label to `THE_COLUMN_OF_A_VALUE` of 10 columns,
+and it never measures the value. `render_info_home` (`src/ui/tui.rs:4953`) and
+`render_info_library` (`src/ui/tui.rs:5086`) then draw
+`Paragraph::new(lines.join("\n"))` with **no** `wrap` and no rule of one row.
+
+**The correction is one file.** Every line of `the_lines_of_the_facts` goes
+through `crate::logic::message::in_one_row(&line_of(label, &value), width)`. The
+bar already takes the whole width, therefore it does not change. **v0.8.201.**
+
+**The corrected program of the same harness** said, at 160 columns:
+
+```text
+│Genre     Science Fiction & Fantasy, Fantasy, F…│
+```
+
+and at 85 columns:
+
+```text
+│Series    Depthless Hunger, Boo…│
+│Genre     Science Fiction & Fan…│
+```
+
+**The control of the same run**: the seven other lines did not change at either
+width, and the program stood.
+
+**Two builds of the fault, and each of them fails the gate**: `line_of(label,
+&value)` with no cut at all, which is the program of v0.8.200 and which gave
+`Series    Depthless Hunger, Book #2`; and `the_start_of_a_row` in the place of
+`in_one_row`, which cuts the line and which writes no mark, and which gave
+`Series    Depthless Hunger, Bo`.
+
+**The gate** is
+`a_line_of_the_facts_that_is_wider_than_the_panel_says_that_the_screen_cut_it`
+of `src/logic/the_facts_of_a_media.rs`. It reads `the_lines_of_the_facts` at the
+two widths of the measurement, and it is pure, therefore it needs no terminal
+and no server.
+
+**The trap of this round.** Two tests of that module gave
+`the_lines_of_the_facts` a width of 8 and a width of 20, which are narrower than
+the lines that they read. Those two widths were the width of the bar alone
+before this round, and they now cut every line of the panel. The two tests take
+a width of 40, which holds their lines whole and which keeps their intent.
+
+**The gates**: clippy and fmt clean, 1618 tests of nextest in 3.1 seconds,
+`cargo test -j 16 --no-fail-fast` three times with exit 0 and 238 blocks of `ok`
+each time, and `cargo nextest run --run-ignored all` with the sandbox up gave
+1644 of 1644 in 17.8 seconds.
+
+**What this item leaves open, and each of them is a candidate and not an item.**
+
+- **A value of a fact that holds an end of a line** — the rule of T-312 and of
+  `in_one_line` — **shifts every line under it and it takes the bar off the
+  panel**: the `Paragraph` of the facts reads `lines.join("\n")`, therefore one
+  `\n` of the server gives the panel one row more. No measurement of this round
+  reached it, because no media of the sandbox holds such a value.
+- `src/ui/loading.rs:96` draws `🔗 {the address of the server}` in a box of at
+  most 72 columns with no `wrap` and no cut.
+- `src/ui/player_tui.rs:325` draws the row of the seek with no `wrap` and no
+  cut, and `src/ui/the_bars_of_the_chapters.rs:48` pads the name of a chapter to
+  a number of columns and it never cuts it.
+- **The panel 6 of the gallery draws the title of a cell with a `wrap`**,
+  therefore it holds no fault of this shape.
+- **The row of the header of the columns of a list holds no rule of one row**
+  (the candidate of T-368, which stays open), and **the row of the seek and the
+  row of the two bars of the band hold no rule of one row either** (the
+  candidate of T-369, which stays open).
+- **The Series view, the Collections view, the Authors view, and the Bookmarks
+  view hold no frame of the panels at all.** **That is the work of a stage of
+  the road of the panels and not the work of a fault.**
+- Every candidate of the turns before this one stays open.

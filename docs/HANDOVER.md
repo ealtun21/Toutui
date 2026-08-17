@@ -27264,12 +27264,132 @@ the rows of the band that does not fit (T-353); the width of the panel 5 of a
 media with no cover; and every candidate of the turns before this one.
 
 
+
+### The turn of the two hundred and second: a row of the band of the player that the screen cuts (T-369)
+
+**The session of the two hundred and second turn took the item 1 of the list of
+the work**, and the item is **T-369**: a row of the band of the player that the
+screen cuts now says that the screen cut it. **The candidate came of T-368**,
+which gave every line of a list that rule and which left this line: "every
+widget of a fixed number of rows and every `Paragraph` with no `wrap` is a
+candidate of that width" (T-301). **The band of the player is such a widget**,
+and **two of its four rows** held the fault.
+
+**A `ps` of the machine at the start of the round found it clean**: no program
+of `toutui`, no shell of a busy loop, a load average of 4.7 of a game of the
+user, and the disk held 432 gigabytes. The tree of git was clean, the commit of
+T-368 stood with the tag v0.8.199, and `cargo build -j 16` of the clean tree of
+that `cargo clean` took **16.3 seconds**, which agrees with the 17.6 seconds of
+the round before it.
+
+**The measurement needed no proxy, no book of a harness, and no change of the
+sandbox at all**: the data of this fault is the size of the terminal (T-301) and
+the text of the server. The book of eight hours `A Book Of Many Hours` of the
+library `Books`, the key `Enter` of the Home view, the key `C`, and then
+`tmux resize-window -t check -x <the width> -y 45` of each width:
+
+```text
+=== 80 ===
+│ ▶ A Book Of Many Hours  Many Hours Author  Chapter 69 of  Speed 1.00x │
+│Spc: pause/play | p/u: +/−10s | P/U: nxt/prev ch. | O/I: spd +/− | o/i: vol +/│
+=== 60 ===
+│ ▶ A Second Book Of Many Hours  Many Hours A  Speed 1.00x │
+│Spc: pause/play | p/u: +/−10s | P/U: nxt/prev ch. | O/I: s│
+```
+
+**The row of the keys of the player holds 99 columns**, therefore **every
+terminal under 102 columns loses its end.** At 80 columns it said
+`o/i: vol +/`, which is a key and **no word of its work**, and the keys
+`t: sleep` and `Y: quit` of that row stood on the screen **in no form at all**.
+**The row of the words said an author that the media does not have**:
+`Many Hours A` for an author of the name `Many Hours Author`, and
+`Chapter 69 of ` for a chapter of the name `Chapter 69 of 70`. **ratatui draws
+no mark of that cut at all.** **The control of the same run** is the same band
+at 160 and at 120 columns, which gave the whole of the two rows, and the same
+program at 4, 6, 12, and 20 columns, which stood at every one of them.
+
+**Why.** `render_the_band` of `src/ui/player_tui.rs` draws the row of the keys
+through a `Paragraph` of one `Span` with no `wrap` and no rule of one row, and
+`render_the_words` draws the row of the media through a `Paragraph` of a `Line`
+of four spans. Each of those four spans takes `in_one_line` already (the rule of
+the row of T-312), **and none of them takes `in_one_row`** (T-304): the two
+rules are not the same one, and the band held the first and not the second.
+
+**The decision: the three points belong at the end of the line and not at the
+end of each text of it.** The row of the media holds four texts of four styles —
+the mark of the playback, the title, the author, and the chapter — therefore
+`in_one_row` of each span would give a line of four marks of a cut, and a mark
+on a text that the row holds whole says a cut that the row does not have. The
+spans that stand keep their style, the span that meets the last column keeps its
+start, and the spans after it go away. **The one place of the start of a text
+stays one place**: the loop of `in_one_row` moves out into the new pure
+`the_start_of_a_row` of `src/logic/message.rs`, which holds **no** mark at all,
+and `in_one_row` is one call of it and the three points after it.
+
+**The correction, of two files.** `src/logic/message.rs` holds
+`the_start_of_a_row`. `src/ui/player_tui.rs` holds `in_one_row_of_spans`, the
+row of the media calls it with the columns that the settings of the playback
+leave, and the row of the keys calls `in_one_row` with `parts.the_buttons.width`.
+**v0.8.200.**
+
+**The corrected program of the same harness** said, at 60 columns,
+`▶ A Book Of Many Hours  Many Hours Author…   Speed 1.00x` and
+`Spc: pause/play | p/u: +/−10s | P/U: nxt/prev ch. | O/I:…`, and at 100 columns
+the whole of the row of the words with the row of the keys cut at `Y: q…`.
+**The control of the same run**: the two rows of 160 and of 120 columns did not
+change, and the program stood at 20, 12, 6, and 4 columns again.
+
+**Three builds of the fault, and each of them fails the gate**: the row of the
+keys with `u16::MAX` in the place of `parts.the_buttons.width` (which is the
+program of v0.8.199), the row of the words with `u16::MAX` in the place of
+`of_the_row` (which gave the row of the measurement back verbatim), and
+`in_one_row_of_spans` that cuts the spans and that writes no mark of the cut.
+
+**The trap of this round**: a test that reads a row of the band **must take the
+border of the band away**. A row that holds it ends with the `│` of the band and
+never with the three points, and the first form of the gate then said that the
+corrected program says no cut. **And the row of the words ends with the settings
+of the playback**, therefore the mark of that row stands **inside** it and not at
+its end: `contains` is the rule of that row and `ends_with` is the rule of the
+row of the keys.
+
+**The gates**: clippy and fmt clean, 1617 tests of nextest in 2.9 seconds,
+`cargo test -j 16 --no-fail-fast` three times with exit 0 and 238 blocks of `ok`
+each time, and `cargo nextest run --run-ignored all` with the sandbox up gave
+1643 of 1643.
+
+**The round found a filter of an author in `users.library_filter` of the
+database of the sandbox**, of a round before this one: the Library view then
+held 2 items of 18 and its title said `a filter is on (f)`. The round gave that
+column the empty text back at the end. **A round that presses the key `f` gives
+that column its own value again** (the shape of the trap 198).
+
+**What this round leaves open, and each of them is a candidate and not an
+item**: **the row of the seek and the row of the two bars of the band hold no
+rule of one row either** (each of them measures its own parts, therefore no
+measurement of this round reached a cut of them); **the row of the header of the
+columns of a list** (the candidate of T-368, which stays open: the Chapters view
+is the one caller of it, and a terminal of 40 columns gives that view **no table
+at all**, therefore the road to a header that is wider than its panel stays
+unmeasured); the panel 5 of the facts and the panel 6 of the gallery, which draw
+texts of a fixed number of rows that no measurement of this round read at a
+narrow width; **the Series view, the Collections view, the Authors view, and the
+Bookmarks view hold no frame of the panels at all** (the measurement of this
+round found the frame of T-320 in the Home view and in the Library view alone,
+and **that is the work of a stage of the road of the panels and not the work of
+a fault**); the title of a panel that holds a name of the server, which T-361,
+T-363, and T-367 each left open; the keys `4`, `j`, `k`, and `l` of the panel 4
+of a view with no line; the footers of the panel 5 and of the panel 6 (T-354);
+the rows of the band that does not fit (T-353); the width of the panel 5 of a
+media with no cover; and every candidate of the turns before this one.
+
+
 ## The prompt for the next session
 
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.200**; `Cargo.toml` is at 0.8.200. The
+> AlbanDAVID/Toutui. Newest release **v0.8.201**; `Cargo.toml` is at 0.8.201. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -28282,121 +28402,101 @@ media with no cover; and every candidate of the turns before this one.
 > 1. **A condition of the program that no measurement has reached.** A sweep of
 >    this shape found a fault in one hundred and seventeen sessions of one
 >    hundred and eighteen.
-> **The session of the two hundred and second turn took the item 1 of the list of
-> the work**, and the item is **T-369**: a row of the band of the player that the
-> screen cuts now says that the screen cut it. **The candidate came of T-368**,
-> which gave every line of a list that rule and which left this line: "every
-> widget of a fixed number of rows and every `Paragraph` with no `wrap` is a
-> candidate of that width" (T-301). **The band of the player is such a widget**,
-> and **two of its four rows** held the fault.
+> **The session of the two hundred and third turn took the item 1 of the list of
+> the work**, and the item is **T-370**: a line of the facts of the panel of the
+> cover that the screen cuts now says that the screen cut it. **The candidate came
+> of T-369**, which gave the two rows of the band of the player that rule and
+> which left this line: "the panel 5 of the facts and the panel 6 of the gallery
+> draw texts of a fixed number of rows, and no measurement of this round read them
+> at a narrow width".
 >
-> **A `ps` of the machine at the start of the round found it clean**: no program
-> of `toutui`, no shell of a busy loop, a load average of 4.7 of a game of the
-> user, and the disk held 432 gigabytes. The tree of git was clean, the commit of
-> T-368 stood with the tag v0.8.199, and `cargo build -j 16` of the clean tree of
-> that `cargo clean` took **16.3 seconds**, which agrees with the 17.6 seconds of
-> the round before it.
+> **A `ps` of the machine at the start of the round found it clean**: no program of
+> `toutui`, no shell of a busy loop, a load average of 4.8 of a game of the user,
+> and the disk held 432 gigabytes. The tree of git was clean, the commit of T-369
+> stood with the tag v0.8.200, and `cargo build -j 16` took **17.6 seconds**, which
+> agrees with the 16.3 seconds of the round before it.
 >
 > **The measurement needed no proxy, no book of a harness, and no change of the
 > sandbox at all**: the data of this fault is the size of the terminal (T-301) and
-> the text of the server. The book of eight hours `A Book Of Many Hours` of the
-> library `Books`, the key `Enter` of the Home view, the key `C`, and then
-> `tmux resize-window -t check -x <the width> -y 45` of each width:
+> the text of the server. The media is `Depthless Hunger, Book 2` of the library
+> `Books`, whose genre of the server is
+> `Science Fiction & Fantasy, Fantasy, Fairy Tales` of 46 characters and whose name
+> of a series is `Depthless Hunger, Book #2` of 25 characters. The road is the Home
+> view, three presses of `j` to the shelf `Discover`, four presses of `l` to the
+> cover of that book, and then `tmux resize-window -t check -x <the width> -y 45`:
 >
 > ```text
-> === 80 ===
-> │ ▶ A Book Of Many Hours  Many Hours Author  Chapter 69 of  Speed 1.00x │
-> │Spc: pause/play | p/u: +/−10s | P/U: nxt/prev ch. | O/I: spd +/− | o/i: vol +/│
-> === 60 ===
-> │ ▶ A Second Book Of Many Hours  Many Hours A  Speed 1.00x │
-> │Spc: pause/play | p/u: +/−10s | P/U: nxt/prev ch. | O/I: s│
+> === 160, where the panel 5 holds 48 columns inside ===
+> │Genre     Science Fiction & Fantasy, Fantasy, Fa│
+> === 85, where the panel 5 holds 31 columns inside ===
+> │Series    Depthless Hunger, Book│
+> │Genre     Science Fiction & Fant│
 > ```
 >
-> **The row of the keys of the player holds 99 columns**, therefore **every
-> terminal under 102 columns loses its end.** At 80 columns it said
-> `o/i: vol +/`, which is a key and **no word of its work**, and the keys
-> `t: sleep` and `Y: quit` of that row stood on the screen **in no form at all**.
-> **The row of the words said an author that the media does not have**:
-> `Many Hours A` for an author of the name `Many Hours Author`, and
-> `Chapter 69 of ` for a chapter of the name `Chapter 69 of 70`. **ratatui draws
-> no mark of that cut at all.** **The control of the same run** is the same band
-> at 160 and at 120 columns, which gave the whole of the two rows, and the same
-> program at 4, 6, 12, and 20 columns, which stood at every one of them.
+> **ratatui draws no mark of that cut at all**, therefore the user reads a genre
+> and a name of a series that the media does not have. **The control of the same
+> run** is the seven other lines of that same panel — `Author    Sarah Lin`,
+> `Narrator  Jonathan Davis`, `Year      2026`, `Time      10m`,
+> `Started   11 Aug 2026`, `Files     1 file, 8.5 MB`, and
+> `Progress  1%, Not finished` — which stood whole at 160, at 100, at 90, and at 85
+> columns, and the description under them, which wraps.
 >
-> **Why.** `render_the_band` of `src/ui/player_tui.rs` draws the row of the keys
-> through a `Paragraph` of one `Span` with no `wrap` and no rule of one row, and
-> `render_the_words` draws the row of the media through a `Paragraph` of a `Line`
-> of four spans. Each of those four spans takes `in_one_line` already (the rule of
-> the row of T-312), **and none of them takes `in_one_row`** (T-304): the two
-> rules are not the same one, and the band held the first and not the second.
+> **Why.** `the_lines_of_the_facts` of `src/logic/the_facts_of_a_media.rs` takes a
+> `width`, and it gave that width to the bar of the progress alone.
+> `line_of(label, value)` pads the label to `THE_COLUMN_OF_A_VALUE` of 10 columns,
+> and it never measures the value. `render_info_home` (`src/ui/tui.rs:4953`) and
+> `render_info_library` (`src/ui/tui.rs:5086`) then draw
+> `Paragraph::new(lines.join("\n"))` with **no** `wrap` and no rule of one row.
 >
-> **The decision: the three points belong at the end of the line and not at the
-> end of each text of it.** The row of the media holds four texts of four styles —
-> the mark of the playback, the title, the author, and the chapter — therefore
-> `in_one_row` of each span would give a line of four marks of a cut, and a mark
-> on a text that the row holds whole says a cut that the row does not have. The
-> spans that stand keep their style, the span that meets the last column keeps its
-> start, and the spans after it go away. **The one place of the start of a text
-> stays one place**: the loop of `in_one_row` moves out into the new pure
-> `the_start_of_a_row` of `src/logic/message.rs`, which holds **no** mark at all,
-> and `in_one_row` is one call of it and the three points after it.
+> **The correction, of one file.** Every line of `the_lines_of_the_facts` goes
+> through `crate::logic::message::in_one_row(&line_of(label, &value), width)`. The
+> bar already takes the whole width, therefore it does not change. **v0.8.201.**
 >
-> **The correction, of two files.** `src/logic/message.rs` holds
-> `the_start_of_a_row`. `src/ui/player_tui.rs` holds `in_one_row_of_spans`, the
-> row of the media calls it with the columns that the settings of the playback
-> leave, and the row of the keys calls `in_one_row` with `parts.the_buttons.width`.
-> **v0.8.200.**
+> **The corrected program of the same harness** said, at 160 columns,
+> `Genre     Science Fiction & Fantasy, Fantasy, F…`, and at 85 columns
+> `Series    Depthless Hunger, Boo…` and `Genre     Science Fiction & Fan…`. **The
+> control of the same run**: the seven other lines did not change at either width,
+> and the program stood.
 >
-> **The corrected program of the same harness** said, at 60 columns,
-> `▶ A Book Of Many Hours  Many Hours Author…   Speed 1.00x` and
-> `Spc: pause/play | p/u: +/−10s | P/U: nxt/prev ch. | O/I:…`, and at 100 columns
-> the whole of the row of the words with the row of the keys cut at `Y: q…`.
-> **The control of the same run**: the two rows of 160 and of 120 columns did not
-> change, and the program stood at 20, 12, 6, and 4 columns again.
+> **Two builds of the fault, and each of them fails the gate**: `line_of(label,
+> &value)` with no cut at all (which is the program of v0.8.200, and which gave
+> `Series    Depthless Hunger, Book #2`), and `the_start_of_a_row` in the place of
+> `in_one_row`, which cuts the line and which writes no mark (which gave
+> `Series    Depthless Hunger, Bo`).
 >
-> **Three builds of the fault, and each of them fails the gate**: the row of the
-> keys with `u16::MAX` in the place of `parts.the_buttons.width` (which is the
-> program of v0.8.199), the row of the words with `u16::MAX` in the place of
-> `of_the_row` (which gave the row of the measurement back verbatim), and
-> `in_one_row_of_spans` that cuts the spans and that writes no mark of the cut.
+> **The trap of this round**: two tests of that module gave
+> `the_lines_of_the_facts` a width of 8 and a width of 20, which are narrower than
+> the lines that they read. Those two widths were the width of the bar alone before
+> this round, and they now cut every line of the panel. The two tests take a width
+> of 40, which holds their lines whole and which keeps their intent. **A width of a
+> test of a pure function of a panel is the width of the panel, and not a number
+> that the test picked for one part of it.**
 >
-> **The trap of this round**: a test that reads a row of the band **must take the
-> border of the band away**. A row that holds it ends with the `│` of the band and
-> never with the three points, and the first form of the gate then said that the
-> corrected program says no cut. **And the row of the words ends with the settings
-> of the playback**, therefore the mark of that row stands **inside** it and not at
-> its end: `contains` is the rule of that row and `ends_with` is the rule of the
-> row of the keys.
->
-> **The gates**: clippy and fmt clean, 1617 tests of nextest in 2.9 seconds,
+> **The gates**: clippy and fmt clean, 1618 tests of nextest in 3.1 seconds,
 > `cargo test -j 16 --no-fail-fast` three times with exit 0 and 238 blocks of `ok`
 > each time, and `cargo nextest run --run-ignored all` with the sandbox up gave
-> 1643 of 1643.
+> 1644 of 1644 in 17.8 seconds.
 >
-> **The round found a filter of an author in `users.library_filter` of the
-> database of the sandbox**, of a round before this one: the Library view then
-> held 2 items of 18 and its title said `a filter is on (f)`. The round gave that
-> column the empty text back at the end. **A round that presses the key `f` gives
-> that column its own value again** (the shape of the trap 198).
->
-> **What this round leaves open, and each of them is a candidate and not an
-> item**: **the row of the seek and the row of the two bars of the band hold no
-> rule of one row either** (each of them measures its own parts, therefore no
-> measurement of this round reached a cut of them); **the row of the header of the
-> columns of a list** (the candidate of T-368, which stays open: the Chapters view
-> is the one caller of it, and a terminal of 40 columns gives that view **no table
-> at all**, therefore the road to a header that is wider than its panel stays
-> unmeasured); the panel 5 of the facts and the panel 6 of the gallery, which draw
-> texts of a fixed number of rows that no measurement of this round read at a
-> narrow width; **the Series view, the Collections view, the Authors view, and the
-> Bookmarks view hold no frame of the panels at all** (the measurement of this
-> round found the frame of T-320 in the Home view and in the Library view alone,
-> and **that is the work of a stage of the road of the panels and not the work of
-> a fault**); the title of a panel that holds a name of the server, which T-361,
-> T-363, and T-367 each left open; the keys `4`, `j`, `k`, and `l` of the panel 4
-> of a view with no line; the footers of the panel 5 and of the panel 6 (T-354);
-> the rows of the band that does not fit (T-353); the width of the panel 5 of a
-> media with no cover; and every candidate of the turns before this one.
+> **What this round leaves open, and each of them is a candidate and not an item**:
+> **a value of a fact that holds an end of a line** shifts every line under it and
+> it takes the bar off the panel, because the `Paragraph` of the facts reads
+> `lines.join("\n")` (the rule of T-312 and of `in_one_line`), and no media of the
+> sandbox holds such a value; **`src/ui/loading.rs:96` draws
+> `🔗 {the address of the server}` in a box of at most 72 columns with no `wrap`
+> and no cut**; **`src/ui/player_tui.rs:325` draws the row of the seek with no
+> `wrap` and no cut**, and `src/ui/the_bars_of_the_chapters.rs:48` pads the name of
+> a chapter to a number of columns and it never cuts it; the panel 6 of the gallery
+> draws the title of a cell with a `wrap`, therefore it holds no fault of this
+> shape; the row of the header of the columns of a list (the candidate of T-368)
+> and the row of the two bars of the band (the candidate of T-369) each stay open;
+> the Series view, the Collections view, the Authors view, and the Bookmarks view
+> hold no frame of the panels at all, **which is the work of a stage of the road of
+> the panels and not the work of a fault**; the title of a panel that holds a name
+> of the server, which T-361, T-363, and T-367 each left open; the keys `4`, `j`,
+> `k`, and `l` of the panel 4 of a view with no line; the footers of the panel 5 and
+> of the panel 6 (T-354); the rows of the band that does not fit (T-353); the width
+> of the panel 5 of a media with no cover; and every candidate of the turns before
+> this one.
 >
 >
 >
@@ -28658,7 +28758,10 @@ media with no cover; and every candidate of the turns before this one.
 > it held **86106** bytes with **one** turn in it. The round of the two hundred
 > and second found it at 86339 bytes with one turn in it, and it did the same
 > work: the block held **81034** bytes with no turn at all after the removal, and
-> it holds **88506** bytes with **one** turn in it now.
+> it held **88506** bytes with **one** turn in it. The round of the two hundred
+> and third found it at 88740 bytes with one turn in it, and it did the same
+> work: the block held **81176** bytes with no turn at all after the removal, and
+> it holds **87305** bytes with **one** turn in it now.
 > **A block that stands at 80000 bytes or under holds two
 > turns**, and the turn of the stage before this one names the parts of that
 > stage which stay open. **The list of the decisions

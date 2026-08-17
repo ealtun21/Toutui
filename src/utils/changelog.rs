@@ -41,6 +41,27 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.201",
+        date: "17/08/2026",
+        body: &[
+            "Fixed:",
+            "- **A line of the facts of the panel of the cover that the screen \
+             cuts says that the screen cut it.** The panel names the series, \
+             the author, the narrator, the year, the time, the day of the \
+             start, the genre, the files, the ebook, the disk, and the place of \
+             the user, and each of them takes a line of its own. A value of the \
+             server that is longer than the panel lost its end with no mark at \
+             all: a terminal of 85 columns said `Genre     Science Fiction & \
+             Fant` for a genre of the name `Science Fiction & Fantasy, Fantasy, \
+             Fairy Tales`, and `Series    Depthless Hunger, Book` for a series \
+             of the name `Depthless Hunger, Book #2`. The user therefore read a \
+             genre and a name of a series that the media does not have. Every \
+             line of the panel now keeps its start and it takes three points \
+             for the end that the panel cannot hold, which is the rule of a \
+             line of a list and of a row of the band of the player already.",
+        ],
+    },
+    Entry {
         version: "0.8.200",
         date: "17/08/2026",
         body: &[

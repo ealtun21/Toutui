@@ -238,8 +238,16 @@ pub fn the_bar_of_the_progress(percent: &str, width: u16) -> Option<String> {
 /// Every line of the facts of one media, for the panel 5 of the cover. See
 /// T-325.
 ///
-/// `width` is the width of the inside of the panel, and it gives the bar of the
-/// progress its cells.
+/// `width` is the width of the inside of the panel, it gives the bar of the
+/// progress its cells, and **it holds every line of the facts in one row**
+/// (T-370). The values of these lines come from the server: a genre of
+/// `Science Fiction & Fantasy, Fantasy, Fairy Tales` and a name of a series of
+/// `Depthless Hunger, Book #2` are each longer than the panel of a terminal of
+/// 85 columns, and the `Paragraph` of the panel carries no `wrap`. ratatui then
+/// cuts the end of such a line with **no mark of the cut at all**, and the user
+/// reads a genre of `Science Fiction & Fant` and a series that the library does
+/// not have. The three points of [`crate::logic::message::in_one_row`] say that
+/// the screen cut it.
 ///
 /// The function is pure, therefore a test needs no terminal and no server.
 pub fn the_lines_of_the_facts(media: &TheMediaOfThePanel, width: u16) -> Vec<String> {
@@ -268,7 +276,10 @@ pub fn the_lines_of_the_facts(media: &TheMediaOfThePanel, width: u16) -> Vec<Str
         ("Progress", the_place_of(media)),
     ] {
         if let Some(value) = value {
-            lines.push(line_of(label, &value));
+            lines.push(crate::logic::message::in_one_row(
+                &line_of(label, &value),
+                width,
+            ));
         }
     }
 
@@ -362,11 +373,11 @@ mod tests {
 
         // The length of the media and the place of the user always stand.
         assert_eq!(
-            the_lines_of_the_facts(&media, 8),
+            the_lines_of_the_facts(&media, 40),
             vec![
                 "Time      0m".to_string(),
                 "Progress  0%, Not finished".to_string(),
-                "░".repeat(8),
+                "░".repeat(40),
             ]
         );
     }
@@ -394,7 +405,7 @@ mod tests {
             the_day_of_the_start: "10 Aug 2026",
         };
 
-        let lines = the_lines_of_the_facts(&media, 20);
+        let lines = the_lines_of_the_facts(&media, 40);
 
         assert_eq!(lines[0], "Series    The Test Chronicles #2");
         // This book holds no narrator, therefore the year stands after the
@@ -406,7 +417,69 @@ mod tests {
         // files alone.
         assert!(lines.contains(&"Files     3 files".to_string()));
         assert!(lines.contains(&"Disk      [Downloaded]".to_string()));
-        assert_eq!(lines.last(), Some(&"█".repeat(20)));
+        assert_eq!(lines.last(), Some(&"█".repeat(40)));
+    }
+
+    /// A line of the facts that is wider than the panel says that the screen
+    /// cut it (T-370).
+    ///
+    /// The measurement of 2026-08-17, of the real program at 85 columns with
+    /// the book `Depthless Hunger, Book 2` of the sandbox under the cursor of
+    /// the Home view: the panel 5 held 30 columns inside, and it said
+    /// `Genre     Science Fiction & Fant` and `Series    Depthless Hunger, Book`
+    /// with **no mark of the cut at all**. The user reads a genre and a name of
+    /// a series that the media does not have.
+    ///
+    /// **The parts of this test stay in one function.**
+    #[test]
+    fn a_line_of_the_facts_that_is_wider_than_the_panel_says_that_the_screen_cut_it() {
+        let facts = TheFactsOfAMedia {
+            series: "Depthless Hunger, Book #2".to_string(),
+            narrator: "Jonathan Davis".to_string(),
+            genre: "Science Fiction & Fantasy, Fantasy, Fairy Tales".to_string(),
+            files: 1,
+            size: 8912896,
+            the_ebook: String::new(),
+        };
+        let media = TheMediaOfThePanel {
+            facts: &facts,
+            author: "Sarah Lin",
+            year: "2026",
+            length: "10m",
+            of_the_disk: "",
+            percent: "1",
+            the_time_that_is_left: "",
+            the_end: "Not finished",
+            the_day_of_the_start: "11 Aug 2026",
+        };
+
+        // The panel of the Home view of a terminal of 85 columns.
+        let lines = the_lines_of_the_facts(&media, 30);
+
+        assert_eq!(lines[0], "Series    Depthless Hunger, B…");
+        assert_eq!(lines[6], "Genre     Science Fiction & F…");
+
+        // Every line of that panel stands in its 30 columns.
+        for line in &lines {
+            assert!(
+                crate::logic::message::the_columns_of(line) <= 30,
+                "the line {line:?} takes more than the 30 columns of the panel"
+            );
+        }
+
+        // A line that the panel holds whole keeps every character of it, and it
+        // takes no mark of a cut.
+        assert_eq!(lines[1], "Author    Sarah Lin");
+        assert!(!lines[1].contains('…'));
+
+        // The panel of 48 columns of a terminal of 160 holds the name of the
+        // series whole, and it cuts the genre alone.
+        let of_the_wide_panel = the_lines_of_the_facts(&media, 48);
+        assert_eq!(of_the_wide_panel[0], "Series    Depthless Hunger, Book #2");
+        assert_eq!(
+            of_the_wide_panel[6],
+            "Genre     Science Fiction & Fantasy, Fantasy, F…"
+        );
     }
 
     /// A panel that is narrow holds no bar of the progress, and a percent that
