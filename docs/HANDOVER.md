@@ -4,8 +4,10 @@ This document is for the next session. It says what is done, what is open, and t
 traps that cost real time. Read `docs/TAKEOVER-BACKLOG.md` for the evidence of each
 item, and `docs/T-24-coverage.md` for the comparison with the server.
 
-**The newest release is v0.8.191.** The item T-360 belongs to this
+**The newest release is v0.8.193.** The item T-362 belongs to this
 session. The
+item T-361 belongs to the session before it. The
+item T-360 belongs to the session before it. The
 item T-359 belongs to the session before it. The
 item T-358 belongs to the session before it. The
 item T-357 belongs to the session before it. The
@@ -198,6 +200,78 @@ gives no failure, over three runs. **That last gate was red at v0.8.161**
 test function.
 **Two runs of `cargo nextest run` under the load of 24 loops of a shell
 gave 1200 of 1200 at v0.8.49 too** (T-220).
+
+## The session of the hundred and ninety-fifth turn of 2026-08-17: the view of every key says the work of each key in a narrow terminal
+
+**The item: T-362**, and the release **v0.8.193**.
+
+**The candidate came of the item 1 of the list of the work**, and of no candidate
+of the rounds before it: the view of the key `?` is the one text of this program
+that says what a key does, and no round had measured it at a narrow terminal.
+
+**The measurement**, of the real program v0.8.192 inside tmux at **40 columns**
+and 30 rows (`COLUMNS_OF_THE_SCREEN=40` of `docs/harness/drive.sh`, T-301),
+against the sandbox on `:13399` with the account `toutuitest` and the library
+`Books`. **The size of the terminal is the data of this fault**: no proxy, no
+book of a harness, and no change of the sandbox at all.
+
+```text
+────────Every key of the program────────
+➤ ▌ The panels (a screen of 120 columns█
+     1               The focus goes to █
+     Ctrl+h          The focus goes to │
+     l / → / Enter   The panel 1 opens │
+     z               Hide the panels 1,│
+     Click           The line of the po│
+     Shift+Click     Most terminals giv│
+```
+
+**No key of the 83 keys of the program said what it does**, and the name of the
+group `The panels (a screen of 120 columns and more, Home and Library)` lost the
+words that name the two views of those panels. A panel of 40 columns gives a line
+37 of them — the width of the panel, less one column of the bar of the scroll and
+two columns of the sign of the cursor — and the prefix of three columns of the
+indent, of fifteen columns of the key, and of one space takes 19: **18 columns
+stayed for the work**.
+
+**Why.** A line of a list stands on one row of the panel (T-311), and a
+`ListItem` of ratatui holds no wrap. `keys::lines()` made one line for each key
+and one for each group, and it read no width at all. **The two counts of a wrap
+of this program said how many rows a text takes, and no function of it gave the
+rows themselves.**
+
+**The correction, of four files and one new test file.**
+`crate::logic::message::the_parts_of_a_wrap` gives the rows of a wrap as text,
+and `the_rows_of_one_line` of T-309 is the number of those parts now: the loop of
+the wrap of this program stands in one place, and every one of the 1593 tests of
+the program before this one passed with no change.
+`the_list_of_a_view::the_columns_of_a_line` gives the columns of the text of a
+line of a panel. `keys::lines_of_a_width` makes the lines: the two columns of the
+design hold while the work has `THE_SMALLEST_COLUMN_OF_THE_WORK` (20) columns
+beside the key, and a panel that is narrower draws the key on a row of its own
+with the work under it at an indent of five. **Every row of a wrap is a line of
+the list**, therefore the rule of T-311 holds. `render_keys` writes
+`App::the_columns_of_the_lines_of_the_keys`, and the keys `j` and `G` of that view
+read it.
+
+**The corrected program** said the name of the group over two rows and the work
+of every key whole, and the key `G` of 40, of 60, and of 160 columns each gave
+the last line of the view. **The control of the same run is the terminal of 160
+columns**, where every row of that view stands as it stood before this item.
+
+**Four builds of the fault**, and each of them fails
+`tests/the_view_of_every_key_holds_the_words_of_its_work.rs`. **A first form of
+that test passed the first of the four**: a wrap of 18 columns keeps every word
+too, therefore the words alone do not say which of the two forms the view draws.
+The item needed the pure function `keys::the_columns_of_the_work` and the rule of
+the 20 columns.
+
+**The gates**: clippy and fmt clean, 1594 tests of nextest in 3.3 seconds,
+`cargo test -j 16 --no-fail-fast` three times with no failure, and
+`cargo nextest run --run-ignored all` with the sandbox up gave 1620 of 1620.
+
+**The trap 248 came of this round**: a tag of no annotation does not go with
+`git push --follow-tags`.
 
 ## The session of the hundred and sixty-eighth turn of 2026-08-17: the spec of the Home view of the bands of covers
 
@@ -12277,7 +12351,11 @@ that file, or the test `every_key_of_the_handler_stands_in_the_list` fails.
 
 ## What is open
 
-**The newest release is v0.8.179** (T-348, 2026-08-17): the panel of the cover
+**The newest release is v0.8.193** (T-362, 2026-08-17): the view of every key
+of the program says the work of each key in a narrow terminal. The item T-362 of
+`docs/TAKEOVER-BACKLOG.md` names the candidates that it leaves open.
+
+**The release before it, v0.8.179** (T-348, 2026-08-17): the panel of the cover
 of a media that the server holds with no cover says its words whole in a
 terminal of few rows. **The sweep of the rows of a screen belongs at 160
 columns and at 100 columns together** (T-347), and the item T-348 of
@@ -13347,6 +13425,14 @@ answers slowly while it writes. Two answers to measure:
 ## The traps that cost time
 
 ### Of the harness of tmux
+
+**The trap 248: a tag of no annotation does not go with
+`git push --follow-tags`.** The push of the round of the hundred and ninety-fifth
+took the commit alone, and `git ls-remote --tags origin refs/tags/v0.8.193` then
+found nothing: `--follow-tags` pushes the annotated tags of the reachable
+commits, and every tag of this fork comes of a bare `git tag <the version>`. The
+workflow of the release reads the tag, therefore a round that pushes must read
+that tag at the remote and give it a `git push origin <the tag>` of its own.
 
 **The trap 247: a picture of one colour draws no character at all.** The half
 blocks of `ratatui-image` are cells of a background colour and of a foreground
@@ -26338,12 +26424,114 @@ with no cover**; and every candidate of the turns before this one.
 
 
 
+## The session of the hundred and ninety-fourth turn of 2026-08-17: T-361, a view with no line and the words of its reason, of the block of the prompt
+
+**The session of the hundred and ninety-fourth turn took the item 1 of the list
+of the work**, and it took the **first candidate that the round before it
+left**: the search view of a library with no hit that puts its reason in the
+place of the name. The measurement of that candidate found a class of eleven
+views and a fault of the words themselves, and the item is T-361.
+
+**A `ps` of the machine at the start of the round found it clean**: no program
+of `toutui`, and no shell of a busy loop. The tree of git was clean, every
+commit of the round before it stood at the remote with its tag, the load
+average was 5.6 of a desktop of the user, and the disk held 446 gigabytes. The
+`cargo clean` of the round before it gave a cold build of 23 seconds for
+`cargo build -j 16`.
+
+**The fault, of the real program v0.8.191 inside tmux, at 40 columns and 30
+rows** — `COLUMNS_OF_THE_SCREEN=40` of `docs/harness/drive.sh`, the narrowest
+terminal that this fork measures (T-301). **The size of the terminal is the
+data of the fault**, and the round needed no proxy, no book of a harness, and
+no change of the sandbox at all. The library `Empty` gave the queue, the
+chapters, the authors, and the narrators; the library `Books` gave the
+bookmarks of a book of no bookmark and a search of `zzqqxnothingatall`:
+
+```text
+the key V   ->  "A Book Of An Epub With No Container" h...
+the key q   ->  The queue is empty. Press n on a media...
+the key C   ->  No media plays now. A media that plays...
+the key v   ->  This library has no narrator. A narrato...
+the search  ->  The server found nothing for "zzqqxnoth...
+```
+
+**Every one of those rows is the whole panel.** A `cat -n` of the capture of
+tmux gave the header, the address, that row, **and no row of a word until the
+footer of the row 29**. The user therefore read no key of the work at all —
+not `Press b while it plays.`, not `Press n on a media to put it in the
+queue.`, not `Press h to go back.`, and not `Press / to write other words.`
+**A view says why it holds no line, and it says what the user can do** (T-91
+and T-70), and the half that the user needs is the half that went away.
+
+**The control of the same run**, of the views that T-358 corrected already: the
+Library view and the Collections view of the library `Empty`, at those same 40
+columns, each said the name of the list in the title and the whole reason under
+it over three rows of a wrap. **Two roads of one program said two different
+things.**
+
+**Why**: **a title of a block takes no wrap, and a body of a `Paragraph` takes
+one.** `App::render_the_reason` holds the shape that says both, and eleven
+views never reach it: each of them gives its sentence to the `title` argument
+of `self.render_list`. A sweep of the 21 call sites of `render_list` of
+`src/ui/tui.rs` gave ten render functions of that shape. **This is the fault
+that the `wrap` of T-278 corrected, and the road of a title brought it back.**
+
+**The correction**: a new `App::render_the_list_or_the_reason` calls
+`render_the_reason` for a list of no line and `render_list` for every other
+list; the title of each of the ten views becomes the name of its list at every
+count, with the count of its lines in it; `chapters::the_header_of_the_view`
+and `search::the_title_of_the_search` give the name alone now, and the new
+`chapters::the_reason_of_no_chapter` and `search::the_reason_of_no_hit` give
+the sentences. **The Chapters view holds a table of its own**, therefore its
+road with no line comes back before the bars and before the header of the
+columns. **The corrected program of the same harness** said
+`The queue [0 items]`, `The chapters [0 items]`, `The authors [0 items]`,
+`The narrators [0 items]`, and `Search result [0 items]` over the whole
+sentence of each, wrapped over as many rows as it needs. **The controls of the
+same run stayed as they were**: `The authors [9 items]`,
+`Put "A Book Of An Epub With No Container" in a list [2 items]`, and
+`Search result [1 item]` with the panel 5 beside it. **v0.8.192.**
+
+**The name of a list that is longer than the screen holds no wrap either**, and
+the bookmarks of the measurement showed it: the mark of the cut stands at the
+left of that title. **That is the trade of T-358, and it is the right one**: a
+name that the user reads in part still names the list, and a reason that the
+user reads in part names no work at all. The class of the names is a candidate
+of its own.
+
+**Three builds of the fault, and each of them fails
+`tests/the_reason_of_a_view_with_no_line_holds_its_words.rs`**:
+`if render_list_items.is_empty() && false` of the new method,
+`if lines.is_empty() && false` of the road with no line of `render_chapters`,
+and a `render_queue` that gives its sentence to the title again. That test
+renders four views on a `TestBackend` of **40 columns**, and it reads the rows
+of the screen together with every run of the whitespace made one space, because
+a sentence of a body stands on three rows of such a screen.
+
+**The gates**: clippy and fmt clean, 1593 tests of nextest in 3.1 seconds,
+`cargo test -j 16 --no-fail-fast` three times with no failure, and
+`cargo nextest run --run-ignored all` with the sandbox up gave 1619 of 1619.
+
+**What this round leaves open, and each of them is a candidate and not an
+item**: **six of the eleven views took the correction and no measurement of the
+real program** — the devices of an e-reader, the ebooks of a media, a new
+podcast, the lists that take a media, the downloads of the server, and the road
+of a fault of the server of each of the eleven, for the reasons of T-360, and
+the render of each of them stands in the gate of this item already; **the name
+of a list that is longer than the screen**, of the paragraph above; **the
+statistics and the sessions**, of the decision of T-360; **the panel 4 of a
+view with no line takes the focus of a click and it says no word of its own**
+of T-356; **the footer of the panel 5 and of the panel 6 of a view with no
+media of a cell** of T-359; **the rows of the band that does not fit** of
+T-353; **the width of the panel 5 of a media with no cover**; and every
+candidate of the turns before this one.
+
 ## The prompt for the next session
 
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.191**; `Cargo.toml` is at 0.8.191. The
+> AlbanDAVID/Toutui. Newest release **v0.8.193**; `Cargo.toml` is at 0.8.193. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -27174,7 +27362,7 @@ with no cover**; and every candidate of the turns before this one.
 > makes no request: a measurement of two roads of the header needs a key of a
 > fresh request, and the key `R` alone forgets the state of a view.
 > Verify with a second program: `curl`, `podman logs abs-test`, or a browser.
-> Write the measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-361 and
+> Write the measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-363 and
 > up), and name that item in the commit.
 >
 > **`String::find` gives the index of a byte and not the column of the screen**
@@ -27187,8 +27375,8 @@ with no cover**; and every candidate of the turns before this one.
 > `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`, and
 > `cargo nextest run` with `ALSA_CONFIG_PATH` pointing at a null asound file of
 > two lines (`pcm.!default { type null }` and `ctl.!default { type null }`).
-> Baseline: **1592 tests in 3.6 seconds of nextest**, and `cargo nextest run --run-ignored
-> all` gives **1618 of 1618** with the sandbox up, in about 20 seconds. **Run that
+> Baseline: **1594 tests in 3.3 seconds of nextest**, and `cargo nextest run --run-ignored
+> all` gives **1620 of 1620** with the sandbox up, in about 18 seconds. **Run that
 > second command at the end of the session too**: it found T-132 and T-111.
 > **And `cargo clean` is the last command of the round**, after the push: the
 > maintainer asked for it on 2026-08-17, and the paragraph of the disk above
@@ -27358,106 +27546,100 @@ with no cover**; and every candidate of the turns before this one.
 >    hundred and fourteen.
 >
 >
->
-> **The session of the hundred and ninety-fourth turn took the item 1 of the list
-> of the work**, and it took the **first candidate that the round before it
-> left**: the search view of a library with no hit that puts its reason in the
-> place of the name. The measurement of that candidate found a class of eleven
-> views and a fault of the words themselves, and the item is T-361.
+> **The session of the hundred and ninety-fifth turn took the item 1 of the list
+> of the work**, and it took a condition that no candidate of the rounds before
+> it names: **the view of the key `?`, which is the one text of this program that
+> says what a key does**. The item is T-362.
 >
 > **A `ps` of the machine at the start of the round found it clean**: no program
-> of `toutui`, and no shell of a busy loop. The tree of git was clean, every
-> commit of the round before it stood at the remote with its tag, the load
-> average was 5.6 of a desktop of the user, and the disk held 446 gigabytes. The
-> `cargo clean` of the round before it gave a cold build of 23 seconds for
+> of `toutui`, and no shell of a busy loop. The tree of git was clean, the commit
+> of the round before it stood at the remote with its tag, the load average was
+> 6.9 of a desktop of the user, and the disk held 446 gigabytes. The `cargo clean`
+> of the round before it gave a cold build of about 20 seconds for
 > `cargo build -j 16`.
 >
-> **The fault, of the real program v0.8.191 inside tmux, at 40 columns and 30
+> **The fault, of the real program v0.8.192 inside tmux, at 40 columns and 30
 > rows** — `COLUMNS_OF_THE_SCREEN=40` of `docs/harness/drive.sh`, the narrowest
-> terminal that this fork measures (T-301). **The size of the terminal is the
-> data of the fault**, and the round needed no proxy, no book of a harness, and
-> no change of the sandbox at all. The library `Empty` gave the queue, the
-> chapters, the authors, and the narrators; the library `Books` gave the
-> bookmarks of a book of no bookmark and a search of `zzqqxnothingatall`:
+> terminal that this fork measures (T-301). **The size of the terminal is the data
+> of the fault**: no proxy, no book of a harness, and no change of the sandbox at
+> all. The key `?` of the Home view of the library `Books`:
 >
 > ```text
-> the key V   ->  "A Book Of An Epub With No Container" h...
-> the key q   ->  The queue is empty. Press n on a media...
-> the key C   ->  No media plays now. A media that plays...
-> the key v   ->  This library has no narrator. A narrato...
-> the search  ->  The server found nothing for "zzqqxnoth...
+> ────────Every key of the program────────
+> ➤ ▌ The panels (a screen of 120 columns█
+>      1               The focus goes to █
+>      Ctrl+h          The focus goes to │
+>      l / → / Enter   The panel 1 opens │
+>      z               Hide the panels 1,│
+>      Click           The line of the po│
+>      Shift+Click     Most terminals giv│
 > ```
 >
-> **Every one of those rows is the whole panel.** A `cat -n` of the capture of
-> tmux gave the header, the address, that row, **and no row of a word until the
-> footer of the row 29**. The user therefore read no key of the work at all —
-> not `Press b while it plays.`, not `Press n on a media to put it in the
-> queue.`, not `Press h to go back.`, and not `Press / to write other words.`
-> **A view says why it holds no line, and it says what the user can do** (T-91
-> and T-70), and the half that the user needs is the half that went away.
+> **No key of the 83 keys of the program said what it does.** A panel of 40
+> columns gives a line 37 of them — the width of the panel, less one column of the
+> bar of the scroll and two columns of the sign of the cursor — and the prefix of
+> three columns of the indent, of fifteen columns of the key, and of one space
+> takes 19: **18 columns stayed for the work**. The name of the group
+> `The panels (a screen of 120 columns and more, Home and Library)` lost the words
+> that name the two views of those panels in the same way.
 >
-> **The control of the same run**, of the views that T-358 corrected already: the
-> Library view and the Collections view of the library `Empty`, at those same 40
-> columns, each said the name of the list in the title and the whole reason under
-> it over three rows of a wrap. **Two roads of one program said two different
-> things.**
+> **Why**: **a line of a list stands on one row of the panel** (T-311), and a
+> `ListItem` of ratatui holds no wrap. `keys::lines()` made one line of the list
+> for each of the 83 keys and one for each of the 13 groups, and it read no width
+> at all. **The two counts of a wrap of this program say how many rows a text
+> takes, and no function of it gave the rows themselves.**
 >
-> **Why**: **a title of a block takes no wrap, and a body of a `Paragraph` takes
-> one.** `App::render_the_reason` holds the shape that says both, and eleven
-> views never reach it: each of them gives its sentence to the `title` argument
-> of `self.render_list`. A sweep of the 21 call sites of `render_list` of
-> `src/ui/tui.rs` gave ten render functions of that shape. **This is the fault
-> that the `wrap` of T-278 corrected, and the road of a title brought it back.**
+> **The correction, of four files.** `crate::logic::message::the_parts_of_a_wrap`
+> gives the rows of a wrap as text, and `the_rows_of_one_line` of T-309 is the
+> number of those parts now: **the loop of the wrap of this program stands in one
+> place**, and every one of the 1593 tests of the program before this one passed
+> with no change — `the_count_of_the_rows_of_a_message_is_the_count_of_ratatui`
+> measures that count against a real `Paragraph` of ratatui. A new
+> `the_list_of_a_view::the_columns_of_a_line` gives the columns of the text of a
+> line of a panel. `keys::lines_of_a_width` then makes the lines: the two columns
+> of the design hold while the work has `THE_SMALLEST_COLUMN_OF_THE_WORK` (20)
+> columns beside the key, and a panel that is narrower draws the key on a row of
+> its own with the work under it at an indent of five. **Every row of a wrap is a
+> line of the list**, therefore the rule of T-311 holds and the bar of the scroll
+> counts them. `render_keys` writes `App::the_columns_of_the_lines_of_the_keys`,
+> and the keys `j` and `G` of that view read it: **a count of the lines of another
+> width gives a cursor that the user cannot reach or one that goes past the last
+> line.** **v0.8.193.**
 >
-> **The correction**: a new `App::render_the_list_or_the_reason` calls
-> `render_the_reason` for a list of no line and `render_list` for every other
-> list; the title of each of the ten views becomes the name of its list at every
-> count, with the count of its lines in it; `chapters::the_header_of_the_view`
-> and `search::the_title_of_the_search` give the name alone now, and the new
-> `chapters::the_reason_of_no_chapter` and `search::the_reason_of_no_hit` give
-> the sentences. **The Chapters view holds a table of its own**, therefore its
-> road with no line comes back before the bars and before the header of the
-> columns. **The corrected program of the same harness** said
-> `The queue [0 items]`, `The chapters [0 items]`, `The authors [0 items]`,
-> `The narrators [0 items]`, and `Search result [0 items]` over the whole
-> sentence of each, wrapped over as many rows as it needs. **The controls of the
-> same run stayed as they were**: `The authors [9 items]`,
-> `Put "A Book Of An Epub With No Container" in a list [2 items]`, and
-> `Search result [1 item]` with the panel 5 beside it. **v0.8.192.**
+> **The corrected program of the same harness** said the name of the group over
+> two rows and the work of every key whole, and the key `G` of 40, of 60, and of
+> 160 columns each gave the last line of the view. **The control of the same run
+> is the terminal of 160 columns**, where every row of that view stands as it
+> stood before this item.
 >
-> **The name of a list that is longer than the screen holds no wrap either**, and
-> the bookmarks of the measurement showed it: the mark of the cut stands at the
-> left of that title. **That is the trade of T-358, and it is the right one**: a
-> name that the user reads in part still names the list, and a reason that the
-> user reads in part names no work at all. The class of the names is a candidate
-> of its own.
+> **Four builds of the fault, and each of them fails
+> `tests/the_view_of_every_key_holds_the_words_of_its_work.rs`**: `true ||` on the
+> guard of `the_two_columns_stand`, `line_of_a_group` in the place of the wrap of
+> the name of a group, `keys::lines()` in the place of `lines_of_a_width` of
+> `render_keys`, and `keys::lines().len()` of `select_last`. **A first form of that
+> test passed the first of the four**: a wrap of 18 columns keeps every word too,
+> therefore the words alone do not say which of the two forms the view draws. The
+> item needed the pure function `keys::the_columns_of_the_work` and the rule of
+> the 20 columns, and that rule now stands in a test of a sweep of every width
+> from 25 to 160.
 >
-> **Three builds of the fault, and each of them fails
-> `tests/the_reason_of_a_view_with_no_line_holds_its_words.rs`**:
-> `if render_list_items.is_empty() && false` of the new method,
-> `if lines.is_empty() && false` of the road with no line of `render_chapters`,
-> and a `render_queue` that gives its sentence to the title again. That test
-> renders four views on a `TestBackend` of **40 columns**, and it reads the rows
-> of the screen together with every run of the whitespace made one space, because
-> a sentence of a body stands on three rows of such a screen.
->
-> **The gates**: clippy and fmt clean, 1593 tests of nextest in 3.1 seconds,
+> **The gates**: clippy and fmt clean, 1594 tests of nextest in 3.3 seconds,
 > `cargo test -j 16 --no-fail-fast` three times with no failure, and
-> `cargo nextest run --run-ignored all` with the sandbox up gave 1619 of 1619.
+> `cargo nextest run --run-ignored all` with the sandbox up gave 1620 of 1620.
+>
+> **A tag of no annotation does not go with `git push --follow-tags`** (the trap
+> 247): the push of this round took the commit alone, and `git ls-remote --tags`
+> found no `v0.8.193` until a `git push origin v0.8.193` of its own. **A round
+> that pushes must read the tag at the remote.**
 >
 > **What this round leaves open, and each of them is a candidate and not an
-> item**: **six of the eleven views took the correction and no measurement of the
-> real program** — the devices of an e-reader, the ebooks of a media, a new
-> podcast, the lists that take a media, the downloads of the server, and the road
-> of a fault of the server of each of the eleven, for the reasons of T-360, and
-> the render of each of them stands in the gate of this item already; **the name
-> of a list that is longer than the screen**, of the paragraph above; **the
-> statistics and the sessions**, of the decision of T-360; **the panel 4 of a
-> view with no line takes the focus of a click and it says no word of its own**
-> of T-356; **the footer of the panel 5 and of the panel 6 of a view with no
-> media of a cell** of T-359; **the rows of the band that does not fit** of
-> T-353; **the width of the panel 5 of a media with no cover**; and every
-> candidate of the turns before this one.
+> item**: **the statistics and the sessions**, the two other views of a text of a
+> scroll, at 40 columns; **the cursor of the view of the keys can stand on a row
+> that names no key**, because the key `G` puts the sign `➤` on the row of the
+> work of the last key; **`the_two_columns_stand` reads the width alone and never
+> the texts**, therefore a group of keys of a short work keeps no more columns
+> than a group of a long one; and every candidate of the turns before this one.
+>
 >
 >
 >
@@ -27698,8 +27880,11 @@ with no cover**; and every candidate of the turns before this one.
 > and it did the same work, and the block then held **84776** bytes with **one**
 > turn in it. The round of the hundred and ninety-fourth found it at 84954 bytes
 > with one turn in it, and it did the same work: the block held **79553** bytes
-> with no turn at all after the removal, and it holds **85700** bytes with
-> **one** turn in it now.
+> with no turn at all after the removal, and it held **85700** bytes with
+> **one** turn in it. The round of the hundred and ninety-fifth found it at
+> 85942 bytes with one turn in it, and it did the same work: the block held
+> **79795** bytes with no turn at all after the removal, and it holds about
+> **85500** bytes with **one** turn in it now.
 > **A block that stands at 80000 bytes or under holds two
 > turns**, and the turn of the stage before this one names the parts of that
 > stage which stay open. **The list of the decisions
