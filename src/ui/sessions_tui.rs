@@ -50,8 +50,21 @@ fn heading_of_a_day(date: &str, day_of_week: Option<&str>) -> String {
     }
 }
 
-/// Makes every line of the screen.
+/// Makes every line of the screen, and every one of them stands in the width.
+///
+/// **A line of this view is longer than a narrow screen** (T-363): the name of
+/// a media and the author of it stand after the time, and a `Paragraph` with no
+/// wrap cuts what does not fit with no mark of the cut at all. Six sessions of
+/// one book then read the same. Every line of this view therefore takes the
+/// rows that it needs, and [`render`] counts those rows for the end of the
+/// scroll.
 pub fn lines(state: &State, width: u16) -> Vec<Line<'static>> {
+    let all = the_lines_of_the_state(state, width);
+    crate::ui::the_wrap_of_a_line::the_rows_of_the_lines(&all, usize::from(width))
+}
+
+/// Makes the lines of the view, before the wrap of them.
+fn the_lines_of_the_state(state: &State, width: u16) -> Vec<Line<'static>> {
     let loaded = match state {
         State::Nothing => return vec![quiet("The program did not ask the server.".to_string())],
         State::Waiting => return vec![quiet("The program asks the server…".to_string())],

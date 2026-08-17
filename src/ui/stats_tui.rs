@@ -92,11 +92,25 @@ fn line_of_a_bar(name: &str, seconds: f64, most: f64, width: usize) -> Line<'sta
     ])
 }
 
-/// Makes every line of the screen.
+/// Makes every line of the screen, and every one of them stands in the width.
 ///
 /// The function gives a line for a state that holds no answer. The user then
 /// reads what the program does, and the screen is never empty.
+///
+/// **A line of this view holds a number at its end** (T-363): the time of a
+/// media stands after the name of it, and the facts of a library stand after
+/// each other. A `Paragraph` with no wrap cuts what does not fit, and a cut of
+/// a number gives the user **another number** — `(1 h 26 min)` reads `(1 ` at
+/// 40 columns, and `892.6 GB` reads `892.6`. Every line of this view therefore
+/// takes the rows that it needs, and [`render`] counts those rows for the end
+/// of the scroll.
 pub fn lines(state: &State, width: u16) -> Vec<Line<'static>> {
+    let all = the_lines_of_the_state(state, width);
+    crate::ui::the_wrap_of_a_line::the_rows_of_the_lines(&all, usize::from(width))
+}
+
+/// Makes the lines of the view, before the wrap of them.
+fn the_lines_of_the_state(state: &State, width: u16) -> Vec<Line<'static>> {
     let all = match state {
         State::Nothing => return vec![quiet("The program did not ask the server.".to_string())],
         State::Waiting => {

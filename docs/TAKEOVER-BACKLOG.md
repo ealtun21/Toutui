@@ -35005,3 +35005,161 @@ item:**
 - Every candidate of the items before this one.
 
 **v0.8.193.**
+
+## T-363 — The two views of a text of a scroll cut their numbers in a narrow terminal
+
+**The condition.** The real program v0.8.193 inside tmux, at **40 columns** and
+30 rows (`COLUMNS_OF_THE_SCREEN=40` of `docs/harness/drive.sh`, the narrowest
+terminal that this fork measures, T-301), against the sandbox on `:13399`, the
+account `toutuitest`, the library `Books`. No proxy, no change of the sandbox,
+and no build of the fault at all: **the size of the terminal is the data of
+this fault** (T-301).
+
+**Why this item, and what four rounds said before it.** T-359, T-360, T-361,
+and T-362 each named the view of the statistics (the key `T`) and the view of
+the sessions (the key `W`) in what they left open, and each of them deferred
+the two views together: "the rule of a view that holds a scroll and no list is
+the work of a round of its own with a rule of its own". T-362 wrote one word
+more than a measurement holds — that the two views "each wrap the text at the
+width of the panel already" — and it named a measurement of them at 40 columns
+as the work of a round. **This round made that measurement, and neither view
+wraps anything at all.**
+
+`src/ui/stats_tui.rs` and `src/ui/sessions_tui.rs` each build a
+`Vec<Line<'static>>` of fixed text and give it to a `Paragraph` with **no**
+`.wrap(...)`. `bar_width` of the statistics shortens the bar of a day for a
+narrow screen, and `WIDTH_FOR_THE_PART` of the sessions drops the part of the
+media under 60 columns, therefore the two files hold a care of a narrow screen
+already — and the **text** of every other line of them stands as it is, and
+ratatui cuts what does not fit.
+
+**The fault, of the real program at 40 columns.** The panel gives 38 columns.
+
+The key `T`, the view of the statistics:
+
+```text
+│Today: 1 h 46 min      In total: 13 h │      the time is 13 h 33 min
+│1. A Book Of Many Hours — Many Hours A│      the time went away
+│3. A Long Test Book — Long Author  (1 │      the time is (1 h 26 min)
+│2. A Second Book Of Many Hours  (8 h 0│      the time is (8 h 00 min)
+│22 items,  25 tracks,  9 authors,  5 g│      the fact is 5 genres
+│882.9 MB on the disk,  17 h 42 min of │      the fact is 17 h 42 min of media
+│2078 books came, and 9 authors.  892.6│      the size is 892.6 MB
+│13 h 33 min of listening in 190 sessio│
+│3. Science Fiction & Fantasy  (1 min 2│      the time is (1 min 29 s)
+```
+
+**A cut of a number gives the user another number.** `(1 ` is not
+`(1 h 26 min)`, `8 h 0` is not `8 h 00 min`, `892.6` with no unit is not
+`892.6 MB`, and `5 g` is not `5 genres`. This is the one view of this program
+whose whole work is numbers, and at 40 columns **no number of the three groups
+of the media, of the library, and of the year reached the user whole**.
+
+The key `W`, the view of the sessions:
+
+```text
+│    2 min 34 s  A Second Book Of Many │
+│   12 min 59 s  A Second Book Of Many │
+│   23 min 25 s  A Second Book Of Many │
+│   17 min 59 s  A Second Book Of Many │
+│   22 min 56 s  A Second Book Of Many │
+│   12 min 00 s  A Second Book Of Many │
+```
+
+Six sessions of six different times, and the name of each of them cut at the
+same column: the user reads six rows that name **one** media, and the view
+gives no road at all to the media of a row.
+
+**The correction, of four files.** A new
+`src/ui/the_wrap_of_a_line.rs`:
+
+- `the_rows_of_a_line(line, width, indent)` gives the rows that a `Line` of
+  spans takes at a width. **It keeps the one loop of the wrap of this program**
+  (`crate::logic::message::the_parts_of_a_wrap`, T-362): it takes the text of
+  every span together, it gives that text to the loop, and it then cuts the
+  spans again at the bytes of each row. A row of a wrap therefore holds the
+  style of every column that it held before the wrap — the time of a session
+  keeps its bold, and the bar of a day keeps the colour of the accent.
+- `the_rows_of_the_lines(lines, width)` gives the rows of every line of a view.
+
+`lines` of each of the two views keeps its name and its work, and it gives its
+lines to that function at the end. The `render` of each view counts the lines
+that it draws for the end of the scroll already, therefore **the keys `j` and
+`k` reach every row of a wrap with no other change of either file**.
+
+**Two rules that the first form of this item got wrong, and each of them is a
+test now.** The first form wrapped every row at `width - indent`:
+
+- **A line that stands in the screen already must take one row.** The bar of a
+  day `2026-08-12 ▌  15 min 11 s` takes 35 columns of the 38 of the panel, and
+  the first form gave it 34: the `s` of `15 min 11 s` went to a second row
+  while the line stood in the screen. The first row holds the whole width now,
+  and a row after it holds the width less the indent
+  (`a_line_that_fills_the_width_takes_one_row`).
+- **The whitespace at the start of a line stays on the first row.** The time of
+  a session stands to the right of a field of twelve columns, and the loop of
+  the wrap drops the whitespace at the start of a row: the first form gave
+  `2 min 34 s  A Second…` and `12 min 59 s  A Second…`, and the column of the
+  times of the view went away. The head of the line is no row of the wrap now
+  (`the_wrap_keeps_the_field_of_the_start_of_the_line`).
+
+**The corrected program of the same harness**, at 40 columns, said every number
+whole (`In total: 13 h` / `33 min`, `3. A Long Test Book — Long Author  (1` /
+`h 26 min)`, `2078 books came, and 9 authors.  892.6` / `MB of them on the
+disk`), it told the six sessions apart (`A Second Book Of Many` / `Hours — Many
+Hours Author` under each of the six times), it kept the column of the times
+right-aligned, and every bar of a day took one row. The scroll of `j` reached
+the last line of the view and it stopped there.
+
+**The control of the same run is the terminal of 160 columns**, where every row
+of the two views stands as it stood before this item: no row of a wrap, and the
+part of the media (`[86% of the media]`) of every session in its place.
+
+**The tests.** `tests/the_views_of_a_scroll_keep_their_numbers.rs` holds five,
+and `src/ui/the_wrap_of_a_line.rs` holds nine.
+`no_line_of_the_two_views_is_wider_than_the_panel` is the rule of the item, and
+it sweeps every width from 20 to 160 of both views.
+
+**A test of the words of these two views must read the cells of the screen, and
+not the lines of the view** (the trap 249). `lines` gives the whole text of
+every line, and the cut stands at the render: a first form of
+`the_narrow_statistics_keep_the_time_of_a_media` read `lines` and it **passed**
+with the correction removed. Those tests render into a real `Buffer` of ratatui
+of 40 columns now, and they read the symbols of the cells.
+
+**Four builds of the fault, and each of them fails a test**:
+
+| The edit | The test that fails |
+|---|---|
+| `lines` of `stats_tui.rs` gives its lines with no wrap | `no_line_of_the_two_views_is_wider_than_the_panel`, `the_narrow_statistics_keep_the_time_of_a_media` |
+| `lines` of `sessions_tui.rs` gives its lines with no wrap | `no_line_of_the_two_views_is_wider_than_the_panel`, `the_narrow_sessions_tell_two_media_apart` |
+| The first row of a wrap takes the indent too | `a_line_that_fills_the_width_takes_one_row` |
+| The whitespace of the start of the line goes away | `the_wrap_keeps_the_field_of_the_start_of_the_line` |
+
+**The gates**: clippy and fmt clean, 1608 tests of nextest, `cargo test -j 16
+--no-fail-fast` three times with no failure, and `cargo nextest run
+--run-ignored all` with the sandbox up.
+
+**What this item leaves open, and each of them is a candidate and not an
+item**:
+
+- **`the_rows_of_a_line` reads no width of a cell of two columns for the
+  indent.** The indent is four columns of a space, and a text of an East Asian
+  language holds cells of two columns: the rows of such a wrap stand in the
+  width (the loop of the wrap measures with `unicode-width`), and the indent of
+  them is a candidate of a measurement of its own.
+- **The other views of this program that draw a `Paragraph` with no wrap.**
+  This item took the two views that hold a scroll and no list. A sweep of
+  `grep -n 'Paragraph::new' src/ui/` for a render with no `.wrap(` names the
+  candidates.
+- **The name of a list that is longer than the screen holds no wrap** (T-361),
+  and the title of the panel of these two views holds none either: `The
+  sessions that you played` takes 28 columns and it fits at 40, and a title of
+  a name of a library does not.
+- **The cursor of the view of the keys can stand on a row that names no key**
+  (T-362).
+- **`the_two_columns_stand` of `src/ui/keys.rs` reads the width alone and never
+  the texts** (T-362).
+- Every candidate of the items before this one.
+
+**v0.8.194.**

@@ -41,6 +41,29 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.194",
+        date: "17/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The view of the statistics and the view of the sessions keep \
+             every number in a narrow terminal.** The two views draw a text \
+             that takes no wrap, therefore a line that is longer than the \
+             panel lost its end with no mark of a cut. **A cut of a number \
+             gives another number**: at 40 columns the time of a media read \
+             `(1 ` for `(1 h 26 min)`, the size of a year read `892.6` with no \
+             unit for `892.6 MB`, the time of the account read `13 h ` for `13 \
+             h 33 min`, and the facts of a library read `5 g` for `5 genres`. \
+             The view of the sessions lost the name of each media at the same \
+             column, and six sessions of six different times then read `A \
+             Second Book Of Many` together. Every line of the two views now \
+             takes the rows that it needs, and a row after the first stands at \
+             an indent of four. The field of the time of a session keeps its \
+             column, a line that stands in the screen keeps its one row, and \
+             the keys `j` and `k` reach every row. A terminal of 160 columns \
+             draws the two views as it drew them before.",
+        ],
+    },
+    Entry {
         version: "0.8.193",
         date: "17/08/2026",
         body: &[

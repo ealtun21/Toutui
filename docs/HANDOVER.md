@@ -13424,6 +13424,22 @@ answers slowly while it writes. Two answers to measure:
 
 ## The traps that cost time
 
+### Of the tests of a view
+
+**The trap 249: a test of the words of a view must read the cells of the
+screen, and not the lines of the view.** The `lines` of the view of the
+statistics and of the view of the sessions gives the **whole** text of every
+line, and the cut of a narrow terminal stands at the render: a `Paragraph` with
+no wrap draws the columns that fit and it drops the rest. A first form of
+`the_narrow_statistics_keep_the_time_of_a_media` of T-363 read `lines`, and it
+**passed with the correction of the item removed** — the words that the user
+never saw stood in the value that the test read. A test of this shape renders
+into a `Buffer` of ratatui of the width of the measurement and it reads the
+symbols of the cells, and it takes the row of the top, the row of the foot, and
+the column of each side of the `Block` away. **A test that reads the value
+before the render measures the program that makes the text, and never the
+program that the user reads.**
+
 ### Of the harness of tmux
 
 **The trap 248: a tag of no annotation does not go with
@@ -26526,12 +26542,109 @@ media of a cell** of T-359; **the rows of the band that does not fit** of
 T-353; **the width of the panel 5 of a media with no cover**; and every
 candidate of the turns before this one.
 
+
+## The session of the hundred and ninety-fifth turn of 2026-08-17: T-362, the view of every key says the work of a key in a narrow terminal
+
+**The session of the hundred and ninety-fifth turn took the item 1 of the list
+of the work**, and it took a condition that no candidate of the rounds before
+it names: **the view of the key `?`, which is the one text of this program that
+says what a key does**. The item is T-362.
+
+**A `ps` of the machine at the start of the round found it clean**: no program
+of `toutui`, and no shell of a busy loop. The tree of git was clean, the commit
+of the round before it stood at the remote with its tag, the load average was
+6.9 of a desktop of the user, and the disk held 446 gigabytes. The `cargo clean`
+of the round before it gave a cold build of about 20 seconds for
+`cargo build -j 16`.
+
+**The fault, of the real program v0.8.192 inside tmux, at 40 columns and 30
+rows** — `COLUMNS_OF_THE_SCREEN=40` of `docs/harness/drive.sh`, the narrowest
+terminal that this fork measures (T-301). **The size of the terminal is the data
+of the fault**: no proxy, no book of a harness, and no change of the sandbox at
+all. The key `?` of the Home view of the library `Books`:
+
+```text
+────────Every key of the program────────
+➤ ▌ The panels (a screen of 120 columns█
+     1               The focus goes to █
+     Ctrl+h          The focus goes to │
+     l / → / Enter   The panel 1 opens │
+     z               Hide the panels 1,│
+     Click           The line of the po│
+     Shift+Click     Most terminals giv│
+```
+
+**No key of the 83 keys of the program said what it does.** A panel of 40
+columns gives a line 37 of them — the width of the panel, less one column of the
+bar of the scroll and two columns of the sign of the cursor — and the prefix of
+three columns of the indent, of fifteen columns of the key, and of one space
+takes 19: **18 columns stayed for the work**. The name of the group
+`The panels (a screen of 120 columns and more, Home and Library)` lost the words
+that name the two views of those panels in the same way.
+
+**Why**: **a line of a list stands on one row of the panel** (T-311), and a
+`ListItem` of ratatui holds no wrap. `keys::lines()` made one line of the list
+for each of the 83 keys and one for each of the 13 groups, and it read no width
+at all. **The two counts of a wrap of this program say how many rows a text
+takes, and no function of it gave the rows themselves.**
+
+**The correction, of four files.** `crate::logic::message::the_parts_of_a_wrap`
+gives the rows of a wrap as text, and `the_rows_of_one_line` of T-309 is the
+number of those parts now: **the loop of the wrap of this program stands in one
+place**, and every one of the 1593 tests of the program before this one passed
+with no change — `the_count_of_the_rows_of_a_message_is_the_count_of_ratatui`
+measures that count against a real `Paragraph` of ratatui. A new
+`the_list_of_a_view::the_columns_of_a_line` gives the columns of the text of a
+line of a panel. `keys::lines_of_a_width` then makes the lines: the two columns
+of the design hold while the work has `THE_SMALLEST_COLUMN_OF_THE_WORK` (20)
+columns beside the key, and a panel that is narrower draws the key on a row of
+its own with the work under it at an indent of five. **Every row of a wrap is a
+line of the list**, therefore the rule of T-311 holds and the bar of the scroll
+counts them. `render_keys` writes `App::the_columns_of_the_lines_of_the_keys`,
+and the keys `j` and `G` of that view read it: **a count of the lines of another
+width gives a cursor that the user cannot reach or one that goes past the last
+line.** **v0.8.193.**
+
+**The corrected program of the same harness** said the name of the group over
+two rows and the work of every key whole, and the key `G` of 40, of 60, and of
+160 columns each gave the last line of the view. **The control of the same run
+is the terminal of 160 columns**, where every row of that view stands as it
+stood before this item.
+
+**Four builds of the fault, and each of them fails
+`tests/the_view_of_every_key_holds_the_words_of_its_work.rs`**: `true ||` on the
+guard of `the_two_columns_stand`, `line_of_a_group` in the place of the wrap of
+the name of a group, `keys::lines()` in the place of `lines_of_a_width` of
+`render_keys`, and `keys::lines().len()` of `select_last`. **A first form of that
+test passed the first of the four**: a wrap of 18 columns keeps every word too,
+therefore the words alone do not say which of the two forms the view draws. The
+item needed the pure function `keys::the_columns_of_the_work` and the rule of
+the 20 columns, and that rule now stands in a test of a sweep of every width
+from 25 to 160.
+
+**The gates**: clippy and fmt clean, 1594 tests of nextest in 3.3 seconds,
+`cargo test -j 16 --no-fail-fast` three times with no failure, and
+`cargo nextest run --run-ignored all` with the sandbox up gave 1620 of 1620.
+
+**A tag of no annotation does not go with `git push --follow-tags`** (the trap
+247): the push of this round took the commit alone, and `git ls-remote --tags`
+found no `v0.8.193` until a `git push origin v0.8.193` of its own. **A round
+that pushes must read the tag at the remote.**
+
+**What this round leaves open, and each of them is a candidate and not an
+item**: **the statistics and the sessions**, the two other views of a text of a
+scroll, at 40 columns; **the cursor of the view of the keys can stand on a row
+that names no key**, because the key `G` puts the sign `➤` on the row of the
+work of the last key; **`the_two_columns_stand` reads the width alone and never
+the texts**, therefore a group of keys of a short work keeps no more columns
+than a group of a long one; and every candidate of the turns before this one.
+
 ## The prompt for the next session
 
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.193**; `Cargo.toml` is at 0.8.193. The
+> AlbanDAVID/Toutui. Newest release **v0.8.194**; `Cargo.toml` is at 0.8.194. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -27362,7 +27475,7 @@ candidate of the turns before this one.
 > makes no request: a measurement of two roads of the header needs a key of a
 > fresh request, and the key `R` alone forgets the state of a view.
 > Verify with a second program: `curl`, `podman logs abs-test`, or a browser.
-> Write the measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-363 and
+> Write the measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-364 and
 > up), and name that item in the commit.
 >
 > **`String::find` gives the index of a byte and not the column of the screen**
@@ -27375,8 +27488,8 @@ candidate of the turns before this one.
 > `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`, and
 > `cargo nextest run` with `ALSA_CONFIG_PATH` pointing at a null asound file of
 > two lines (`pcm.!default { type null }` and `ctl.!default { type null }`).
-> Baseline: **1594 tests in 3.3 seconds of nextest**, and `cargo nextest run --run-ignored
-> all` gives **1620 of 1620** with the sandbox up, in about 18 seconds. **Run that
+> Baseline: **1608 tests in 3.8 seconds of nextest**, and `cargo nextest run --run-ignored
+> all` gives **1634 of 1634** with the sandbox up, in about 18 seconds. **Run that
 > second command at the end of the session too**: it found T-132 and T-111.
 > **And `cargo clean` is the last command of the round**, after the push: the
 > maintainer asked for it on 2026-08-17, and the paragraph of the disk above
@@ -27542,109 +27655,100 @@ candidate of the turns before this one.
 >    holds three decisions that a round must not take alone. Read it first.
 >
 > 1. **A condition of the program that no measurement has reached.** A sweep of
->    this shape found a fault in one hundred and thirteen sessions of one
->    hundred and fourteen.
+>    this shape found a fault in one hundred and fourteen sessions of one
+>    hundred and fifteen.
 >
 >
-> **The session of the hundred and ninety-fifth turn took the item 1 of the list
-> of the work**, and it took a condition that no candidate of the rounds before
-> it names: **the view of the key `?`, which is the one text of this program that
-> says what a key does**. The item is T-362.
+> **The session of the hundred and ninety-sixth turn took the item 1 of the list
+> of the work**, and it took the one condition that four rounds named and that no
+> round measured: **the view of the statistics (the key `T`) and the view of the
+> sessions (the key `W`) at 40 columns**. T-359, T-360, T-361, and T-362 each
+> named those two views in what they left open, and each of them wrote that "the
+> rule of a view that holds a scroll and no list is the work of a round of its
+> own". T-362 wrote one word more than a measurement holds — that the two views
+> "each wrap the text at the width of the panel already". **They wrap nothing at
+> all.** The item is T-363.
 >
 > **A `ps` of the machine at the start of the round found it clean**: no program
 > of `toutui`, and no shell of a busy loop. The tree of git was clean, the commit
-> of the round before it stood at the remote with its tag, the load average was
-> 6.9 of a desktop of the user, and the disk held 446 gigabytes. The `cargo clean`
-> of the round before it gave a cold build of about 20 seconds for
-> `cargo build -j 16`.
+> of the round before it stood at the remote **with its tag** (the trap 248), the
+> load average was 3.3, and the disk held 445 gigabytes.
 >
-> **The fault, of the real program v0.8.192 inside tmux, at 40 columns and 30
-> rows** — `COLUMNS_OF_THE_SCREEN=40` of `docs/harness/drive.sh`, the narrowest
-> terminal that this fork measures (T-301). **The size of the terminal is the data
-> of the fault**: no proxy, no book of a harness, and no change of the sandbox at
-> all. The key `?` of the Home view of the library `Books`:
+> **The fault, of the real program v0.8.193 inside tmux, at 40 columns and 30
+> rows.** The size of the terminal is the data of the fault (T-301): no proxy, no
+> book of a harness, and no change of the sandbox at all. The panel gives 38
+> columns, and `src/ui/stats_tui.rs` and `src/ui/sessions_tui.rs` each give a
+> `Vec<Line>` of fixed text to a `Paragraph` with **no** `.wrap(...)`:
 >
 > ```text
-> ────────Every key of the program────────
-> ➤ ▌ The panels (a screen of 120 columns█
->      1               The focus goes to █
->      Ctrl+h          The focus goes to │
->      l / → / Enter   The panel 1 opens │
->      z               Hide the panels 1,│
->      Click           The line of the po│
->      Shift+Click     Most terminals giv│
+> │Today: 1 h 46 min      In total: 13 h │      the time is 13 h 33 min
+> │3. A Long Test Book — Long Author  (1 │      the time is (1 h 26 min)
+> │2. A Second Book Of Many Hours  (8 h 0│      the time is (8 h 00 min)
+> │22 items,  25 tracks,  9 authors,  5 g│      the fact is 5 genres
+> │2078 books came, and 9 authors.  892.6│      the size is 892.6 MB
 > ```
 >
-> **No key of the 83 keys of the program said what it does.** A panel of 40
-> columns gives a line 37 of them — the width of the panel, less one column of the
-> bar of the scroll and two columns of the sign of the cursor — and the prefix of
-> three columns of the indent, of fifteen columns of the key, and of one space
-> takes 19: **18 columns stayed for the work**. The name of the group
-> `The panels (a screen of 120 columns and more, Home and Library)` lost the words
-> that name the two views of those panels in the same way.
+> **A cut of a number gives the user another number.** `(1 ` is not
+> `(1 h 26 min)`, and `892.6` with no unit is not `892.6 MB`. This is the one
+> view of this program whose whole work is numbers, and **no number of the three
+> groups of the media, of the library, and of the year reached the user whole**.
+> The view of the sessions cut the name of every media at the same column, and
+> six sessions of six different times read `A Second Book Of Many` together.
 >
-> **Why**: **a line of a list stands on one row of the panel** (T-311), and a
-> `ListItem` of ratatui holds no wrap. `keys::lines()` made one line of the list
-> for each of the 83 keys and one for each of the 13 groups, and it read no width
-> at all. **The two counts of a wrap of this program say how many rows a text
-> takes, and no function of it gave the rows themselves.**
+> **The correction, of four files.** A new `src/ui/the_wrap_of_a_line.rs` gives
+> `the_rows_of_a_line(line, width, indent)`, which **keeps the one loop of the
+> wrap of this program** (`the_parts_of_a_wrap`, T-362): it takes the text of
+> every span together, it gives that text to the loop, and it then cuts the spans
+> again at the bytes of each row — a row of a wrap keeps the style of every
+> column, therefore the time of a session keeps its bold and the bar of a day
+> keeps the colour of the accent. `lines` of each of the two views gives its
+> lines to that function at the end, and the `render` of each of them counts the
+> lines that it draws for the end of the scroll already: **the keys `j` and `k`
+> reach every row of a wrap with no other change of either file.** **v0.8.194.**
 >
-> **The correction, of four files.** `crate::logic::message::the_parts_of_a_wrap`
-> gives the rows of a wrap as text, and `the_rows_of_one_line` of T-309 is the
-> number of those parts now: **the loop of the wrap of this program stands in one
-> place**, and every one of the 1593 tests of the program before this one passed
-> with no change — `the_count_of_the_rows_of_a_message_is_the_count_of_ratatui`
-> measures that count against a real `Paragraph` of ratatui. A new
-> `the_list_of_a_view::the_columns_of_a_line` gives the columns of the text of a
-> line of a panel. `keys::lines_of_a_width` then makes the lines: the two columns
-> of the design hold while the work has `THE_SMALLEST_COLUMN_OF_THE_WORK` (20)
-> columns beside the key, and a panel that is narrower draws the key on a row of
-> its own with the work under it at an indent of five. **Every row of a wrap is a
-> line of the list**, therefore the rule of T-311 holds and the bar of the scroll
-> counts them. `render_keys` writes `App::the_columns_of_the_lines_of_the_keys`,
-> and the keys `j` and `G` of that view read it: **a count of the lines of another
-> width gives a cursor that the user cannot reach or one that goes past the last
-> line.** **v0.8.193.**
+> **Two rules that the first form of this item got wrong, and each of them is a
+> test now.** The first form wrapped every row at `width - indent`, and the round
+> found the two faults **in the real program of the same harness** and not in a
+> test. **A line that stands in the screen already must take one row**: the bar
+> of a day `2026-08-12 ▌  15 min 11 s` takes 35 columns of the 38 of the panel,
+> and the `s` of its time went to a second row. **The whitespace at the start of
+> a line stays on the first row**: the time of a session stands to the right of a
+> field of twelve columns, the loop of the wrap drops the whitespace at the start
+> of a row, and the column of the times of the whole view went away. The first
+> row holds the whole width now, and the head of the line is no row of the wrap.
 >
-> **The corrected program of the same harness** said the name of the group over
-> two rows and the work of every key whole, and the key `G` of 40, of 60, and of
-> 160 columns each gave the last line of the view. **The control of the same run
-> is the terminal of 160 columns**, where every row of that view stands as it
-> stood before this item.
+> **A test of the words of a view of this shape must read the cells of the
+> screen, and not the lines of the view** (the trap 249). `lines` gives the whole
+> text of every line, and the cut stands at the render: a first form of
+> `the_narrow_statistics_keep_the_time_of_a_media` read `lines` and it **passed**
+> with the correction removed. Those tests render into a real `Buffer` of ratatui
+> of 40 columns now, and they read the symbols of the cells and they take the
+> border of the `Block` away.
 >
-> **Four builds of the fault, and each of them fails
-> `tests/the_view_of_every_key_holds_the_words_of_its_work.rs`**: `true ||` on the
-> guard of `the_two_columns_stand`, `line_of_a_group` in the place of the wrap of
-> the name of a group, `keys::lines()` in the place of `lines_of_a_width` of
-> `render_keys`, and `keys::lines().len()` of `select_last`. **A first form of that
-> test passed the first of the four**: a wrap of 18 columns keeps every word too,
-> therefore the words alone do not say which of the two forms the view draws. The
-> item needed the pure function `keys::the_columns_of_the_work` and the rule of
-> the 20 columns, and that rule now stands in a test of a sweep of every width
-> from 25 to 160.
+> **Four builds of the fault, and each of them fails a test**: `lines` of
+> `stats_tui.rs` with no wrap, `lines` of `sessions_tui.rs` with no wrap, the
+> first row of a wrap that takes the indent too, and the whitespace of the start
+> of the line that goes away.
 >
-> **The gates**: clippy and fmt clean, 1594 tests of nextest in 3.3 seconds,
+> **The corrected program of the same harness** said every number whole, it told
+> the six sessions apart, it kept the column of the times right-aligned, every
+> bar of a day took one row, and the key `j` reached the last line of the view.
+> **The control of the same run is the terminal of 160 columns**, where every row
+> of the two views stands as it stood before this item.
+>
+> **The gates**: clippy and fmt clean, 1608 tests of nextest,
 > `cargo test -j 16 --no-fail-fast` three times with no failure, and
-> `cargo nextest run --run-ignored all` with the sandbox up gave 1620 of 1620.
->
-> **A tag of no annotation does not go with `git push --follow-tags`** (the trap
-> 247): the push of this round took the commit alone, and `git ls-remote --tags`
-> found no `v0.8.193` until a `git push origin v0.8.193` of its own. **A round
-> that pushes must read the tag at the remote.**
+> `cargo nextest run --run-ignored all` with the sandbox up gave 1634 of 1634.
 >
 > **What this round leaves open, and each of them is a candidate and not an
-> item**: **the statistics and the sessions**, the two other views of a text of a
-> scroll, at 40 columns; **the cursor of the view of the keys can stand on a row
-> that names no key**, because the key `G` puts the sign `➤` on the row of the
-> work of the last key; **`the_two_columns_stand` reads the width alone and never
-> the texts**, therefore a group of keys of a short work keeps no more columns
-> than a group of a long one; and every candidate of the turns before this one.
+> item**: **the indent of a wrap of a text of an East Asian language**, because
+> the four columns of it are four cells and a word of that text is a cell of two
+> columns; **the other views of this program that draw a `Paragraph` with no
+> wrap**, which a `grep -n 'Paragraph::new' src/ui/` for a render with no
+> `.wrap(` names; **the title of the panel of these two views**, which holds no
+> wrap either (T-361); and every candidate of the turns before this one.
 >
 >
->
->
->
-
 >    **The turns before this one stand in `## The turns before the three
 >    newest ones` of this file**, above the heading of this prompt. **This item
 >    held three turns, and the block then stood above its limit of size**
@@ -27883,8 +27987,11 @@ candidate of the turns before this one.
 > with no turn at all after the removal, and it held **85700** bytes with
 > **one** turn in it. The round of the hundred and ninety-fifth found it at
 > 85942 bytes with one turn in it, and it did the same work: the block held
-> **79795** bytes with no turn at all after the removal, and it holds about
-> **85500** bytes with **one** turn in it now.
+> **79795** bytes with no turn at all after the removal, and it held about
+> **85500** bytes with **one** turn in it. The round of the hundred and
+> ninety-sixth found it at 85942 bytes with one turn in it, and it did the same
+> work: the block held **80036** bytes with no turn at all after the removal,
+> and it holds **85610** bytes with **one** turn in it now.
 > **A block that stands at 80000 bytes or under holds two
 > turns**, and the turn of the stage before this one names the parts of that
 > stage which stay open. **The list of the decisions

@@ -20,5 +20,6 @@ pub mod the_panel_of_the_gallery;
 pub mod the_panels_of_the_stack;
 pub mod the_row_of_the_header;
 pub mod the_table_of_a_view;
+pub mod the_wrap_of_a_line;
 pub mod theme;
 pub mod tui;
