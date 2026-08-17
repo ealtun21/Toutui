@@ -49,6 +49,7 @@ fn the_book() -> PathBuf {
 ///
 /// The parts of this test stay in one function: the open of the book, the
 /// count, and the fault of the chapter 0 are one measurement of one file.
+
 #[test]
 fn a_book_that_names_no_chapter_says_so_and_it_says_no_number() {
     let book = Book::open(&the_book())
@@ -157,7 +158,8 @@ async fn the_screen_of_a_book_of_no_chapter_names_no_chapter() {
         let mut buffer = Buffer::empty(area);
 
         reader.take_the_answer();
-        toutui::ui::reader_tui::render(&mut reader, area, &mut buffer);
+        let (of_the_book, of_the_footer) = the_two_areas(area);
+        toutui::ui::reader_tui::render(&mut reader, of_the_book, of_the_footer, &mut buffer);
 
         words = the_words_of(&buffer);
 
@@ -209,4 +211,20 @@ fn the_words_of(buffer: &ratatui::buffer::Buffer) -> String {
     }
 
     words.split_whitespace().collect::<Vec<&str>>().join(" ")
+}
+
+/// The two areas of the render of the reader: the book, and the footer under
+/// it. **The band of the player stands between the two of them** (T-343),
+/// therefore the caller of `reader_tui::render` gives it the area of the footer.
+fn the_two_areas(area: ratatui::layout::Rect) -> (ratatui::layout::Rect, ratatui::layout::Rect) {
+    let of_the_footer = ratatui::layout::Rect::new(
+        area.x,
+        area.y + area.height.saturating_sub(2),
+        area.width,
+        2.min(area.height),
+    );
+    let of_the_book =
+        ratatui::layout::Rect::new(area.x, area.y, area.width, area.height.saturating_sub(2));
+
+    (of_the_book, of_the_footer)
 }

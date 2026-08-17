@@ -100,6 +100,7 @@ fn the_bytes_of_the_entry(bytes: &[u8], name: &str) -> Option<usize> {
 ///
 /// The parts of this test stay in one function: the good chapter of the same
 /// book is the control of the damaged one, and the two of them read one file.
+
 #[test]
 fn a_chapter_that_the_archive_did_not_give_holds_the_reason() {
     let directory = tempfile::tempdir().expect("the disk gives a directory");
@@ -203,7 +204,8 @@ async fn the_screen_of_a_chapter_that_gave_a_fault_says_why() {
         let mut buffer = Buffer::empty(area);
 
         reader.take_the_answer();
-        toutui::ui::reader_tui::render(&mut reader, area, &mut buffer);
+        let (of_the_book, of_the_footer) = the_two_areas(area);
+        toutui::ui::reader_tui::render(&mut reader, of_the_book, of_the_footer, &mut buffer);
 
         words = the_words_of(&buffer);
 
@@ -242,7 +244,8 @@ async fn the_screen_of_a_chapter_that_gave_a_fault_says_why() {
         let mut buffer = Buffer::empty(area);
 
         reader.take_the_answer();
-        toutui::ui::reader_tui::render(&mut reader, area, &mut buffer);
+        let (of_the_book, of_the_footer) = the_two_areas(area);
+        toutui::ui::reader_tui::render(&mut reader, of_the_book, of_the_footer, &mut buffer);
 
         assert!(
             !the_words_of(&buffer).contains("Reading"),
@@ -270,4 +273,20 @@ fn the_words_of(buffer: &ratatui::buffer::Buffer) -> String {
     }
 
     words.split_whitespace().collect::<Vec<&str>>().join(" ")
+}
+
+/// The two areas of the render of the reader: the book, and the footer under
+/// it. **The band of the player stands between the two of them** (T-343),
+/// therefore the caller of `reader_tui::render` gives it the area of the footer.
+fn the_two_areas(area: ratatui::layout::Rect) -> (ratatui::layout::Rect, ratatui::layout::Rect) {
+    let of_the_footer = ratatui::layout::Rect::new(
+        area.x,
+        area.y + area.height.saturating_sub(2),
+        area.width,
+        2.min(area.height),
+    );
+    let of_the_book =
+        ratatui::layout::Rect::new(area.x, area.y, area.width, area.height.saturating_sub(2));
+
+    (of_the_book, of_the_footer)
 }

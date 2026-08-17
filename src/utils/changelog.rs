@@ -41,6 +41,27 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.174",
+        date: "17/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The band of the player no longer writes over the lines of a \
+             view.** Fifteen views gave the band of the player no row of their \
+             layout, therefore it drew over their last six lines: the reader of \
+             an ebook lost six lines of the page and the line under the band \
+             went on with the text, and the same road took six lines of the \
+             chapters, of the queue, of the bookmarks, of the table of the \
+             keys, and of ten views beside them. The band stands under the work \
+             of every view now.",
+            "- **A terminal of few rows shows the list again while a media \
+             plays.** The band of the player and the two bars of the chapters \
+             took their rows before the list, therefore a screen of 8 rows held \
+             no line of it. The work of the view goes away last: the band takes \
+             the rows that stay, and it goes away when it has room for no word \
+             of the media. A screen of 13 rows and more does not change.",
+        ],
+    },
+    Entry {
         version: "0.8.173",
         date: "17/08/2026",
         body: &[

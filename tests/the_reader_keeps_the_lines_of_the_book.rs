@@ -97,7 +97,11 @@ fn the_screen_of_the_reader(contents_open: bool) -> Buffer {
 
     let area = Rect::new(0, 0, WIDTH, HEIGHT);
     let mut buffer = Buffer::empty(area);
-    render(&mut reader, area, &mut buffer);
+    // **The footer of the reader stands under the band of the player** (T-343),
+    // therefore the caller gives its area beside the area of the book.
+    let of_the_book = Rect::new(0, 0, WIDTH, HEIGHT.saturating_sub(2));
+    let of_the_footer = Rect::new(0, HEIGHT.saturating_sub(2), WIDTH, 2);
+    render(&mut reader, of_the_book, of_the_footer, &mut buffer);
     buffer
 }
 

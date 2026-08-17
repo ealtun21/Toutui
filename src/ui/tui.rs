@@ -173,6 +173,12 @@ fn the_areas_of_a_view(area: Rect, rows_of_the_player: u16, rows_of_the_footer: 
 /// the whole screen and it counted backward, therefore a view of a footer of
 /// three rows drew its band over its own last line. The band takes the area of
 /// the layout of the view now, and the two of them cannot disagree.
+///
+/// **Fifteen views built their layout themselves** (T-343), with the header,
+/// the work of the view, and the footer, and they gave the band no row of it:
+/// the band then drew over the last six lines of the reader of an ebook, of the
+/// Chapters view, of the view of every key, and of the twelve views beside them.
+/// Every view of this program takes its areas of [`the_areas_of_a_view`] now.
 fn the_area_of_the_band(area: Rect, rows_of_the_player: u16, rows_of_the_footer: u16) -> Rect {
     the_five_areas(area, rows_of_the_player, rows_of_the_footer)[2]
 }
@@ -183,11 +189,79 @@ fn the_five_areas(area: Rect, rows_of_the_player: u16, rows_of_the_footer: u16) 
     Layout::vertical([
         Constraint::Length(HEADER_HEIGHT),
         Constraint::Fill(1),
-        Constraint::Length(rows_of_the_player),
+        Constraint::Length(the_rows_of_the_band_of_a_screen(
+            area.height,
+            rows_of_the_player,
+            rows_of_the_footer,
+        )),
         Constraint::Length(1),
         Constraint::Length(rows_of_the_footer),
     ])
     .areas(area)
+}
+
+/// The rows that the band of the player keeps on a screen of few rows. See
+/// T-343.
+///
+/// The band says the media that plays, the place of the user, and the keys of
+/// the player, and it stands under the work of the view.
+///
+/// **The work of the view goes away last** (T-342): a `Constraint::Length`
+/// stands before a `Constraint::Fill` in the solver of ratatui, therefore the
+/// band took its rows away from the screen first and the view took what stayed.
+/// The band leaves the view its border and one line (`THE_SMALLEST_LIST`).
+///
+/// **A band of fewer than [`THE_SMALLEST_BAND`] rows says nothing at all**: its
+/// two rows of the border then take the room and the user reads no media and no
+/// place. Such a band goes away, and the view takes every row of it.
+///
+/// A screen that held the whole band keeps it, therefore this rule reaches a
+/// terminal of few rows alone.
+fn the_rows_of_the_band_of_a_screen(
+    rows_of_the_screen: u16,
+    rows_of_the_band: u16,
+    rows_of_the_footer: u16,
+) -> u16 {
+    // The header, the row of the message, the footer, and the smallest work of
+    // a view stand before the band.
+    let of_the_others = HEADER_HEIGHT
+        .saturating_add(1)
+        .saturating_add(rows_of_the_footer)
+        .saturating_add(THE_SMALLEST_LIST);
+
+    let rows = rows_of_the_band.min(rows_of_the_screen.saturating_sub(of_the_others));
+
+    if rows < THE_SMALLEST_BAND {
+        return 0;
+    }
+
+    rows
+}
+
+/// The rows that the band of the player needs for one word of the media: the
+/// two rows of its border, and the row of the title and of the author. See
+/// T-343.
+const THE_SMALLEST_BAND: u16 = 3;
+
+/// The rows of the two bars of the Chapters view that the list of that view
+/// leaves them: the bar of the book, the bar of the chapter, and one row of
+/// nothing under the two of them. See T-330.5 and T-343.
+///
+/// **The list of a view goes away last** (T-342): a `Constraint::Length` stands
+/// before a `Constraint::Fill` in the solver of ratatui, therefore the bars took
+/// their three rows away from the panel first and the list took what stayed. The
+/// bars leave the list its border and one line (`THE_SMALLEST_LIST`).
+///
+/// A panel of 5 rows and more keeps the three rows that it had, therefore this
+/// rule reaches a terminal of few rows alone.
+fn the_rows_of_the_bars_of_the_chapters(rows_of_the_panel: u16, the_bars_stand: bool) -> u16 {
+    if !the_bars_stand {
+        return 0;
+    }
+
+    // The bar of the book stands first, the bar of the chapter after it, and
+    // the row of nothing last.
+    rows_of_the_panel.saturating_sub(THE_SMALLEST_LIST).min(3)
 }
 
 /// Gives the three areas of the work of a view of a list: the lines, the row of
@@ -1077,8 +1151,14 @@ impl App {
 
 /// The reader of an ebook. See T-10.
 impl App {
-    /// Draws the reader. The whole screen belongs to the book, because a book
-    /// needs every line that the terminal has.
+    /// Draws the reader. Every line that the view of a list gives its list goes
+    /// to the book, because a book needs every line that the terminal has.
+    ///
+    /// **The band of the player stands under the book** (T-343): the reader
+    /// took the whole screen under its header, therefore the band drew over six
+    /// lines of the page and the line under it went on with the text. The
+    /// footer of the reader stands in the footer of the frame now, and the row
+    /// of the message stands above it.
     fn render_reader(&mut self, area: Rect, buf: &mut Buffer) {
         // The task that opens a book puts it in a place of the process. The
         // screen takes it here.
@@ -1092,12 +1172,8 @@ impl App {
             let text_render_footer = crate::ui::keys::FOOTER_OF_A_FAULT;
             let rows_of_the_footer = self.the_rows_of_the_footer(text_render_footer, area);
 
-            let [header_area, main_area, footer_area] = Layout::vertical([
-                Constraint::Length(2),
-                Constraint::Fill(1),
-                Constraint::Length(rows_of_the_footer),
-            ])
-            .areas(area);
+            let [header_area, main_area, footer_area] =
+                the_areas_of_a_view(area, self.the_rows_of_the_band(), rows_of_the_footer);
 
             let message = self
                 .reader_message
@@ -1121,8 +1197,21 @@ impl App {
             return;
         }
 
-        let [header_area, main_area] =
-            Layout::vertical([Constraint::Length(2), Constraint::Fill(1)]).areas(area);
+        // **The footer of the reader stands on the rows that it needs** (T-301),
+        // and the band of the player stands over the rows that stay (T-343):
+        // the reader took the whole screen under its header, therefore the band
+        // drew over six lines of the book.
+        let keys = self
+            .reader
+            .as_ref()
+            .map(|reader| {
+                crate::ui::reader_tui::footer_of(reader.contents_open, reader.holds_pages())
+            })
+            .unwrap_or(crate::ui::keys::FOOTER_OF_THE_READER);
+        let rows_of_the_footer = self.the_rows_of_the_footer(keys, area);
+
+        let [header_area, main_area, footer_area] =
+            the_areas_of_a_view(area, self.the_rows_of_the_band(), rows_of_the_footer);
 
         self.render_header(header_area, buf);
 
@@ -1148,7 +1237,7 @@ impl App {
         // and it never waits for them.
         reader.take_the_answer();
 
-        crate::ui::reader_tui::render(reader, text_area, buf);
+        crate::ui::reader_tui::render(reader, text_area, footer_area, buf);
 
         // The reader of the text holds the book, therefore the picture comes
         // after that render: two borrows of `self` must not live at the same
@@ -1225,12 +1314,8 @@ impl App {
         let text_render_footer = crate::ui::keys::FOOTER_OF_THE_STATISTICS;
         let rows_of_the_footer = self.the_rows_of_the_footer(text_render_footer, area);
 
-        let [header_area, main_area, footer_area] = Layout::vertical([
-            Constraint::Length(2),
-            Constraint::Fill(1),
-            Constraint::Length(rows_of_the_footer),
-        ])
-        .areas(area);
+        let [header_area, main_area, footer_area] =
+            the_areas_of_a_view(area, self.the_rows_of_the_band(), rows_of_the_footer);
 
         self.render_header(header_area, buf);
         App::render_footer(footer_area, buf, text_render_footer);
@@ -1259,12 +1344,8 @@ impl App {
         let text_render_footer = crate::ui::keys::FOOTER_OF_THE_SESSIONS;
         let rows_of_the_footer = self.the_rows_of_the_footer(text_render_footer, area);
 
-        let [header_area, main_area, footer_area] = Layout::vertical([
-            Constraint::Length(2),
-            Constraint::Fill(1),
-            Constraint::Length(rows_of_the_footer),
-        ])
-        .areas(area);
+        let [header_area, main_area, footer_area] =
+            the_areas_of_a_view(area, self.the_rows_of_the_band(), rows_of_the_footer);
 
         self.render_header(header_area, buf);
         App::render_footer(footer_area, buf, text_render_footer);
@@ -1368,13 +1449,11 @@ impl App {
             crate::ui::keys::footer_with(kind.work_of_the_key_that_opens(), None);
         let rows_of_the_footer = self.the_rows_of_the_footer(&text_render_footer, area);
 
-        let [header_area, main_area, item_area, footer_area] = Layout::vertical([
-            Constraint::Length(2),
-            Constraint::Fill(1),
-            Constraint::Length(4),
-            Constraint::Length(rows_of_the_footer),
-        ])
-        .areas(area);
+        let [header_area, work_area, footer_area] =
+            the_areas_of_a_view(area, self.the_rows_of_the_band(), rows_of_the_footer);
+
+        let [main_area, item_area] =
+            Layout::vertical([Constraint::Fill(1), Constraint::Length(4)]).areas(work_area);
 
         let state = crate::logic::authors::state();
 
@@ -1434,13 +1513,11 @@ impl App {
         let text_render_footer = crate::ui::keys::FOOTER_OF_THE_LISTS_THAT_TAKE_A_MEDIA;
         let rows_of_the_footer = self.the_rows_of_the_footer(text_render_footer, area);
 
-        let [header_area, main_area, item_area, footer_area] = Layout::vertical([
-            Constraint::Length(2),
-            Constraint::Fill(1),
-            Constraint::Length(4),
-            Constraint::Length(rows_of_the_footer),
-        ])
-        .areas(area);
+        let [header_area, work_area, footer_area] =
+            the_areas_of_a_view(area, self.the_rows_of_the_band(), rows_of_the_footer);
+
+        let [main_area, item_area] =
+            Layout::vertical([Constraint::Fill(1), Constraint::Length(4)]).areas(work_area);
 
         // A library holds no list until a user makes the first one. The title
         // says that condition, and it names the two keys that make a list:
@@ -1493,13 +1570,11 @@ impl App {
         let text_render_footer = crate::ui::keys::FOOTER_OF_THE_DEVICES_OF_AN_EREADER;
         let rows_of_the_footer = self.the_rows_of_the_footer(text_render_footer, area);
 
-        let [header_area, main_area, item_area, footer_area] = Layout::vertical([
-            Constraint::Length(2),
-            Constraint::Fill(1),
-            Constraint::Length(4),
-            Constraint::Length(rows_of_the_footer),
-        ])
-        .areas(area);
+        let [header_area, work_area, footer_area] =
+            the_areas_of_a_view(area, self.the_rows_of_the_band(), rows_of_the_footer);
+
+        let [main_area, item_area] =
+            Layout::vertical([Constraint::Fill(1), Constraint::Length(4)]).areas(work_area);
 
         let book = self
             .the_book_of_the_send
@@ -1573,13 +1648,11 @@ impl App {
         let text_render_footer = crate::ui::keys::FOOTER_OF_THE_DOWNLOADS;
         let rows_of_the_footer = self.the_rows_of_the_footer(text_render_footer, area);
 
-        let [header_area, main_area, item_area, footer_area] = Layout::vertical([
-            Constraint::Length(2),
-            Constraint::Fill(1),
-            Constraint::Length(4),
-            Constraint::Length(rows_of_the_footer),
-        ])
-        .areas(area);
+        let [header_area, work_area, footer_area] =
+            the_areas_of_a_view(area, self.the_rows_of_the_band(), rows_of_the_footer);
+
+        let [main_area, item_area] =
+            Layout::vertical([Constraint::Fill(1), Constraint::Length(4)]).areas(work_area);
 
         let (title, lines) = match crate::logic::the_downloads::state() {
             crate::logic::the_downloads::State::Ready(all) if all.is_empty() => (
@@ -1627,13 +1700,11 @@ impl App {
         let text_render_footer = crate::ui::keys::footer_with("read this book", None);
         let rows_of_the_footer = self.the_rows_of_the_footer(&text_render_footer, area);
 
-        let [header_area, main_area, item_area, footer_area] = Layout::vertical([
-            Constraint::Length(2),
-            Constraint::Fill(1),
-            Constraint::Length(4),
-            Constraint::Length(rows_of_the_footer),
-        ])
-        .areas(area);
+        let [header_area, work_area, footer_area] =
+            the_areas_of_a_view(area, self.the_rows_of_the_band(), rows_of_the_footer);
+
+        let [main_area, item_area] =
+            Layout::vertical([Constraint::Fill(1), Constraint::Length(4)]).areas(work_area);
 
         let (title, lines) = match crate::logic::the_ebooks::state() {
             crate::logic::the_ebooks::State::Ready(all) if all.is_empty() => {
@@ -1683,13 +1754,11 @@ impl App {
         let text_render_footer = crate::ui::keys::FOOTER_OF_A_NEW_PODCAST;
         let rows_of_the_footer = self.the_rows_of_the_footer(text_render_footer, area);
 
-        let [header_area, main_area, item_area, footer_area] = Layout::vertical([
-            Constraint::Length(2),
-            Constraint::Fill(1),
-            Constraint::Length(4),
-            Constraint::Length(rows_of_the_footer),
-        ])
-        .areas(area);
+        let [header_area, work_area, footer_area] =
+            the_areas_of_a_view(area, self.the_rows_of_the_band(), rows_of_the_footer);
+
+        let [main_area, item_area] =
+            Layout::vertical([Constraint::Fill(1), Constraint::Length(4)]).areas(work_area);
 
         let state = crate::logic::new_podcast::state();
 
@@ -1756,12 +1825,8 @@ impl App {
             crate::ui::keys::footer_with("go to the place", Some("remove the bookmark"));
         let rows_of_the_footer = self.the_rows_of_the_footer(&text_render_footer, area);
 
-        let [header_area, main_area, footer_area] = Layout::vertical([
-            Constraint::Length(2),
-            Constraint::Fill(1),
-            Constraint::Length(rows_of_the_footer),
-        ])
-        .areas(area);
+        let [header_area, main_area, footer_area] =
+            the_areas_of_a_view(area, self.the_rows_of_the_band(), rows_of_the_footer);
 
         // A write and a remove forget the answer. The view then asks the
         // server again, and the new list comes at the frame after it.
@@ -1824,12 +1889,8 @@ impl App {
         let text_render_footer = crate::ui::keys::footer_with("play it now", Some("take it out"));
         let rows_of_the_footer = self.the_rows_of_the_footer(&text_render_footer, area);
 
-        let [header_area, main_area, footer_area] = Layout::vertical([
-            Constraint::Length(2),
-            Constraint::Fill(1),
-            Constraint::Length(rows_of_the_footer),
-        ])
-        .areas(area);
+        let [header_area, main_area, footer_area] =
+            the_areas_of_a_view(area, self.the_rows_of_the_band(), rows_of_the_footer);
 
         let queue = crate::logic::queue::snapshot();
         let lines = self.queue_lines(queue.entries());
@@ -1861,12 +1922,8 @@ impl App {
         let text_render_footer = crate::ui::keys::footer_with("go to the chapter", None);
         let rows_of_the_footer = self.the_rows_of_the_footer(&text_render_footer, area);
 
-        let [header_area, main_area, footer_area] = Layout::vertical([
-            Constraint::Length(2),
-            Constraint::Fill(1),
-            Constraint::Length(rows_of_the_footer),
-        ])
-        .areas(area);
+        let [header_area, main_area, footer_area] =
+            the_areas_of_a_view(area, self.the_rows_of_the_band(), rows_of_the_footer);
 
         let state = self.player.state();
 
@@ -1884,8 +1941,8 @@ impl App {
             state.status == PlaybackStatus::Stopped,
         );
 
-        // The two bars and one row of nothing under them, or no row at all.
-        let rows_of_the_bars = if the_bars.is_some() { 3 } else { 0 };
+        let rows_of_the_bars =
+            the_rows_of_the_bars_of_the_chapters(main_area.height, the_bars.is_some());
 
         let [bars_area, main_area] =
             Layout::vertical([Constraint::Length(rows_of_the_bars), Constraint::Fill(1)])
@@ -1981,12 +2038,8 @@ impl App {
         let text_render_footer = crate::ui::keys::FOOTER_OF_A_LIST;
         let rows_of_the_footer = self.the_rows_of_the_footer(text_render_footer, area);
 
-        let [header_area, main_area, footer_area] = Layout::vertical([
-            Constraint::Length(2),
-            Constraint::Fill(1),
-            Constraint::Length(rows_of_the_footer),
-        ])
-        .areas(area);
+        let [header_area, main_area, footer_area] =
+            the_areas_of_a_view(area, self.the_rows_of_the_band(), rows_of_the_footer);
 
         let rows = self.sort_filter_rows();
 
@@ -2047,12 +2100,8 @@ impl App {
         let text_render_footer = crate::ui::keys::FOOTER_OF_THE_KEYS;
         let rows_of_the_footer = self.the_rows_of_the_footer(text_render_footer, area);
 
-        let [header_area, main_area, footer_area] = Layout::vertical([
-            Constraint::Length(2),
-            Constraint::Fill(1),
-            Constraint::Length(rows_of_the_footer),
-        ])
-        .areas(area);
+        let [header_area, main_area, footer_area] =
+            the_areas_of_a_view(area, self.the_rows_of_the_band(), rows_of_the_footer);
 
         let lines = crate::ui::keys::lines();
 
@@ -2367,9 +2416,12 @@ impl App {
     /// numbers of one row. The view writes `self.rows_of_the_footer` before this
     /// function runs, therefore the band reads the footer of this frame.
     fn render_the_band_of_the_player(&mut self, area: Rect, buf: &mut Buffer) {
-        let rows = self.the_rows_of_the_band();
+        // **A screen of few rows gives the band no row at all** (T-343): the
+        // work of the view goes away last, therefore this area holds no row
+        // when the view needs every one of them.
+        let band = the_area_of_the_band(area, self.the_rows_of_the_band(), self.rows_of_the_footer);
 
-        if rows == 0 {
+        if band.height == 0 {
             // **A frame that draws no band takes no click of it** (T-316).
             self.the_areas_of_the_mouse.the_band_of_the_player = Rect::default();
             self.the_areas_of_the_mouse.the_bar_of_the_seek = Rect::default();
@@ -2421,7 +2473,6 @@ impl App {
             the_buttons_stand: self.the_key_bindings_stand,
         };
 
-        let band = the_area_of_the_band(area, rows, self.rows_of_the_footer);
         let bar = crate::ui::player_tui::render_the_band(
             band,
             buf,
@@ -2959,13 +3010,11 @@ impl App {
             crate::ui::keys::footer_with("write this value in config.toml", None);
         let rows_of_the_footer = self.the_rows_of_the_footer(&text_render_footer, area);
 
-        let [header_area, main_area, item_area, footer_area] = Layout::vertical([
-            Constraint::Length(2),
-            Constraint::Fill(1),
-            Constraint::Length(5),
-            Constraint::Length(rows_of_the_footer),
-        ])
-        .areas(area);
+        let [header_area, work_area, footer_area] =
+            the_areas_of_a_view(area, self.the_rows_of_the_band(), rows_of_the_footer);
+
+        let [main_area, item_area] =
+            Layout::vertical([Constraint::Fill(1), Constraint::Length(5)]).areas(work_area);
 
         let now = self.megabytes_of_the_cache();
 
@@ -4820,6 +4869,108 @@ mod tests {
                 "the two parts must hold every row of the work of the view"
             );
         }
+    }
+
+    /// **The band of the player and the bars of the Chapters view go away
+    /// before the work of a view** (T-343, and the decision of T-342).
+    ///
+    /// The measurement of the real program v0.8.173 inside tmux, in a terminal
+    /// of 100 columns and 8 rows, with a book of 70 chapters that plays: the
+    /// Chapters view said `The chapters of "A Second Book Of Many Hours" [70
+    /// items]` in the title of its border and **no one of the 70 chapters stood
+    /// on the screen**, because the two bars took the three rows of the panel
+    /// first. The band of the player took three rows of that same screen.
+    ///
+    /// **The parts of this test stay in one function.**
+    #[test]
+    fn the_band_and_the_bars_go_away_before_the_work_of_a_view() {
+        // A screen of many rows keeps the whole band, therefore every screen
+        // that stood before T-343 stands in the same shape.
+        for rows_of_the_screen in 13..=45u16 {
+            assert_eq!(
+                the_rows_of_the_band_of_a_screen(rows_of_the_screen, PLAYER_HEIGHT, FOOTER_HEIGHT),
+                PLAYER_HEIGHT,
+                "a screen of {rows_of_the_screen} rows must keep the whole band"
+            );
+        }
+
+        // A screen of fewer rows gives the work of the view its border and one
+        // line first: the header takes 2 rows, the row of the message takes 1,
+        // and the footer takes the rows of its text.
+        assert_eq!(
+            the_rows_of_the_band_of_a_screen(12, PLAYER_HEIGHT, FOOTER_HEIGHT),
+            5
+        );
+        assert_eq!(
+            the_rows_of_the_band_of_a_screen(11, PLAYER_HEIGHT, FOOTER_HEIGHT),
+            4
+        );
+        assert_eq!(
+            the_rows_of_the_band_of_a_screen(10, PLAYER_HEIGHT, FOOTER_HEIGHT),
+            3
+        );
+
+        // **A band of fewer than THE_SMALLEST_BAND rows says nothing at all**:
+        // the two rows of its border take the room of the view, and the user
+        // reads no media and no place.
+        for rows_of_the_screen in 0..=9u16 {
+            assert_eq!(
+                the_rows_of_the_band_of_a_screen(rows_of_the_screen, PLAYER_HEIGHT, FOOTER_HEIGHT),
+                0,
+                "a screen of {rows_of_the_screen} rows must give the band no row"
+            );
+        }
+
+        // The areas themselves: the work of every view keeps its border and one
+        // line while the screen holds the header, the message, and the footer.
+        for rows_of_the_screen in 0..=45u16 {
+            let screen = Rect {
+                x: 0,
+                y: 0,
+                width: 100,
+                height: rows_of_the_screen,
+            };
+
+            let [_, main_area, _] = the_areas_of_a_view(screen, PLAYER_HEIGHT, FOOTER_HEIGHT);
+            let band = the_area_of_the_band(screen, PLAYER_HEIGHT, FOOTER_HEIGHT);
+
+            let of_the_others = HEADER_HEIGHT + 1 + FOOTER_HEIGHT;
+
+            assert!(
+                main_area.height
+                    >= THE_SMALLEST_LIST.min(rows_of_the_screen.saturating_sub(of_the_others)),
+                "a screen of {rows_of_the_screen} rows gives the work of the view \
+                 {} rows",
+                main_area.height
+            );
+
+            // **The band takes no row of the work of the view** (T-343): the
+            // band drew over the last lines of every view that built its
+            // layout itself, therefore the two areas must not meet.
+            assert!(
+                band.height == 0 || band.y >= main_area.y + main_area.height,
+                "the band of a screen of {rows_of_the_screen} rows stands over \
+                 the work of the view"
+            );
+        }
+
+        // The two bars of the Chapters view take the same road.
+        for rows_of_the_panel in 5..=45u16 {
+            assert_eq!(
+                the_rows_of_the_bars_of_the_chapters(rows_of_the_panel, true),
+                3,
+                "a panel of {rows_of_the_panel} rows must keep the three rows \
+                 of the bars"
+            );
+        }
+
+        assert_eq!(the_rows_of_the_bars_of_the_chapters(4, true), 2);
+        assert_eq!(the_rows_of_the_bars_of_the_chapters(3, true), 1);
+        assert_eq!(the_rows_of_the_bars_of_the_chapters(2, true), 0);
+        assert_eq!(the_rows_of_the_bars_of_the_chapters(0, true), 0);
+
+        // A media of no chapter gives no bar at all, at every number of rows.
+        assert_eq!(the_rows_of_the_bars_of_the_chapters(45, false), 0);
     }
 
     /// **The footer of a view stands on the rows that it needs** (T-302).

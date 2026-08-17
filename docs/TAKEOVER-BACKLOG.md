@@ -32332,3 +32332,211 @@ measurement):
   a split of its own (T-301 and T-302). **A measurement of the reader at 8
   rows did not run.**
 - **Every candidate of the turns before this one stays open.**
+
+## T-343 — The band of the player writes over the last lines of a view
+
+**The condition**: the real program v0.8.173 inside tmux, of 160 columns and 45
+rows, against the sandbox, with "A Second Book Of Many Hours" of the library
+`Books` in a playback. **This item needed no proxy, no book of a harness, and
+no change of the sandbox at all**: a media that plays and a view of many lines
+are the whole of the data of the fault. The round after T-342 took the item 1
+of the list of the work — a condition of the program that no measurement has
+reached — and the turn of T-342 named the reader of an ebook and the Chapters
+view as the two views that no round had measured at a terminal of few rows.
+
+**The fault, of the reader of an ebook.** The key `e` of `Alice in Wonderland`,
+with the book of eight hours in the playback of the same program:
+
+```text
+suddenly, thump! thump! down she came upon a heap of sticks and dry leaves, and the fall was over.
+┌ Player ──────────────────────────────────────────────────────────────────────────────────┐
+│ ▶ A Second Book Of Many Hours  Many Hours Author  Chapter 23 of 70 …          Speed 1.00x │
+│ 2:31:47 ├███████████████████████▒░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░┤ 8:00:00 │
+│ Book    ███████████░░░░░░░░░░░░  31%  Chapter █████████████░░░░░░░░░░░░░░░░░░  46%       │
+│                    Spc: pause/play | p/u: +/−10s | … | Y: quit                            │
+└──────────────────────────────────────────────────────────────────────────────────────────┘
+herself in a long, low hall, which was lit up by a row of lamps hanging from the roof.
+```
+
+**The user of that screen reads a paragraph, then six lines that the band
+holds, and then the text of the book again.** The six lines that the band
+covered stand in no other place: the key `j` of the reader moves the page by
+one line, therefore the user reaches those words with a key of their own, and
+nothing on the screen says that six lines are away.
+
+**The same fault, of the view of every key** (the key `?`), of the same
+program and the same moment:
+
+```text
+  ▌ The media
+┌ Player ──────────────────────────────────────────────────────────────────────┐
+│ ▶ A Second Book Of Many Hours  Many Hours Author  Chapter 11 of 70 …          │
+… the four rows of the band …
+└──────────────────────────────────────────────────────────────────────────────┘
+     D               Make a copy on the disk                                   │
+                        j/k: move  h/Esc: back  ?: close  Q: quit
+```
+
+The border `│` of the panel of the list stands at the right of the row under
+the band, and the row `D  Make a copy on the disk` is the last line of the
+list: the six lines before it are away. The Chapters view of the same
+measurement gave the chapters 1 to 29, then the band, then the chapter 36.
+
+**Why.** `the_five_areas` of `src/ui/tui.rs` holds the five parts of the screen
+of a view — the header, the work of the view, the band of the player, the row
+of the message, and the footer — and `the_areas_of_a_view` gives the three of
+them that a view draws. **Fifteen views of this program built that layout
+themselves**, with the header, the work of the view, and the footer alone:
+
+```rust
+let [header_area, main_area, footer_area] = Layout::vertical([
+    Constraint::Length(2),
+    Constraint::Fill(1),
+    Constraint::Length(rows_of_the_footer),
+])
+.areas(area);
+```
+
+The work of that view therefore reached the footer, and
+`render_the_band_of_the_player`, which runs after the view of the frame, drew
+its six rows over the last six lines of it. The fifteen: the reader of an
+ebook (with a book and with no book), the statistics, the sessions, the
+authors and the narrators, the view that puts a media in a list, the devices
+of an e-reader, the downloads, the ebooks, the new podcast, the bookmarks, the
+queue, the chapters, the sequence and the filter, the table of the keys, and
+the settings of the reader. **The views of the frame of the panels — the Home view, the
+Library view, the view of a search, the episodes of a podcast, the series, the
+books of a series, the collections, and the media of a collection — took
+`the_areas_of_a_view` already** (T-320 and T-322), and the Library view of
+the same measurement is the control: its list ends above the band, at every
+width and at every number of rows.
+
+**The rule of T-322 says this already**: "The band takes the area of the layout
+of the view now, and the two of them cannot disagree." The stage of T-322 gave
+that rule to the views of a list of the frame, and the fifteen views of a
+layout of their own kept the shape that they had.
+
+**The correction, of three parts.**
+
+1. **Every view takes its areas of `the_areas_of_a_view`.** The fourteen views
+   of the shape above take the three areas of it. The seven views that hold a
+   row of the item of 4 or 5 rows under their list split the work of the view
+   into the list and that row after it, therefore the band and the message
+   stand outside the two of them. The reader of an ebook reads the keys of its
+   footer before the layout (`reader_tui::footer_of`), it gives them to
+   `App::the_rows_of_the_footer`, and `reader_tui::render` takes the area of
+   the book and the area of the footer as two arguments: the band stands
+   between them.
+
+2. **The band of the player goes away before the work of a view**, which is the
+   decision of T-342 for the row of the item. A `Constraint::Length` stands
+   before a `Constraint::Fill` in the solver of ratatui, therefore the band
+   took its six rows of a screen of 8 rows first and the view took what stayed.
+   `the_rows_of_the_band_of_a_screen(rows_of_the_screen, rows_of_the_band,
+   rows_of_the_footer)` leaves the view its border and one line
+   (`THE_SMALLEST_LIST`), and **a band of fewer than `THE_SMALLEST_BAND` rows
+   goes away**: a band of 2 rows holds its two rows of the border and it says
+   no media and no place at all. A screen of 13 rows and more keeps the whole
+   band of 6 rows.
+
+3. **The two bars of the Chapters view take that same road**:
+   `the_rows_of_the_bars_of_the_chapters(rows_of_the_panel, the_bars_stand)`
+   gives the three rows of the two bars to a panel of 5 rows and more, and it
+   leaves the list its border and one line under that.
+
+**The decisions of this round.**
+
+- **The work of a view goes away last**, and the band of the player and the
+  bars of the chapters are two more parts that give way before it. That is the
+  decision of T-342 for the row of the item, and no round joins them again.
+- **The fifteen views take the row of the message of every other view.** The
+  message of the program grows upward over the view (the trap 39), and the row
+  above the footer of the five areas is the row of a message of one row: the
+  fifteen views held no such row, therefore a message of one row covered their
+  last line. The reader of an ebook therefore holds one line of the book fewer
+  than it held, and the message of the program takes no word of the page.
+- **The footer of the reader stands in the footer of the frame.** The reader
+  drew its own footer at the end of its own area, therefore the band of the
+  player and that footer could not agree. `reader_tui::render` takes the two
+  areas now, and the shape of the screen of the reader is the shape of every
+  other view: the header, the book, the band, the message, and the footer.
+
+**The measurement of the corrected program v0.8.173**, of the same harness.
+The reader of `Alice in Wonderland` with the same playback: the text of the
+page ends above the band, the band stands whole, and the footer of the reader
+stands under it. The view of every key: the list ends at `▌ The media` above
+the band, and the rows under the band are the row of the message and the
+footer. The Library view is the screen of the program before it, character for
+character.
+
+At 100 columns and 8 rows, with the same book in the playback, the Chapters
+view of the program before this round:
+
+```text
+👋 Connected as toutuitest                📖 Books (book)                         🦜 Toutui v0.8.173
+🔗 localhost:13399
+┌ Player ──────────────────────────────────────────────────────────────────────────────────────────┐
+│ ▶ A Second Book Of Many Hours  Many Hours Author  Chapter 6 of 70: Chapter 6 of the  Speed 1.00x │
+└──────────────────────────────────────────────────────────────────────────────────────────────────┘
+──────────────────────The chapters of "A Second Book Of Many Hours" [70 items]──────────────────────
+                   j/k: move  l: go to the chapter  h: back  ?: every key  Q: quit
+```
+
+**The title of the border says 70 items and the screen shows no one of them**,
+and the band of the player holds three rows of the eight. The corrected
+program of the same terminal:
+
+```text
+👋 Connected as toutuitest                📖 Books (book)                         🦜 Toutui v0.8.173
+🔗 localhost:13399
+ Book  ██████████████████████████████████████████████████████████████████████░░░░░░░░░░░░░░░░░  80%
+──────────────────────The chapters of "A Second Book Of Many Hours" [70 items]──────────────────────
+➤ ▶ 57  Chapter 57 of the second book                                               6:22:48   9m19s█
+                   j/k: move  l: go to the chapter  h: back  ?: every key  Q: quit
+```
+
+The band is away, the bar of the book keeps one row, and the table holds the
+chapter of the cursor.
+
+**The gates.** `the_band_and_the_bars_go_away_before_the_work_of_a_view` of
+`src/ui/tui.rs` reads the two pure functions and the areas of the whole screen
+for 0 to 45 rows: the band holds its 6 rows at 13 rows and more, 5 at 12, 4 at
+11, 3 at 10, and none at 9 and fewer; the work of the view keeps
+`THE_SMALLEST_LIST` rows while the screen has room for them; **and the area of
+the band and the area of the work of the view never meet**.
+`tests/the_band_of_the_player_takes_no_line_of_a_view.rs` builds an `App` with
+a state of a playback of `PlayerHandle::without_engine`, it draws the view of
+the keys and the Chapters view into a `TestBackend` of 160 by 45, and it reads
+the rows under the border of the band: they hold no border of a panel and no
+sign of a cursor. It draws the Chapters view of 8 rows too, where the band is
+away and the table holds its line.
+
+Each of the three corrections failed its gate with the fault built back in.
+The layout of the view of the keys, built back in one edit of six lines, gave
+`the row under the band of the view of the keys must hold nothing:
+     D               Make a copy on the disk … │`, which is the line of the
+measurement of tmux. A `.max(rows_of_the_band)` of the band gave `left: 6,
+right: 5` at 12 rows, and a `.max(3)` of the bars gave the same shape.
+
+**v0.8.174.**
+
+**What this item leaves open** (each of them a candidate and not a
+measurement):
+
+- **A screen of 5 rows and fewer holds the header and the footer alone**, and
+  no round has decided which of those parts gives way first. The band is away
+  at that size now, therefore the parts that stay are the header, the row of
+  the message, and the footer.
+- **The seven views of a row of the item under their list hold that row as a
+  `Constraint::Length` of 4 or of 5**, therefore the fault of T-342 stands in
+  them at a terminal of few rows: `the_areas_of_a_list` holds the rule of
+  T-342 and those seven views do not call it.
+- **A band of 3, 4, or 5 rows loses its buttons, its bars, and its seek in that
+  sequence**, which is the rule of `the_parts_of_the_band` (T-322), and **no
+  measurement of tmux of a terminal of 10, 11, or 12 rows ran**: the pure
+  function holds those numbers alone.
+- **The map of the mouse of a band that is not whole**: a click of a row of the
+  band that the screen does not hold reaches `the_parts_of_the_band`, which
+  gives `Rect::default()` for a row of no room, and no measurement of a click
+  of such a screen ran.
+- **Every candidate of the turns before this one stays open.**

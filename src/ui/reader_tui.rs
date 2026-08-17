@@ -212,18 +212,13 @@ pub fn draw_the_footer(area: Rect, buf: &mut Buffer, keys: &str) {
 }
 
 /// Draws the reader.
-pub fn render(reader: &mut Reader, area: Rect, buf: &mut Buffer) {
-    // **The footer comes before the layout** (T-301): the number of its rows is
-    // the number of rows that the wrap of its text needs.
+pub fn render(reader: &mut Reader, area: Rect, footer_area: Rect, buf: &mut Buffer) {
+    // **The footer of the reader stands outside the area of the book** (T-343):
+    // the caller reads the rows that the wrap of this text needs, because the
+    // band of the player stands between the book and that footer.
     let keys = footer_of(reader.contents_open, reader.holds_pages());
-    let rows_of_the_footer = the_rows_of_the_footer(keys, area.width, area.height);
 
-    let [top, middle, bottom] = Layout::vertical([
-        Constraint::Length(1),
-        Constraint::Fill(1),
-        Constraint::Length(rows_of_the_footer),
-    ])
-    .areas(area);
+    let [top, middle] = Layout::vertical([Constraint::Length(1), Constraint::Fill(1)]).areas(area);
 
     Paragraph::new(line_of_the_top(
         &reader.title,
@@ -236,7 +231,7 @@ pub fn render(reader: &mut Reader, area: Rect, buf: &mut Buffer) {
     .style(Style::default().add_modifier(Modifier::BOLD))
     .render(top, buf);
 
-    draw_the_footer(bottom, buf, keys);
+    draw_the_footer(footer_area, buf, keys);
 
     if reader.contents_open {
         render_contents(reader, middle, buf);
