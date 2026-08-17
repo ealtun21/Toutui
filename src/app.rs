@@ -2709,18 +2709,6 @@ impl App {
             .map(|media| media.the_line)
     }
 
-    /// The media of the gallery of the panel 6, in the sequence of the list of
-    /// the view. See T-327.
-    ///
-    /// **A row of the list that names no media gives no cell**: the name of a
-    /// shelf of the Home view and the line of a series each hold more than one
-    /// media, or none at all, therefore a cover of one of them would say the
-    /// cover of a media that the row does not name. The field `the_line` of
-    /// each media carries the line of the list, so that a click of a cell moves
-    /// the cursor to the row of that media.
-    ///
-    /// **The Home view and the Library view are the two views of the frame of
-    /// the panels** (T-320), therefore every other view gives no media at all.
     /// The identity of the media of a line of the Home view, for the store of
     /// the covers of a cell of a band. See T-336.
     ///
@@ -2744,22 +2732,38 @@ impl App {
         }
     }
 
+    /// The media of the gallery of the panel 6. See T-327 and T-339.
+    ///
+    /// **The Library view gives every row of its list, and the Home view gives
+    /// the shelf of the cursor alone** (T-339): the list of the Library view is
+    /// one group of the server, and the list of the Home view is six of them.
+    ///
+    /// **A row of the list that names no media gives no cell**: the name of a
+    /// shelf of the Home view holds more than one media, therefore a cover of it
+    /// would say the cover of a media that the row does not name. The field
+    /// `the_line` of each media carries the line of the list, so that a click of
+    /// a cell moves the cursor to the row of that media.
+    ///
+    /// **The Home view and the Library view are the two views of the frame of
+    /// the panels** (T-320), therefore every other view gives no media at all.
     pub fn the_media_of_the_gallery(
         &self,
     ) -> Vec<crate::ui::the_panel_of_the_gallery::AMediaOfTheGallery> {
         use crate::ui::the_panel_of_the_gallery::AMediaOfTheGallery;
 
-        // **A media of the gallery holds its line and its identity alone**
-        // (T-330.4): the cell of it draws the picture and its border, and no
-        // word at all. The row of the table stays the condition of a media,
+        // **A media of the gallery holds its line, its identity, and its
+        // title**: the cell of it draws the picture and its border (T-330.4),
+        // and the title stands in the rows of the picture for a cell that draws
+        // none (T-339). The row of the table stays the condition of a media,
         // because a line of the list that the table does not hold names none.
         let of_a_media =
             |the_line: usize,
              id: Option<&String>,
-             _row: &crate::ui::the_table_of_a_view::ARowOfTheTable| {
+             row: &crate::ui::the_table_of_a_view::ARowOfTheTable| {
                 AMediaOfTheGallery {
                     the_line,
                     id: id.cloned().unwrap_or_default(),
+                    the_title: row.title.clone(),
                 }
             };
 
@@ -2780,15 +2784,45 @@ impl App {
             }
             AppView::Home => {
                 let rows = self.home_table_rows();
+                let bands = crate::logic::the_bands_of_the_home::the_bands(&self.home_rows);
+                let the_line = self.the_line_of_the_list_of_the_view().unwrap_or(0);
 
-                self.home_rows
+                // **The gallery of the Home view is the whole shelf of the
+                // cursor**, and not the media of every shelf (T-339): the panel
+                // 4 draws one band of about six cells of that shelf, and the
+                // panel 6 is the grid of the media that the band leaves outside
+                // the screen. A grid of the media of every shelf answers a
+                // question that no user asked, because a shelf of the server is
+                // a group of its own.
+                //
+                // **A cursor that stands on the line of a shelf gives the first
+                // band**, which is the rule of `plan_the_bands` (T-336): the
+                // cursor of the flat list can stand on such a line after a
+                // refresh.
+                let of_the_cursor =
+                    crate::logic::the_bands_of_the_home::the_place_of_the_line(&bands, the_line)
+                        .map(|(band, _)| band)
+                        .unwrap_or(0);
+
+                let Some(band) = bands.get(of_the_cursor) else {
+                    return Vec::new();
+                };
+
+                // **A cell of the band is a cell of the gallery**: the two
+                // panels draw one picture in one border of one media (T-336),
+                // therefore the line of a series takes a cell of the grid too,
+                // with the cover of its first book.
+                band.the_cells
                     .iter()
-                    .enumerate()
-                    .filter_map(|(the_line, row)| match row {
-                        HomeRow::Media { item } => rows.get(the_line).map(|of_the_table| {
-                            of_a_media(the_line, self._ids_cnt_list.get(*item), of_the_table)
-                        }),
-                        HomeRow::Shelf { .. } | HomeRow::Series { .. } => None,
+                    .filter_map(|the_line| {
+                        rows.get(*the_line).map(|of_the_table| {
+                            of_a_media(
+                                *the_line,
+                                self.the_identity_of_a_line_of_the_home_view(*the_line)
+                                    .as_ref(),
+                                of_the_table,
+                            )
+                        })
                     })
                     .collect()
             }

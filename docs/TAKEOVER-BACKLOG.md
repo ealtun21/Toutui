@@ -31901,3 +31901,140 @@ no pictures (a cell that holds the title of the media in the rows of the
 picture). The sandbox holds a cover for 6 of the 15 media of this Home view and
 no cover for the other 9, therefore the cells of the screen of this round stand
 empty for the reason of the round 5, and not of this one.
+
+## T-339 — The title of a cell that draws no picture, and the gallery of the shelf of the cursor
+
+**The round 5 of the road of the spec**
+`docs/superpowers/specs/2026-08-17-the-home-view-of-the-bands-of-covers-design.md`
+(T-331), which is the **last** round of that road. It holds the two rules that
+the rounds 1 to 4 left: the terminal that draws no pictures, and the panel 6 of
+the gallery of the shelf of the cursor.
+
+**The two faults, of the real program v0.8.170 inside tmux**, of 160 columns and
+45 rows, against the sandbox, of the Home view of the library `Large`. That
+library needs no proxy and no change of the sandbox at all: the server holds no
+cover of its books.
+
+### 1. A cell that no picture reaches held a border and nothing at all
+
+The panel 4 drew two bands of six cells and the panel 6 drew twelve more, and
+**the 24 of them stood empty together**: the user read no name of a media in the
+whole of the two panels, and the panel 5 said the facts of one media of them.
+
+```text
+╔4 Home [20 items] ═══════════════════════════════════════════════════════╗
+║Recently Added ──────────────────────────────────────────────── 6 of 10 ›║
+║┏━━━━━━━━┓ ┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐        ║
+║┃        ┃ │        │ │        │ │        │ │        │ │        │        ║
+║┃        ┃ │        │ │        │ │        │ │        │ │        │        ║
+║┗━━━━━━━━┛ └────────┘ └────────┘ └────────┘ └────────┘ └────────┘        ║
+```
+
+The reason: `render_the_bands_of_the_panel_4` and `render_the_gallery` of
+`src/ui/tui.rs` each drew the border of a cell and they then left the rows of
+the picture with no character at all, for every media that
+`cover::no_picture_comes` names. That function names **three** conditions of the
+user: a media that the server holds with no cover, `TOUTUI_NO_COVERS`, and a
+terminal of no protocol of pictures.
+
+### 2. The panel 6 held the media of every shelf of the view
+
+With the cursor on the **first** media of the shelf `Discover`, the grid of the
+panel 6 held the twenty media of the two shelves of the view, therefore the cell
+of the cursor stood in the **third** row of it, at the place 10 of 20:
+
+```text
+┌6 Gallery ──────────────────────────────────────┐
+│  ┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐   │
+│  └────────┘ └────────┘ └────────┘ └────────┘   │
+│  ┌────────┐ ┌────────┐ ┏━━━━━━━━┓ ┌────────┐   │
+│  └────────┘ └────────┘ ┗━━━━━━━━┛ └────────┘   │
+```
+
+The reason: the arm `AppView::Home` of `App::the_media_of_the_gallery` of
+`src/app.rs` read every row of `home_rows` that names a media. The list of the
+Library view is one group of the server, and the list of the Home view is six of
+them: a grid of the six together answers a question that no user asked.
+
+**The correction.**
+
+- `the_title_of_a_cell` of `src/ui/the_panel_of_the_gallery.rs` gives the text of
+  a title in the rows of the picture of a cell, of
+  `crate::logic::message::in_the_rows`: the wrap of this program, and the three
+  points for a title that needs more rows than the cell holds (T-91).
+- `AMediaOfTheGallery` holds the field `the_title`.
+- `App::render_the_title_of_a_cell` of `src/ui/tui.rs` draws it with
+  `Wrap { trim: true }` and the quiet style, and the two renders of a cell — the
+  bands of the panel 4 and the grid of the panel 6 — call it for a media that no
+  picture reaches, and they draw the picture for every other one.
+- The arm `AppView::Home` of `App::the_media_of_the_gallery` takes the cells of
+  the band of the cursor, of `the_bands_of_the_home::the_bands` and of
+  `the_place_of_the_line`. **A cursor that stands on the line of a shelf gives
+  the first band**, which is the rule of `plan_the_bands` (T-336).
+
+**The measurement of the correction, of the same harness.** The library `Large`:
+
+```text
+║Recently Added ──────────────────────────────────────────────── 6 of 10 ›║
+║┏━━━━━━━━┓ ┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐        ║
+║┃Large   ┃ │Large   │ │Large   │ │Large   │ │Large   │ │Large   │        ║
+║┃Book    ┃ │Book    │ │Book    │ │Book    │ │Book    │ │Book    │        ║
+║┃0001    ┃ │0002    │ │0003    │ │0004    │ │0005    │ │0006    │        ║
+║┗━━━━━━━━┛ └────────┘ └────────┘ └────────┘ └────────┘ └────────┘        ║
+```
+
+The panel 6 of that same frame held the **ten** media of `Recently Added`
+(`0001` to `0010`), which are the six cells of the band and the four that the
+band leaves outside the screen. The key `j` gave the shelf `Discover`, and the
+panel 6 then held the ten media of that shelf alone — `1376`, `1459`, `0984`,
+`1038`, `1476`, `0392`, `1931`, `0754`, `0077`, and `0625` — with the cursor at
+the **first** cell of the grid.
+
+**The two shapes of a cell stand in one band.** The library `Books` of the
+sandbox holds a cover for some of its media and no cover for the others, and the
+Home view of it gave the picture and the title beside each other:
+
+```text
+║Continue Listening ─────────────────────────────────────────────── 6 of 6║
+║┏━━━━━━━━┓ ┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐        ║
+║┃        ┃ │A Second│ │A Book  │ │One     │ │A Big   │ │        │        ║
+║┃        ┃ │Book Of │ │Of Many │ │Chapter │ │Book Of │ │        │        ║
+║┃        ┃ │Many    │ │Hours   │ │Book    │ │A Scan  │ │        │        ║
+║┗━━━━━━━━┛ └────────┘ └────────┘ └────────┘ └────────┘ └────────┘        ║
+```
+
+The first cell and the last one hold a picture of halfblocks, which `tmux
+capture-pane` with no `-e` gives with no character at all (T-327). A title that
+is longer than the rows of the cell says that the screen cut it: the band
+`Recently Added` of that same frame held `A Book That Ends Before…`.
+
+**The three decisions of this round.**
+
+- **A cell of the band and a cell of the gallery say a title in one way**, and
+  one function of `src/ui/tui.rs` draws the two of them: the two panels are one
+  picture in one border already (T-336), therefore a rule of one of them that
+  the other does not hold is a fault of its own.
+- **A cell of the gallery of a media of a series takes the cover of the first
+  book of that series**, in the same way as a cell of a band (T-336): the cells
+  of the band of the cursor are the cells of the grid, and the row of a series
+  that the gallery dropped before this round is a cell of the panel 4.
+- **A cell that waits for a cover holds no title**: `no_picture_comes` gives
+  `false` while the store says `Asked`, therefore the frame that asks for a
+  cover leaves the cell empty and the frame that gets it draws the picture. A
+  title of that moment would stand for one frame and it would then go away,
+  which is a screen that moves for no reason of the user.
+
+**The gate**: `tests/a_cell_that_draws_no_picture_says_its_media.rs`. It holds
+the pure function, the two lists of `App::the_media_of_the_gallery` of the Home
+view, and a render of the whole Home view into a `TestBackend` of 160 columns
+and 45 rows that reads the words of the panel 4 and of the panel 6. **The media
+of that test carry no identity at all**, which is the one road of the three of
+`no_picture_comes` that needs no store and no server: `TOUTUI_NO_COVERS` takes
+the whole column of the panels 5 and 6 away (`cover::split_for_covers`), and a
+media of the state `NoCover` needs an answer of a server.
+
+The two corrections each failed that gate with the correction removed: the
+panel 4 then held no word `Alpha` at all, and `the_media_of_the_gallery` gave
+7 media of the view and not the 3 of the shelf of the cursor.
+
+**The road of T-331 is finished with this round.**

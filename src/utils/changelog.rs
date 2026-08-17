@@ -41,6 +41,25 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.171",
+        date: "17/08/2026",
+        body: &[
+            "Added:",
+            "- **A cover that the terminal cannot draw says the name of its \
+             media.** A media that the server holds with no cover, a terminal \
+             with no protocol of pictures, and `TOUTUI_NO_COVERS` each gave a \
+             cell of a border and nothing at all: a Home view of twelve such \
+             cells said no name of a media at all. The cell keeps its border \
+             and its place, and the title of the media stands in the rows of \
+             the picture.",
+            "Changed:",
+            "- **The panel 6 of the gallery shows the shelf of the cursor of \
+             the Home view.** It held the media of every shelf of that view \
+             together, therefore the grid said no group of the server at all. \
+             The Library view keeps every row of its list.",
+        ],
+    },
+    Entry {
         version: "0.8.170",
         date: "17/08/2026",
         body: &[

@@ -114,11 +114,39 @@ pub struct AMediaOfTheGallery {
     pub the_line: usize,
     /// The identity of the media, for the store of the covers. A media of no
     /// identity holds no text, and the cell of it shows no picture.
-    ///
-    /// **The cell holds the picture and its border alone** (T-330.4), therefore
-    /// this media needs no title and no place of the user: the panel 5 says the
-    /// two of them for the media of the cursor already.
     pub id: String,
+    /// The title of the media, for a cell that draws no picture. See T-339.
+    ///
+    /// **The cell holds the picture and its border alone** (T-330.4) while a
+    /// picture comes. A terminal of no protocol of pictures, a `TOUTUI_NO_COVERS`
+    /// of the user, and a media that the server holds with no cover each give a
+    /// cell of a border and nothing at all: the title then stands in the rows of
+    /// the picture, and the user reads which media the cell holds.
+    pub the_title: String,
+}
+
+/// The text of the title of a media in the rows of the picture of a cell. See
+/// T-339.
+///
+/// **The cell keeps its border and its place**, and the band does not become a
+/// table: the keys of a view must not change with the terminal of the user
+/// (`docs/mockups/mockup-6.md`).
+///
+/// The words take the rows of the picture with the wrap of this program, and a
+/// title that needs more rows than the cell holds loses its end to the three
+/// points of [`crate::logic::message::in_the_rows`]: a text that the screen cuts
+/// with no mark says nothing to the user (T-91).
+///
+/// ```text
+/// ┏━━━━━━━━┓ ┌────────┐
+/// ┃The     ┃ │Depthle…│
+/// ┃Kingkil…┃ │Hunger  │
+/// ┗━━━━━━━━┛ └────────┘
+/// ```
+///
+/// The function is pure, therefore a test of it needs no terminal and no server.
+pub fn the_title_of_a_cell(title: &str, of_the_picture: Rect) -> String {
+    crate::logic::message::in_the_rows(title, of_the_picture.width, of_the_picture.height)
 }
 
 /// One cell of the gallery: a media of the list, and the areas of it.

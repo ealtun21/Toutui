@@ -143,6 +143,14 @@ fn the_panel_of_the_gallery(screen: &[String]) -> Vec<String> {
 /// The panel 6 of the real program draws the pictures and the borders of the
 /// cells, and no word at all. See T-330.4.
 ///
+/// **A cell that no picture reaches holds the title of its media** (T-339), and
+/// that is no word of the design that this test takes away: the two rows of the
+/// percentage and of the title stood **under** the box of every cell, and the
+/// title of T-339 stands **inside** the border of a cell that draws no picture
+/// at all. The media of this test carry an identity that no answer of the store
+/// names, therefore `cover::no_picture_comes` gives `false` for each of them and
+/// every cell of this measurement holds a picture.
+///
 /// **The parts of this test stay in one function**: the test writes
 /// `XDG_CONFIG_HOME` of the process, and a second function of this binary would
 /// fight it for that box.

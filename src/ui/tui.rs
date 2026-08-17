@@ -901,6 +901,27 @@ impl App {
             .then_some((parts.facts, parts.description))
     }
 
+    /// Draws the title of a media in the rows of the picture of a cell. See
+    /// T-339.
+    ///
+    /// **The cell of a band and the cell of the gallery are one picture in one
+    /// border** (T-336), therefore the two of them say a title in one way. The
+    /// words take the quiet style of the program, because the title of a cell
+    /// is not the title of a panel.
+    fn render_the_title_of_a_cell(title: &str, of_the_picture: Rect, buf: &mut Buffer) {
+        if title.is_empty() || of_the_picture.width == 0 || of_the_picture.height == 0 {
+            return;
+        }
+
+        Paragraph::new(crate::ui::the_panel_of_the_gallery::the_title_of_a_cell(
+            title,
+            of_the_picture,
+        ))
+        .wrap(Wrap { trim: true })
+        .style(crate::ui::theme::a_quiet_text())
+        .render(of_the_picture, buf);
+    }
+
     /// Draws the panel 6 of the gallery of the covers. See T-327.
     ///
     /// **The gallery is the list of the panel 4 and no list of its own**: the
@@ -976,14 +997,22 @@ impl App {
 
             // The picture keeps the form of the cover, therefore it stands in
             // the middle of the rows that the cell gives it.
-            if !media.id.is_empty() && !cover::no_picture_comes(&media.id) {
-                let form = self.covers.form_of(&media.id).unwrap_or(1.0);
-                let area = cover::box_of_the_picture(cell.the_picture, font, form);
+            //
+            // **A cell that no picture reaches holds the title of its media**
+            // (T-339): the terminal of no protocol of pictures, the
+            // `TOUTUI_NO_COVERS` of the user, and a media that the server holds
+            // with no cover each gave a border and nothing at all.
+            if media.id.is_empty() || cover::no_picture_comes(&media.id) {
+                App::render_the_title_of_a_cell(&media.the_title, cell.the_picture, buf);
+                continue;
+            }
 
-                if area.width > 0 && area.height > 0 {
-                    if let Some(picture) = self.covers.picture(&api, &media.id) {
-                        StatefulImage::default().render(area, buf, picture);
-                    }
+            let form = self.covers.form_of(&media.id).unwrap_or(1.0);
+            let area = cover::box_of_the_picture(cell.the_picture, font, form);
+
+            if area.width > 0 && area.height > 0 {
+                if let Some(picture) = self.covers.picture(&api, &media.id) {
+                    StatefulImage::default().render(area, buf, picture);
                 }
             }
         }
@@ -2198,6 +2227,7 @@ impl App {
         );
 
         let api = std::sync::Arc::clone(&self.api);
+        let the_titles = self.home_table_rows();
 
         for band in &plan.bands {
             Paragraph::new(the_row_of_a_title(band, band.the_title.width))
@@ -2224,13 +2254,23 @@ impl App {
                 };
                 border.render(cell.the_box, buf);
 
-                let Some(id) = self.the_identity_of_a_line_of_the_home_view(cell.the_line) else {
+                // **A cell that no picture reaches holds the title of its
+                // media** (T-339): the terminal of no protocol of pictures, the
+                // `TOUTUI_NO_COVERS` of the user, and a media that the server
+                // holds with no cover each gave a border and nothing at all, and
+                // the user then read no name of a media in the whole panel.
+                let id = self.the_identity_of_a_line_of_the_home_view(cell.the_line);
+                let id = id.filter(|id| !cover::no_picture_comes(id));
+
+                let Some(id) = id else {
+                    let title = the_titles
+                        .get(cell.the_line)
+                        .map(|row| row.title.as_str())
+                        .unwrap_or_default();
+
+                    App::render_the_title_of_a_cell(title, cell.the_picture, buf);
                     continue;
                 };
-
-                if cover::no_picture_comes(&id) {
-                    continue;
-                }
 
                 let form = self.covers.form_of(&id).unwrap_or(1.0);
                 let of_the_picture = cover::box_of_the_picture(cell.the_picture, font, form);
