@@ -12276,7 +12276,7 @@ the maintainer gave it after that road finished its eight stages.
 | T-330.3 | The picture of the panel 5 takes every row that the facts and the description leave — **done, v0.8.162** | `the_parts_of_the_panel` of `src/ui/the_panel_of_the_cover.rs` |
 | T-330.4 | The cell of the gallery holds the picture and its border alone — **done, v0.8.163** | `src/ui/the_panel_of_the_gallery.rs` and `render_the_gallery` of `src/ui/tui.rs` |
 | T-330.5 | The Chapters view of the two bars, of the table of the times, of the click of a row, and of the click of the bar of the book — **done, v0.8.164 to v0.8.167** (the last one is T-333) | `docs/mockups/mockup-7.txt` and `mockup-7.md`, `src/logic/chapters.rs`, `src/ui/the_bars_of_the_chapters.rs`, `src/ui/the_list_of_a_view.rs`, and `src/ui/the_mouse.rs` |
-| T-331 | The Home view of the bands of covers, one band for each shelf of the server | `docs/mockups/mockup-6.txt` and `mockup-6.md` |
+| T-331 | The Home view of the bands of covers, one band for each shelf of the server — **done, T-334 to T-339, v0.8.168 to v0.8.171** | `docs/mockups/mockup-6.txt` and `mockup-6.md` |
 
 **The five parts of T-330 come in that sequence**, because the words are small
 and safe and the Chapters view is large: **one part is one round and one
@@ -12309,8 +12309,12 @@ rounds**:
 | 1 | `src/logic/the_bands_of_the_home.rs`: the bands of the flat list of `HomeRow`, the moves of `h`, `l`, `j`, `k`, `g`, and `G`, and the count of a title. Pure functions, and no change of the screen. — **done, T-335 of 2026-08-17, and no release** |
 | 2 | The render of the bands in the panel 4 of the Home view, the keys, and the footer of its own. **This round changes the screen of the user.** — **done, T-336 of 2026-08-17, v0.8.168** |
 | 3 | The mouse: a click of a cell, two clicks, the wheel over a band, and a click of the title of a band. It gave the bands the offset of their own in `App::the_offsets_of_the_bands`, which the round 2 read of the cursor alone (T-336). — **done, T-337 of 2026-08-17, v0.8.169** |
-| 4 | The covers: the limit of the new requests of one frame, with the number of the requests measured against the sandbox. |
-| 5 | The panel 6 of the gallery of the shelf of the cursor, and the terminal that draws no pictures. |
+| 4 | The covers: the limit of the new requests of one frame, with the number of the requests measured against the sandbox. — **done, T-338 of 2026-08-17, v0.8.170** |
+| 5 | The panel 6 of the gallery of the shelf of the cursor, and the terminal that draws no pictures. — **done, T-339 of 2026-08-17, v0.8.171** |
+
+**The five rounds of that road are finished, and T-331 is closed.** The Home
+view of the bands of covers stands in the program at v0.8.171, and the report
+of the maintainer of 2026-08-16 therefore holds no work at all.
 
 **The decision of the spec that keeps the program of today**: the flat list of
 the lines of `src/logic/home_view.rs` stays the data, and the bands are a shape
@@ -22699,7 +22703,7 @@ the real program.
   and not the panel**, therefore a gate of the words of one panel takes the
   columns of that panel out of the row first.
 
-## The decisions of T-201 to T-338 that do not open again
+## The decisions of T-201 to T-339 that do not open again
 
 These decisions stood in the block of the prompt of the next session until the
 round of the hundred and thirty-ninth turn, and that block met its limit of
@@ -23254,6 +23258,20 @@ second road for the identity that a task asked for already; and **the frame
 that leaves an identity writes nothing in the store**, because a mark of that
 identity would need a second key to take it away and the frame after this one
 meets the same identity by itself (T-338).
+
+**A cell of a band and a cell of the gallery say a title in one way**, and one
+function of `src/ui/tui.rs` draws the two of them: the two panels are one
+picture in one border already (T-336), therefore a rule of one of them that the
+other does not hold is a fault of its own; **a cell of the gallery of a media of
+a series takes the cover of the first book of that series**, in the same way as
+a cell of a band, because the cells of the band of the cursor are the cells of
+the grid; **a cell that waits for a cover holds no title**, because
+`cover::no_picture_comes` gives `false` while the store says `Asked` and a title
+of that moment would stand for one frame and it would then go away; and **the
+gallery of the Home view is the shelf of the cursor and the gallery of the
+Library view is every row of its list**, because the list of the Library view is
+one group of the server and the list of the Home view is six of them (T-339).
+
 
 
 ## The session of the hundred and forty-seventh turn of 2026-08-16: the mouse, the capture, and a click of a row, of the block of the prompt
@@ -24267,12 +24285,66 @@ the limit of the new requests of one frame
 the mouse over a band stays outside**, with the drag of the bar of the player
 (T-322).
 
+
+**The session of the hundred and seventy-second turn took the round 4 of the
+road of the spec of T-331** (T-338, v0.8.170): the limit of the new requests of
+the covers of one frame. The rounds 2 and 3 gave the panel 4 its bands of
+covers, and each new cell of a frame was one request of the server with no
+limit at all.
+
+**The fault, of the real program v0.8.169 inside tmux** of 160 columns and 45
+rows, with the log of a proxy of `docs/harness/one_path_fails.py` on the port
+13500 and the account at that address. The first frame of the Home view of the
+library `Books` sent **15** requests of `GET /api/items/:id/cover` at the times
+1.317 to 1.318 seconds — the 15 of them inside **one millisecond** — the first
+frame of the library `Large` sent **16** of them inside one millisecond, and
+the key `R` sent **15** more inside one millisecond. `CoverArt::picture` calls
+`cover::request` for each new identity, and `request` spawns one task of tokio
+for each of them.
+
+**The measurement of the correction, of the same harness.** The first frame
+sent **8** requests at 1.413 seconds and **7** at 1.740 seconds: two frames,
+327 milliseconds apart. The key `R` sent 8 and then 7, 181 milliseconds apart.
+A `diff` of the identities of the two runs says that the same 15 identities
+came, therefore no cover is lost, and the screen of the two runs is the same.
+The spec said that a limit which costs the user a band of empty cells for more
+than one frame goes up: it costs one frame of about 330 milliseconds,
+therefore the number 8 stays.
+
+**The three decisions of this round.** **The counter belongs to `CoverArt` and
+not to the process**, though the store of the covers belongs to the process:
+one program draws one frame at a time, and a counter of the process would
+stand between two tests of one binary that ask for a cover together. **The
+limit stands in `CoverArt::picture` and not in `cover::request`**, because
+`picture` is the one road of the render to a new request. **The frame that
+leaves an identity writes nothing in the store**, therefore the frame after it
+meets that identity again and no cover is lost.
+
+**A trap of the harness that this round found** (the trap 246): a `: >` of the
+log of a proxy that stands leaves a file of the bytes NUL, because the proxy
+keeps the place of its write, and `grep -c` of such a file says **nothing at
+all**. A measurement of a number of requests then reads 0 for a log of 27
+lines. `grep -ac` reads it, and a new file of a log for each run is better.
+
+The correction failed its test with the correction removed: the first frame
+then asked for 20 covers and not 8. The gates gave 1559 of 1559 in 3.1
+seconds, `cargo test -j 16 --no-fail-fast` passed two times, and
+`cargo nextest run --run-ignored all` gave **1585 of 1585** with the sandbox
+up, in 60 seconds.
+
+**The next round takes the round 5 of that road, which is the last one**: the
+panel 6 of the gallery of the shelf of the cursor, and the terminal that draws
+no pictures — a cell that holds the title of the media in the rows of the
+picture. **The sandbox holds a cover for 6 of the 15 media of that Home
+view**, therefore the cells of the screen stand empty today for the reason of
+that round.
+
 ## The prompt for the next session
 
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.170**; `Cargo.toml` is at 0.8.170. The
+> AlbanDAVID/Toutui. Newest release **v0.8.171**; `Cargo.toml` is at 0.8.171. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -25094,7 +25166,7 @@ the mouse over a band stays outside**, with the drag of the bar of the player
 > makes no request: a measurement of two roads of the header needs a key of a
 > fresh request, and the key `R` alone forgets the state of a view.
 > Verify with a second program: `curl`, `podman logs abs-test`, or a browser.
-> Write the measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-338 and
+> Write the measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-340 and
 > up), and name that item in the commit.
 >
 > **`String::find` gives the index of a byte and not the column of the screen**
@@ -25107,8 +25179,8 @@ the mouse over a band stays outside**, with the drag of the bar of the player
 > `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`, and
 > `cargo nextest run` with `ALSA_CONFIG_PATH` pointing at a null asound file of
 > two lines (`pcm.!default { type null }` and `ctl.!default { type null }`).
-> Baseline: **1558 tests in 3.1 seconds**, and `cargo nextest run --run-ignored
-> all` gives **1584 of 1584** with the sandbox up, in about 18 seconds. **Run that
+> Baseline: **1560 tests in 3.1 seconds**, and `cargo nextest run --run-ignored
+> all` gives **1586 of 1586** with the sandbox up, in about 60 seconds. **Run that
 > second command at the end of the session too**: it found T-132 and T-111.
 > **And `cargo clean` is the last command of the round**, after the push: the
 > maintainer asked for it on 2026-08-17, and the paragraph of the disk above
@@ -25218,65 +25290,22 @@ the mouse over a band stays outside**, with the drag of the bar of the player
 >
 > ### The work, in the sequence of its value
 >
-> 0.a **The second report of the maintainer of 2026-08-16** (T-330 and T-331),
->    which stands in `### 0.a The second report of the maintainer of
->    2026-08-16 (T-330 and T-331)` of `## What is open` of
->    `docs/HANDOVER.md`, outside this block. **This report comes above every
->    other item of this list.** T-330 is a sweep of five parts, **in this
->    sequence, one part for one round and one commit**: the words of the key
->    `z` say `the panels 1, 2, and 3`; the words of the filters become `No
->    filter`, `Finished`, `Started, not finished`, and `Not started`; the
->    picture of the panel 5 takes every row that the facts and the description
->    leave; the cell of the gallery holds the picture and its border alone,
->    with no percentage and no title; and the Chapters view takes the two bars
->    and the table of `docs/mockups/mockup-7.txt`. **The parts 1 to 4 are
->    done** (v0.8.160 to v0.8.163), and **the part 5 is done too**: the two
->    bars (v0.8.164), the table of the times (v0.8.165), and the click of a
->    row that plays that chapter (v0.8.166). **The five parts of T-330 are
->    finished, and the map of the mouse of `mockup-7.md` is finished
->    with them** (T-333, v0.8.167: a click on the bar of the book moves the
->    media to that place). **T-331 is therefore the one work of this report
->    that stays.**
->    T-331 is the new Home view
->    of the bands of covers of `docs/mockups/mockup-6.txt`, **and it starts at
->    a spec in `docs/superpowers/specs/` and not at code**. **The spec is
->    written** (T-334, of 2026-08-17):
+> 0.a **The two reports of the maintainer of 2026-08-16 are finished.** T-330,
+>    the sweep of five parts, closed at v0.8.167 with T-333, and **T-331, the
+>    Home view of the bands of covers, closed at v0.8.171 with T-339**: the five
+>    rounds of the road of
 >    `docs/superpowers/specs/2026-08-17-the-home-view-of-the-bands-of-covers-design.md`
->    holds the eight decisions, the parts that the mockup does not say, the
->    sweep of the tests that measure the table of today, and **a road of five
->    rounds**. **The round 1 of that road is done** (T-335, of 2026-08-17):
->    `src/logic/the_bands_of_the_home.rs` holds the bands of the flat list of
->    `HomeRow`, the moves of the keys `h`, `l`, `j`, `k`, `g`, and `G` over
->    them, and the count of a title, of pure functions and of no change of the
->    screen, and **that round made no release** for the reason in its item.
->    **The round 2 is done too** (T-336, of 2026-08-17, v0.8.168):
->    `src/ui/the_panel_of_the_bands.rs` holds the arithmetic of the screen of
->    the bands, `render_the_bands_of_the_panel_4` of `src/ui/tui.rs` draws
->    them, `App::the_key_of_a_band_of_the_home_view` holds the keys, and
->    `keys::the_footer_of_the_home_view` gives the footer of each of the two
->    shapes. **That round changed the screen of the user**, and the two screens
->    stand in its item.
->    **The round 3 is done too** (T-337, of 2026-08-17, v0.8.169): the mouse of
->    the bands — the click of a cell, the two clicks that play or open, the
->    wheel over a band, and the click of the title of a band. That round gave
->    the bands the offset of their own in `App::the_offsets_of_the_bands`.
->    **The round 4 is done too** (T-338, of 2026-08-17, v0.8.170): the limit of
->    the new requests of the covers of one frame.
->    `THE_NEW_COVERS_OF_A_FRAME` of `src/ui/cover.rs` is 8, `CoverArt` holds the
->    counter of its frame, and the render of `App` puts that counter at 0 one
->    time for one frame. The log of the proxy measured 15 requests of a cover
->    inside one millisecond before it, and 8 and then 7 in two frames of 327
->    milliseconds after it.
->    **The next round of T-331 takes the round 5, which is the last one of the
->    road**: the panel 6 of the gallery of the shelf of the cursor, and the
->    terminal that draws no pictures — a cell that holds the title of the media
->    in the rows of the picture. **The sandbox holds a cover for 6 of the 15
->    media of that Home view**, therefore the cells of the screen stand empty
->    today for the reason of that round. **A round of T-331
->    reads that spec first,
->    and it must not change a decision of it with no reason in its own item.** **The mockups of the two of them are
->    written already** (`mockup-6` and `mockup-7`, of
->    2026-08-16): **a round must not write in `docs/mockups/`.**
+>    are T-335 (the bands of the flat list, no release), T-336 (v0.8.168, the
+>    render of the panel 4, the keys, and the footer), T-337 (v0.8.169, the
+>    mouse), T-338 (v0.8.170, the limit of the new requests of the covers of one
+>    frame), and T-339 (v0.8.171, the title of a cell that draws no picture, and
+>    the panel 6 of the gallery of the shelf of the cursor). `### 0.a The second
+>    report of the maintainer of 2026-08-16 (T-330 and T-331)` of `## What is
+>    open` of `docs/HANDOVER.md` holds the whole road, outside this block.
+>    **The mockups of the two reports are written already** (`mockup-6` and
+>    `mockup-7`, of 2026-08-16): **a round must not write in
+>    `docs/mockups/`.** **No item of this report stays**, therefore the item 0
+>    below and the item 1 are the work of a round now.
 >
 > 0. **The four items that the maintainer gave on 2026-08-16** (T-316 to
 >    T-319), which stand in `### 0. The road of the panels (T-316 to T-323)`
@@ -25320,58 +25349,62 @@ the mouse over a band stays outside**, with the drag of the bar of the player
 >    this shape found a fault in one hundred and eleven sessions of one hundred
 >    and twelve.
 >
-> **The session of the hundred and seventy-second turn took the round 4 of the
-> road of the spec of T-331** (T-338, v0.8.170): the limit of the new requests of
-> the covers of one frame. The rounds 2 and 3 gave the panel 4 its bands of
-> covers, and each new cell of a frame was one request of the server with no
-> limit at all.
+> **The session of the hundred and seventy-third turn took the round 5 of the
+> road of the spec of T-331** (T-339, v0.8.171), **which is the last round of
+> that road: T-331 is closed, and the report of the maintainer of 2026-08-16
+> therefore holds no work at all.** The round holds the two rules that the
+> rounds 1 to 4 left: the terminal that draws no pictures, and the panel 6 of
+> the gallery of the shelf of the cursor.
 >
-> **The fault, of the real program v0.8.169 inside tmux** of 160 columns and 45
-> rows, with the log of a proxy of `docs/harness/one_path_fails.py` on the port
-> 13500 and the account at that address. The first frame of the Home view of the
-> library `Books` sent **15** requests of `GET /api/items/:id/cover` at the times
-> 1.317 to 1.318 seconds — the 15 of them inside **one millisecond** — the first
-> frame of the library `Large` sent **16** of them inside one millisecond, and
-> the key `R` sent **15** more inside one millisecond. `CoverArt::picture` calls
-> `cover::request` for each new identity, and `request` spawns one task of tokio
-> for each of them.
+> **The two faults, of the real program v0.8.170 inside tmux** of 160 columns
+> and 45 rows, of the Home view of the library `Large` of the sandbox. **That
+> library needs no proxy and no change of the sandbox at all**: the server holds
+> no cover of its books. **1.** The panel 4 drew two bands of six cells and the
+> panel 6 drew twelve more, and the **24** of them stood empty together: the
+> user read no name of a media in the whole of the two panels. **2.** With the
+> cursor on the first media of the shelf `Discover`, the grid of the panel 6
+> held the **twenty** media of the two shelves of the view, therefore the cell
+> of the cursor stood in the third row of it, at the place 10 of 20.
 >
-> **The measurement of the correction, of the same harness.** The first frame
-> sent **8** requests at 1.413 seconds and **7** at 1.740 seconds: two frames,
-> 327 milliseconds apart. The key `R` sent 8 and then 7, 181 milliseconds apart.
-> A `diff` of the identities of the two runs says that the same 15 identities
-> came, therefore no cover is lost, and the screen of the two runs is the same.
-> The spec said that a limit which costs the user a band of empty cells for more
-> than one frame goes up: it costs one frame of about 330 milliseconds,
-> therefore the number 8 stays.
+> **The measurement of the correction, of the same harness.** Every cell of the
+> panel 4 said its media (`Large Book 0001` over three rows of the cell), the
+> panel 6 held the **ten** media of `Recently Added` alone, and the key `j` gave
+> the ten of `Discover` with the cursor at the first cell of the grid. **The two
+> shapes of a cell stand in one band**: the library `Books` holds a cover for
+> some of its media and no cover for the others, and its Home view gave the
+> picture and the title beside each other.
 >
-> **The three decisions of this round.** **The counter belongs to `CoverArt` and
-> not to the process**, though the store of the covers belongs to the process:
-> one program draws one frame at a time, and a counter of the process would
-> stand between two tests of one binary that ask for a cover together. **The
-> limit stands in `CoverArt::picture` and not in `cover::request`**, because
-> `picture` is the one road of the render to a new request. **The frame that
-> leaves an identity writes nothing in the store**, therefore the frame after it
-> meets that identity again and no cover is lost.
+> **The three decisions of this round.** **A cell of the band and a cell of the
+> gallery say a title in one way**, and one function of `src/ui/tui.rs` draws
+> the two of them, because the two panels are one picture in one border already
+> (T-336). **A cell of the gallery of a media of a series takes the cover of the
+> first book of that series**, in the same way as a cell of a band: the cells of
+> the band of the cursor are the cells of the grid. **A cell that waits for a
+> cover holds no title**, because `no_picture_comes` gives `false` while the
+> store says `Asked`: a title of that moment would stand for one frame and it
+> would then go away.
 >
-> **A trap of the harness that this round found** (the trap 246): a `: >` of the
-> log of a proxy that stands leaves a file of the bytes NUL, because the proxy
-> keeps the place of its write, and `grep -c` of such a file says **nothing at
-> all**. A measurement of a number of requests then reads 0 for a log of 27
-> lines. `grep -ac` reads it, and a new file of a log for each run is better.
+> **A trap of the gate that this round found**: `TOUTUI_NO_COVERS` is not the
+> road to a test of a cell that draws no picture, because `cover::split_for_covers`
+> takes the whole column of the panels 5 and 6 away with it. A media of **no
+> identity** is the one road of the three of `no_picture_comes` that needs no
+> store and no server at all.
 >
-> The correction failed its test with the correction removed: the first frame
-> then asked for 20 covers and not 8. The gates gave 1559 of 1559 in 3.1
-> seconds, `cargo test -j 16 --no-fail-fast` passed two times, and
-> `cargo nextest run --run-ignored all` gave **1585 of 1585** with the sandbox
-> up, in 60 seconds.
+> The two corrections each failed the gate with the correction removed: the
+> panel 4 then held no word of a title, and `the_media_of_the_gallery` gave the
+> 7 media of the view and not the 3 of the shelf of the cursor. The gates gave
+> **1560 of 1560** in 3.1 seconds, `cargo test -j 16 --no-fail-fast` passed two
+> times, and `cargo nextest run --run-ignored all` gave **1586 of 1586** with
+> the sandbox up, in 60 seconds.
 >
-> **The next round takes the round 5 of that road, which is the last one**: the
-> panel 6 of the gallery of the shelf of the cursor, and the terminal that draws
-> no pictures — a cell that holds the title of the media in the rows of the
-> picture. **The sandbox holds a cover for 6 of the 15 media of that Home
-> view**, therefore the cells of the screen stand empty today for the reason of
-> that round.
+> **The road of T-331 is finished, and no item of the two reports of the
+> maintainer stays.** The next round takes the item 1 of the list of the work: a
+> condition of the program that no measurement has reached. **The parts of a
+> stage of the road of the panels that stay open** stand in the section
+> `### 0. The road of the panels (T-316 to T-323)` of `## What is open`, and the
+> item T-323 of `docs/TAKEOVER-BACKLOG.md` names every region of the map of the
+> mouse that no stage reached; **each of them is a candidate and not an item.**
+
 >
 >    **The turns before this one stand in `## The turns before the three
 >    newest ones` of this file**, above the heading of this prompt. **This item
@@ -25429,7 +25462,7 @@ the mouse over a band stays outside**, with the drag of the bar of the player
 > T-200 stand in `## The decisions of T-124 to T-200 that do not open again` of
 > `docs/HANDOVER.md`, outside this block, and each of them holds** (T-294).
 > And **the decisions of T-201 to T-338 stand in
-> `## The decisions of T-201 to T-338 that do not open again` of
+> `## The decisions of T-201 to T-339 that do not open again` of
 > `docs/HANDOVER.md`, outside this block, and each of them holds** (T-310).
 > **The bands of covers of the Home view stand where the table of the panel 4
 > stands**, therefore a screen under 120 columns keeps the list of one column
@@ -25612,7 +25645,7 @@ the mouse over a band stays outside**, with the drag of the bar of the player
 > did the same work, and the block then held 98907 bytes with one turn in it —
 > **at the line of 99000**, therefore that round took the whole list of the
 > decisions of T-201 to T-311 out of the block and it put it in
-> `## The decisions of T-201 to T-338 that do not open again` of this file,
+> `## The decisions of T-201 to T-339 that do not open again` of this file,
 > with a pointer of three lines in its place: the block then held **66224**
 > bytes with one turn in it; the round of the hundred and fortieth found it at
 > 66685 bytes with one turn in it, and it did the same work, and the block then
@@ -25683,7 +25716,11 @@ the mouse over a band stays outside**, with the drag of the bar of the player
 > same work; the round of the hundred and seventy-first found it at
 > 88667 bytes with one turn in it, and it did the same work; the round of the
 > hundred and seventy-second found it at 89012 bytes with one turn in it, and
-> it did the same work.
+> it did the same work; the round of the hundred and seventy-third found it at
+> 90305 bytes with one turn in it, and it took that turn out and it wrote its
+> own, and **it took the whole item 0.a of the two reports of the maintainer
+> out too**, because the two of them are finished: the block then held
+> **88013** bytes with **one** turn in it.
 > **A block that stands at 80000 bytes or under holds two
 > turns**, and the turn of the stage before this one names the parts of that
 > stage which stay open. **The list of the decisions
