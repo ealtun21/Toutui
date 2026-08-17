@@ -59,6 +59,19 @@ pub fn bar_width(width: u16) -> usize {
     width.saturating_sub(taken).min(BAR_WIDTH)
 }
 
+/// A name of the server stands in one row of this view. See T-377.
+///
+/// **A title of the server can hold an end of a line**, and this view builds
+/// most of its lines with `Line::from(String)`: ratatui removes every `\n` of
+/// such a text with no space in its place, and the two words of the title then
+/// glue together. The name of the library takes the road of a `Span`, which
+/// keeps the `\n`, and the wrap of a line then gives the heading a second row
+/// that reads as a line of its own. One collapse at the composition holds the
+/// two roads.
+fn a_name_of_the_server(text: &str) -> String {
+    crate::logic::message::in_one_line(text).into_owned()
+}
+
 fn title(text: &str) -> Line<'static> {
     Line::from(Span::styled(
         text.to_string(),
@@ -186,9 +199,13 @@ fn the_lines_of_the_state(state: &State, width: u16) -> Vec<Line<'static>> {
     } else {
         for (number, item) in top.iter().enumerate() {
             let name = if item.author.is_empty() {
-                item.title.clone()
+                a_name_of_the_server(&item.title)
             } else {
-                format!("{} — {}", item.title, item.author)
+                format!(
+                    "{} — {}",
+                    a_name_of_the_server(&item.title),
+                    a_name_of_the_server(&item.author)
+                )
             };
 
             out.push(Line::from(format!(
@@ -209,7 +226,7 @@ fn the_lines_of_the_state(state: &State, width: u16) -> Vec<Line<'static>> {
         out.push(quiet("The server holds no session.".to_string()));
     } else {
         for session in stats.recent_sessions.iter().take(SESSIONS) {
-            let name = session.display_title.clone().unwrap_or_default();
+            let name = a_name_of_the_server(&session.display_title.clone().unwrap_or_default());
             let day = session.date.clone().unwrap_or_default();
 
             out.push(Line::from(format!(
@@ -235,7 +252,7 @@ fn line_of_a_name(number: usize, name: &TopName) -> Line<'static> {
     Line::from(format!(
         "{}. {}  ({})",
         number + 1,
-        name.label(),
+        a_name_of_the_server(&name.label()),
         human_time(name.time)
     ))
 }
@@ -248,7 +265,7 @@ fn lines_of_the_library(out: &mut Vec<Line<'static>>, stats: Option<&LibraryStat
     let heading = if name.trim().is_empty() {
         "The library".to_string()
     } else {
-        format!("The library {}", name)
+        format!("The library {}", a_name_of_the_server(name))
     };
     out.push(title(&heading));
 
@@ -281,7 +298,7 @@ fn lines_of_the_library(out: &mut Vec<Line<'static>>, stats: Option<&LibraryStat
             out.push(Line::from(format!(
                 "{}. {}  ({})",
                 number + 1,
-                item.name(),
+                a_name_of_the_server(&item.name()),
                 human_time(item.duration)
             )));
         }
@@ -294,7 +311,7 @@ fn lines_of_the_library(out: &mut Vec<Line<'static>>, stats: Option<&LibraryStat
             out.push(Line::from(format!(
                 "{}. {}  ({})",
                 number + 1,
-                item.name(),
+                a_name_of_the_server(&item.name()),
                 human_size(item.size)
             )));
         }

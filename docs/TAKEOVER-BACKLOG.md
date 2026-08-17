@@ -36552,3 +36552,78 @@ item:**
 - The candidates of T-375: the cursor of an empty list at large (the nine
   sibling views of `src/app.rs:10805-10922`), a fact value of an East Asian
   language in the panel 5, and every candidate of the turns before it.
+
+## T-377 — A name of the server stands in one row of the statistics view and of the sessions view
+
+**The candidate of T-376.** That item left this line: "`the_columns_of` counts
+an end of a line as a character of no width, therefore a cut of a text of
+many lines that this round did not collapse reads columns that the screen
+does not draw." A sweep of this round read every render site of `src/ui/`
+and it found two views with no collapse at all: the statistics view
+(`src/ui/stats_tui.rs`) and the sessions view (`src/ui/sessions_tui.rs`)
+compose a name of the server with no guard of an end of a line.
+
+**The measurement of the fault, of the real program v0.8.207 inside tmux
+against the sandbox on `:13399`, library `Books`.** `PATCH
+/api/items/:id/media` gave `A Long Test Book`
+(`9a671047-6146-4003-8510-d215db074a9c`) the title `Alpha\nOMEGAEND`, and a
+playback of the null device wrote a listening session of that title. The key
+`T` (the statistics view) gave `3. AlphaOMEGAEND — Long Author  (1 h 28
+min)` — **the two words glued, with no space and no mark**. The key `W`
+(the sessions view) gave `1 min 16 s  Alpha` and, on a row of its own at the
+indent of a wrap, `OMEGAEND — Long Author  [92% of the media]` — a row that
+reads as a session of its own, with no time at all.
+
+**The mechanism, of a probe of the wrap module.** The two views hold two
+roads of an end of a line. The statistics view builds most of its lines with
+`Line::from(String)`, and ratatui removes every `\n` of such a text with no
+space in its place: the words glue at the construction of the `Line`, before
+the wrap of `src/ui/the_wrap_of_a_line.rs` can see them. The sessions view
+puts the name into a `Span` inside `Line::from(vec![...])`, which keeps the
+`\n`, and the wrap of a line then breaks the row at it. A name of two lines
+of the library gave the third road: it goes through `Span::styled` in the
+heading of the statistics view, and it gave `The library Delta` and
+`    EPSILONEND` on two rows.
+
+**The correction, v0.8.208.** A collapse with
+`crate::logic::message::in_one_line` at the composition of every name of the
+server, in the two files. `src/ui/stats_tui.rs` takes a helper
+`a_name_of_the_server`, and six sites take it: the top media title and
+author, the display title of a last session, the name of the library of the
+heading, the longest items, the largest items, and the label of a top name
+of the year. `src/ui/sessions_tui.rs` collapses the title, the author, and
+the heading of a day. The correction cannot stand downstream, because the
+road of the statistics loses its `\n` inside `Line::from(String)` before any
+later collapse could see it.
+
+**The test.**
+`tests/a_name_of_the_statistics_and_of_the_sessions_stands_in_one_row.rs`,
+one test function (the rule of the box of the process). The build of the
+fault — the collapse removed — fails it, and the failure output showed the
+three faults together: `1. AlphaOMEGAEND — Long Author  (4 min 36 s)`,
+`2026-08-10  BetaGAMMAEND  (5 s)`, and `The library Delta` /
+`    EPSILONEND` on two rows.
+
+**The control of the correction, of the corrected binary and the same data.**
+The key `T` gave `3. Alpha OMEGAEND — Long Author  (1 h 28 min)` and
+`2026-08-17  Alpha OMEGAEND  (1 min 16 s)`, and the key `W` gave `1 min 16 s
+Alpha OMEGAEND — Long Author  [92% of the media]` in one row.
+
+**The road back of the sandbox.** The `PATCH` gave the title `A Long Test
+Book` back, the place of the book stands at 1020 seconds, and `DELETE
+/api/sessions/:id` took the one session of the title `Alpha` away.
+
+**What this round leaves open, and each of them is a candidate and not an
+item:**
+
+- The name of a filter of the header of the panels — `the_name_of_a_filter`
+  of `src/ui/the_panels_of_the_stack.rs:198` gives `FilterChoice::label` (an
+  author, a series, a narrator, a genre, or a tag of the server) to
+  `the_words_of_the_sequence_and_the_filter`, which
+  `draw_the_words_of_the_sequence` of `src/ui/tui.rs` draws into a
+  `Paragraph` of one row with no wrap and no collapse; a
+  `Paragraph::new(String)` splits a text at a `\n` into two lines, and a
+  height of one row then shows the first of them alone.
+- The candidates of T-375: the cursor of an empty list at large (the nine
+  sibling views of `src/app.rs`), a fact value of an East Asian language in
+  the panel 5, and every candidate of the turns before it.

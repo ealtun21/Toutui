@@ -41,6 +41,22 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.208",
+        date: "18/08/2026",
+        body: &[
+            "Fixed:",
+            "- **A name of the server stands in one row of the statistics \
+             view and of the sessions view.** A title of the server can hold \
+             an end of a line, and the two views drew it in two bad ways: \
+             the statistics view glued the words of the two lines together, \
+             with no space between them, and the sessions view broke the row \
+             at the end of the line — the second part then read as a session \
+             of its own, with no time at all. Every name of the server of \
+             the two views now takes one space for each end of a line, as \
+             the rows of the lists do.",
+        ],
+    },
+    Entry {
         version: "0.8.207",
         date: "18/08/2026",
         body: &[

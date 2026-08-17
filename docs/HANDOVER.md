@@ -27816,12 +27816,63 @@ the fault is a `PATCH` of a title of two lines; a fact value of an East
 Asian language in the panel 5, and no media of the sandbox holds one; and
 every candidate of the turns before this one.
 
+## The session of the two hundred and ninth turn of 2026-08-18: T-376, the title of a view whose name holds an end of a line, of the block of the prompt
+
+**The session of the two hundred and ninth turn shipped T-375 and
+T-376.** **T-375 stood finished and uncommitted at the start** (the rule
+of the memory: read git status first): this round ran the gates and
+shipped it as v0.8.206 before it took an item.
+
+**The item of this round is T-376**: the title of a view whose name holds
+an end of a line stands in one row now. **The candidate came of T-375**
+("the titles of `render_the_reason` and of `render_the_message`, where a
+`\n` of a title of the server glues the words together"). The three sinks
+of a title of a view — `render_the_table_of_a_panel`
+(`src/ui/the_list_of_a_view.rs:242`), `render_the_reason`
+(`src/ui/tui.rs:3140`), and `render_the_message`
+(`src/ui/the_message_of_a_view.rs:60`) — each made the title with
+`in_one_row` alone, which gives a text that stands in the width back
+unchanged, with its `\n` in it, and a `Span` draws no control character.
+
+**The fault**, of v0.8.206 inside tmux against the sandbox:
+`PATCH /api/items/:id/media` gave `A Long Test Book` the title
+`Alpha\nOMEGAEND` (a JSON string carries a literal end of a line, and the
+XML normalization of T-313 belongs to an EPUB alone), and one bookmark
+stood on it. The search `Alpha` gave the row `Alpha OMEGAEND` — the road
+of the lines collapses already (T-374) — and the key `V` of that row gave
+`The bookmarks of "AlphaOMEGAEND" [1 item]`: the two words glued, with no
+space and no mark at all.
+
+**The correction is one collapse at the top of `in_one_row`**
+(`src/logic/message.rs`): `in_one_line(text)` first, and the cut then
+reads a text of one row. Every caller of a title takes it together, and
+the facts panel of T-374, which composes the two functions itself, keeps
+its work. **v0.8.207.** The control of the same binary and the same data:
+the key `V` gave `The bookmarks of "Alpha OMEGAEND" [1 item]`. The build
+of the fault — the collapse removed — fails the new test
+`tests/a_title_of_a_name_of_two_lines_stands_in_one_row.rs`. The sandbox
+holds the title `A Long Test Book`, no bookmark, and no session of the
+title `Alpha` again.
+
+**What this round leaves open, and each of them is a candidate and not an
+item**: the truncation of the spans of the band of the player
+(`src/ui/player_tui.rs:160-192`, T-369), where a span whose content holds
+an end of a line and that stands in the room keeps that end, and the line
+of the band holds the title, the author, and the chapter of the server;
+`the_columns_of`, which counts an end of a line as a character of no
+width, therefore a cut of a text of many lines that no caller collapses
+reads columns that the screen does not draw; the cursor of an empty list
+at large — the nine sibling views of `src/app.rs:10805-10922`, and every
+read absorbs it with `.get` today; a fact value of an East Asian language
+in the panel 5, and no media of the sandbox holds one; and
+every candidate of the turns before this one.
+
 ## The prompt for the next session
 
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.207**; `Cargo.toml` is at 0.8.207. The
+> AlbanDAVID/Toutui. Newest release **v0.8.208**; `Cargo.toml` is at 0.8.208. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -28665,8 +28716,8 @@ every candidate of the turns before this one.
 > `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`, and
 > `cargo nextest run` with `ALSA_CONFIG_PATH` pointing at a null asound file of
 > two lines (`pcm.!default { type null }` and `ctl.!default { type null }`).
-> Baseline: **1619 tests in 2.8 seconds of nextest**, and `cargo nextest run --run-ignored
-> all` gives **1645 of 1645** with the sandbox up, in about 20 seconds. **Run that
+> Baseline: **1626 tests in 3.0 seconds of nextest**, and `cargo nextest run --run-ignored
+> all` gives **1652 of 1652** with the sandbox up, in about 18 seconds. **Run that
 > second command at the end of the session too**: it found T-132 and T-111.
 > **And `cargo clean` is the last command of the round**, after the push: the
 > maintainer asked for it on 2026-08-17, and the paragraph of the disk above
@@ -28834,53 +28885,51 @@ every candidate of the turns before this one.
 > 1. **A condition of the program that no measurement has reached.** A sweep of
 >    this shape found a fault in one hundred and eighteen sessions of one
 >    hundred and nineteen.
-> **The session of the two hundred and ninth turn shipped T-375 and
-> T-376.** **T-375 stood finished and uncommitted at the start** (the rule
-> of the memory: read git status first): this round ran the gates and
-> shipped it as v0.8.206 before it took an item.
+> **The session of the two hundred and tenth turn shipped T-377**: a name
+> of the server stands in one row of the statistics view and of the
+> sessions view now. **The candidate came of T-376** ("a cut of a text of
+> many lines that no caller collapses"). A sweep of every render site of
+> `src/ui/` found the two views of a text of a scroll with no collapse at
+> all.
 >
-> **The item of this round is T-376**: the title of a view whose name holds
-> an end of a line stands in one row now. **The candidate came of T-375**
-> ("the titles of `render_the_reason` and of `render_the_message`, where a
-> `\n` of a title of the server glues the words together"). The three sinks
-> of a title of a view — `render_the_table_of_a_panel`
-> (`src/ui/the_list_of_a_view.rs:242`), `render_the_reason`
-> (`src/ui/tui.rs:3140`), and `render_the_message`
-> (`src/ui/the_message_of_a_view.rs:60`) — each made the title with
-> `in_one_row` alone, which gives a text that stands in the width back
-> unchanged, with its `\n` in it, and a `Span` draws no control character.
->
-> **The fault**, of v0.8.206 inside tmux against the sandbox:
+> **The fault**, of v0.8.207 inside tmux against the sandbox:
 > `PATCH /api/items/:id/media` gave `A Long Test Book` the title
-> `Alpha\nOMEGAEND` (a JSON string carries a literal end of a line, and the
-> XML normalization of T-313 belongs to an EPUB alone), and one bookmark
-> stood on it. The search `Alpha` gave the row `Alpha OMEGAEND` — the road
-> of the lines collapses already (T-374) — and the key `V` of that row gave
-> `The bookmarks of "AlphaOMEGAEND" [1 item]`: the two words glued, with no
-> space and no mark at all.
+> `Alpha\nOMEGAEND`, and a playback of the null device wrote a listening
+> session of that title. The key `T` gave
+> `3. AlphaOMEGAEND — Long Author  (1 h 28 min)` — the two words glued,
+> with no space and no mark — and the key `W` gave `1 min 16 s  Alpha`
+> with `OMEGAEND — Long Author  [92% of the media]` on a row of its own at
+> the indent of a wrap, which reads as a session of its own with no time
+> at all. **The two views hold two roads of an end of a line**: ratatui
+> removes every `\n` of a `Line::from(String)` with no space in its place
+> — the glue stands before the wrap of `src/ui/the_wrap_of_a_line.rs` can
+> see it — and a `Span` inside `Line::from(vec![...])` keeps the `\n`, and
+> the wrap then breaks the row at it.
 >
-> **The correction is one collapse at the top of `in_one_row`**
-> (`src/logic/message.rs`): `in_one_line(text)` first, and the cut then
-> reads a text of one row. Every caller of a title takes it together, and
-> the facts panel of T-374, which composes the two functions itself, keeps
-> its work. **v0.8.207.** The control of the same binary and the same data:
-> the key `V` gave `The bookmarks of "Alpha OMEGAEND" [1 item]`. The build
-> of the fault — the collapse removed — fails the new test
-> `tests/a_title_of_a_name_of_two_lines_stands_in_one_row.rs`. The sandbox
-> holds the title `A Long Test Book`, no bookmark, and no session of the
-> title `Alpha` again.
+> **The correction is a collapse with `in_one_line` at the composition of
+> every name of the server of the two files**: the helper
+> `a_name_of_the_server` of `src/ui/stats_tui.rs` at six sites, and the
+> title, the author, and the heading of a day of `src/ui/sessions_tui.rs`.
+> **v0.8.208.** The control of the corrected binary and the same data gave
+> `Alpha OMEGAEND` in one row in the three sinks. The build of the fault —
+> the collapse removed — fails the new test
+> `tests/a_name_of_the_statistics_and_of_the_sessions_stands_in_one_row.rs`,
+> and its output showed the three faults together, with the heading of the
+> library on two rows. The sandbox holds the title `A Long Test Book`, the
+> place of 1020 seconds, and no session of the title `Alpha` again.
 >
-> **What this round leaves open, and each of them is a candidate and not an
-> item**: the truncation of the spans of the band of the player
-> (`src/ui/player_tui.rs:160-192`, T-369), where a span whose content holds
-> an end of a line and that stands in the room keeps that end, and the line
-> of the band holds the title, the author, and the chapter of the server;
-> `the_columns_of`, which counts an end of a line as a character of no
-> width, therefore a cut of a text of many lines that no caller collapses
-> reads columns that the screen does not draw; the cursor of an empty list
-> at large — the nine sibling views of `src/app.rs:10805-10922`, and every
-> read absorbs it with `.get` today; a fact value of an East Asian language
-> in the panel 5, and no media of the sandbox holds one; and
+> **What this round leaves open, and each of them is a candidate and not
+> an item**: the name of a filter of the header of the panels —
+> `the_name_of_a_filter` of `src/ui/the_panels_of_the_stack.rs:198` gives
+> `FilterChoice::label` (an author, a series, a narrator, a genre, or a
+> tag of the server) to the words of the sequence and of the filter, which
+> `draw_the_words_of_the_sequence` of `src/ui/tui.rs` draws into a
+> `Paragraph` of one row with no wrap and no collapse, and a
+> `Paragraph::new(String)` splits a text at a `\n` into two lines, of
+> which a height of one row shows the first alone; the cursor of an empty
+> list at large — the nine sibling views of `src/app.rs:10805-10922`, and
+> every read absorbs it with `.get` today; a fact value of an East Asian
+> language in the panel 5, and no media of the sandbox holds one; and
 > every candidate of the turns before this one.
 >    **The turns before this one stand in `## The turns before the three
 >    newest ones` of this file**, above the heading of this prompt. **This item
@@ -29148,7 +29197,7 @@ every candidate of the turns before this one.
 > and it held **88074** bytes with **one** turn in it. The round of the two
 > hundred and fifth found it at 88308 bytes with one turn in it, and it did the
 > same work: the block held **81281** bytes with no turn at all after the
-> removal, and it held **85713** bytes with **one** turn in it. The round of the two hundred and sixth found it at 85713 bytes with one turn in it, and it did the same work: it holds about **86000** bytes with **one** turn in it now. The round of the two hundred and seventh found it at 85815 bytes with one turn in it, and it did the same work. The round of the two hundred and eighth found it at 85404 bytes with one turn in it, and it did the same work. The round of the two hundred and ninth found it at 85391 bytes with one turn in it, and it did the same work.
+> removal, and it held **85713** bytes with **one** turn in it. The round of the two hundred and sixth found it at 85713 bytes with one turn in it, and it did the same work: it holds about **86000** bytes with **one** turn in it now. The round of the two hundred and seventh found it at 85815 bytes with one turn in it, and it did the same work. The round of the two hundred and eighth found it at 85404 bytes with one turn in it, and it did the same work. The round of the two hundred and ninth found it at 85391 bytes with one turn in it, and it did the same work. The round of the two hundred and tenth found it at 85549 bytes with one turn in it, and it did the same work.
 > **A block that stands at 80000 bytes or under holds two
 > turns**, and the turn of the stage before this one names the parts of that
 > stage which stay open. **The list of the decisions

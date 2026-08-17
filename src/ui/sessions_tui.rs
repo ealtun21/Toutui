@@ -102,18 +102,28 @@ fn the_lines_of_the_state(state: &State, width: u16) -> Vec<Line<'static>> {
             if day_before.is_some() {
                 out.push(Line::raw(""));
             }
-            out.push(title(heading_of_a_day(
-                &day,
-                session.day_of_week.as_deref(),
-            )));
+            // The date and the day of the week come from the server too, and
+            // the heading takes the same rule (T-377).
+            out.push(title(
+                crate::logic::message::in_one_line(&heading_of_a_day(
+                    &day,
+                    session.day_of_week.as_deref(),
+                ))
+                .into_owned(),
+            ));
             day_before = Some(day);
         }
 
-        let author = session.author();
+        // **A title of the server can hold an end of a line** (T-377). The
+        // name of this row goes into a `Span`, which keeps the `\n`, and the
+        // wrap of a line then gives the title a second row at the indent: that
+        // row reads as a session of its own, with no time at all.
+        let author = crate::logic::message::in_one_line(&session.author()).into_owned();
+        let the_title = crate::logic::message::in_one_line(&session.title()).into_owned();
         let name = if author.is_empty() {
-            session.title()
+            the_title
         } else {
-            format!("{} — {}", session.title(), author)
+            format!("{} — {}", the_title, author)
         };
 
         let part = if width >= WIDTH_FOR_THE_PART && session.duration > 0.0 {
