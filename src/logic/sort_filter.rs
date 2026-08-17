@@ -499,6 +499,22 @@ pub mod the_name_that_stands {
     }
 }
 
+/// The name of the filter that the write of the row of the account takes.
+///
+/// The row of the account holds the name beside the value since the version 11
+/// of the database (T-380): a start of the program then names an author and a
+/// series too, whose value holds an identity and not a name. The box of
+/// `the_name_that_stands` holds the pair of the last application, and the
+/// start seeds it out of the row, therefore a write of the sequence alone
+/// keeps the name that stands. A filter of no value takes no name.
+pub fn the_name_for_the_disk(filter: &str) -> String {
+    if filter.is_empty() {
+        String::new()
+    } else {
+        the_name_that_stands::label_of(filter).unwrap_or_default()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

@@ -8,7 +8,7 @@ use rusqlite::{Connection, Result};
 use std::path::PathBuf;
 
 /// The schema version that this build of the program expects.
-pub const LATEST_VERSION: i64 = 10;
+pub const LATEST_VERSION: i64 = 11;
 
 /// Gives the full path of the database file.
 pub fn db_path() -> PathBuf {
@@ -107,8 +107,46 @@ pub fn run_migrations(conn: &Connection) -> Result<()> {
 
     if version < 10 {
         migrate_to_v10(conn)?;
+        version = 10;
         conn.execute_batch("PRAGMA user_version = 10")?;
     }
+
+    if version < 11 {
+        migrate_to_v11(conn)?;
+        conn.execute_batch("PRAGMA user_version = 11")?;
+    }
+
+    Ok(())
+}
+
+/// Version 11 gives the filter of the library the name that the user read.
+/// See T-380.
+///
+/// **The value of a filter of an author and of a series holds an identity**,
+/// and no arithmetic gives the name of it back: the box of the process
+/// (`sort_filter::the_name_that_stands`, T-379) named the filter until the
+/// program stopped, and the header of the next start named the group alone.
+/// The name belongs to the account, as the filter itself does (version 6).
+///
+/// An empty value means "the row holds no name": the header then reads the
+/// name out of the value for the five kinds of `decode_base64`, and it names
+/// the group for the two kinds of an identity, as it did before this version.
+///
+/// **The migration must be safe to run two times**, as the rule of the head of
+/// this file says.
+fn migrate_to_v11(conn: &Connection) -> Result<()> {
+    if !has_table(conn, "users")? {
+        return Ok(());
+    }
+
+    if has_column_in(conn, "users", "library_filter_name")? {
+        return Ok(());
+    }
+
+    conn.execute(
+        "ALTER TABLE users ADD COLUMN library_filter_name TEXT NOT NULL DEFAULT ''",
+        [],
+    )?;
 
     Ok(())
 }

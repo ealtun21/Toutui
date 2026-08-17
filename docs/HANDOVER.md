@@ -15457,6 +15457,51 @@ every read absorbs it with `.get` today; a fact value of an East Asian
 language in the panel 5, and no media of the sandbox holds one; and
 every candidate of the turns before this one.
 
+
+**The session of the two hundred and twelfth turn shipped T-379**: the
+header names the filter that the user took now.
+**The candidate came of T-378** (the second finding: the refresh of an
+application calls `from_the_server::forget()`).
+
+**The fault**, of v0.8.209 inside tmux at 100 columns against the
+sandbox: the view of the key `f` applied the genre `Fiction`, the
+Library view held `[1 item]`, and the second row of the header read
+`⇅ The sequence of the server ▣ A genre` — the group, and not the name
+that the user just took. A restart of the program with the filter
+standing gave the same group at the start, because the choices come at
+the key `f` alone. The control of the same run: a second `f` filled the
+choices again, and the header then read `▣ Fiction`. The forget is
+right (a library switch takes the same road, and the choices belong to
+one library), therefore the name must come of another place.
+
+**The correction, v0.8.210, two parts**: `decode_base64` of
+`src/logic/sort_filter.rs` reads the name of a genre, of a tag, of a
+narrator, of a language, and of a publisher out of the value itself,
+because the value holds the name in base64 — this corrects the
+application and the start together; and the box
+`sort_filter::the_name_that_stands` keeps the pair (value, label) at
+the moment of an application, because the value of an author and of a
+series holds an identity. `the_name_of_a_filter` takes the choices,
+then the decode, then the box, then the group names, and every name
+goes through `in_one_line` (the rule of T-378). The control of the
+corrected binary: `▣ Fiction` at once after the application, at the
+start too, and `▣ Lewis Carroll` after the application of an author.
+The build of the fault — the two fallbacks disabled — fails the new
+test `tests/the_header_names_the_filter_that_the_user_took.rs`. The
+row of the account holds the sequence and the filter of the start
+again, and no media of the sandbox changed.
+
+**What this round leaves open, and each of them is a candidate and not
+an item**: an author or a series filter that stands at a restart still
+names the group, because the box lives in the process and the row of
+the account holds the value alone; the header reads `▣ No filter`
+after a removal of the filter, and the words could omit the mark; the
+cursor of an empty list at large — the nine sibling views of
+`src/app.rs:10805-10922`, and every read absorbs it with `.get` today;
+a fact value of an East Asian language in the panel 5, and no media of
+the sandbox holds one; and every candidate of the turns before this
+one.
+
 ## The session of the hundred and forty-ninth turn of 2026-08-16: the panels 2 and 3 of the sequence and of the filter, of the block of the prompt
 
   **The session of the hundred and forty-ninth turn took a part of the
@@ -27964,7 +28009,7 @@ every candidate of the turns before this one.
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.210**; `Cargo.toml` is at 0.8.210. The
+> AlbanDAVID/Toutui. Newest release **v0.8.211**; `Cargo.toml` is at 0.8.211. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -28977,49 +29022,44 @@ every candidate of the turns before this one.
 > 1. **A condition of the program that no measurement has reached.** A sweep of
 >    this shape found a fault in one hundred and nineteen sessions of one
 >    hundred and twenty.
-> **The session of the two hundred and twelfth turn shipped T-379**: the
-> header names the filter that the user took now.
-> **The candidate came of T-378** (the second finding: the refresh of an
-> application calls `from_the_server::forget()`).
+> **The session of the two hundred and thirteenth turn shipped T-380**: the
+> start of the program names the filter of an author and of a series now.
+> **The candidate came of T-379** (the first leftover: the box of the name
+> lives in the process, and the row of the account holds the value alone).
 >
-> **The fault**, of v0.8.209 inside tmux at 100 columns against the
-> sandbox: the view of the key `f` applied the genre `Fiction`, the
-> Library view held `[1 item]`, and the second row of the header read
-> `⇅ The sequence of the server ▣ A genre` — the group, and not the name
-> that the user just took. A restart of the program with the filter
-> standing gave the same group at the start, because the choices come at
-> the key `f` alone. The control of the same run: a second `f` filled the
-> choices again, and the header then read `▣ Fiction`. The forget is
-> right (a library switch takes the same road, and the choices belong to
-> one library), therefore the name must come of another place.
+> **The fault**, of v0.8.210 inside tmux at 100 columns against the
+> sandbox: `sqlite3` wrote the filter of the author Lewis Carroll
+> (`authors.<the identity in base64>`) into `users.library_filter`, the
+> program started, the Library view held `[1 item]`, and the header read
+> `⇅ The sequence of the server ▣ An author` — the group, and not the
+> name.
 >
-> **The correction, v0.8.210, two parts**: `decode_base64` of
-> `src/logic/sort_filter.rs` reads the name of a genre, of a tag, of a
-> narrator, of a language, and of a publisher out of the value itself,
-> because the value holds the name in base64 — this corrects the
-> application and the start together; and the box
-> `sort_filter::the_name_that_stands` keeps the pair (value, label) at
-> the moment of an application, because the value of an author and of a
-> series holds an identity. `the_name_of_a_filter` takes the choices,
-> then the decode, then the box, then the group names, and every name
-> goes through `in_one_line` (the rule of T-378). The control of the
-> corrected binary: `▣ Fiction` at once after the application, at the
-> start too, and `▣ Lewis Carroll` after the application of an author.
-> The build of the fault — the two fallbacks disabled — fails the new
-> test `tests/the_header_names_the_filter_that_the_user_took.rs`. The
-> row of the account holds the sequence and the filter of the start
-> again, and no media of the sandbox changed.
+> **The correction, v0.8.211, three parts**: the version 11 of the
+> database adds the column `library_filter_name` to `users` (and
+> `LATEST_VERSION` goes to 11 — the first build forgot that constant, and
+> the runner then returned before the new migration); `get_library_sort`
+> and `update_library_sort` carry the name, and the write reads it of the
+> new `sort_filter::the_name_for_the_disk`; and `App::new` seeds the box
+> `the_name_that_stands` out of the row, therefore a write of the
+> sequence alone, after a restart, keeps the name. The control of the
+> corrected binary: the key `f` and the row Lewis Carroll gave
+> `▣ Lewis Carroll`, a restart gave it at the start, a change of the sort
+> after the restart kept the name in the row, and a removal of the filter
+> emptied the value and the name together. The build of the fault —
+> `the_name_for_the_disk` disabled — fails the new test
+> `tests/the_start_names_the_filter_of_the_disk.rs`. The row of the
+> account holds the sequence and the filter of the start again, and no
+> media of the sandbox changed.
 >
 > **What this round leaves open, and each of them is a candidate and not
-> an item**: an author or a series filter that stands at a restart still
-> names the group, because the box lives in the process and the row of
-> the account holds the value alone; the header reads `▣ No filter`
-> after a removal of the filter, and the words could omit the mark; the
-> cursor of an empty list at large — the nine sibling views of
-> `src/app.rs:10805-10922`, and every read absorbs it with `.get` today;
-> a fact value of an East Asian language in the panel 5, and no media of
-> the sandbox holds one; and every candidate of the turns before this
-> one.
+> an item**: a filter of an author or of a series that an older database
+> wrote still names the group at the start, because the name of it
+> reached no disk; the header reads `▣ No filter` after a removal of the
+> filter, and the words could omit the mark; the cursor of an empty list
+> at large — the nine sibling views of `src/app.rs:10805-10922`, and
+> every read absorbs it with `.get` today; a fact value of an East Asian
+> language in the panel 5, and no media of the sandbox holds one; and
+> every candidate of the turns before this one.
 >    **The turns before this one stand in `## The turns before the three
 >    newest ones` of this file**, above the heading of this prompt. **This item
 >    held three turns, and the block then stood above its limit of size**
@@ -29286,7 +29326,7 @@ every candidate of the turns before this one.
 > and it held **88074** bytes with **one** turn in it. The round of the two
 > hundred and fifth found it at 88308 bytes with one turn in it, and it did the
 > same work: the block held **81281** bytes with no turn at all after the
-> removal, and it held **85713** bytes with **one** turn in it. The round of the two hundred and sixth found it at 85713 bytes with one turn in it, and it did the same work: it holds about **86000** bytes with **one** turn in it now. The round of the two hundred and seventh found it at 85815 bytes with one turn in it, and it did the same work. The round of the two hundred and eighth found it at 85404 bytes with one turn in it, and it did the same work. The round of the two hundred and ninth found it at 85391 bytes with one turn in it, and it did the same work. The round of the two hundred and tenth found it at 85549 bytes with one turn in it, and it did the same work. The round of the two hundred and eleventh found it at 85579 bytes with one turn in it, and it did the same work. The round of the two hundred and twelfth found it at 85050 bytes with one turn in it, and it did the same work.
+> removal, and it held **85713** bytes with **one** turn in it. The round of the two hundred and sixth found it at 85713 bytes with one turn in it, and it did the same work: it holds about **86000** bytes with **one** turn in it now. The round of the two hundred and seventh found it at 85815 bytes with one turn in it, and it did the same work. The round of the two hundred and eighth found it at 85404 bytes with one turn in it, and it did the same work. The round of the two hundred and ninth found it at 85391 bytes with one turn in it, and it did the same work. The round of the two hundred and tenth found it at 85549 bytes with one turn in it, and it did the same work. The round of the two hundred and eleventh found it at 85579 bytes with one turn in it, and it did the same work. The round of the two hundred and twelfth found it at 85050 bytes with one turn in it, and it did the same work. The round of the two hundred and thirteenth found it at 85565 bytes with one turn in it, and it did the same work.
 > **A block that stands at 80000 bytes or under holds two
 > turns**, and the turn of the stage before this one names the parts of that
 > stage which stay open. **The list of the decisions

@@ -930,9 +930,21 @@ impl App {
         // of one of them is the fault of the accounts: the start stops with the
         // words that name the database, and the key `R` keeps the application of
         // the user (T-205).
-        let (mut library_sort, library_desc, library_filter) =
+        let (mut library_sort, library_desc, library_filter, library_filter_name) =
             crate::db::crud::get_library_sort(&username)
                 .map_err(|error| crate::db::TheAccountsDidNotCome(error.to_string()))?;
+
+        // The value of a filter of an author and of a series holds an
+        // identity, and the box of the name lives in the process (T-379): a
+        // start with such a filter standing named the group alone. The row of
+        // the account holds the name since the version 11 of the database,
+        // and this seed gives it to the header. See T-380.
+        if !library_filter.is_empty() && !library_filter_name.is_empty() {
+            crate::logic::sort_filter::the_name_that_stands::keep(
+                &library_filter,
+                &library_filter_name,
+            );
+        }
 
         // **The render reads no disk** (T-204). The two values of the row of the
         // player come of the disk here, at the start and at every refresh with
@@ -5861,11 +5873,18 @@ impl App {
         &mut self,
         of_the_old: (String, bool, String),
     ) -> bool {
+        // The name of the filter goes to the disk beside the value, and a
+        // start of the program then names an author and a series too. See
+        // T-380.
+        let the_name_of_the_filter =
+            crate::logic::sort_filter::the_name_for_the_disk(&self.library_filter);
+
         let of_the_disk = crate::db::crud::update_library_sort(
             &self.username,
             &self.library_sort,
             self.library_desc,
             &self.library_filter,
+            &the_name_of_the_filter,
         );
 
         if let Err(error) = of_the_disk {

@@ -36770,3 +36770,68 @@ filter` after a removal of the filter — the words could omit the mark
 when no filter stands. (3) The candidates of T-378 that stay: the cursor
 of an empty list at large, the nine sibling views of `src/app.rs`; a fact
 value of an East Asian language in the panel 5.
+
+## T-380 — The start of the program names the filter of an author and of a series
+
+**The candidate came of T-379.** The first leftover candidate of that round:
+an author or a series filter that stands at a restart still names the
+group, because the box `the_name_that_stands` lives in the process and the
+row of the account holds the value alone.
+
+**The fault, measured in the real program v0.8.210 inside tmux at 100
+columns against the sandbox on `:13399`, library `Books`.** `sqlite3` wrote
+`authors.MzEyYzQyZmYtZTgwMC00YjI5LTk5NzQtZDJkODk5ZDBiYmE5` (the identity of
+the author Lewis Carroll in base64) into `users.library_filter`, the
+program started, the Library view held `[1 item]` (Alice in Wonderland),
+and the second row of the header read `⇅ The sequence of the server ▣ An
+author` — the group, and not the name.
+
+**The root.** The value of a filter of an author and of a series holds an
+identity, `decode_base64` (T-379) gives the name of the five other kinds
+back out of the value, but no arithmetic gives a name back out of an
+identity. The box of T-379 dies with the process.
+
+**The correction, v0.8.211, three parts.**
+
+1. The version 11 of the database (`migrate_to_v11` of `src/db/migrate.rs`,
+   and `LATEST_VERSION` goes to 11 — the first build forgot that constant,
+   and the runner then returned before the new migration) adds the column
+   `library_filter_name TEXT NOT NULL DEFAULT ''` to `users`.
+2. `get_library_sort` and `update_library_sort` of `src/db/crud.rs` carry
+   the name, and the write reads it of the new function
+   `sort_filter::the_name_for_the_disk`, which takes the label of the box
+   for the filter that stands and an empty text for no filter.
+3. `App::new` of `src/app.rs` seeds the box `the_name_that_stands` out of
+   the row when the value and the name both stand — **therefore a write of
+   the sequence alone, after a restart, keeps the name** (without the seed,
+   a sort change after a restart erased it).
+
+**The control of the corrected binary, real keys inside tmux.** The key
+`f`, the row Lewis Carroll, Enter → header `▣ Lewis Carroll`; the row of the
+disk then held the pair (value, "Lewis Carroll"); a restart gave `▣ Lewis
+Carroll` at the start; a change of the sort after the restart kept the name
+in the row; a removal of the filter (the row No filter) emptied the value
+and the name together.
+
+**The test.** `tests/the_start_names_the_filter_of_the_disk.rs`, one test
+function (the rule of the box of the process). It reads the round trip of
+the pair through the disk, the removal, `the_name_for_the_disk` of an empty
+filter, of a value that no application named, and of the pair of the box,
+and the migration of a database of the version 10 (the column comes with
+the default of no character, and a second run changes nothing). The build
+of the fault — `the_name_for_the_disk` disabled with `|| true` — fails it.
+
+**The road back of the sandbox.** No media changed and no playback ran;
+`sqlite3` gave the row of the account `library_sort`, `library_desc`,
+`library_filter`, and `library_filter_name` of the start back (empty
+texts).
+
+**What this round leaves open, each a candidate and not an item.** (1) A
+filter of an author or of a series that an older database wrote (the column
+of the version 11 empty) still names the group at the start — the name of
+that filter reached no disk, and no request of the start gives it back.
+(2) The header reads `▣ No filter` after a removal of the filter — the
+words could omit the mark when no filter stands (the leftover of T-379).
+(3) The candidates of T-379 that stay: the cursor of an empty list at
+large, the nine sibling views of `src/app.rs`; a fact value of an East
+Asian language in the panel 5.

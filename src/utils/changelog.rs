@@ -41,6 +41,20 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.211",
+        date: "18/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The start of the program names the filter of an author and \
+             of a series.** The name of such a filter came of the moment of \
+             the application alone, and it went away when the program \
+             stopped: the header of the next start named the group, for \
+             example \"An author\", and not \"Lewis Carroll\". The account \
+             now keeps the name of the filter beside its value, and the \
+             header of the start reads it back.",
+        ],
+    },
+    Entry {
         version: "0.8.210",
         date: "18/08/2026",
         body: &[

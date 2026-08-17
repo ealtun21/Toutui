@@ -98,10 +98,10 @@ pub fn get_is_show_key_bindings(username: &str) -> Result<bool> {
 
 /// Reads the sequence and the filter of the library of an account. See T-24.
 ///
-/// The three values are the name of the field, `1` for the other direction,
-/// and the filter of the server. An account whose three fields hold no
-/// character gives three empty texts, and the program then asks the server as
-/// it did before.
+/// The four values are the name of the field, `1` for the other direction,
+/// the filter of the server, and the name of the filter that the user read
+/// (T-380). An account whose fields hold no character gives empty texts, and
+/// the program then asks the server as it did before.
 ///
 /// **A read that failed is not an account that chose nothing** (T-209). The old
 /// shape gave the three empty texts for every fault of the disk. The
@@ -111,11 +111,12 @@ pub fn get_is_show_key_bindings(username: &str) -> Result<bool> {
 /// Library view said `Library [17 items] — The title, the largest first`, and it
 /// then said `Library [17 items]`. **The sequence and the filter of the user
 /// went away with no word of the screen and no line of the log.**
-pub fn get_library_sort(username: &str) -> Result<(String, bool, String)> {
+pub fn get_library_sort(username: &str) -> Result<(String, bool, String, String)> {
     let conn = the_connection("get_library_sort")?;
 
     let mut stmt = conn.prepare(
-        "SELECT library_sort, library_desc, library_filter FROM users WHERE username = ?1",
+        "SELECT library_sort, library_desc, library_filter, library_filter_name
+         FROM users WHERE username = ?1",
     )?;
 
     stmt.query_row(params![username], |row| {
@@ -123,6 +124,7 @@ pub fn get_library_sort(username: &str) -> Result<(String, bool, String)> {
             row.get::<_, String>(0)?,
             row.get::<_, String>(1)? == "1",
             row.get::<_, String>(2)?,
+            row.get::<_, String>(3)?,
         ))
     })
 }
@@ -133,13 +135,26 @@ pub fn get_library_sort(username: &str) -> Result<(String, bool, String)> {
 /// the sweep of T-200 did not reach it: the key of the sequence and the key of
 /// the filter therefore read the answer of a write that never happened, and the
 /// user read no word at all. See `the_connection` for the rule.
-pub fn update_library_sort(username: &str, field: &str, desc: bool, filter: &str) -> Result<()> {
+pub fn update_library_sort(
+    username: &str,
+    field: &str,
+    desc: bool,
+    filter: &str,
+    filter_name: &str,
+) -> Result<()> {
     let conn = the_connection("update_library_sort")?;
 
     conn.execute(
-        "UPDATE users SET library_sort = ?1, library_desc = ?2, library_filter = ?3
-         WHERE username = ?4",
-        params![field, if desc { "1" } else { "0" }, filter, username],
+        "UPDATE users SET library_sort = ?1, library_desc = ?2, library_filter = ?3,
+             library_filter_name = ?4
+         WHERE username = ?5",
+        params![
+            field,
+            if desc { "1" } else { "0" },
+            filter,
+            filter_name,
+            username
+        ],
     )?;
 
     Ok(())
