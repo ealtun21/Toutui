@@ -12351,9 +12351,28 @@ that file, or the test `every_key_of_the_handler_stands_in_the_list` fails.
 
 ## What is open
 
-**The newest release is v0.8.193** (T-362, 2026-08-17): the view of every key
-of the program says the work of each key in a narrow terminal. The item T-362 of
+**The newest release is v0.8.195** (T-364, 2026-08-17): the footer of a panel
+of the stack names no list of a view that holds none. The item T-364 of
 `docs/TAKEOVER-BACKLOG.md` names the candidates that it leaves open.
+
+**The release before it, v0.8.194** (T-363, 2026-08-17): the view of the
+statistics and the view of the sessions keep every number in a narrow terminal.
+`src/ui/the_wrap_of_a_line.rs` gives `the_rows_of_a_line` and
+`the_rows_of_the_lines` to any view of this program that draws a `Vec<Line>`,
+and it keeps the style of every column of a row of the wrap.
+
+**The release before it, v0.8.193** (T-362, 2026-08-17): the view of every key
+of the program says the work of each key in a narrow terminal.
+
+**A terminal of 40 columns and 8 rows holds no fault of this shape** (T-364):
+the round of the hundred and ninety-seventh turn read that screen, which
+`## What is open` named as a screen that no round had read, and the footer took
+four of the eight rows — the half of `crate::ui::keys::the_rows_of_a_footer`
+exactly — and the band of the player went away by the rule of T-343. **A sweep
+of `Paragraph::new` with no `.wrap(` of `src/ui/` named 20 places**, and the
+two that a reading called the worst hold their width already (T-300, T-304,
+T-305, T-313, and T-325): a fault of that sweep needs a measurement of the real
+program and not a reading of the source.
 
 **The release before it, v0.8.179** (T-348, 2026-08-17): the panel of the cover
 of a media that the server holds with no cover says its words whole in a
@@ -26639,6 +26658,98 @@ work of the last key; **`the_two_columns_stand` reads the width alone and never
 the texts**, therefore a group of keys of a short work keeps no more columns
 than a group of a long one; and every candidate of the turns before this one.
 
+
+## The session of the hundred and ninety-sixth turn of 2026-08-17: T-363, the statistics and the sessions keep their numbers in a narrow terminal
+
+**The session of the hundred and ninety-sixth turn took the item 1 of the list
+of the work**, and it took the one condition that four rounds named and that no
+round measured: **the view of the statistics (the key `T`) and the view of the
+sessions (the key `W`) at 40 columns**. T-359, T-360, T-361, and T-362 each
+named those two views in what they left open, and each of them wrote that "the
+rule of a view that holds a scroll and no list is the work of a round of its
+own". T-362 wrote one word more than a measurement holds — that the two views
+"each wrap the text at the width of the panel already". **They wrap nothing at
+all.** The item is T-363.
+
+**A `ps` of the machine at the start of the round found it clean**: no program
+of `toutui`, and no shell of a busy loop. The tree of git was clean, the commit
+of the round before it stood at the remote **with its tag** (the trap 248), the
+load average was 3.3, and the disk held 445 gigabytes.
+
+**The fault, of the real program v0.8.193 inside tmux, at 40 columns and 30
+rows.** The size of the terminal is the data of the fault (T-301): no proxy, no
+book of a harness, and no change of the sandbox at all. The panel gives 38
+columns, and `src/ui/stats_tui.rs` and `src/ui/sessions_tui.rs` each give a
+`Vec<Line>` of fixed text to a `Paragraph` with **no** `.wrap(...)`:
+
+```text
+│Today: 1 h 46 min      In total: 13 h │      the time is 13 h 33 min
+│3. A Long Test Book — Long Author  (1 │      the time is (1 h 26 min)
+│2. A Second Book Of Many Hours  (8 h 0│      the time is (8 h 00 min)
+│22 items,  25 tracks,  9 authors,  5 g│      the fact is 5 genres
+│2078 books came, and 9 authors.  892.6│      the size is 892.6 MB
+```
+
+**A cut of a number gives the user another number.** `(1 ` is not
+`(1 h 26 min)`, and `892.6` with no unit is not `892.6 MB`. This is the one
+view of this program whose whole work is numbers, and **no number of the three
+groups of the media, of the library, and of the year reached the user whole**.
+The view of the sessions cut the name of every media at the same column, and
+six sessions of six different times read `A Second Book Of Many` together.
+
+**The correction, of four files.** A new `src/ui/the_wrap_of_a_line.rs` gives
+`the_rows_of_a_line(line, width, indent)`, which **keeps the one loop of the
+wrap of this program** (`the_parts_of_a_wrap`, T-362): it takes the text of
+every span together, it gives that text to the loop, and it then cuts the spans
+again at the bytes of each row — a row of a wrap keeps the style of every
+column, therefore the time of a session keeps its bold and the bar of a day
+keeps the colour of the accent. `lines` of each of the two views gives its
+lines to that function at the end, and the `render` of each of them counts the
+lines that it draws for the end of the scroll already: **the keys `j` and `k`
+reach every row of a wrap with no other change of either file.** **v0.8.194.**
+
+**Two rules that the first form of this item got wrong, and each of them is a
+test now.** The first form wrapped every row at `width - indent`, and the round
+found the two faults **in the real program of the same harness** and not in a
+test. **A line that stands in the screen already must take one row**: the bar
+of a day `2026-08-12 ▌  15 min 11 s` takes 35 columns of the 38 of the panel,
+and the `s` of its time went to a second row. **The whitespace at the start of
+a line stays on the first row**: the time of a session stands to the right of a
+field of twelve columns, the loop of the wrap drops the whitespace at the start
+of a row, and the column of the times of the whole view went away. The first
+row holds the whole width now, and the head of the line is no row of the wrap.
+
+**A test of the words of a view of this shape must read the cells of the
+screen, and not the lines of the view** (the trap 249). `lines` gives the whole
+text of every line, and the cut stands at the render: a first form of
+`the_narrow_statistics_keep_the_time_of_a_media` read `lines` and it **passed**
+with the correction removed. Those tests render into a real `Buffer` of ratatui
+of 40 columns now, and they read the symbols of the cells and they take the
+border of the `Block` away.
+
+**Four builds of the fault, and each of them fails a test**: `lines` of
+`stats_tui.rs` with no wrap, `lines` of `sessions_tui.rs` with no wrap, the
+first row of a wrap that takes the indent too, and the whitespace of the start
+of the line that goes away.
+
+**The corrected program of the same harness** said every number whole, it told
+the six sessions apart, it kept the column of the times right-aligned, every
+bar of a day took one row, and the key `j` reached the last line of the view.
+**The control of the same run is the terminal of 160 columns**, where every row
+of the two views stands as it stood before this item.
+
+**The gates**: clippy and fmt clean, 1608 tests of nextest,
+`cargo test -j 16 --no-fail-fast` three times with no failure, and
+`cargo nextest run --run-ignored all` with the sandbox up gave 1634 of 1634.
+
+**What this round leaves open, and each of them is a candidate and not an
+item**: **the indent of a wrap of a text of an East Asian language**, because
+the four columns of it are four cells and a word of that text is a cell of two
+columns; **the other views of this program that draw a `Paragraph` with no
+wrap**, which a `grep -n 'Paragraph::new' src/ui/` for a render with no
+`.wrap(` names; **the title of the panel of these two views**, which holds no
+wrap either (T-361); and every candidate of the turns before this one.
+
 ## The prompt for the next session
 
 
@@ -27659,94 +27770,101 @@ than a group of a long one; and every candidate of the turns before this one.
 >    hundred and fifteen.
 >
 >
-> **The session of the hundred and ninety-sixth turn took the item 1 of the list
-> of the work**, and it took the one condition that four rounds named and that no
-> round measured: **the view of the statistics (the key `T`) and the view of the
-> sessions (the key `W`) at 40 columns**. T-359, T-360, T-361, and T-362 each
-> named those two views in what they left open, and each of them wrote that "the
-> rule of a view that holds a scroll and no list is the work of a round of its
-> own". T-362 wrote one word more than a measurement holds — that the two views
-> "each wrap the text at the width of the panel already". **They wrap nothing at
-> all.** The item is T-363.
+> **The session of the hundred and ninety-seventh turn took the item 1 of the
+> list of the work**, and it took the candidate that **seven** rounds carried and
+> that no round measured: **the panel 4 of a view with no line and the footers of
+> the panels around it** (of T-356). The item is T-364.
 >
 > **A `ps` of the machine at the start of the round found it clean**: no program
 > of `toutui`, and no shell of a busy loop. The tree of git was clean, the commit
-> of the round before it stood at the remote **with its tag** (the trap 248), the
-> load average was 3.3, and the disk held 445 gigabytes.
+> of the round before it stood at the remote with its tag, and the disk held 431
+> gigabytes. `target/debug/deps` held 9.3 gigabytes in 1596 files, because the
+> round before this one ran `cargo clean`.
 >
-> **The fault, of the real program v0.8.193 inside tmux, at 40 columns and 30
-> rows.** The size of the terminal is the data of the fault (T-301): no proxy, no
-> book of a harness, and no change of the sandbox at all. The panel gives 38
-> columns, and `src/ui/stats_tui.rs` and `src/ui/sessions_tui.rs` each give a
-> `Vec<Line>` of fixed text to a `Paragraph` with **no** `.wrap(...)`:
+> **Two roads gave nothing, and each of them is a fact of its own.** A sweep of
+> `Paragraph::new` with no `.wrap(` named 20 places of `src/ui/`, and the two
+> that a reading called the worst — the top line of the reader and the facts of
+> the panel 5 — each hold their width already (T-300, T-304, T-305, T-313, and
+> T-325). **A terminal of 40 columns and 8 rows**, which `## What is open` names
+> as a screen that no round has read, holds no fault either: the footer takes
+> four of the eight rows, which is the half of `the_rows_of_a_footer` exactly,
+> and the band of the player goes away by the rule of T-343. **An agent gives no
+> fact of the program**, and the two roads cost the round twenty minutes and no
+> item.
+>
+> **The fault, of the real program v0.8.194 inside tmux, at 160 columns and 45
+> rows.** The library `Empty` of the sandbox holds no media, and the account took
+> it with a `sqlite3` of `name_selected_lib` (the trap 203). The panel 4 of the
+> Library view of that library holds one sentence and no list:
 >
 > ```text
-> │Today: 1 h 46 min      In total: 13 h │      the time is 13 h 33 min
-> │3. A Long Test Book — Long Author  (1 │      the time is (1 h 26 min)
-> │2. A Second Book Of Many Hours  (8 h 0│      the time is (8 h 00 min)
-> │22 items,  25 tracks,  9 authors,  5 g│      the fact is 5 genres
-> │2078 books came, and 9 authors.  892.6│      the size is 892.6 MB
+> ╔4 Library [0 items] ═══════════════════════════════════════════════╗
+> ║                    This library holds no media.                   ║
+> ║         Press L to tell the server to examine the library.        ║
 > ```
 >
-> **A cut of a number gives the user another number.** `(1 ` is not
-> `(1 h 26 min)`, and `892.6` with no unit is not `892.6 MB`. This is the one
-> view of this program whose whole work is numbers, and **no number of the three
-> groups of the media, of the library, and of the year reached the user whole**.
-> The view of the sessions cut the name of every media at the same column, and
-> six sessions of six different times read `A Second Book Of Many` together.
+> The keys `1`, `2`, and `3` give the focus to the panels of the stack, and the
+> footer of each of the three then said:
 >
-> **The correction, of four files.** A new `src/ui/the_wrap_of_a_line.rs` gives
-> `the_rows_of_a_line(line, width, indent)`, which **keeps the one loop of the
-> wrap of this program** (`the_parts_of_a_wrap`, T-362): it takes the text of
-> every span together, it gives that text to the loop, and it then cuts the spans
-> again at the bytes of each row — a row of a wrap keeps the style of every
-> column, therefore the time of a session keeps its bold and the bar of a day
-> keeps the colour of the accent. `lines` of each of the two views gives its
-> lines to that function at the end, and the `render` of each of them counts the
-> lines that it draws for the end of the scroll already: **the keys `j` and `k`
-> reach every row of a wrap with no other change of either file.** **v0.8.194.**
+> ```text
+> panel 1: j/k: move  l: open the view  h: the list  4/Ctrl+l: the list  …
+> panel 2: j/k: move  l: this sequence  h: the list  4/Ctrl+l: the list  …
+> panel 3: j/k: move  l: this filter  h: the list  4/Ctrl+l: the list  …
+> ```
 >
-> **Two rules that the first form of this item got wrong, and each of them is a
-> test now.** The first form wrapped every row at `width - indent`, and the round
-> found the two faults **in the real program of the same harness** and not in a
-> test. **A line that stands in the screen already must take one row**: the bar
-> of a day `2026-08-12 ▌  15 min 11 s` takes 35 columns of the 38 of the panel,
-> and the `s` of its time went to a second row. **The whitespace at the start of
-> a line stays on the first row**: the time of a session stands to the right of a
-> field of twelve columns, the loop of the wrap drops the whitespace at the start
-> of a row, and the column of the times of the whole view went away. The first
-> row holds the whole width now, and the head of the line is no row of the wrap.
+> **That is the rule of T-143 for a word and not for a key.** The keys `h` and
+> `4` do their work: they take the focus back to the panel 4. The word of them
+> names a thing that the user cannot see. **The control of the same run** is the
+> library `Books` of 35 items, reached with `BTab` (the trap 70 and the trap
+> 199), where the same three footers named a list that stands: the program said
+> the same word for the two libraries.
+>
+> **Why.** The round of T-359 took the keys of a line out of the footer of the
+> **view** with no line, and `the_footer_of_a_panel` of `src/ui/keys.rs` keeps no
+> part of the footer of the view at all for the panels 1, 2, 3, 5, and 6: it
+> gives a fixed text of its own, and it knew the frame, the stack, and the panel
+> of the focus, and never whether the view holds a line.
+>
+> **The correction, of two files.** A new pure `the_panel_4_of_a_view(bool)` of
+> `src/ui/keys.rs` gives `the list` or `the view`, `the_footer_of_a_panel` takes
+> a fifth argument, and its five texts take the word of that function.
+> `render_home` reads `!self.home_rows.is_empty()` and `render_library` reads
+> `!self.library_rows.is_empty()`, each before the footer is sized: the two maps
+> are one line of the screen for one row, therefore that test is the
+> `lines.is_empty()` of the branch below it and it costs no new line, and the six
+> call sites of `src/ui/tui.rs` take that one variable. **The two words hold the
+> same number of columns**, therefore the rows of the wrap of a footer do not
+> change with the condition of the view — `render_home` sizes the footer before
+> it makes the lines (T-336), and a word of another width would give the panel 4
+> one row more for a library with no media than for the same library with one
+> book in it. The gate holds that equality. **v0.8.195.**
 >
 > **A test of the words of a view of this shape must read the cells of the
-> screen, and not the lines of the view** (the trap 249). `lines` gives the whole
-> text of every line, and the cut stands at the render: a first form of
-> `the_narrow_statistics_keep_the_time_of_a_media` read `lines` and it **passed**
-> with the correction removed. Those tests render into a real `Buffer` of ratatui
-> of 40 columns now, and they read the symbols of the cells and they take the
-> border of the `Block` away.
+> screen** (the trap 249). The gate renders the real Library view of each of the
+> three panels into a `Buffer` of 160 by 45 and it reads the footer of the
+> screen; the control of the same test is that view with one `LibraryRow::Book`
+> in it; and the pure function stands in the third part alone, because a test of
+> it by itself passes with the render uncorrected.
 >
-> **Four builds of the fault, and each of them fails a test**: `lines` of
-> `stats_tui.rs` with no wrap, `lines` of `sessions_tui.rs` with no wrap, the
-> first row of a wrap that takes the indent too, and the whitespace of the start
-> of the line that goes away.
+> **Two builds of the fault, and each of them fails the gate**: the word of
+> `the_panel_4_of_a_view`, and the wiring of `render_library`.
 >
-> **The corrected program of the same harness** said every number whole, it told
-> the six sessions apart, it kept the column of the times right-aligned, every
-> bar of a day took one row, and the key `j` reached the last line of the view.
-> **The control of the same run is the terminal of 160 columns**, where every row
-> of the two views stands as it stood before this item.
->
-> **The gates**: clippy and fmt clean, 1608 tests of nextest,
+> **The gates**: clippy and fmt clean, 1609 tests of nextest,
 > `cargo test -j 16 --no-fail-fast` three times with no failure, and
-> `cargo nextest run --run-ignored all` with the sandbox up gave 1634 of 1634.
+> `cargo nextest run --run-ignored all` with the sandbox up gave 1635 of 1635.
+> The account took the library `Books` back at the end (the trap 198).
 >
 > **What this round leaves open, and each of them is a candidate and not an
-> item**: **the indent of a wrap of a text of an East Asian language**, because
-> the four columns of it are four cells and a word of that text is a cell of two
-> columns; **the other views of this program that draw a `Paragraph` with no
-> wrap**, which a `grep -n 'Paragraph::new' src/ui/` for a render with no
-> `.wrap(` names; **the title of the panel of these two views**, which holds no
-> wrap either (T-361); and every candidate of the turns before this one.
+> item**: **the footers of the panel 5 and of the panel 6**, which took the same
+> correction and no measurement, because a view with no line draws neither of
+> those panels (T-354); **the panel 4 of a view with no line says no word of its
+> own** — the keys `4`, `j`, `k`, and `l` of it each said nothing at all in this
+> round, and the control of the same run was the key `V`, which said `No media
+> plays, and no media is selected.`; **the Series view, which holds no frame of
+> the panels at all**; the rows of the band that does not fit (T-353); the width
+> of the panel 5 of a media with no cover; the other views that draw a
+> `Paragraph` with no wrap; the title of the panel of the statistics and of the
+> sessions (T-361); and every candidate of the turns before this one.
 >
 >
 >    **The turns before this one stand in `## The turns before the three

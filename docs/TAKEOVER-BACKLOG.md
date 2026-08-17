@@ -35163,3 +35163,119 @@ item**:
 - Every candidate of the items before this one.
 
 **v0.8.194.**
+
+## T-364 — The footer of a panel of the stack named a list of a view that holds none
+
+**The condition.** The real program v0.8.194 inside tmux, at 160 columns and 45
+rows, against the sandbox (podman on `:13399`). The library `Empty` of the
+sandbox holds no media at all. The account was pointed at it with `sqlite3` of
+`users.name_selected_lib` and `users.id_selected_lib` (the trap 203), and it was
+given the library `Books` back at the end (the trap 198). No proxy, no book of
+a harness, and no change of the sandbox at all.
+
+**The fault.** The panel 4 of the Library view and of the Home view of that
+library holds one sentence and no list:
+
+```text
+╔4 Library [0 items] ═══════════════════════════════════════════════╗
+║                    This library holds no media.                   ║
+║         Press L to tell the server to examine the library.        ║
+```
+
+The keys `1`, `2`, and `3` give the focus to the panel of the views, of the
+sequence, and of the filter. The footer of each of the three then read:
+
+```text
+panel 1: j/k: move  l: open the view  h: the list  4/Ctrl+l: the list  ?: every key  Q: quit
+panel 2: j/k: move  l: this sequence  h: the list  4/Ctrl+l: the list  ?: every key  Q: quit
+panel 3: j/k: move  l: this filter  h: the list  4/Ctrl+l: the list  ?: every key  Q: quit
+```
+
+The panel 4 of that same screen held no list. The keys `h` and `4` do their
+work — they take the focus back to the panel 4 — therefore this is the rule of
+T-143 for a word and not for a key: the word names a thing that the user
+cannot see.
+
+**The control of the same run.** The library `Books` of the sandbox, of 35
+items, reached with the key `BTab` (the trap 70; `press S-Tab` of `drive.sh`
+does nothing, the trap 199). The same three footers of the same three keys
+named `the list` there, and the panel 4 of that screen holds the list of the
+media. The program said the same word for the two libraries.
+
+**Why.** The round of T-359 took the keys of a line out of the footer of the
+**view** with no line (`the_footer_of_a_view_with_no_line`), and
+`the_footer_of_a_panel` of `src/ui/keys.rs` keeps no part of the footer of the
+view at all for the panels 1, 2, 3, 5, and 6: it gives a fixed text of its own.
+That function knew the frame, the stack, and the panel of the focus, and it did
+not know whether the view holds a line.
+
+**The correction, of two files.**
+
+- `src/ui/keys.rs`: a new pure function `the_panel_4_of_a_view(the_view_holds_a_line:
+  bool) -> &'static str` gives `the list` while the view holds a line and `the
+  view` while it holds none. `the_footer_of_a_panel` takes a fifth argument
+  `the_view_holds_a_line`, and its five texts (the panels 1, 2, 3, 5, and 6)
+  take the word from that function.
+- `src/ui/tui.rs`: `render_home` reads `!self.home_rows.is_empty()` and
+  `render_library` reads `!self.library_rows.is_empty()`, each before the
+  footer is sized. `home_lines` and `library_lines` each map one line of the
+  screen over one row of those vectors, therefore the test is exactly the
+  `lines.is_empty()` of the branch below it, and it costs no new line. All six
+  call sites of the file take that one variable, so the file holds one source
+  of truth.
+
+The two words hold the same number of columns (8 each), therefore the rows
+that the wrap of a footer needs do not change with the condition of the view.
+That matters because `render_home` sizes the footer before it makes the lines
+of the view (T-336): a word of another width would give the panel 4 one row
+more for a library with no media than for the same library with one book in
+it. The gate asserts that equality with `crate::logic::message::the_columns_of`.
+
+**The gate.**
+`tests/the_footer_of_a_panel_names_no_list_of_a_view_with_no_line.rs`, one test
+function (T-144 and T-157), which needs no sandbox and no server (`App::new`
+with a port that nothing listens on gives the offline mode, T-25). It has
+three parts: part 1 renders the real Library view with no line into a `Buffer`
+of ratatui of 160 by 45 for each of the three panels of the stack and reads
+the cells of the screen (the trap 249: a test that read the function alone
+would pass with the render uncorrected); part 2 is the control, the same view
+with one `LibraryRow::Book` in it; part 3 reads the pure function for all five
+panels and asserts the equality of the columns.
+
+**Two builds of the fault, and each of them fails the gate**: `the_panel_4_of_a_view`
+with `if the_view_holds_a_line || true` (the word), and `render_library` with
+`!self.library_rows.is_empty() || true` (the wiring).
+
+**The corrected program of the same harness** said `h: the view` and
+`4/Ctrl+l: the view` for the three panels of the library `Empty`, and `h: the
+list` for the three panels of the library `Books`.
+
+**The gates**: clippy and fmt clean, 1609 tests of nextest, `cargo test -j 16
+--no-fail-fast` three times with no failure, and `cargo nextest run
+--run-ignored all` with the sandbox up gave 1635 of 1635.
+
+**What this item leaves open, and each of them is a candidate and not an
+item:**
+
+- The footer of the panel 5 and of the panel 6 took the same correction and no
+  measurement of the real program: a view with no line draws no panel of a
+  cover and no panel of a gallery (T-354), therefore no key of the measurement
+  reaches those two footers, and the correction of them is uniform and
+  unmeasured.
+- The Home view of a library with no shelf took the measurement of this
+  round, and the Series view holds no frame of the panels at all, therefore no
+  footer of a panel names its condition.
+- The panel 4 of a view with no line takes the focus of a click and it says no
+  word of its own (of T-356): the keys `4`, `j`, `k`, and `l` of that panel
+  each said nothing at all in the measurement of this round, and the control
+  of the same run was the key `V`, which said `No media plays, and no media is
+  selected.`
+- The rows of the band that does not fit (T-353).
+- The width of the panel 5 of a media with no cover.
+- The other views of this program that draw a `Paragraph` with no wrap, which
+  a `grep -n 'Paragraph::new' src/ui/` for a render with no `.wrap(` names.
+- The title of the panel of the view of the statistics and of the view of the
+  sessions, which holds no wrap (T-361).
+- Every candidate of the items before this one.
+
+**v0.8.195.**
