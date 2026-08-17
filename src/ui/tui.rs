@@ -3313,12 +3313,13 @@ impl App {
     ///
     /// The offline mode says that the server does not answer, and it gives the
     /// number of positions that wait for the server. See T-25.
+    ///
+    /// **Each part of a row stands whole, or it does not stand at all** (T-340):
+    /// the three parts of a row are three texts of one row, and a part that is
+    /// too long wrote on the letters of its neighbour at every width under
+    /// about 54 columns. `crate::ui::the_row_of_the_header` holds the rule and
+    /// the measurement of the fault.
     fn render_header(&self, area: Rect, buf: &mut Buffer) {
-        Paragraph::new(self.lib_name_type.clone())
-            .bold()
-            .centered()
-            .render(area, buf);
-
         // **The address of the pool, and not the address of the login.** A pool
         // of two addresses moves between them, and the header named the address
         // that the user gave at the login for ever. See T-105 and T-107.
@@ -3346,20 +3347,15 @@ impl App {
             None => connection,
         };
 
-        // The columns of the row of the address, which is the second row of
-        // this paragraph and the neighbour at the left of the words of the
-        // sequence and of the filter. See T-329.
-        let the_columns_of_the_address = connection
-            .lines()
-            .nth(1)
-            .map(crate::logic::message::the_columns_of)
-            .unwrap_or(0);
-
-        Paragraph::new(connection)
-            .not_bold()
-            .wrap(Wrap { trim: true })
-            .left_aligned()
-            .render(area, buf);
+        // The three rows of the header, each of them a row of its own: the
+        // account, the address, and the sound device that did not start. **A
+        // paragraph of the three of them over the whole area writes each row
+        // over the width of the screen**, and the parts beside them then have
+        // no room of their own to stand in (T-340).
+        let mut the_rows_of_the_connection = connection.lines();
+        let the_account = the_rows_of_the_connection.next().unwrap_or("").to_string();
+        let the_address = the_rows_of_the_connection.next().unwrap_or("").to_string();
+        let the_sound = the_rows_of_the_connection.next().unwrap_or("").to_string();
 
         let notice = if self.is_offline {
             // **A read of the disk that failed names no number** (T-203): a count
@@ -3390,18 +3386,108 @@ impl App {
             self.update_msg.clone()
         };
 
-        // The columns of the notice, which is the neighbour at the right of the
-        // words. The paragraph carries a space of its own at the left of it.
-        let the_columns_of_the_notice =
-            crate::logic::message::the_columns_of(&notice) + usize::from(!notice.is_empty());
+        // **The notice carries a space of its own at the left of it**, and that
+        // space is the first column of the gap of T-329: the part at the right
+        // therefore holds one column more than the letters of the notice, and
+        // every screen that stood before T-340 stands in the same shape.
+        let the_notice = if notice.is_empty() {
+            String::new()
+        } else {
+            format!(" {}", notice)
+        };
 
-        Paragraph::new(format!(
-            "{}\n {}",
-            crate::ui::keys::the_name_of_the_program(VERSION, area.width),
-            notice
-        ))
-        .right_aligned()
-        .render(area, buf);
+        let the_version = crate::ui::keys::the_name_of_the_program(VERSION, area.width);
+
+        // **The first row of the header loses the name of the program first,
+        // and the account after it** (T-340). The name of the library is the
+        // last part to go away, because it names what the list under it holds
+        // and the key of the next library changes it; the account comes before
+        // it, because this program holds more than one account (T-124); and the
+        // name of the program says the least of the three, and the settings
+        // screen says it at every width already.
+        let of_the_first_row = crate::ui::the_row_of_the_header::the_places_of_a_row(
+            area.width,
+            crate::ui::the_row_of_the_header::the_columns(&the_account),
+            crate::ui::the_row_of_the_header::the_columns(&self.lib_name_type),
+            crate::ui::the_row_of_the_header::the_columns(&the_version),
+            [
+                crate::ui::the_row_of_the_header::ThePart::AtTheRight,
+                crate::ui::the_row_of_the_header::ThePart::AtTheLeft,
+                crate::ui::the_row_of_the_header::ThePart::InTheMiddle,
+            ],
+        );
+
+        // **The second row loses the notice of the key `R` before the address**
+        // (T-340): the notice names a key that the footer of every view names
+        // too, and an address that the row cuts says an address that the user
+        // does not have — the measurement of that row at 40 columns read
+        // `🔗 localhost:133`. The words of the sequence and of the filter are
+        // the middle of this row, and they go away first by the rule of T-329
+        // that `draw_the_words_of_the_sequence` holds.
+        let of_the_second_row = crate::ui::the_row_of_the_header::the_places_of_a_row(
+            area.width,
+            crate::ui::the_row_of_the_header::the_columns(&the_address),
+            0,
+            crate::ui::the_row_of_the_header::the_columns(&the_notice),
+            [
+                crate::ui::the_row_of_the_header::ThePart::InTheMiddle,
+                crate::ui::the_row_of_the_header::ThePart::AtTheRight,
+                crate::ui::the_row_of_the_header::ThePart::AtTheLeft,
+            ],
+        );
+
+        App::draw_a_part_of_the_header(area, buf, 0, of_the_first_row.at_the_left, &the_account);
+        App::draw_a_part_of_the_header(area, buf, 1, of_the_second_row.at_the_left, &the_address);
+        App::draw_a_part_of_the_header(area, buf, 0, of_the_first_row.at_the_right, &the_version);
+        App::draw_a_part_of_the_header(area, buf, 1, of_the_second_row.at_the_right, &the_notice);
+
+        if let Some(column) = of_the_first_row.in_the_middle {
+            let of_the_library = Rect {
+                x: area.x.saturating_add(column),
+                y: area.y,
+                width: crate::ui::the_row_of_the_header::the_columns(&self.lib_name_type),
+                height: 1,
+            };
+
+            if area.height >= 1 && of_the_library.right() <= area.right() {
+                Paragraph::new(self.lib_name_type.clone())
+                    .bold()
+                    .left_aligned()
+                    .render(of_the_library, buf);
+            }
+        }
+
+        // The sound device that did not start takes the third row of the
+        // header, and no part stands beside it. See T-46.
+        if !the_sound.is_empty() && area.height >= 3 {
+            Paragraph::new(the_sound)
+                .not_bold()
+                .wrap(Wrap { trim: true })
+                .left_aligned()
+                .render(
+                    Rect {
+                        x: area.x,
+                        y: area.y.saturating_add(2),
+                        width: area.width,
+                        height: area.height.saturating_sub(2),
+                    },
+                    buf,
+                );
+        }
+
+        // The columns of the two neighbours of the words of the sequence and of
+        // the filter, which is the rule of T-329. **A part that the row took
+        // away holds no column at all**, therefore the words then take the room
+        // that it left.
+        let the_columns_of_the_address = of_the_second_row
+            .at_the_left
+            .map(|_| usize::from(crate::ui::the_row_of_the_header::the_columns(&the_address)))
+            .unwrap_or(0);
+
+        let the_columns_of_the_notice = of_the_second_row
+            .at_the_right
+            .map(|_| usize::from(crate::ui::the_row_of_the_header::the_columns(&the_notice)))
+            .unwrap_or(0);
 
         // **The header keeps the words of the sequence and of the filter for a
         // screen that draws no stack** (T-318, and the decision 3 of the road
@@ -3442,6 +3528,50 @@ impl App {
                 the_columns_of_the_notice,
             );
         }
+    }
+
+    /// Draws one part of one row of the header, at the column that
+    /// `crate::ui::the_row_of_the_header` gave it. See T-340.
+    ///
+    /// **A part of `None` does not stand at all**: the row had no room for it
+    /// with a gap of two columns from its neighbours, and a text that the row
+    /// cuts says nothing to the user (T-91).
+    ///
+    /// **This function stands beside `render_header`** for the reason of
+    /// `draw_the_words_of_the_sequence`: a test of it needs a `Buffer` and no
+    /// `App`, no terminal, and no server at all.
+    fn draw_a_part_of_the_header(
+        area: Rect,
+        buf: &mut Buffer,
+        the_row: u16,
+        the_column: Option<u16>,
+        text: &str,
+    ) {
+        let Some(the_column) = the_column else {
+            return;
+        };
+
+        if text.is_empty() || area.height <= the_row {
+            return;
+        }
+
+        let of_the_part = Rect {
+            x: area.x.saturating_add(the_column),
+            y: area.y.saturating_add(the_row),
+            width: crate::ui::the_row_of_the_header::the_columns(text),
+            height: 1,
+        };
+
+        // The row of the header holds every column of this part already, and a
+        // part that leaves the area of the header draws nothing at all.
+        if of_the_part.right() > area.right() {
+            return;
+        }
+
+        Paragraph::new(text.to_string())
+            .not_bold()
+            .left_aligned()
+            .render(of_the_part, buf);
     }
 
     /// Draws the words of the sequence and of the filter on the second row of

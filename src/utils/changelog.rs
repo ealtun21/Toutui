@@ -41,6 +41,21 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.172",
+        date: "17/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The header of a narrow screen no longer writes one part over \
+             another.** The account, the name of the library, and the name of \
+             the program are three texts of one row, and the program measured \
+             none of them: a screen of 40 columns read \
+             `toutuitestPodcasts (podcas`, and the offline mode of the same \
+             width said the address `localhost:133` for a server at the port \
+             13399. Each part now stands whole with a gap of two columns, or \
+             it does not stand at all.",
+        ],
+    },
+    Entry {
         version: "0.8.171",
         date: "17/08/2026",
         body: &[

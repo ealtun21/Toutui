@@ -32038,3 +32038,180 @@ panel 4 then held no word `Alpha` at all, and `the_media_of_the_gallery` gave
 7 media of the view and not the 3 of the shelf of the cursor.
 
 **The road of T-331 is finished with this round.**
+
+## T-340 — The three parts of a row of the header write over each other
+
+**The condition**: a screen that is narrower than about 54 columns. It needs no
+proxy, no change of the sandbox, and no book of a harness: the size of the
+terminal is the data of the fault (T-301), and `COLUMNS_OF_THE_SCREEN=40` of
+`docs/harness/drive.sh` is the narrowest terminal that this fork measures.
+
+**The header holds three parts on one row, and each of them is a `Paragraph`
+of its own over the whole area.** The first row holds the account at the left,
+the name of the library in the middle, and the name of the program at the
+right; the second row holds the address of the server at the left, the words of
+the sequence and of the filter in the middle, and the notice of the key `R` at
+the right. **No part measured its neighbours**, therefore a part that is too
+long wrote on the letters of the part beside it.
+
+**T-115 met this fault at 60 columns and it corrected the words alone.** The
+answer of that item is `crate::ui::keys::THE_WIDTH_OF_THE_LONG_HEADER` of 68: a
+screen under that width takes a short form of each text (`👋 toutuitest` and not
+`👋 Connected as toutuitest`). **The short form is shorter and it is not
+measured**, therefore it writes over its neighbours at every width under about
+54 columns. **T-329 corrected the middle of the second row alone**
+(`the_column_of_the_words` of `src/ui/the_panels_of_the_stack.rs`), and the
+words of that function name this fault: "a part that is too long therefore
+writes on the letters of its neighbour, which is the fault of T-115 one row
+below".
+
+**The measurement of the real program v0.8.171 inside tmux**, of the Home view
+of the sandbox, with the library of the row of the account written with
+`sqlite3` (the trap 203). The library `Podcasts`, of the first row of the
+header:
+
+```text
+40 columns: 👋 toutuitestPodcasts (podcas🦜 v0.8.171
+44 columns: 👋 toutuitest  Podcasts (podcast)🦜 v0.8.171
+48 columns: 👋 toutuitest 📖 Podcasts (podcast)  🦜 v0.8.171
+```
+
+The account wrote over the mark `📖` of the library at 40 and at 44 columns,
+and the name of the program wrote over the end of `(podcast)` at 40. The
+library `Large`, of the same row: the account and the library met with **no
+gap at all** at 40 columns (`👋 toutuitest📖 Large (book) 🦜 v0.8.171`), and a
+gap of two columns stood at 45 and up.
+
+**The offline mode gives the fault of the second row**, and it needs no proxy:
+`podman stop -t 0 abs-test` gives the program the offline mode with the media
+of the disk (T-152).
+
+```text
+40 columns: 📴 toutuiteste: the media on 🦜 v0.8.171
+            🔗 localhost:133 R: try the server again
+50 columns: 📴 toutuitestffline: the media on the d🦜 v0.8.171
+            🔗 localhost:13399 does no R: try the server again
+60 columns: 📴 toutuitest 📴 Offline: the media on the disk  🦜 v0.8.171
+            🔗 localhost:13399 does not answer   R: try the server again
+```
+
+**The second row says an address that the user does not have.** The notice of
+the key `R` cut `🔗 localhost:13399 does not answer` at the port, and the header
+of 40 columns then named the port 133. A text that the row cuts says nothing to
+the user (T-91); **a text that the row cuts into a different address says
+something that is not true**, and the user who reads that row and then looks
+for the program at the port 133 finds nothing.
+
+**The correction**: `src/ui/the_row_of_the_header.rs`, and `render_header` of
+`src/ui/tui.rs` draws each part in an area of its own. The rule is the rule of
+T-329, for every part of the two rows: **a part stands whole with a gap of two
+columns from its neighbours, or it does not stand at all**, and each row names
+the sequence in which its parts go away.
+
+**The three decisions of this round.**
+
+- **The first row loses the name of the program first, and the account after
+  it.** The name of the library is the last part to go away, because it names
+  what the list under it holds and the key of the next library changes it; the
+  account comes before it, because this program holds more than one account
+  (T-124) and a user of one account reads their own name in the settings
+  screen; and the name of the program says the least of the three, and the
+  settings screen says it at every width already.
+- **The second row loses the notice of the key `R` before the address.** The
+  notice names a key that the footer of every view names too — the footer of
+  40 columns holds `R: refresh` — and an address that the row cuts says an
+  address that the user does not have. The words of the sequence and of the
+  filter are the middle of that row, and they go away first by the rule of
+  T-329 that `draw_the_words_of_the_sequence` holds already.
+- **The gap is the gap of two columns of T-329**, and not one column. A gap of
+  one column stood between the account and the words of the offline mode at 60
+  columns before this round, therefore that screen loses the name of the
+  program now. **A screen that held every part with the gap of T-329 keeps
+  every column that it had**: the rows of 80, 84, 120, and 160 columns of the
+  corrected program are the rows of the program before it, character for
+  character, and the words of the sequence and of the filter stand at 80 and at
+  84 columns as they stood.
+
+**The measurement of the correction**, of the same harness and the same widths:
+
+```text
+40 columns: 👋 toutuitest  📖 Podcasts (podcast)
+52 columns: 👋 toutuitest  📖 Podcasts (podcast)     🦜 v0.8.171
+40 columns:    📴 Offline: the media on the disk
+            🔗 localhost:13399 does not answer
+60 columns: 📴 toutuitest  📴 Offline: the media on the disk
+            🔗 localhost:13399 does not answer   R: try the server again
+```
+
+**The gates**: the five tests of the module
+`src/ui/the_row_of_the_header.rs`, and
+`tests/the_parts_of_the_header_do_not_meet.rs`, which renders the whole
+application into a `TestBackend` of 40 columns and 45 rows and reads the two
+rows of the header. **That test needs no server at all**: the address
+`http://127.0.0.1:1` gives the offline mode of T-25, and the row of the account
+gives the library `Podcasts`. **A mark of two columns holds two cells of the
+buffer**, and the second of them holds a space: a test that joins every cell of
+a row therefore reads one character more than the screen for each mark, and
+`the_row_of` of that file steps over the cells that the symbol before it took.
+
+The correction failed the gate with the correction removed. One edit of
+`the_places_of_a_row` gives the program before it — an early return of
+`at_the_left: Some(0)`, the middle at `(width - of_the_middle) / 2`, and
+`at_the_right: Some(width - of_the_right)`, which is what three paragraphs of
+one area draw — and four of the six tests then failed, with the row
+`📴 toutui📖 Podcasts (podcast)  v0.8.171` in the words of the fault.
+
+## T-341 — A test of the gallery that fails on a machine that is busy
+
+**The gate of a clean machine passed 8 runs of 8, and the gate of a machine of
+24 loops of a shell failed the run 5 of 6.** The round of the hundred and
+seventy-fourth met it at the first command of its session, while three
+subagents read the files of the repository: `cargo nextest run` gave
+`1363 passed, 1 failed`, and the test
+`the_cell_of_the_gallery_holds_the_picture_alone
+no_cell_of_the_gallery_holds_a_word` took 1.139 seconds where it takes 0.019.
+
+**The words of the fault name the whole of it**:
+
+```text
+the panel 6 holds the character 'Z' of a word:
+┌6 Gallery ──────────────────────────────────────┐
+│  ┏━━━━━━━━┓ ┌────────┐ ┌────────┐ ┌────────┐   │
+│  ┃Zebra   ┃ │        │ │        │ │        │   │
+│  ┃Book 1  ┃ │        │ │        │ │        │   │
+```
+
+**The first cell of the grid held the title of its media, and the eleven cells
+after it stood empty.**
+
+**The cause is a box of the process that a task writes while a frame draws.**
+`cover::request` marks a cover `Asked` and it gives its answer at once, because
+the render is not asynchronous, and it spawns a task that asks the server. The
+media of that test carry an identity that no server holds, and the address of
+it is a port that no program holds: **a port that no program holds refuses a
+connection at once** (the trap 112), therefore the task comes back with
+`CoverBytes::Fault` in less than a millisecond. A runtime of many threads runs
+that task **while the synchronous render draws the cells after it**, and a cell
+that the render reaches after the task of it came back reads `Fault`,
+`no_picture_comes` gives `true`, and the cell holds the title of its media
+(T-339).
+
+**The correction**: the test takes the runtime of one thread
+(`#[tokio::test]` and not `#[tokio::test(flavor = "multi_thread")]`). A runtime
+of one thread runs no task while a synchronous render stands, therefore every
+cell of one frame reads one state of the store. The test then passed 12 runs of
+12 under the same 24 loops of a shell.
+
+**What stays open of this item, and it is a candidate and not an item.** The
+program itself holds that condition: **one frame of the real program can hold
+two answers of one question**, because `no_picture_comes` reads a box that a
+task writes and the render asks it once for the layout of the panel 5
+(`src/ui/tui.rs`) and once for each cell of the panel 6 and of the bands. The
+user of the real program sees a grid where the cells that the render reached
+first hold no title and the cells after them do. **The loop of the screen polls
+the keys for 200 milliseconds and it draws again** (`src/main.rs`), therefore
+such a frame lives less than a fifth of a second and `tmux capture-pane` of the
+harness of this fork, which looks every 200 milliseconds, cannot hold it. **No
+round measured that frame in the real program**, therefore no correction of the
+program stands behind this line: the road of one is a snapshot of the store at
+the start of the frame, which every part of that frame then reads.

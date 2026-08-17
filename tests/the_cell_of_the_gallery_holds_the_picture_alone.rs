@@ -154,7 +154,26 @@ fn the_panel_of_the_gallery(screen: &[String]) -> Vec<String> {
 /// **The parts of this test stay in one function**: the test writes
 /// `XDG_CONFIG_HOME` of the process, and a second function of this binary would
 /// fight it for that box.
-#[tokio::test(flavor = "multi_thread")]
+///
+/// **The runtime of this test holds one thread, and that is the measurement**
+/// (T-341). `cover::request` marks a cover `Asked` and it gives the answer at
+/// once, because the render is not asynchronous: the task that it spawns then
+/// asks a port that no program holds, and the answer of that port is a fault
+/// that comes in less than a millisecond. A runtime of many threads therefore
+/// runs those tasks **while the frame draws**, and a cell that the render
+/// reaches after the task of it came back reads `CoverBytes::Fault`,
+/// `no_picture_comes` gives `true`, and the cell holds the title of its media
+/// (T-339).
+///
+/// The measurement of 2026-08-17, of this test with 24 loops of a shell on the
+/// processors of the machine: the run 5 of 6 failed with
+/// `the panel 6 holds the character 'Z' of a word`, and the first cell of the
+/// grid alone held `Zebra Book 1` while the eleven cells after it stood empty.
+/// The same test of a clean machine passed 8 runs of the whole gate.
+///
+/// A runtime of one thread runs no task while the synchronous render stands,
+/// therefore every cell of the frame reads the same state of the store.
+#[tokio::test]
 async fn no_cell_of_the_gallery_holds_a_word() {
     // No line of this test may touch the files of the user.
     let dir = tempfile::tempdir().unwrap();
