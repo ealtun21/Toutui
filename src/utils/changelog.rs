@@ -41,6 +41,21 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.166",
+        date: "17/08/2026",
+        body: &[
+            "Added:",
+            "- **A click of a row of the Chapters view plays that chapter.** \
+             The key l of that row does the same work, and the two say the \
+             same words.",
+            "Fixed:",
+            "- A click of a row of the Chapters view named the wrong chapter \
+             while the list stood away from its first line. The key G of a \
+             book of 70 chapters gave the rows 35 to 70, and a click of the \
+             second row of them moved the cursor to the chapter 2.",
+        ],
+    },
+    Entry {
         version: "0.8.165",
         date: "17/08/2026",
         body: &[

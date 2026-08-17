@@ -299,6 +299,26 @@ pub fn the_target_of_a_point(
     TheTarget::Nothing
 }
 
+/// Says whether a click of a row of the list of a view opens that row beside
+/// the move of the cursor. See T-330.5.
+///
+/// **A click of a row moves the cursor and it does nothing else** (T-316): the
+/// list of a view holds the media of the library of the user, and a click that
+/// opened a media at once would give the user the view of a book that they
+/// wanted to read the facts of. The row of the panel 1 and the row of the panel
+/// 2 and of the panel 3 each open at one click, because those three lists are
+/// short and every row of them is a control of the program.
+///
+/// **The Chapters view is the fourth of that kind**, and the map of the mouse
+/// of `docs/mockups/mockup-7.md` says so: "A click on a row — Plays that
+/// chapter". A row of that list is no media of the library; it is a place
+/// inside the media that plays now, and the user opened the view to reach one
+/// of those places. A click that moved the cursor alone would need the key `l`
+/// after it, and the mockup gives the row the work of that key.
+pub fn the_click_of_a_row_opens_it(the_view: crate::app::AppView) -> bool {
+    matches!(the_view, crate::app::AppView::Chapters)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

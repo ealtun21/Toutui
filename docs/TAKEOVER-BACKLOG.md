@@ -31084,8 +31084,114 @@ chapter that holds a letter of two columns moves every column of the row after
 it. `crate::logic::message::the_columns_of` with a pad of spaces is the road,
 and one test of the gate holds it with a title of `あああ`.
 
-**The next round of this part takes the key `Enter` of a chapter and the click
-of a row, which play that chapter.**
+**The round after this one takes the key `Enter` of a chapter and the click
+of a row, which play that chapter, and it is done: v0.8.166 below.**
+
+#### The part 5, the click of a row, is done, v0.8.166, of the round of the hundred and sixty-sixth turn
+
+**The part 5 holds three rounds, and this is the third and last of them**: the
+click of a row of the Chapters view. The two bars shipped as v0.8.164 and the
+table of the times shipped as v0.8.165.
+
+**The data of this part is the note of `docs/mockups/mockup-7.md`, and the
+program itself.** The map of the mouse of that note says "A click on a row |
+Plays that chapter." The key `l` of a row (and `Enter`, and the right arrow)
+already did that work since T-24: `App::go_to_the_chapter` of
+`src/app.rs:4665` sends `PlayerCommand::SeekTo(chapter.start)`, and it says
+`The playback goes to "<the title>".`
+
+**The first fault, measured with the real program v0.8.165 inside tmux**,
+with `docs/harness/drive.sh` and `docs/harness/click.sh`, of 160 columns and
+45 rows, of the library `Books` of the sandbox, with "A Second Book Of Many
+Hours" of 70 chapters at 3:00:08 of its eight hours. **A click of a row of
+the Chapters view moved the cursor and it did nothing else.** The click of
+the row 12 of the screen, which is the chapter 5, gave this row:
+
+```text
+➤    5  Chapter 5 of the second book                     19:08   6m02s
+```
+
+and the playback stood at 3:00:43, and the row of the message said nothing.
+The key `l` of that same row then said `The playback goes to "Chapter 5 of
+the second book".`, and the playback stood at 19:34.
+
+**The second fault, which the first one hid.** The map of the mouse of this
+view read the offset 0 at every frame. The key `G` gave the rows 35 to 70 of
+the list:
+
+```text
+    35  Chapter 35 of the second book                   3:50:18   9m40s
+    36  Chapter 36 of the second book                   3:59:58   4m31s
+```
+
+and a click of the row 9 of that screen, which is the chapter 36, gave the
+chapter 2. The reason: `render_chapters` of `src/ui/tui.rs` gave the render
+`&mut self.list_state_chapters.clone()` and the map of the mouse
+`&self.list_state_chapters.clone()`. ratatui writes the offset of the list
+into the state while it draws it; the copy took that offset to nowhere, and
+`App::the_areas_of_the_list_of_the_mouse` (`src/ui/tui.rs:3585`) then wrote
+the offset of the state before the render, which no key of this view
+changes. The other two callers of that function pass a `&mut ListState`
+through, therefore no other view held this fault. **A click that plays a
+chapter of a wrong number is worse than a click that does nothing**,
+therefore the two corrections belong to one round.
+
+**The corrected program of the same harness.** The click of the row 12 gave
+the chapter 5, the mark `▶` of the chapter that plays moved to it, the
+playback stood at 19:38, and the message said `The playback goes to
+"Chapter 5 of the second book".` The key `G` and a click of the row 9 then
+gave:
+
+```text
+➤ ▶ 36  Chapter 36 of the second book                   3:59:58   4m31s
+```
+
+and the playback at 4:00:28. A second click of the row 14 said `The
+playback goes to "Chapter 41 of the second book".`
+
+**The control of the same run.** A click of a row of the Home view moved
+the cursor of that list and it opened no media at all — the program stayed
+in the Home view, which is the rule of T-316.
+
+**The decision that this round took, and that does not open again.** The
+click of a row keeps the rule of T-316 in every view but the Chapters view,
+and the Chapters view is the fourth list of this program whose row opens at
+one click (the panel 1 of the views, the panel 2 of the sequence, and the
+panel 3 of the filter are the other three), because a row of it is no media
+of the library — it is a place inside the media that plays now.
+
+**What stays.** The line "A click on the bar of the book | Moves the media
+to that place" of the same map of the mouse of `mockup-7.md`. The two bars
+of the Chapters view stand in no area of `TheAreasOfTheMouse` at all,
+therefore that line is a round of its own, and it is a candidate and not an
+item until a round measures it.
+
+**The correction is three files.** `src/ui/the_mouse.rs` takes the pure
+function `the_click_of_a_row_opens_it(the_view: AppView) -> bool`, which is
+true for `AppView::Chapters` alone; `src/app.rs` calls it in the arm
+`TheTarget::TheListOfTheView` of `App::handle_the_mouse`, after the move of
+the cursor, and it then calls `self.go_to_the_chapter()`; `src/ui/tui.rs`
+takes the line of the user out of the application with `std::mem::take` for
+the render, and it gives it back after the map of the mouse read the offset
+that the render wrote.
+
+**The gate is `tests/the_click_of_a_chapter_plays_that_chapter.rs`, of 6
+tests.** Four are pure or read the source, one draws a list of 70 lines
+into a `Buffer` of a panel of ten rows with the cursor at the line 69 and it
+reads the offset that the render wrote, and one names every one of the 28
+views of `AppView`. **The build of the fault** (the trap 147), of three
+edits of one line each that keep every other line, made **3** of the 6
+tests fail.
+
+**The trap of this part.** **The absence of the copy is not the rule.** A
+render that gave the map of the mouse the state of `self` beside a state of
+its own would hold no `clone` at all and it would keep the same fault,
+therefore the test of the source names the sequence: the take of the state,
+the map of the mouse, and the road back, in that order.
+
+**The part 5 is finished.** Its three rounds are the two bars (v0.8.164),
+the table of the times (v0.8.165), and the click of a row (v0.8.166).
+
 
 ## T-331 — The new Home view of the bands of covers
 

@@ -1857,6 +1857,19 @@ impl App {
 
         App::render_footer(footer_area, buf, &text_render_footer);
 
+        // **The line of the user goes to the render itself and not a copy of
+        // it** (T-330.5): ratatui writes the offset of the list while it draws
+        // it, and a copy takes that offset to nowhere. The map of the mouse
+        // then read the offset 0 at every frame, and a click of a row of a list
+        // that scrolled gave the chapter of that row of the **first** screen of
+        // the list — the key `G` of the book of 70 chapters gave the rows 35 to
+        // 70, and a click of the second row of them gave the chapter 2.
+        //
+        // The state comes out of `self` for the render, because the render
+        // takes the colours of `self` beside it, and it goes back after the map
+        // of the mouse reads the offset that the render wrote.
+        let mut the_line_of_the_user = std::mem::take(&mut self.list_state_chapters);
+
         let the_lines_of_the_list = crate::ui::the_list_of_a_view::render_the_list_with_a_header(
             main_area,
             buf,
@@ -1864,15 +1877,17 @@ impl App {
             &title,
             &lines,
             the_header_of_the_columns.as_deref(),
-            &mut self.list_state_chapters.clone(),
+            &mut the_line_of_the_user,
         );
 
         self.the_areas_of_the_list_of_the_mouse(
             main_area,
             the_lines_of_the_list,
             lines.len(),
-            &self.list_state_chapters.clone(),
+            &the_line_of_the_user,
         );
+
+        self.list_state_chapters = the_line_of_the_user;
     }
 }
 

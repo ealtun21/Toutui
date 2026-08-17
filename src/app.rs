@@ -3032,6 +3032,16 @@ impl App {
 
                     if let Some(the_line) = the_line {
                         self.the_cursor_of_the_view_goes_to(the_line);
+
+                        // **A click of a row of the Chapters view plays that
+                        // chapter** (T-330.5, and the map of the mouse of
+                        // `docs/mockups/mockup-7.md`). The cursor stands on the
+                        // row of the click already, therefore this is the work
+                        // of the key `l` of the same row, and the two roads say
+                        // the same words.
+                        if crate::ui::the_mouse::the_click_of_a_row_opens_it(self.view_state) {
+                            self.go_to_the_chapter();
+                        }
                     }
                 }
                 // **A click of the row of the header of the table opens the
