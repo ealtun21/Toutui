@@ -41,6 +41,25 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.183",
+        date: "17/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The panel of the cover takes no column that its picture \
+             cannot use.** The panel keeps its width under the width that its \
+             height can hold, because a wider panel gives the picture no pixel \
+             and it takes columns of the list. That limit read the rows of the \
+             whole panel, and the picture stands inside the border: the panel \
+             therefore opened two columns wider than the widest picture that \
+             it can hold. A terminal of 160 columns gave the panel 28 columns \
+             for a picture of 24 at a screen of 19 rows, 40 for a picture of \
+             16 at 25 rows, and 50 for a picture of 26 at 30 rows. The panel \
+             now holds 26, 38, and 48 columns at those screens, the picture \
+             keeps every column that it had, and the list takes the two \
+             columns that stay.",
+        ],
+    },
+    Entry {
         version: "0.8.182",
         date: "17/08/2026",
         body: &[

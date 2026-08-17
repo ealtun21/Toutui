@@ -25536,12 +25536,92 @@ gallery under it takes the same columns for cells of ten; and every candidate
 of the turns before this one.
 
 
+
+## The session of the hundred and eighty-fourth turn of 2026-08-17: T-351, the panel of a media that holds a picture at a screen of few rows, of the block of the prompt
+
+**The session of the hundred and eighty-fourth turn took the item 1 of the
+list of the work**, and it took **the first candidate that the turn before it
+left open**: the height of the panel 5 of a media that holds a picture.
+
+**A `ps` of the machine at the start of the round found it clean**: no program
+of `toutui`, and no shell of a busy loop. The tree of git was clean, the disk
+held 446 gigabytes, and the `cargo clean` of the round before this one gave a
+cold build of `cargo build -j 16` in **18.38 seconds**.
+
+**The fault, of the real program v0.8.181 inside tmux**, at 160 columns, of
+the library `Books` of the sandbox, in the Home view. The media of the cursor
+is `A Long Test Book`, and the server holds a cover for it. At a screen of 13
+rows and at a screen of 14 rows the panel 5 stood with 22 columns and 8 or 9
+rows, and it held **no character at all**: no picture, no fact, and no word of
+the media.
+
+```text
+┌5 Cover ────────────┐
+│                    │
+│                    │
+│                    │
+│                    │
+│                    │
+│                    │
+└────────────────────┘
+```
+
+At 15 rows of the same run that panel drew a picture of 16 columns. **The
+picture is a background colour**, therefore `tmux capture-pane -p` with no
+`-e` shows spaces and it says that no picture stands where one does: the
+widths of this round come of a `python3` that reads the runs of
+`\x1b[48;2;R;G;Bm` of the capture with the colours. The columns of the panel
+and the columns of the picture, of the same run: 22 and 0 at 13 rows, 22 and 0
+at 14 rows, 22 and 16 at 15 rows, 28 and 24 at 19 rows, and 50 and 26 at 30
+rows.
+
+**Why**: `split_for_covers` compares the height of the **whole** panel with
+`the_smallest_panel_of_the_cover`, and that function gave
+`MIN_HEIGHT_FOR_COVER`, which is 8, for a media that holds a picture.
+`plan_covers` compares the height **inside** the border with that same
+number. The border takes two rows, therefore a panel of 8 or of 9 rows held 6
+or 7 rows for the picture, `plan_covers` gave no rectangle, and the panel drew
+nothing. **The arm of a media with no cover held the border already**
+(`THE_ROWS_OF_THE_BORDER + THE_ROWS_OF_THE_FACTS`, T-349), **and the arm of a
+picture did not**.
+
+**The correction**: `the_smallest_panel_of_the_cover` adds
+`THE_ROWS_OF_THE_BORDER` to both arms. The smallest panel of a picture is
+therefore 10 rows, and the smallest panel of the words stays at 5 rows.
+
+**The corrected program of the same harness**: at 13 and at 14 rows the panel
+goes away, the list of the panel 4 takes those 22 columns and it says the
+whole title of every row, and the two rows under the list say
+`Author: Long Author - Year: N/A - Duration: 30m` and
+`Progress: 50%, 15m left, Not finished`. At 15, 19, and 30 rows the columns of
+the panel and of the picture are the same numbers as before the correction.
+**The control is the library `Large`**, whose media the server holds with no
+cover: its panel stands at 11, 12, 13, 14, and 20 rows with 50 columns, and it
+says the same three lines as before. **v0.8.182.**
+
+**Two unit tests of `src/ui/cover.rs` held the number 8 as the smallest panel
+of a picture**, and the correction moved it to 10: a round that changes such a
+constant must read every test that names it, because `cargo nextest run` stops
+at the first fault and it hides the rest.
+
+**What this round leaves open, and each of them is a candidate and not an
+item**: **the width of the panel of a picture**, which comes of
+`width_that_the_height_can_use(area.height, ...)` and therefore reads the
+height of the **whole** panel while the picture gets the height inside the
+border — the picture of a panel of 15 rows is 16 columns wide inside a panel
+of 22, and some columns of the list go to a picture that cannot use them;
+**the words of the panel 5 at a screen of 9 rows and fewer**, where the panel
+goes away and the row under the list says `Author: N/A - Year: N/A -
+Duration: 0m` alone; **the width of the panel 5 of a media with no cover under
+the gallery**, which `split_for_covers` gives `PANEL_MAX_WIDTH` while the
+gallery under it takes the same columns for cells of ten; and every candidate
+of the turns before this one.
 ## The prompt for the next session
 
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.182**; `Cargo.toml` is at 0.8.182. The
+> AlbanDAVID/Toutui. Newest release **v0.8.183**; `Cargo.toml` is at 0.8.183. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -26372,7 +26452,7 @@ of the turns before this one.
 > makes no request: a measurement of two roads of the header needs a key of a
 > fresh request, and the key `R` alone forgets the state of a view.
 > Verify with a second program: `curl`, `podman logs abs-test`, or a browser.
-> Write the measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-348 and
+> Write the measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-353 and
 > up), and name that item in the commit.
 >
 > **`String::find` gives the index of a byte and not the column of the screen**
@@ -26385,8 +26465,8 @@ of the turns before this one.
 > `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`, and
 > `cargo nextest run` with `ALSA_CONFIG_PATH` pointing at a null asound file of
 > two lines (`pcm.!default { type null }` and `ctl.!default { type null }`).
-> Baseline: **1583 tests in 3.1 seconds of nextest**, and `cargo nextest run --run-ignored
-> all` gives **1609 of 1609** with the sandbox up, in about 60 seconds. **Run that
+> Baseline: **1584 tests in 3.1 seconds of nextest**, and `cargo nextest run --run-ignored
+> all` gives **1610 of 1610** with the sandbox up, in about 60 seconds. **Run that
 > second command at the end of the session too**: it found T-132 and T-111.
 > **And `cargo clean` is the last command of the round**, after the push: the
 > maintainer asked for it on 2026-08-17, and the paragraph of the disk above
@@ -26558,83 +26638,80 @@ of the turns before this one.
 
 >
 >
-> **The session of the hundred and eighty-fourth turn took the item 1 of the
+> **The session of the hundred and eighty-fifth turn took the item 1 of the
 > list of the work**, and it took **the first candidate that the turn before it
-> left open**: the height of the panel 5 of a media that holds a picture.
+> left open**: the width of the panel 5 of a media that holds a picture.
 >
 > **A `ps` of the machine at the start of the round found it clean**: no program
 > of `toutui`, and no shell of a busy loop. The tree of git was clean, the disk
 > held 446 gigabytes, and the `cargo clean` of the round before this one gave a
 > cold build of `cargo build -j 16` in **18.38 seconds**.
 >
-> **The fault, of the real program v0.8.181 inside tmux**, at 160 columns, of
+> **The fault, of the real program v0.8.182 inside tmux**, at 160 columns, of
 > the library `Books` of the sandbox, in the Home view. The media of the cursor
-> is `A Long Test Book`, and the server holds a cover for it. At a screen of 13
-> rows and at a screen of 14 rows the panel 5 stood with 22 columns and 8 or 9
-> rows, and it held **no character at all**: no picture, no fact, and no word of
-> the media.
+> is `A Long Test Book`, and the server holds a cover for it. **A picture of
+> this program inside tmux is a background colour**, therefore
+> `tmux capture-pane -p` with no `-e` shows spaces and it says that no picture
+> stands where one does: the columns of this round come of a `python3` that
+> reads the runs of `\x1b[48;2;R;G;Bm` of a capture with the colours. The
+> columns of the panel and the columns of the picture, of the same run: 22 and
+> 16 at 15 rows, **28 and 24** at 19 rows, **34 and 16** at 22 rows, **40 and
+> 16** at 25 rows, **50 and 26** at 30 rows, 50 and 22 at 36 rows, and 50 and
+> 40 at 45 rows.
 >
-> ```text
-> ┌5 Cover ────────────┐
-> │                    │
-> │                    │
-> │                    │
-> │                    │
-> │                    │
-> │                    │
-> └────────────────────┘
-> ```
+> At 19 rows the panel holds 28 columns, its border takes two of them, and the
+> picture uses 24 of the 26 that stay: **two columns of the list went to a
+> panel that gives the picture no pixel at all.**
 >
-> At 15 rows of the same run that panel drew a picture of 16 columns. **The
-> picture is a background colour**, therefore `tmux capture-pane -p` with no
-> `-e` shows spaces and it says that no picture stands where one does: the
-> widths of this round come of a `python3` that reads the runs of
-> `\x1b[48;2;R;G;Bm` of the capture with the colours. The columns of the panel
-> and the columns of the picture, of the same run: 22 and 0 at 13 rows, 22 and 0
-> at 14 rows, 22 and 16 at 15 rows, 28 and 24 at 19 rows, and 50 and 26 at 30
-> rows.
+> **Why**: `split_for_covers` keeps the panel under
+> `width_that_the_height_can_use(area.height, font, WIDEST_COVER)`, because a
+> wider panel gives the picture no more pixels and it takes columns of the text
+> for nothing (T-50). `area.height` is the height of the **whole** panel, and
+> **the picture stands inside the border**: it holds
+> `area.height - THE_ROWS_OF_THE_BORDER` rows, and a panel that holds a picture
+> of N columns needs `N + THE_COLUMNS_OF_THE_BORDER` columns of its own. The
+> limit read two rows too many and it gave the columns of the border away.
+> **This is the width of the same fault of the height that T-351 corrected.**
 >
-> **Why**: `split_for_covers` compares the height of the **whole** panel with
-> `the_smallest_panel_of_the_cover`, and that function gave
-> `MIN_HEIGHT_FOR_COVER`, which is 8, for a media that holds a picture.
-> `plan_covers` compares the height **inside** the border with that same
-> number. The border takes two rows, therefore a panel of 8 or of 9 rows held 6
-> or 7 rows for the picture, `plan_covers` gave no rectangle, and the panel drew
-> nothing. **The arm of a media with no cover held the border already**
-> (`THE_ROWS_OF_THE_BORDER + THE_ROWS_OF_THE_FACTS`, T-349), **and the arm of a
-> picture did not**.
+> **The correction**: the limit reads
+> `area.height.saturating_sub(THE_ROWS_OF_THE_BORDER)` and it adds the new
+> constant `THE_COLUMNS_OF_THE_BORDER`, which is 2, to the answer.
 >
-> **The correction**: `the_smallest_panel_of_the_cover` adds
-> `THE_ROWS_OF_THE_BORDER` to both arms. The smallest panel of a picture is
-> therefore 10 rows, and the smallest panel of the words stays at 5 rows.
+> **The corrected program of the same harness**, of the same seven screens: the
+> panel holds 22, **26**, **32**, **38**, **48**, 50, and 50 columns, and the
+> picture holds 16, 24, 16, 16, 26, 22, and 40 — **the same number at every one
+> of them**. The column where the panel starts moved from 110 to 112 at 30
+> rows, from 120 to 122 at 25 rows, from 126 to 128 at 22 rows, and from 132 to
+> 134 at 19 rows: the list of the panel 4 took those two columns. At 15 rows
+> the limit stands under `PANEL_MIN_WIDTH` and the panel keeps 22 columns, and
+> at 36 and at 45 rows the share of 40 per cent of the width binds and the
+> panel keeps 50. **v0.8.183.**
 >
-> **The corrected program of the same harness**: at 13 and at 14 rows the panel
-> goes away, the list of the panel 4 takes those 22 columns and it says the
-> whole title of every row, and the two rows under the list say
-> `Author: Long Author - Year: N/A - Duration: 30m` and
-> `Progress: 50%, 15m left, Not finished`. At 15, 19, and 30 rows the columns of
-> the panel and of the picture are the same numbers as before the correction.
-> **The control is the library `Large`**, whose media the server holds with no
-> cover: its panel stands at 11, 12, 13, 14, and 20 rows with 50 columns, and it
-> says the same three lines as before. **v0.8.182.**
->
-> **Two unit tests of `src/ui/cover.rs` held the number 8 as the smallest panel
-> of a picture**, and the correction moved it to 10: a round that changes such a
-> constant must read every test that names it, because `cargo nextest run` stops
-> at the first fault and it hides the rest.
+> **The build of the fault failed on two tests**, and the second of them stood
+> in the file already: `the_panel_uses_the_height_of_the_screen` held `24` for
+> a panel of 12 rows, and the correction moves that number to
+> `PANEL_MIN_WIDTH`. **A round that changes a limit of the width must read
+> every test that names a width**, as the round of T-351 read every test that
+> named the height.
 >
 > **What this round leaves open, and each of them is a candidate and not an
-> item**: **the width of the panel of a picture**, which comes of
-> `width_that_the_height_can_use(area.height, ...)` and therefore reads the
-> height of the **whole** panel while the picture gets the height inside the
-> border — the picture of a panel of 15 rows is 16 columns wide inside a panel
-> of 22, and some columns of the list go to a picture that cannot use them;
-> **the words of the panel 5 at a screen of 9 rows and fewer**, where the panel
-> goes away and the row under the list says `Author: N/A - Year: N/A -
-> Duration: 0m` alone; **the width of the panel 5 of a media with no cover under
-> the gallery**, which `split_for_covers` gives `PANEL_MAX_WIDTH` while the
-> gallery under it takes the same columns for cells of ten; and every candidate
-> of the turns before this one.
+> item**: **the rows of the facts are not the rows of the picture either** —
+> the limit of the width now holds the border, and the words of the panel take
+> rows of the picture beyond it, therefore a screen of 36 rows holds a panel of
+> 50 columns whose picture is 11 rows and 22 columns, and **26 columns of every
+> row of the picture stand empty**; the rows that the words take come of the
+> media and of the width of the panel, therefore a limit that reads them is
+> circular, and a panel of the width of the picture alone would cut the facts
+> (`Narrator  A Test Narrator` is 25 columns) — **a round that takes this one
+> must decide what the panel is for**, and that decision belongs to the design
+> of the panels and not to a correction of a fault; **the words of the panel 5
+> at a screen of 9 rows and fewer**, where the panel goes away and the row
+> under the list says `Author: N/A - Year: N/A - Duration: 0m` alone; **the
+> width of the panel 5 of a media with no cover under the gallery**, which
+> `split_for_covers` gives `PANEL_MAX_WIDTH` while the gallery under it takes
+> the same columns for cells of ten; and every candidate of the turns before
+> this one.
+>
 >
 >    **The turns before this one stand in `## The turns before the three
 >    newest ones` of this file**, above the heading of this prompt. **This item
@@ -26846,7 +26923,9 @@ of the turns before this one.
 > bytes with **one** turn in it; the round of the hundred and eighty-fourth
 > found it at 82742 bytes with one turn in it, and it took that turn out and
 > it wrote its own, and the block then held about **82000** bytes with **one**
-> turn in it.
+> turn in it; the round of the hundred and eighty-fifth found it at 82253 bytes
+> with one turn in it, and it did the same work, and the block then held
+> **82396** bytes with **one** turn in it.
 > **A block that stands at 80000 bytes or under holds two
 > turns**, and the turn of the stage before this one names the parts of that
 > stage which stay open. **The list of the decisions

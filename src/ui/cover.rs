@@ -39,6 +39,9 @@ pub const MIN_HEIGHT_FOR_COVER: u16 = 8;
 /// The rows of the panel of the cover that its border takes.
 const THE_ROWS_OF_THE_BORDER: u16 = 2;
 
+/// The columns of the panel of the cover that its border takes.
+const THE_COLUMNS_OF_THE_BORDER: u16 = 2;
+
 /// The share of the width that the panel of the covers takes, in percent.
 ///
 /// The user asked for a larger picture on 2026-08-11. The panel took 30 per
@@ -651,8 +654,21 @@ pub fn split_for_covers(
     // A panel that is wider than the height can use gives the picture no more
     // pixels. The form of a cover is not always square, therefore the limit
     // takes the widest form that a cover has. See T-50.
+    //
+    // **The picture stands inside the border, and the limit of the panel holds
+    // that border on both sides** (T-352). The rows of the picture are the rows
+    // of the panel less `THE_ROWS_OF_THE_BORDER`, and the columns of the panel
+    // are the columns of the picture and `THE_COLUMNS_OF_THE_BORDER`: a limit
+    // of `area.height` alone therefore opened a panel of two columns more than
+    // the widest picture that it can hold, and those two columns came out of
+    // the list beside it and they gave the picture no pixel at all.
     let of_the_height = if a_picture_comes {
-        width_that_the_height_can_use(area.height, font, WIDEST_COVER)
+        width_that_the_height_can_use(
+            area.height.saturating_sub(THE_ROWS_OF_THE_BORDER),
+            font,
+            WIDEST_COVER,
+        )
+        .saturating_add(THE_COLUMNS_OF_THE_BORDER)
     } else {
         PANEL_MAX_WIDTH
     };
@@ -1582,9 +1598,53 @@ mod tests {
         assert_eq!(panel.width, 64);
 
         // A low panel takes fewer columns, because more columns would give the
-        // picture no pixel.
+        // picture no pixel. A panel of 12 rows holds 10 rows for the picture
+        // (T-352), therefore the picture uses 20 columns and the panel of it
+        // needs 22: that is `PANEL_MIN_WIDTH` already, and the rule of the
+        // height gave 24 before the correction of T-352.
         let (_text, low) = split_for_covers(area(160, 12), 160, FONT, true);
-        assert_eq!(low.expect("a cover").width, 24);
+        assert_eq!(low.expect("a cover").width, PANEL_MIN_WIDTH);
+    }
+
+    /// **The picture stands inside the border of the panel** (T-352), therefore
+    /// the limit of the height must read the rows inside that border and it
+    /// must give the columns of the border back to the panel. A limit of the
+    /// rows of the whole panel opened a panel of two columns more than the
+    /// widest picture that it can hold, and those two columns came out of the
+    /// list beside it.
+    ///
+    /// The measurement of the real program, of the library `Books` of the
+    /// sandbox at 160 columns, as the columns of the panel and the columns of
+    /// the picture: 28 and 24 at a screen of 19 rows, 34 and 16 at 22 rows, 40
+    /// and 16 at 25 rows, and 50 and 26 at 30 rows. After the correction: 26
+    /// and 24, 32 and 16, 38 and 16, and 48 and 26. **The picture keeps every
+    /// column that it had, at every one of them.**
+    #[test]
+    fn the_panel_of_a_picture_holds_no_column_that_the_picture_cannot_use() {
+        let _covers = WithCovers::on();
+
+        // A screen of 25 rows gives 20 rows to the work of the view.
+        let (_text, panel) = split_for_covers(area(160, 20), 160, FONT, true);
+        let panel = panel.expect("a cover");
+
+        let of_the_picture = width_that_the_height_can_use(
+            panel.height - THE_ROWS_OF_THE_BORDER,
+            FONT,
+            WIDEST_COVER,
+        );
+
+        assert_eq!(
+            panel.width - THE_COLUMNS_OF_THE_BORDER,
+            of_the_picture,
+            "the columns inside the panel are the columns of the picture: \
+             the panel holds {} and the picture uses {of_the_picture}",
+            panel.width,
+        );
+
+        assert_eq!(
+            panel.width, 38,
+            "the measurement of T-352 gave 40 columns for a picture of 36",
+        );
     }
 
     /// The cover of one book fills the panel now. A shelf of a series keeps the

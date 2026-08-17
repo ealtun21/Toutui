@@ -33493,3 +33493,95 @@ item:
   takes the same columns for cells of ten.
 
 **v0.8.182.**
+
+## T-352 — The panel of the cover opens two columns wider than the widest picture that it can hold
+
+**The condition.** The real program v0.8.182 inside tmux, at 160 columns, of
+the library `Books` of the sandbox, in the Home view. The media of the cursor
+is `A Long Test Book`, and the server holds a cover for it. The screen changes
+its rows alone, and no proxy, no book of a harness, and no change of the
+sandbox stand behind this measurement.
+
+**A picture of this program inside tmux is a background colour**, therefore
+`tmux capture-pane -p` with no `-e` gives spaces and it says that no picture
+stands where one does. The columns below come of a `python3` that reads the
+runs of `\x1b[48;2;R;G;Bm` of a capture with `-e`.
+
+**The fault.** The columns of the panel 5 and the columns of the picture inside
+it, of the same run, at eight screens of 160 columns:
+
+| The rows of the screen | The columns of the panel | The columns of the picture |
+|---|---|---|
+| 12 | no panel | — |
+| 15 | 22 | 16 |
+| 19 | **28** | 24 |
+| 22 | **34** | 16 |
+| 25 | **40** | 16 |
+| 30 | **50** | 26 |
+| 36 | 50 | 22 |
+| 45 | 50 | 40 |
+
+At a screen of 19 rows the panel holds 28 columns, its border takes two of
+them, and the picture uses 24 of the 26 that stay: **two columns of the list
+went to a panel that gives the picture no pixel at all.** The same two columns
+stand at 22, at 25, and at 30 rows.
+
+**Why.** `split_for_covers` of `src/ui/cover.rs` keeps the panel under the
+width that its height can use, because "a panel that is wider than the height
+can use gives the picture no more pixels, and it takes columns of the text for
+nothing" (T-50). That limit is
+`width_that_the_height_can_use(area.height, font, WIDEST_COVER)`, and
+`area.height` is the height of the **whole** panel. **The picture stands inside
+the border**: it holds `area.height - THE_ROWS_OF_THE_BORDER` rows, and the
+panel that holds a picture of N columns needs `N + THE_COLUMNS_OF_THE_BORDER`
+columns of its own. The limit read two rows too many and it gave the columns of
+the border away, therefore it stood two columns above the width of the widest
+picture that the panel can hold. This is the width of the same fault of the
+height that T-351 corrected, and the round of T-351 left it open as a
+candidate.
+
+**The correction.** The limit reads
+`area.height.saturating_sub(THE_ROWS_OF_THE_BORDER)` and it adds
+`THE_COLUMNS_OF_THE_BORDER` to the answer. The new constant
+`THE_COLUMNS_OF_THE_BORDER` is 2, beside `THE_ROWS_OF_THE_BORDER`.
+
+**The corrected program of the same harness**, of the same eight screens: the
+panel holds 22, 26, 32, 38, 48, 50, and 50 columns, and **the picture holds 16,
+24, 16, 16, 26, 22, and 40 columns — the same number at every one of the eight
+screens.** The column where the panel starts moved from 110 to 112 at 30 rows,
+from 120 to 122 at 25 rows, from 126 to 128 at 22 rows, and from 132 to 134 at
+19 rows: the list of the panel 4 took those two columns. At 15 rows the limit
+stands under `PANEL_MIN_WIDTH` and the panel keeps 22 columns; at 36 and at 45
+rows the share of 40 per cent of the width binds and the panel keeps 50.
+
+**The test.**
+`the_panel_of_a_picture_holds_no_column_that_the_picture_cannot_use` of
+`src/ui/cover.rs` reads a main area of 160 columns and 20 rows, and it holds
+that the columns inside the panel are the columns that
+`width_that_the_height_can_use` gives for the rows inside the border. With the
+correction removed it says `the panel holds 40 and the picture uses 36`, and
+`the_panel_uses_the_height_of_the_screen` fails beside it with 24 for 22.
+
+**What this round leaves open, and each of them is a candidate and not an
+item:**
+
+- **The rows of the facts are not the rows of the picture either.** The limit
+  of the width now holds the border, and the words of the panel take rows of
+  the picture beyond it: at a screen of 36 rows the panel holds 50 columns, the
+  picture holds 11 rows and therefore 22 columns, and **26 columns of every row
+  of the picture stand empty**. The rows that the words take come of the media
+  and of the width of the panel (`the_parts_of_the_panel` of
+  `src/ui/the_panel_of_the_cover.rs` gives the facts and the description the
+  rows that they need), therefore a limit of the width that reads them is
+  circular, and a panel of the width of the picture alone would cut the facts:
+  `Narrator  A Test Narrator` is 25 columns. **A round that takes this one must
+  decide what the panel is for**, and that decision belongs to the design of
+  the panels and not to a correction of a fault.
+- **The words of the panel 5 at a screen of 9 rows and fewer**, where the panel
+  goes away and the row under the list says `Author: N/A - Year: N/A -
+  Duration: 0m` alone.
+- **The width of the panel 5 of a media with no cover under the gallery**,
+  which `split_for_covers` gives `PANEL_MAX_WIDTH` while the gallery under it
+  takes the same columns for cells of ten.
+
+**v0.8.183.**
