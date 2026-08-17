@@ -35530,3 +35530,126 @@ gave 1637 of 1637.
 - Every candidate of the items before this one.
 
 **v0.8.197.**
+
+## T-367 — The panel of the views named the downloads of the server in a library of books
+
+**The condition.** The real program v0.8.197 inside tmux, at 160 columns and 45
+rows, with `TOUTUI_AUDIO_DEVICE=null`, against the sandbox (podman on `:13399`).
+The library `Books` of the sandbox (35 items) and the library `Podcasts` (17
+items) as the control, each taken with a `sqlite3` of `users.name_selected_lib`
+and `users.id_selected_lib` (the trap 203). No proxy and no change of the
+sandbox.
+
+**How this round found it.** The candidate of the start was the title of the
+panel of the view of the statistics and of the view of the sessions, which T-361
+and T-363 left open, and **that candidate gave no item**: the two titles stand in
+the 38 columns of the panel of a screen of 40. The round then took a sweep of the
+views of the panel 1 at that same width, and the key `d` of the Home view of the
+library `Books` gave the Home view again.
+
+**The fault.** The panel 1 of the views of the library `Books` held fifteen
+lines, and one of them was the view of the downloads of the server:
+
+```text
+║  Queue                        q║
+║➤ Downloads                    d║
+║  Chapters                     C║
+```
+
+The key `1` of the frame and eight keys `j` took that line, and the key `l` of it
+gave no view at all: the border of the panel went back to the light border of no
+focus, the Home view stood, and the row of the message said `This library holds
+books. The server downloads the episodes of a podcast only.` **The log of the
+program grew by no line**: 25 lines before the key, and 25 after it. The key `d`
+of the same screen said that same word. **The control of the same run** is the key
+`q` of the same view, which gave `The queue [0 items]` at once, and the library
+`Podcasts`, where the key `d` gave `The downloads of the server [0 items]` with
+the reason `The server downloads no episode. Press E on a podcast to get its new
+episodes.` and the panel 1 of that library named the same view at its row 9.
+
+**Why.** `show_the_downloads_of_the_server` of `src/app.rs` holds the guard
+`if !self.is_podcast` and the word above, because the server downloads the
+episodes of a podcast alone. This is the fault of T-118 (a text must not promise
+a function that the program does not have) and of T-79 (a key of the panel that
+does nothing), which the comment of `THE_VIEWS` names itself. **T-365 took the
+views of a book out of a library of podcasts, and T-366 gave the panel the line
+of the series with that same mark**: a mark of one kind of a library cannot say
+that a view belongs to the other kind, therefore the fault of the other direction
+stayed. The mockup 1 names the line `Downloads d` in its panel 1, and that mockup
+is a screen of a library of books: **the design of the panel therefore held the
+fault too**, and a round must not write in `docs/mockups/`.
+
+**The correction, of one file of the source and three files of the tests.**
+
+- `src/ui/frame.rs`: the field `of_a_library_of_books: bool` of `AView` goes
+  away, and the enum `TheLibraryOfAView` of three values takes its place —
+  `Every`, `OfBooks`, and `OfPodcasts`. The filter of `the_views` reads the three
+  of them with a `match`, therefore no value of that enum can go without a rule.
+  The line `Downloads` takes `OfPodcasts`, the lines `Series`, `Authors`, and
+  `Narrators` keep `OfBooks`, and the eleven other lines take `Every`.
+- The three tests that read the old field take the new one:
+  `tests/the_panel_of_the_views_names_no_view_of_a_book_in_a_library_of_podcasts.rs`
+  (of T-365), `tests/the_frame_of_the_panels_holds_its_three_shapes.rs` (of
+  T-320, whose count of the lines of a library of books read the whole
+  constant), and the new gate. **A count of `THE_VIEWS.len()` belongs to no
+  library now.**
+
+**The corrected program of the same harness** (v0.8.198): the library `Books`
+gave a panel 1 of **fourteen** lines with no line of the downloads at all, and
+the third line of it is `Series s`; the key `G` took the line `Every key` and the
+key `l` of it opened the view of every key; a click of the row 12 of the screen
+took the line `Chapters` and the program stood (`docs/harness/click.sh`). The
+library `Podcasts` gave a panel of **twelve** lines whose sixth line is
+`Downloads d`, and the key `l` of that line gave `The downloads of the server [0
+items]`. The account took the library `Books` back at the end (the trap 198).
+
+**The gate.** The new test
+`tests/the_panel_of_the_views_names_no_view_of_a_podcast_in_a_library_of_books.rs`
+renders the real Library view into a `Buffer` of ratatui, it reads the rows of
+the panel 1 alone (from the row of the title `1 Views` to the row of its foot),
+it presses the key `d` of a library of books and it reads the words of the box of
+the message, and it takes the key `l` of the row of the downloads of a library of
+podcasts. It holds a rule of every line too: **no line of `THE_VIEWS` may belong
+to no library at all**. **Four builds of the fault, and each of them fails the
+gate**:
+
+1. the line of the downloads with the mark `Every`, which is the program of
+   v0.8.197;
+2. a filter whose arm of a podcast gives `true`;
+3. a filter whose arm of a podcast reads the library in reverse;
+4. a filter whose arm of a podcast gives `false`, therefore no library names that
+   view — the new gate alone catches this one at the part of the control, and the
+   gate of T-365 catches the three before it too.
+
+**The gates of the round.** Clippy and fmt clean, 1612 tests of nextest in 2.9
+seconds (1611 before this item), `cargo test -j 16 --no-fail-fast` three times
+with no failure, and `cargo nextest run --run-ignored all` with the sandbox up
+gave 1638 of 1638.
+
+**What this item leaves open, and each of them is a candidate and not an item.**
+
+- The panel 1 names no key of the next library (`Shift+Tab`) and no view of the
+  search (`/`), and the two of them stand in the group "The views" of the list of
+  every key.
+- **The title of the panel of the view of the statistics and of the view of the
+  sessions holds no fault at 40 columns**, and this round measured it: `Your
+  listening time` takes 19 columns and `The sessions that you played` takes 28,
+  therefore the two of them stand in the 38 columns of the panel of a screen of
+  40. T-361 and T-363 left that candidate open, and it needs a title of a name of
+  the server to become a fault. The other titles of a panel of this program that
+  hold a name of the server (the books of a series, the media of a collection,
+  the bookmarks of a media) are the class of that fault, and `src/ui/tui.rs`
+  gives every one of them to `the_list_of_a_view`, which holds `in_one_row`
+  already.
+- **A row of a list of the panel 4 loses the last character of its text at 40
+  columns with no mark of the cut**: the row `[Collection] A Test Collection [1
+  item` of the Collections view is what the user reads of `[Collection] A Test
+  Collection [1 item]`.
+- The Series view holds no frame of the panels at all.
+- The keys `4`, `j`, `k`, and `l` of the panel 4 of a view with no line say
+  nothing, and the footer of that focus names none of them since T-359.
+- The footers of the panel 5 and of the panel 6 (T-354), the rows of the band
+  that does not fit (T-353), the width of the panel 5 of a media with no cover,
+  and every candidate of the items before this one.
+
+**v0.8.198.**

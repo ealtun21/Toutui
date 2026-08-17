@@ -41,6 +41,22 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.198",
+        date: "17/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The panel of the views names no view of a podcast in a library \
+             of books.** The server downloads the episodes of a podcast alone, \
+             and the panel 1 of a library of books still named the view of the \
+             downloads of the server: the key `l` of that line, and the key \
+             `d`, each said `This library holds books. The server downloads \
+             the episodes of a podcast only.` and gave no view at all. The \
+             panel now names the views of the library that stands in the two \
+             directions, therefore a library of books names no view of a \
+             podcast and a library of podcasts names no view of a book.",
+        ],
+    },
+    Entry {
         version: "0.8.197",
         date: "17/08/2026",
         body: &[

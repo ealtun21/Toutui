@@ -328,6 +328,23 @@ pub enum TheWork {
     TheKey(char),
 }
 
+/// The library that holds the view of a line of the panel 1.
+///
+/// **A library of podcasts holds no series, no author, and no narrator**, and
+/// **the server downloads the episodes of a podcast alone**: the key of such a
+/// view answers with a word and it gives no view at all, therefore the panel of
+/// the library that stands must not name it. See [`the_views`], T-365, T-366,
+/// and T-367.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum TheLibraryOfAView {
+    /// Every library holds this view.
+    Every,
+    /// A library of books alone holds it.
+    OfBooks,
+    /// A library of podcasts alone holds it.
+    OfPodcasts,
+}
+
 /// One line of the panel 1: the name of a view, and the key that opens it.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct AView {
@@ -337,12 +354,8 @@ pub struct AView {
     pub key: &'static str,
     /// What the key `l` of this line does.
     pub work: TheWork,
-    /// The view of this line stands in a library of books alone.
-    ///
-    /// **A library of podcasts holds no series, no author, and no narrator**,
-    /// therefore the three lines of those views carry this mark. See
-    /// [`the_views`], T-365, and T-366.
-    pub of_a_library_of_books: bool,
+    /// The library that holds the view of this line.
+    pub the_library: TheLibraryOfAView,
 }
 
 /// The views of the panel 1, in the sequence of the design.
@@ -362,13 +375,13 @@ pub const THE_VIEWS: &[AView] = &[
         name: "Home",
         key: "Tab",
         work: TheWork::TheHomeView,
-        of_a_library_of_books: false,
+        the_library: TheLibraryOfAView::Every,
     },
     AView {
         name: "Library",
         key: "Tab",
         work: TheWork::TheLibraryView,
-        of_a_library_of_books: false,
+        the_library: TheLibraryOfAView::Every,
     },
     // **The mockup 1 gives the series the third line of this panel**
     // (`docs/mockups/mockup-1.txt`), and a library of podcasts holds no series:
@@ -378,95 +391,105 @@ pub const THE_VIEWS: &[AView] = &[
         name: "Series",
         key: "s",
         work: TheWork::TheKey('s'),
-        of_a_library_of_books: true,
+        the_library: TheLibraryOfAView::OfBooks,
     },
     AView {
         name: "Sequence and filter",
         key: "f",
         work: TheWork::TheKey('f'),
-        of_a_library_of_books: false,
+        the_library: TheLibraryOfAView::Every,
     },
     AView {
         name: "Authors",
         key: "a",
         work: TheWork::TheKey('a'),
-        of_a_library_of_books: true,
+        the_library: TheLibraryOfAView::OfBooks,
     },
     AView {
         name: "Narrators",
         key: "v",
         work: TheWork::TheKey('v'),
-        of_a_library_of_books: true,
+        the_library: TheLibraryOfAView::OfBooks,
     },
     AView {
         name: "Collections",
         key: "c",
         work: TheWork::TheKey('c'),
-        of_a_library_of_books: false,
+        the_library: TheLibraryOfAView::Every,
     },
     AView {
         name: "Queue",
         key: "q",
         work: TheWork::TheKey('q'),
-        of_a_library_of_books: false,
+        the_library: TheLibraryOfAView::Every,
     },
+    // **The server downloads the episodes of a podcast alone**, therefore the
+    // key `d` of a library of books says "This library holds books. The server
+    // downloads the episodes of a podcast only." and it gives no view at all.
+    // See T-367.
     AView {
         name: "Downloads",
         key: "d",
         work: TheWork::TheKey('d'),
-        of_a_library_of_books: false,
+        the_library: TheLibraryOfAView::OfPodcasts,
     },
     AView {
         name: "Chapters",
         key: "C",
         work: TheWork::TheKey('C'),
-        of_a_library_of_books: false,
+        the_library: TheLibraryOfAView::Every,
     },
     AView {
         name: "Bookmarks",
         key: "V",
         work: TheWork::TheKey('V'),
-        of_a_library_of_books: false,
+        the_library: TheLibraryOfAView::Every,
     },
     AView {
         name: "Sessions",
         key: "W",
         work: TheWork::TheKey('W'),
-        of_a_library_of_books: false,
+        the_library: TheLibraryOfAView::Every,
     },
     AView {
         name: "Statistics",
         key: "T",
         work: TheWork::TheKey('T'),
-        of_a_library_of_books: false,
+        the_library: TheLibraryOfAView::Every,
     },
     AView {
         name: "Settings",
         key: "S",
         work: TheWork::TheKey('S'),
-        of_a_library_of_books: false,
+        the_library: TheLibraryOfAView::Every,
     },
     AView {
         name: "Every key",
         key: "?",
         work: TheWork::TheKey('?'),
-        of_a_library_of_books: false,
+        the_library: TheLibraryOfAView::Every,
     },
 ];
 
-/// The views of the panel 1 of the library that stands. See T-365.
+/// The views of the panel 1 of the library that stands. See T-365 and T-367.
 ///
-/// **A view of a library of books has no meaning in a library of podcasts**,
-/// which is the rule that the panel 2 of the sequence holds already (T-318 and
-/// T-324): a podcast has no author and no narrator, therefore the keys `a` and
-/// `v` of such a library each answer with a word and no view at all. The panel
-/// names the views that the user can reach and no view more, because a panel
-/// that promises a view that the program refuses is the fault of T-118 and a
-/// line of it that does nothing is the fault of T-79.
+/// **A view of one kind of a library has no meaning in the other kind**, which
+/// is the rule that the panel 2 of the sequence holds already (T-318 and T-324):
+/// a podcast has no author and no narrator, therefore the keys `a` and `v` of
+/// such a library each answer with a word and no view at all, and the server
+/// downloads the episodes of a podcast alone, therefore the key `d` of a library
+/// of books answers with a word too (T-367). The panel names the views that the
+/// user can reach and no view more, because a panel that promises a view that the
+/// program refuses is the fault of T-118 and a line of it that does nothing is
+/// the fault of T-79.
 pub fn the_views(a_library_of_podcasts: bool) -> Vec<AView> {
     THE_VIEWS
         .iter()
-        .filter(|view| !(a_library_of_podcasts && view.of_a_library_of_books))
+        .filter(|view| match view.the_library {
+            TheLibraryOfAView::Every => true,
+            TheLibraryOfAView::OfBooks => !a_library_of_podcasts,
+            TheLibraryOfAView::OfPodcasts => a_library_of_podcasts,
+        })
         .copied()
         .collect()
 }
@@ -652,9 +675,12 @@ mod tests {
         let width = THE_WIDTH_OF_THE_STACK - 2;
         let lines = the_lines_of_the_views(width, false);
 
-        assert_eq!(lines.len(), THE_VIEWS.len());
+        // **The lines are the views of the library that stands** (T-365 and
+        // T-367), therefore a library of books holds every view but the views of
+        // a podcast.
+        assert_eq!(lines.len(), the_views(false).len());
 
-        for (line, view) in lines.iter().zip(THE_VIEWS) {
+        for (line, view) in lines.iter().zip(the_views(false)) {
             assert!(
                 line.chars().count() <= usize::from(width),
                 "the line {line:?} of {} characters stands over the {width} columns of the panel",
@@ -670,19 +696,40 @@ mod tests {
         // **A panel of a narrow terminal writes no line of a negative width**:
         // the stack stands at the three columns alone, and a width of nothing
         // must give no panic at all.
-        assert_eq!(the_lines_of_the_views(0, false).len(), THE_VIEWS.len());
-        assert_eq!(the_lines_of_the_views(3, false).len(), THE_VIEWS.len());
+        assert_eq!(
+            the_lines_of_the_views(0, false).len(),
+            the_views(false).len()
+        );
+        assert_eq!(
+            the_lines_of_the_views(3, false).len(),
+            the_views(false).len()
+        );
 
         // **A library of podcasts holds no series, no author, and no narrator**
-        // (T-365 and T-366), therefore the panel of it names three views fewer,
-        // and the lines of it are the lines of `the_views` of that library.
+        // (T-365 and T-366), and **a library of books holds no download of the
+        // server** (T-367): the panel of each library therefore names the views
+        // of the other kind nowhere, and the lines of it are the lines of
+        // `the_views` of that library.
         let of_the_podcasts = the_lines_of_the_views(width, true);
 
-        assert_eq!(of_the_podcasts.len(), THE_VIEWS.len() - 3);
+        assert_eq!(of_the_podcasts.len(), the_views(true).len());
         assert!(the_views(true)
             .iter()
-            .all(|view| !view.of_a_library_of_books));
-        assert_eq!(the_views(false).len(), THE_VIEWS.len());
+            .all(|view| view.the_library != TheLibraryOfAView::OfBooks));
+        assert!(the_views(false)
+            .iter()
+            .all(|view| view.the_library != TheLibraryOfAView::OfPodcasts));
+
+        // **Every line of the constant stands in one of the two libraries**: a
+        // line that neither library holds would draw on no screen at all.
+        assert_eq!(
+            the_views(false).len() + the_views(true).len(),
+            THE_VIEWS.len()
+                + THE_VIEWS
+                    .iter()
+                    .filter(|view| view.the_library == TheLibraryOfAView::Every)
+                    .count()
+        );
 
         for name in ["Series", "Authors", "Narrators"] {
             assert!(
@@ -694,6 +741,12 @@ mod tests {
                 "a library of podcasts must name no view {name:?}"
             );
         }
+
+        // **The downloads of the server stand in a library of podcasts alone**
+        // (T-367): the key `d` of a library of books says that the server
+        // downloads the episodes of a podcast only.
+        assert!(the_views(true).iter().any(|view| view.name == "Downloads"));
+        assert!(the_views(false).iter().all(|view| view.name != "Downloads"));
     }
 
     /// The border of the panel that holds the focus is heavy, and the border of

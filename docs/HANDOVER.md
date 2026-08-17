@@ -12351,7 +12351,18 @@ that file, or the test `every_key_of_the_handler_stands_in_the_list` fails.
 
 ## What is open
 
-**The newest release is v0.8.197** (T-366, 2026-08-17): the panel 1 of the
+**The newest release is v0.8.198** (T-367, 2026-08-17): the panel 1 of the
+views names the views of the library that stands in the two directions. The
+server downloads the episodes of a podcast alone, and the panel of a library of
+books still named the view of the downloads of the server: the field
+`of_a_library_of_books` of `AView` went away, and the enum `TheLibraryOfAView`
+of `Every`, `OfBooks`, and `OfPodcasts` took its place. **A count of
+`THE_VIEWS.len()` belongs to no library now.** The item T-367 of
+`docs/TAKEOVER-BACKLOG.md` names the candidates that it leaves open, and the
+first of them is that **a row of the panel 4 loses the last character of its
+text at 40 columns with no mark of the cut**.
+
+**The release before it, v0.8.197** (T-366, 2026-08-17): the panel 1 of the
 views holds the line `Series s` at its third line, which is the line of the
 mockup 1. The program holds that view, and the key `s` of the Home view and of
 the Library view opens it, but no line of the panel of the views named it: the
@@ -26979,12 +26990,99 @@ the width of the panel 5 of a media with no cover; the title of the panel of the
 statistics and of the sessions (T-361); and every candidate of the turns before
 this one.
 
+## The session of the hundred and ninety-ninth turn of 2026-08-17: T-366, the panel of the views and the Series view
+
+**The session of the hundred and ninety-ninth turn took the item 1 of the list
+of the work**, and it took the candidate that stood at the head of what the
+round before it left open: **the panel 1 of the views names no line of the
+Series view**. The item is T-366.
+
+**A `ps` of the machine at the start of the round found it clean**: no program
+of `toutui`, and no shell of a busy loop. The tree of git was clean, the commit
+of the round before it stood at the remote with the tag v0.8.196, the load
+average was 3.0, and the disk held 431 gigabytes. The round before this one ran
+`cargo clean`, and `cargo build -j 16` of that clean tree took **16 seconds**.
+
+**The fault, of the real program v0.8.196 inside tmux, at 160 columns and 45
+rows.** The library `Books` of the sandbox holds 35 items, and the account took
+it with a `sqlite3` of `name_selected_lib` (the trap 203). The panel 1 of the
+stack of that library held **fourteen** lines, and no line of them named the
+Series view:
+
+```text
+┌1 Views ────────────────────────┐
+│➤ Home                       Tab│
+│  Library                    Tab│
+│  Sequence and filter          f│
+│  Authors                      a│
+│  Narrators                    v│
+```
+
+A `grep` of the word `Series` in the first 34 columns of the screen of that
+panel gave **0**. **The program holds that view**: the key `s` of the same
+screen gave the header `Series [3 items]` and the list
+`Depthless Hunger, Book [1 book]`, `Second Series [3 books]`, and
+`The Test Chronicles [3 books]`.
+
+**Why.** The user of a library of books read the key of that view in the list of
+every key alone (`src/ui/keys.rs`, the group "The views", the line
+`key("s", "The series of the library")`), and the panel of the views, which is
+the road of the user to the views, named it nowhere. **The mockup 1 names that
+line already**: the third line of the panel 1 of `docs/mockups/mockup-1.txt` is
+`Series  s`, and the comment of `THE_VIEWS` says "The views of the panel 1, in
+the sequence of the design". T-365 named this gap itself, and it left it open.
+
+**The correction, of one file of the source.** `THE_VIEWS` of `src/ui/frame.rs`
+takes a new `AView` of the name `Series`, the key `s`, the work
+`TheWork::TheKey('s')`, and the mark `of_a_library_of_books: true` of T-365,
+at the third line of the list. **The render, the keys of the panel, and the map
+of the mouse read `the_views` already**, therefore they take the new line with
+no change at all: that is the value of the correction of the round before this
+one. The constant `THE_VIEWS_OF_A_BOOK` of the gate of T-365 holds three names
+now. **v0.8.197.**
+
+**The corrected program of the same harness** gave the library `Books` a panel
+of fifteen lines whose third line is `Series s`; the key `1`, two keys `j`, and
+the key `l` gave `Series [3 items]` with no message of a refusal at all, and the
+log grew by no line of a fault. The key `G` took the line `Every key`. A click
+of the row 6 took the line `Series`, and a click of the row 19, under the last
+line, moved no line and the program stood (`docs/harness/click.sh`). The library
+`Podcasts` gave a panel of twelve lines, and no line of them named the series.
+
+**Five builds of the fault, and each of them fails the gate**: a filter that
+takes the line out of every library (which is the program of v0.8.196, and the
+gate of T-365 fails with it), a line of no key, a line of the work of the key
+`f`, a line with no mark of a library of books, and a line at the last place of
+the list. **One hole of the first draft of that gate is a fact of its own**: the
+name `Series` ends with the letter of its own key, therefore a rule of "the row
+ends with the key" passed for a row of no key at all — the build of the fault of
+the empty key measured that, and the rule reads the part of the row **after** the
+name now. **The gate reads the rows of the panel 1 alone** and not the first 34
+columns of every row, because the panel 2 of the sequence of a library of books
+holds the row of the series of the sequence in those same columns.
+
+**The gates**: clippy and fmt clean, 1611 tests of nextest,
+`cargo test -j 16 --no-fail-fast` three times with no failure, and
+`cargo nextest run --run-ignored all` with the sandbox up gave 1637 of 1637. The
+account took the library `Books` back at the end (the trap 198).
+
+**What this round leaves open, and each of them is a candidate and not an
+item**: **the panel 1 names no key of the next library (`Shift+Tab`) and no view
+of the search (`/`)**, and the two of them stand in the group "The views" of the
+list of every key; the Series view, which holds no frame of the panels at all;
+the keys `4`, `j`, `k`, and `l` of the panel 4 of a view with no line, which say
+nothing while the footer of that focus names none of them since T-359; the
+footers of the panel 5 and of the panel 6 (T-354); the rows of the band that does
+not fit (T-353); the width of the panel 5 of a media with no cover; the title of
+the panel of the statistics and of the sessions (T-361); and every candidate of
+the turns before this one.
+
 ## The prompt for the next session
 
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.197**; `Cargo.toml` is at 0.8.197. The
+> AlbanDAVID/Toutui. Newest release **v0.8.198**; `Cargo.toml` is at 0.8.198. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -27815,7 +27913,7 @@ this one.
 > makes no request: a measurement of two roads of the header needs a key of a
 > fresh request, and the key `R` alone forgets the state of a view.
 > Verify with a second program: `curl`, `podman logs abs-test`, or a browser.
-> Write the measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-367 and
+> Write the measurement in `docs/TAKEOVER-BACKLOG.md` under a new item (T-368 and
 > up), and name that item in the commit.
 >
 > **`String::find` gives the index of a byte and not the column of the screen**
@@ -27828,8 +27926,8 @@ this one.
 > `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`, and
 > `cargo nextest run` with `ALSA_CONFIG_PATH` pointing at a null asound file of
 > two lines (`pcm.!default { type null }` and `ctl.!default { type null }`).
-> Baseline: **1611 tests in 3.4 seconds of nextest**, and `cargo nextest run --run-ignored
-> all` gives **1637 of 1637** with the sandbox up, in about 19 seconds. **Run that
+> Baseline: **1612 tests in 2.9 seconds of nextest**, and `cargo nextest run --run-ignored
+> all` gives **1638 of 1638** with the sandbox up, in about 26 seconds. **Run that
 > second command at the end of the session too**: it found T-132 and T-111.
 > **And `cargo clean` is the last command of the round**, after the push: the
 > maintainer asked for it on 2026-08-17, and the paragraph of the disk above
@@ -27995,92 +28093,105 @@ this one.
 >    holds three decisions that a round must not take alone. Read it first.
 >
 > 1. **A condition of the program that no measurement has reached.** A sweep of
->    this shape found a fault in one hundred and sixteen sessions of one
->    hundred and seventeen.
-> **The session of the hundred and ninety-ninth turn took the item 1 of the list
-> of the work**, and it took the candidate that stood at the head of what the
-> round before it left open: **the panel 1 of the views names no line of the
-> Series view**. The item is T-366.
+>    this shape found a fault in one hundred and seventeen sessions of one
+>    hundred and eighteen.
+> **The session of the two hundredth turn took the item 1 of the list of the
+> work**, and the round of it stands in one session with the round of T-366: the
+> driver sent the prompt of the round again while this session ran, therefore the
+> same session closed T-366 with `cargo clean` and it then took a new round. The
+> item is T-367, and it is **the other direction of the rule of T-365**: the panel
+> 1 of the views named the view of the downloads of the server in a library of
+> books.
 >
-> **A `ps` of the machine at the start of the round found it clean**: no program
-> of `toutui`, and no shell of a busy loop. The tree of git was clean, the commit
-> of the round before it stood at the remote with the tag v0.8.196, the load
-> average was 3.0, and the disk held 431 gigabytes. The round before this one ran
-> `cargo clean`, and `cargo build -j 16` of that clean tree took **16 seconds**.
+> **A `ps` of the machine at the start of the round found it clean**: no program of
+> `toutui`, no shell of a busy loop, a load average of 1.4, and the disk held 420
+> gigabytes. The tree of git was clean, the commit of T-366 stood at the remote
+> with the tag v0.8.197, and `cargo build -j 16` of the clean tree of that
+> `cargo clean` took **15 seconds**, which agrees with the 16 seconds of the round
+> before it.
 >
-> **The fault, of the real program v0.8.196 inside tmux, at 160 columns and 45
-> rows.** The library `Books` of the sandbox holds 35 items, and the account took
-> it with a `sqlite3` of `name_selected_lib` (the trap 203). The panel 1 of the
-> stack of that library held **fourteen** lines, and no line of them named the
-> Series view:
+> **The candidate of the start of this round gave no item, and the measurement of
+> it is a fact of its own.** T-361 and T-363 each left "the title of the panel of
+> the view of the statistics and of the view of the sessions, which holds no wrap"
+> open. **The two titles hold no fault at 40 columns**: `Your listening time` takes
+> 19 columns and `The sessions that you played` takes 28, and the panel of a screen
+> of 40 columns gives 38. That candidate needs a title of a **name of the server**
+> to become a fault, and every title of that shape reaches `the_list_of_a_view`,
+> which holds `in_one_row` already.
+>
+> **The fault came of a sweep of the views of the panel 1 at 40 columns.** The key
+> `d` of the Home view of the library `Books` gave the Home view again, therefore
+> the round read the whole screen of that key (the trap 222) at 160 columns:
 >
 > ```text
-> ┌1 Views ────────────────────────┐
-> │➤ Home                       Tab│
-> │  Library                    Tab│
-> │  Sequence and filter          f│
-> │  Authors                      a│
-> │  Narrators                    v│
+> ║  Queue                        q║
+> ║➤ Downloads                    d║
+> ║  Chapters                     C║
 > ```
 >
-> A `grep` of the word `Series` in the first 34 columns of the screen of that
-> panel gave **0**. **The program holds that view**: the key `s` of the same
-> screen gave the header `Series [3 items]` and the list
-> `Depthless Hunger, Book [1 book]`, `Second Series [3 books]`, and
-> `The Test Chronicles [3 books]`.
+> The key `1` and eight keys `j` took that line, and the key `l` of it gave no view
+> at all: the Home view stood, the border of the panel went back to the light
+> border of no focus, and the row of the message said `This library holds books.
+> The server downloads the episodes of a podcast only.` **The log grew by no
+> line**: 25 lines before the key, and 25 after it. **The control of the same run**
+> is the key `q` of the same view, which gave `The queue [0 items]` at once, and the
+> library `Podcasts`, where the key `d` gave `The downloads of the server [0
+> items]`.
 >
-> **Why.** The user of a library of books read the key of that view in the list of
-> every key alone (`src/ui/keys.rs`, the group "The views", the line
-> `key("s", "The series of the library")`), and the panel of the views, which is
-> the road of the user to the views, named it nowhere. **The mockup 1 names that
-> line already**: the third line of the panel 1 of `docs/mockups/mockup-1.txt` is
-> `Series  s`, and the comment of `THE_VIEWS` says "The views of the panel 1, in
-> the sequence of the design". T-365 named this gap itself, and it left it open.
+> **Why.** `show_the_downloads_of_the_server` of `src/app.rs` holds the guard
+> `if !self.is_podcast`, because the server downloads the episodes of a podcast
+> alone. T-365 took the views of a book out of a library of podcasts and T-366 gave
+> the panel the line of the series with that same mark, and **a mark of one kind of
+> a library cannot say that a view belongs to the other kind**: the fault of the
+> other direction therefore stayed. **The mockup 1 holds that fault too** — its
+> panel 1 names `Downloads d` on a screen of a library of books — and a round must
+> not write in `docs/mockups/`.
 >
-> **The correction, of one file of the source.** `THE_VIEWS` of `src/ui/frame.rs`
-> takes a new `AView` of the name `Series`, the key `s`, the work
-> `TheWork::TheKey('s')`, and the mark `of_a_library_of_books: true` of T-365,
-> at the third line of the list. **The render, the keys of the panel, and the map
-> of the mouse read `the_views` already**, therefore they take the new line with
-> no change at all: that is the value of the correction of the round before this
-> one. The constant `THE_VIEWS_OF_A_BOOK` of the gate of T-365 holds three names
-> now. **v0.8.197.**
+> **The correction, of one file of the source.** The field
+> `of_a_library_of_books: bool` of `AView` goes away, and the enum
+> `TheLibraryOfAView` of three values takes its place: `Every`, `OfBooks`, and
+> `OfPodcasts`. The filter of `the_views` reads the three of them with a `match`,
+> therefore **no value of that enum can go without a rule**, and a fourth kind of a
+> library of a later round meets the compiler. The line `Downloads` takes
+> `OfPodcasts`, the lines `Series`, `Authors`, and `Narrators` keep `OfBooks`, and
+> the eleven other lines take `Every`. **v0.8.198.**
 >
-> **The corrected program of the same harness** gave the library `Books` a panel
-> of fifteen lines whose third line is `Series s`; the key `1`, two keys `j`, and
-> the key `l` gave `Series [3 items]` with no message of a refusal at all, and the
-> log grew by no line of a fault. The key `G` took the line `Every key`. A click
-> of the row 6 took the line `Series`, and a click of the row 19, under the last
-> line, moved no line and the program stood (`docs/harness/click.sh`). The library
-> `Podcasts` gave a panel of twelve lines, and no line of them named the series.
+> **Three tests read the old field**, and each of them is a fact of the shape of
+> this correction: the gate of T-365, the new gate, and
+> `tests/the_frame_of_the_panels_holds_its_three_shapes.rs` of T-320, whose count
+> of the lines of a library of books read the whole constant. **A count of
+> `THE_VIEWS.len()` belongs to no library now**, and the new gate holds the rule
+> that says why: **no line of `THE_VIEWS` may belong to no library at all**.
 >
-> **Five builds of the fault, and each of them fails the gate**: a filter that
-> takes the line out of every library (which is the program of v0.8.196, and the
-> gate of T-365 fails with it), a line of no key, a line of the work of the key
-> `f`, a line with no mark of a library of books, and a line at the last place of
-> the list. **One hole of the first draft of that gate is a fact of its own**: the
-> name `Series` ends with the letter of its own key, therefore a rule of "the row
-> ends with the key" passed for a row of no key at all — the build of the fault of
-> the empty key measured that, and the rule reads the part of the row **after** the
-> name now. **The gate reads the rows of the panel 1 alone** and not the first 34
-> columns of every row, because the panel 2 of the sequence of a library of books
-> holds the row of the series of the sequence in those same columns.
+> **The corrected program of the same harness** gave the library `Books` a panel of
+> fourteen lines with no line of the downloads, whose third line is `Series s`; the
+> key `G` took the line `Every key` and the key `l` of it opened that view; and a
+> click of the row 12 took the line `Chapters` and the program stood. The library
+> `Podcasts` gave a panel of twelve lines whose sixth line is `Downloads d`, and the
+> key `l` of it gave `The downloads of the server [0 items]`.
 >
-> **The gates**: clippy and fmt clean, 1611 tests of nextest,
+> **Four builds of the fault, and each of them fails the gate**: the line with the
+> mark `Every` (which is the program of v0.8.197), a filter whose arm of a podcast
+> gives `true`, that arm in reverse, and that arm of `false` — the last of them
+> gives a view that no library names, and the new gate alone catches it at the part
+> of the control.
+>
+> **The gates**: clippy and fmt clean, 1612 tests of nextest,
 > `cargo test -j 16 --no-fail-fast` three times with no failure, and
-> `cargo nextest run --run-ignored all` with the sandbox up gave 1637 of 1637. The
+> `cargo nextest run --run-ignored all` with the sandbox up gave 1638 of 1638. The
 > account took the library `Books` back at the end (the trap 198).
 >
-> **What this round leaves open, and each of them is a candidate and not an
-> item**: **the panel 1 names no key of the next library (`Shift+Tab`) and no view
-> of the search (`/`)**, and the two of them stand in the group "The views" of the
-> list of every key; the Series view, which holds no frame of the panels at all;
-> the keys `4`, `j`, `k`, and `l` of the panel 4 of a view with no line, which say
-> nothing while the footer of that focus names none of them since T-359; the
-> footers of the panel 5 and of the panel 6 (T-354); the rows of the band that does
-> not fit (T-353); the width of the panel 5 of a media with no cover; the title of
-> the panel of the statistics and of the sessions (T-361); and every candidate of
-> the turns before this one.
+> **What this round leaves open, and each of them is a candidate and not an item**:
+> **a row of a list of the panel 4 loses the last character of its text at 40
+> columns with no mark of the cut** (`[Collection] A Test Collection [1 item` is
+> what the user reads of that row of the Collections view); **the panel 1 names no
+> key of the next library (`Shift+Tab`) and no view of the search (`/`)**, and the
+> two of them stand in the group "The views" of the list of every key; the title of
+> a panel that holds a name of the server, of the paragraph above; the Series view,
+> which holds no frame of the panels at all; the keys `4`, `j`, `k`, and `l` of the
+> panel 4 of a view with no line; the footers of the panel 5 and of the panel 6
+> (T-354); the rows of the band that does not fit (T-353); the width of the panel 5
+> of a media with no cover; and every candidate of the turns before this one.
 >
 >
 >
@@ -28333,7 +28444,10 @@ this one.
 > removal, and it held **86791** bytes with **one** turn in it. The round of the
 > hundred and ninety-ninth found it at 86056 bytes with one turn in it, and it
 > did the same work: the block held **80273** bytes with no turn at all after the
-> removal, and it holds **85642** bytes with **one** turn in it now.
+> removal, and it held **85642** bytes with **one** turn in it. The round of the
+> two hundredth found it at 85880 bytes with one turn in it, and it did the same
+> work: the block held **80596** bytes with no turn at all after the removal, and
+> it holds **86725** bytes with **one** turn in it now.
 > **A block that stands at 80000 bytes or under holds two
 > turns**, and the turn of the stage before this one names the parts of that
 > stage which stay open. **The list of the decisions

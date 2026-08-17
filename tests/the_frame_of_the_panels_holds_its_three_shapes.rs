@@ -30,8 +30,8 @@ use ratatui::{
     widgets::{ListState, Widget},
 };
 use toutui::ui::frame::{
-    the_lines_of_the_views, the_shape_of, the_stack_and_the_work, ThePanel, TheShape, THE_VIEWS,
-    THE_WIDTH_OF_THE_STACK, THE_WIDTH_OF_THREE_COLUMNS, THE_WIDTH_OF_TWO_COLUMNS,
+    the_lines_of_the_views, the_shape_of, the_stack_and_the_work, the_views, ThePanel, TheShape,
+    THE_VIEWS, THE_WIDTH_OF_THE_STACK, THE_WIDTH_OF_THREE_COLUMNS, THE_WIDTH_OF_TWO_COLUMNS,
 };
 
 /// The width of the screen gives the shape of the frame, and the stack stands
@@ -213,11 +213,16 @@ fn every_line_of_the_panel_of_the_views_names_a_key_of_the_handler() {
 
     // Every line of the panel holds the width of the panel, and it ends with its
     // key: the name stands at the left and the key stands at the right.
+    //
+    // **The lines are the views of the library that stands** (T-365 and T-367),
+    // therefore the lines of a library of books hold no view of a podcast and the
+    // count of the whole constant belongs to no library.
     let width = THE_WIDTH_OF_THE_STACK - 2;
     let lines = the_lines_of_the_views(width, false);
+    let of_the_books = the_views(false);
 
-    assert_eq!(lines.len(), THE_VIEWS.len());
-    for (line, view) in lines.iter().zip(THE_VIEWS) {
+    assert_eq!(lines.len(), of_the_books.len());
+    for (line, view) in lines.iter().zip(&of_the_books) {
         assert!(
             line.chars().count() <= usize::from(width),
             "the line {line:?} stands over the {width} columns of the panel"

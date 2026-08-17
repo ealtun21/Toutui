@@ -66,7 +66,7 @@ use toutui::api::client::endpoint::{Endpoint, EndpointPool};
 use toutui::api::client::ApiClient;
 use toutui::app::{App, AppView};
 use toutui::db::database_struct::User;
-use toutui::ui::frame::{the_views, ThePanel, THE_VIEWS};
+use toutui::ui::frame::{the_views, TheLibraryOfAView, ThePanel, THE_VIEWS};
 
 /// Nothing listens on this port. See T-25.
 const NO_SERVER: &str = "http://127.0.0.1:1";
@@ -189,7 +189,7 @@ async fn the_panel_of_the_views_names_no_view_of_a_book_in_a_library_of_podcasts
     // to a view of a book.
     assert_eq!(
         app.the_areas_of_the_mouse.the_views,
-        THE_VIEWS.len() - THE_VIEWS_OF_A_BOOK.len(),
+        the_views(true).len(),
         "the map of the mouse of a library of podcasts counts the lines of that panel"
     );
 
@@ -244,7 +244,7 @@ async fn the_panel_of_the_views_names_no_view_of_a_book_in_a_library_of_podcasts
 
     assert_eq!(
         app.the_areas_of_the_mouse.the_views,
-        THE_VIEWS.len(),
+        the_views(false).len(),
         "the map of the mouse of a library of books counts every line of that panel"
     );
 
@@ -252,8 +252,8 @@ async fn the_panel_of_the_views_names_no_view_of_a_book_in_a_library_of_podcasts
 
     assert_eq!(
         app.the_line_of_the_views.selected(),
-        Some(THE_VIEWS.len() - 1),
-        "the key G of the panel 1 of a library of books takes the last line of the whole list"
+        Some(the_views(false).len() - 1),
+        "the key G of the panel 1 of a library of books takes the last line of the list of it"
     );
 
     // ## 3. The one maker of those lines.
@@ -262,17 +262,30 @@ async fn the_panel_of_the_views_names_no_view_of_a_book_in_a_library_of_podcasts
     // the keys, and the map of the mouse each read it. A test of this function
     // alone would pass with the three of them uncorrected (the trap 249),
     // therefore it stands after the parts above and not in the place of them.
-    assert_eq!(the_views(false).len(), THE_VIEWS.len());
+    // **A library of books names every view but the views of a podcast** (T-367),
+    // therefore the count of the whole constant belongs to neither library.
+    assert_eq!(
+        the_views(false).len(),
+        THE_VIEWS.len()
+            - THE_VIEWS
+                .iter()
+                .filter(|view| view.the_library == TheLibraryOfAView::OfPodcasts)
+                .count()
+    );
     assert_eq!(
         the_views(true).len(),
-        THE_VIEWS.len() - THE_VIEWS_OF_A_BOOK.len()
+        the_views(false).len() - THE_VIEWS_OF_A_BOOK.len()
+            + THE_VIEWS
+                .iter()
+                .filter(|view| view.the_library == TheLibraryOfAView::OfPodcasts)
+                .count()
     );
 
     for name in THE_VIEWS_OF_A_BOOK {
         assert!(
             THE_VIEWS
                 .iter()
-                .any(|view| view.name == name && view.of_a_library_of_books),
+                .any(|view| view.name == name && view.the_library == TheLibraryOfAView::OfBooks),
             "the view {name:?} of the panel 1 carries the mark of a library of books"
         );
         assert!(
@@ -281,21 +294,19 @@ async fn the_panel_of_the_views_names_no_view_of_a_book_in_a_library_of_podcasts
         );
     }
 
-    // **The sequence of the lines does not change with the library**: the panel
-    // of a library of podcasts is the panel of a library of books with the
-    // lines of a book taken out, and the user of the two libraries reads one
-    // design.
-    let of_the_names: Vec<&str> = the_views(false)
-        .iter()
-        .filter(|view| !view.of_a_library_of_books)
-        .map(|view| view.name)
-        .collect();
+    // **The sequence of the lines of the two libraries does not change** (T-367):
+    // the lines that every library holds stand in one sequence, and the user of
+    // the two libraries therefore reads one design.
+    let the_lines_of_every_library = |a_library_of_podcasts: bool| -> Vec<&'static str> {
+        the_views(a_library_of_podcasts)
+            .iter()
+            .filter(|view| view.the_library == TheLibraryOfAView::Every)
+            .map(|view| view.name)
+            .collect()
+    };
 
     assert_eq!(
-        of_the_names,
-        the_views(true)
-            .iter()
-            .map(|view| view.name)
-            .collect::<Vec<&str>>()
+        the_lines_of_every_library(false),
+        the_lines_of_every_library(true)
     );
 }

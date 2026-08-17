@@ -31,7 +31,7 @@
 //!
 //! **A library of podcasts holds no series** (the key `s` of such a library says
 //! `A library of podcasts has no series.`), therefore the line carries the mark
-//! `of_a_library_of_books` of T-365, and the panel of a library of podcasts
+//! of a library of books of T-365, and the panel of a library of podcasts
 //! names it nowhere. The gate of that rule stands in
 //! `tests/the_panel_of_the_views_names_no_view_of_a_book_in_a_library_of_podcasts.rs`,
 //! which reads the three views of a book now.
