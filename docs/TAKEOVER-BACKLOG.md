@@ -35279,3 +35279,136 @@ item:**
 - Every candidate of the items before this one.
 
 **v0.8.195.**
+
+## T-365 — The panel of the views named two views that a library of podcasts does not have
+
+**The condition.** The real program v0.8.195 inside tmux, at 160 columns and
+45 rows, against the sandbox (podman on `:13399`), with
+`TOUTUI_AUDIO_DEVICE=null`. The library `Podcasts` of the sandbox (17 items,
+mediaType `podcast`), and the library `Books` (35 items) as the control of the
+same run. The account was pointed at each library with `sqlite3` of
+`users.name_selected_lib` and `users.id_selected_lib` (the trap 203), and it
+was given the library `Books` back at the end (the trap 198). No proxy, no
+book of a harness, and no change of the sandbox at all.
+
+**The fault.** The panel 1 of the stack of the Library view and of the Home
+view of the library `Podcasts` held fourteen lines, and two of them were
+`Authors  a` and `Narrators  v`:
+
+```text
+╔1 Views ════════════════════════╗
+║  Home                       Tab║
+║  Library                    Tab║
+║  Sequence and filter          f║
+║➤ Authors                      a║
+║  Narrators                    v║
+```
+
+The footer of that panel said `j/k: move  l: open the view  h: the list
+4/Ctrl+l: the list  ?: every key  Q: quit`. The key `1` gave the focus to
+that panel, three keys `j` took the line `Authors`, and the key `l` of it
+gave no view at all: the border of the panel went back to the light border of
+no focus, the Home view stood, and the row of the message said `A library of
+podcasts has no author.` The keys `a` and `v` of the same library, of the
+view itself and not of the panel, said `A library of podcasts has no
+author.` and `A library of podcasts has no narrator.` The log of the program
+grew by no line for any of those keys (11 lines before and 11 after).
+
+**The control of the same run.** The library `Books`, of the same keys of
+the same run: the panel 1 held the same line `Authors  a`, and the key `l`
+of it gave `The authors [9 items]` with `➤ Big Author [2 book(s)]` as its
+first line and no message at all.
+
+**Why.** `THE_VIEWS` of `src/ui/frame.rs` is a constant of fourteen lines,
+and the library of the user reaches none of them. The comment of that
+constant names the two rules that it broke: "A panel that names a key that
+the program does not hold is the fault of T-118, and a key of the panel that
+does nothing is the fault of T-79." The panel 2 of the sequence holds the
+rule already (`the_rows_of_the_sequence(is_podcast)` of
+`src/ui/the_panels_of_the_stack.rs`, of T-318), and T-324 took the row of
+the whole library out of a library of podcasts for the same reason. **This is
+the rule of T-318 for the panel 1.** The panel 1 holds no line of the Series
+view at all, therefore the third word of a refusal of the program ("A
+library of podcasts has no series.", of the key `s`) reaches no line of
+that panel.
+
+**The correction, of three files.**
+
+- `src/ui/frame.rs`: the struct `AView` takes a field
+  `of_a_library_of_books: bool`, and the two lines `Authors` and `Narrators`
+  carry it. A new pure function
+  `the_views(a_library_of_podcasts: bool) -> Vec<AView>` gives the views of
+  the library that stands, and `the_lines_of_the_views(width,
+  a_library_of_podcasts)` reads it.
+- `src/app.rs`: the keys of the panel 1 read `the_views(self.is_podcast)`.
+  The key `G` takes the last line of that list, `the_line_of_the_views_moves`
+  stops at it, and the key `l` reads the line with `.get()` and does nothing
+  for a line that the library does not hold, therefore no index of the
+  whole list can reach a list of twelve.
+- `src/ui/tui.rs`: the render of the panel gives the width and
+  `self.is_podcast` to `the_lines_of_the_views`, and the map of the mouse
+  counts the lines that the panel draws (`the_areas_of_the_mouse.the_views`),
+  because a count of the whole list would give the two rows under the last
+  line to a view.
+
+`is_podcast` of `App` comes of the media type of the library at `App::new`,
+and the key of the next library writes `must_refresh` and the loop of
+`src/main.rs` then makes a new application (T-308): the library therefore
+never changes inside one application, and the line of the panel starts at 0.
+
+**The corrected program of the same harness.** The library `Podcasts`: the
+panel 1 held twelve lines, `Authors` and `Narrators` stood in none of them,
+the fourth line was `Collections  c`, and the key `l` of that line gave
+`Collections and playlists [1 item]` with `➤ [Playlist] A Podcast Playlist
+[2 items]` and no message at all. The key `G` took the line `Every key`,
+which is the twelfth line. A click of the row 7 of the screen
+(`docs/harness/click.sh`, T-316) took the line `Collections`, and a click of
+the row 17, which stands under the last line, moved no line at all; the
+program stood after the two reports of the mouse. The library `Books` of the
+same run kept its fourteen lines and its view of the authors.
+
+**The gate.**
+`tests/the_panel_of_the_views_names_no_view_of_a_book_in_a_library_of_podcasts.rs`,
+one test function (T-144 and T-157), which needs no sandbox and no server
+(`App::new` with a port that nothing listens on gives the offline mode,
+T-25). Part 1 renders the real Library view of `is_podcast = true` into a
+`Buffer` of ratatui of 160 by 45 and it reads the first 34 columns of every
+row of it, which are the columns of the panel 1 (a read of the whole width
+would find the name of a view in the footer or in the panel 5), and it then
+reads the count of the map of the mouse, the key `G`, and the key `l` of the
+last line. Part 2 is the control, the same application of `is_podcast =
+false`. Part 3 reads the pure function, and it stands after the two parts
+above because a test of it alone would pass with the render, the keys, and
+the map of the mouse uncorrected (the trap 249).
+
+**Four builds of the fault, and each of them fails the gate:** the pure
+function filters no line (`&& false` of the filter) — `the panel 1 of a
+library of podcasts must name no view "Authors"`; the render reads the
+whole list (`the_lines_of_the_views(inner.width, false)`) — the same
+sentence; the map of the mouse counts the whole list — `left: 14  right:
+12`; and the key `G` reads the whole list — `left: Some(13)  right:
+Some(11)`.
+
+**The gates**: clippy and fmt clean, 1610 tests of nextest, `cargo test -j 16
+--no-fail-fast` three times with no failure, and `cargo nextest run
+--run-ignored all` with the sandbox up gave 1636 of 1636.
+
+**What this item leaves open, and each of them is a candidate and not an
+item:**
+
+- The panel 1 holds no line of the Series view, therefore the user of a
+  library of books reads the key `s` of that view in the list of every key
+  alone, and the panel of the views names it nowhere.
+- The panel 4 of a view with no line says no word of its own (of T-356 and
+  of T-364): the keys `4`, `j`, `k`, and `l` of that panel each said nothing
+  at all, and the footer of that focus names no such key since T-359.
+- The footer of the panel 5 and of the panel 6 took the correction of T-364
+  and no measurement of the real program (T-354).
+- The Series view holds no frame of the panels at all.
+- The rows of the band that does not fit (T-353), and the width of the
+  panel 5 of a media with no cover.
+- The title of the panel of the view of the statistics and of the view of
+  the sessions (T-361).
+- Every candidate of the items before this one.
+
+**v0.8.196.**

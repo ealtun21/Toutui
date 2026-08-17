@@ -41,6 +41,24 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.196",
+        date: "17/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The panel of the views names no view that the library does \
+             not have.** A library of podcasts holds no author and no \
+             narrator, and the panel 1 of such a library still named the view \
+             of the authors and the view of the narrators. The footer of that \
+             panel says `l: open the view`, and the key `l` of those two lines \
+             gave no view at all: it said `A library of podcasts has no \
+             author.` and it took the focus back to the panel of the list. The \
+             panel now names the views of the library that stands, which is \
+             the rule that the panel 2 of the sequence holds already. The key \
+             `G` of it takes the last line of that panel, and a click under \
+             that line moves no line. A library of books keeps every view.",
+        ],
+    },
+    Entry {
         version: "0.8.195",
         date: "17/08/2026",
         body: &[

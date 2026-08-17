@@ -337,6 +337,11 @@ pub struct AView {
     pub key: &'static str,
     /// What the key `l` of this line does.
     pub work: TheWork,
+    /// The view of this line stands in a library of books alone.
+    ///
+    /// **A library of podcasts holds no author and no narrator**, therefore the
+    /// two lines of those views carry this mark. See [`the_views`] and T-365.
+    pub of_a_library_of_books: bool,
 }
 
 /// The views of the panel 1, in the sequence of the design.
@@ -351,73 +356,104 @@ pub const THE_VIEWS: &[AView] = &[
         name: "Home",
         key: "Tab",
         work: TheWork::TheHomeView,
+        of_a_library_of_books: false,
     },
     AView {
         name: "Library",
         key: "Tab",
         work: TheWork::TheLibraryView,
+        of_a_library_of_books: false,
     },
     AView {
         name: "Sequence and filter",
         key: "f",
         work: TheWork::TheKey('f'),
+        of_a_library_of_books: false,
     },
     AView {
         name: "Authors",
         key: "a",
         work: TheWork::TheKey('a'),
+        of_a_library_of_books: true,
     },
     AView {
         name: "Narrators",
         key: "v",
         work: TheWork::TheKey('v'),
+        of_a_library_of_books: true,
     },
     AView {
         name: "Collections",
         key: "c",
         work: TheWork::TheKey('c'),
+        of_a_library_of_books: false,
     },
     AView {
         name: "Queue",
         key: "q",
         work: TheWork::TheKey('q'),
+        of_a_library_of_books: false,
     },
     AView {
         name: "Downloads",
         key: "d",
         work: TheWork::TheKey('d'),
+        of_a_library_of_books: false,
     },
     AView {
         name: "Chapters",
         key: "C",
         work: TheWork::TheKey('C'),
+        of_a_library_of_books: false,
     },
     AView {
         name: "Bookmarks",
         key: "V",
         work: TheWork::TheKey('V'),
+        of_a_library_of_books: false,
     },
     AView {
         name: "Sessions",
         key: "W",
         work: TheWork::TheKey('W'),
+        of_a_library_of_books: false,
     },
     AView {
         name: "Statistics",
         key: "T",
         work: TheWork::TheKey('T'),
+        of_a_library_of_books: false,
     },
     AView {
         name: "Settings",
         key: "S",
         work: TheWork::TheKey('S'),
+        of_a_library_of_books: false,
     },
     AView {
         name: "Every key",
         key: "?",
         work: TheWork::TheKey('?'),
+        of_a_library_of_books: false,
     },
 ];
+
+/// The views of the panel 1 of the library that stands. See T-365.
+///
+/// **A view of a library of books has no meaning in a library of podcasts**,
+/// which is the rule that the panel 2 of the sequence holds already (T-318 and
+/// T-324): a podcast has no author and no narrator, therefore the keys `a` and
+/// `v` of such a library each answer with a word and no view at all. The panel
+/// names the views that the user can reach and no view more, because a panel
+/// that promises a view that the program refuses is the fault of T-118 and a
+/// line of it that does nothing is the fault of T-79.
+pub fn the_views(a_library_of_podcasts: bool) -> Vec<AView> {
+    THE_VIEWS
+        .iter()
+        .filter(|view| !(a_library_of_podcasts && view.of_a_library_of_books))
+        .copied()
+        .collect()
+}
 
 /// The lines of the panel 1, of the width of the inside of that panel.
 ///
@@ -425,10 +461,10 @@ pub const THE_VIEWS: &[AView] = &[
 /// between them. **A name that is longer than the panel loses its end and not
 /// its start** (the rule of T-304), because the start of a name says which view
 /// it is.
-pub fn the_lines_of_the_views(width: u16) -> Vec<String> {
+pub fn the_lines_of_the_views(width: u16, a_library_of_podcasts: bool) -> Vec<String> {
     let width = usize::from(width);
 
-    THE_VIEWS
+    the_views(a_library_of_podcasts)
         .iter()
         .map(|view| {
             // Two columns of the width go to the sign of the cursor of ratatui.
@@ -598,7 +634,7 @@ mod tests {
     fn every_line_of_the_panel_of_the_views_holds_its_width() {
         // The inside of a stack of 34 columns holds 32 of them.
         let width = THE_WIDTH_OF_THE_STACK - 2;
-        let lines = the_lines_of_the_views(width);
+        let lines = the_lines_of_the_views(width, false);
 
         assert_eq!(lines.len(), THE_VIEWS.len());
 
@@ -618,8 +654,30 @@ mod tests {
         // **A panel of a narrow terminal writes no line of a negative width**:
         // the stack stands at the three columns alone, and a width of nothing
         // must give no panic at all.
-        assert_eq!(the_lines_of_the_views(0).len(), THE_VIEWS.len());
-        assert_eq!(the_lines_of_the_views(3).len(), THE_VIEWS.len());
+        assert_eq!(the_lines_of_the_views(0, false).len(), THE_VIEWS.len());
+        assert_eq!(the_lines_of_the_views(3, false).len(), THE_VIEWS.len());
+
+        // **A library of podcasts holds no author and no narrator** (T-365),
+        // therefore the panel of it names two views fewer, and the lines of it
+        // are the lines of `the_views` of that library.
+        let of_the_podcasts = the_lines_of_the_views(width, true);
+
+        assert_eq!(of_the_podcasts.len(), THE_VIEWS.len() - 2);
+        assert!(the_views(true)
+            .iter()
+            .all(|view| !view.of_a_library_of_books));
+        assert_eq!(the_views(false).len(), THE_VIEWS.len());
+
+        for name in ["Authors", "Narrators"] {
+            assert!(
+                the_views(false).iter().any(|view| view.name == name),
+                "a library of books must name the view {name:?}"
+            );
+            assert!(
+                the_views(true).iter().all(|view| view.name != name),
+                "a library of podcasts must name no view {name:?}"
+            );
+        }
     }
 
     /// The border of the panel that holds the focus is heavy, and the border of

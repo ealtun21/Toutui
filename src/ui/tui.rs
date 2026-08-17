@@ -4668,10 +4668,11 @@ impl App {
         let inner = block.inner(stack);
         block.render(stack, buf);
 
-        let lines: Vec<ListItem> = crate::ui::frame::the_lines_of_the_views(inner.width)
-            .into_iter()
-            .map(ListItem::new)
-            .collect();
+        let lines: Vec<ListItem> =
+            crate::ui::frame::the_lines_of_the_views(inner.width, self.is_podcast)
+                .into_iter()
+                .map(ListItem::new)
+                .collect();
 
         // **The row of the cursor of a panel that does not hold the focus is
         // quiet** (the section (c) of `docs/mockups/mockup-1.md`): one accent
@@ -4704,7 +4705,10 @@ impl App {
         self.the_areas_of_the_mouse.the_panel_of_the_views = stack;
         self.the_areas_of_the_mouse.the_lines_of_the_views = inner;
         self.the_areas_of_the_mouse.the_offset_of_the_views = of_the_render.offset();
-        self.the_areas_of_the_mouse.the_views = crate::ui::frame::THE_VIEWS.len();
+        // **The click of a row reads the views of the library that stands**
+        // (T-365): a library of podcasts names two views fewer, and a count of
+        // the whole list would give the rows under the last line to a view.
+        self.the_areas_of_the_mouse.the_views = crate::ui::frame::the_views(self.is_podcast).len();
 
         work
     }

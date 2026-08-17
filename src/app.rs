@@ -2288,7 +2288,7 @@ impl App {
     /// holds the focus**, therefore this function takes `j`, `k`, `g`, `G`,
     /// `l`, and `h` for the panel 1 alone.
     fn the_key_of_a_panel(&mut self, key: KeyEvent) -> bool {
-        use crate::ui::frame::{ThePanel, TheWork, THE_VIEWS};
+        use crate::ui::frame::{ThePanel, TheWork};
 
         if key.modifiers.contains(KeyModifiers::CONTROL) {
             match key.code {
@@ -2392,6 +2392,7 @@ impl App {
         }
 
         let of_the_line = self.the_line_of_the_views.selected().unwrap_or(0);
+        let the_views = crate::ui::frame::the_views(self.is_podcast);
 
         match key.code {
             KeyCode::Char('j') | KeyCode::Down => {
@@ -2407,7 +2408,8 @@ impl App {
                 true
             }
             KeyCode::Char('G') | KeyCode::End => {
-                self.the_line_of_the_views.select(Some(THE_VIEWS.len() - 1));
+                self.the_line_of_the_views
+                    .select(Some(the_views.len().saturating_sub(1)));
                 true
             }
             // **The key `h` gives the focus back to the panel of the list**,
@@ -2425,7 +2427,15 @@ impl App {
                 // `j` and `k` of it.
                 self.the_panel_of_the_focus = ThePanel::TheList;
 
-                match THE_VIEWS[of_the_line].work {
+                // **A line that the library does not hold does nothing at
+                // all** (T-365): the views of a library of podcasts are two
+                // fewer, therefore the line of the user reads the list of the
+                // library that stands and it takes no index of the whole list.
+                let Some(view) = the_views.get(of_the_line) else {
+                    return true;
+                };
+
+                match view.work {
                     TheWork::TheHomeView => self.view_state = AppView::Home,
                     TheWork::TheLibraryView => self.view_state = AppView::Library,
                     // The key handler of this program is the authority of the
@@ -2555,12 +2565,15 @@ impl App {
     /// it do the same work** (T-316), therefore the rule of the end of that
     /// list stands in one place.
     fn the_line_of_the_views_moves(&mut self, forward: bool) {
-        use crate::ui::frame::THE_VIEWS;
+        // **The lines of the panel are the views of the library that stands**
+        // (T-365), therefore the end of the list stands two lines above in a
+        // library of podcasts.
+        let of_the_views = crate::ui::frame::the_views(self.is_podcast).len();
 
         let of_the_line = self.the_line_of_the_views.selected().unwrap_or(0);
 
         self.the_line_of_the_views.select(Some(if forward {
-            (of_the_line + 1).min(THE_VIEWS.len() - 1)
+            (of_the_line + 1).min(of_the_views.saturating_sub(1))
         } else {
             of_the_line.saturating_sub(1)
         }));

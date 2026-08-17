@@ -214,7 +214,7 @@ fn every_line_of_the_panel_of_the_views_names_a_key_of_the_handler() {
     // Every line of the panel holds the width of the panel, and it ends with its
     // key: the name stands at the left and the key stands at the right.
     let width = THE_WIDTH_OF_THE_STACK - 2;
-    let lines = the_lines_of_the_views(width);
+    let lines = the_lines_of_the_views(width, false);
 
     assert_eq!(lines.len(), THE_VIEWS.len());
     for (line, view) in lines.iter().zip(THE_VIEWS) {
