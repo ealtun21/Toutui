@@ -103,6 +103,13 @@ pub struct TheAreasOfTheMouse {
     /// The cells of the bar of the seek of the band, between `├` and `┤`. See
     /// T-322.
     pub the_bar_of_the_seek: Rect,
+    /// The cells of the bar of the whole book of the Chapters view, with no
+    /// column of the name and no column of the percent. See T-333.
+    ///
+    /// **The Chapters view is the one view that draws this bar**, therefore
+    /// every other frame gives `Rect::default()` here, which holds no cell of
+    /// the screen at all.
+    pub the_bar_of_the_book: Rect,
     /// The length of the media that plays, in seconds. A media of no length
     /// gives 0, and a click of the bar of it moves no playback (T-180).
     pub the_length_of_the_media: u32,
@@ -147,6 +154,20 @@ pub enum TheTarget {
     /// keys `p` and `u` move by ten seconds, and a book of eight hours then
     /// needs 2880 of them.
     TheBarOfTheSeek { the_second: u32 },
+    /// The bar of the whole book of the Chapters view. `the_second` is the
+    /// second of the media that the cell under the pointer holds. See T-333.
+    ///
+    /// **That bar is the bar of the seek of the Chapters view**: it says the
+    /// place of the user in the whole book, and the map of the mouse of
+    /// `docs/mockups/mockup-7.md` says "A click on the bar of the book — Moves
+    /// the media to that place". The two bars therefore take the same
+    /// arithmetic, and a click of each of them says the same words.
+    ///
+    /// **The bar of the chapter under it takes no click**: the map of the mouse
+    /// of that note names the bar of the book alone, and a bar of a chapter of
+    /// two minutes gives one cell of the screen to a second of the media, which
+    /// is a control that no user can aim at.
+    TheBarOfTheBook { the_second: u32 },
     /// The band of the player, outside the bar of the seek. See T-322.
     ///
     /// **A click of the band does nothing**: the band takes no focus, because
@@ -232,6 +253,24 @@ pub fn the_target_of_a_point(
             the_line: the_line_of_a_row(areas.the_lines_of_the_filter, 0, areas.the_filters, row)
                 .filter(|_| areas.the_lines_of_the_filter.contains(point)),
         };
+    }
+
+    // **The bar of the book of the Chapters view stands over the panel of the
+    // list**, and the two of them hold no cell together: the layout of that
+    // view takes three rows for the bars before the list takes what stays. See
+    // T-333.
+    //
+    // **The bar needs no `the_stack_stands`**, in the same way as the bar of
+    // the seek of the band: the Chapters view draws no stack of the panels, and
+    // a click of this bar therefore works at every width that draws it.
+    if areas.the_bar_of_the_book.contains(point) {
+        if let Some(the_second) = the_second_of_a_column(
+            areas.the_bar_of_the_book,
+            areas.the_length_of_the_media,
+            column,
+        ) {
+            return TheTarget::TheBarOfTheBook { the_second };
+        }
     }
 
     // **The row of the header stands inside the panel of the list**, therefore
@@ -384,6 +423,7 @@ mod tests {
             the_panel_of_the_gallery: Rect::default(),
             the_band_of_the_player: Rect::default(),
             the_bar_of_the_seek: Rect::default(),
+            the_bar_of_the_book: Rect::default(),
             the_length_of_the_media: 0,
         };
 

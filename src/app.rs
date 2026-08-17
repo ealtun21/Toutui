@@ -3080,7 +3080,13 @@ impl App {
                 // program move by ten seconds, therefore a book of eight hours
                 // needed 2880 of them to reach its end: this is the one control
                 // of the program that names a place of a media directly.
-                TheTarget::TheBarOfTheSeek { the_second } => {
+                // **A click of the bar of the book of the Chapters view moves
+                // the media to that place too** (T-333, and the map of the
+                // mouse of `docs/mockups/mockup-7.md`): that bar is the bar of
+                // the seek of that view, therefore the two of them do one work
+                // and they say one sentence.
+                TheTarget::TheBarOfTheSeek { the_second }
+                | TheTarget::TheBarOfTheBook { the_second } => {
                     self.the_playback_goes_to(f64::from(the_second));
                 }
                 // **A click of the band beside its bar does nothing**: the band
@@ -3150,7 +3156,13 @@ impl App {
                     // the keys `p` and `u`: the wheel of a panel does the work
                     // of the keys of that panel, and the band holds no list at
                     // all.
-                    TheTarget::TheBarOfTheSeek { .. } | TheTarget::TheBandOfThePlayer => {
+                    // **The wheel over the bar of the book does the work of the
+                    // wheel over the bar of the seek** (T-333): the two bars
+                    // are one control, and the wheel of a place of the media
+                    // moves that place by ten seconds.
+                    TheTarget::TheBarOfTheSeek { .. }
+                    | TheTarget::TheBarOfTheBook { .. }
+                    | TheTarget::TheBandOfThePlayer => {
                         handle_key_player(
                             // The key `p` of this program is +10 seconds and
                             // the key `u` is −10 seconds (the trap 211), and

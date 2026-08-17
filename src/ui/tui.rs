@@ -75,6 +75,12 @@ impl Widget for &mut App {
         // that draws no footer keeps the two rows that every view held.
         self.rows_of_the_footer = FOOTER_HEIGHT;
 
+        // **The Chapters view is the one view that draws the bar of the book**
+        // (T-333), and the areas of the mouse are the areas of the last frame:
+        // a bar of the frame before this one would take a click of another
+        // view. The view writes the area again while it draws that bar.
+        self.the_areas_of_the_mouse.the_bar_of_the_book = Rect::default();
+
         match self.view_state {
             AppView::Home => self.render_home(area, buf),
             AppView::Library => self.render_library(area, buf),
@@ -1847,12 +1853,16 @@ impl App {
         self.render_header(header_area, buf);
 
         if let Some(the_bars) = the_bars {
-            crate::ui::the_bars_of_the_chapters::render(
-                bars_area,
-                buf,
-                &the_bars,
-                crate::logic::chapters::the_columns_of_the_name(state.chapters.len()),
-            );
+            // **The render gives the cells of the bar of the book back**
+            // (T-333), and a click of one of those cells moves the media to the
+            // place that the cell holds.
+            self.the_areas_of_the_mouse.the_bar_of_the_book =
+                crate::ui::the_bars_of_the_chapters::render(
+                    bars_area,
+                    buf,
+                    &the_bars,
+                    crate::logic::chapters::the_columns_of_the_name(state.chapters.len()),
+                );
         }
 
         App::render_footer(footer_area, buf, &text_render_footer);

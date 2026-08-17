@@ -31286,3 +31286,96 @@ first form of this sweep said that
 `a_text_that_ends_inside_the_panel_takes_no_scroll` holds the box, because the
 comment of the merged test after it names `the_panel_of_the_render`. Each part
 ends at the `\n    }` of its own function now.
+
+## T-333 — A click of the bar of the book of the Chapters view moves the media
+
+**The last line of the map of the mouse of `docs/mockups/mockup-7.md`.** The
+note of the maintainer of 2026-08-16 holds three lines of the mouse of that
+view, and the round of T-330.5 took two of them: "A click on a row — Plays
+that chapter" and "The wheel over the table — Moves the list". The third one
+is **"A click on the bar of the book — Moves the media to that place"**, and
+**the two bars of that view stood in no area of `TheAreasOfTheMouse` at all**.
+The turn of T-330.5 left that line as a candidate, and this round measured it.
+
+**The data of this round is the program itself and the sandbox as it stands**:
+no proxy, no book of a harness, and no change of a media. The account takes
+the library `Books` with a `sqlite3` of `name_selected_lib` and of
+`id_selected_lib` (the trap 203 and the trap 204), and the library of the
+start comes back at the end (the trap 198). The book is
+`A Second Book Of Many Hours` of the section 6k of `docs/TEST-SERVER.md`, of
+70 chapters and eight hours.
+
+**The fault, of the real program v0.8.166 inside tmux**, of 160 columns and 45
+rows. The bar of the book stands on the row 3 of the screen, and its cells
+stand from the column 8 to the column 154:
+
+```text
+ Book  █████████████████████████████████████████░░░░░░░░░░░░░░░░░░░░░  41%
+ Ch 29 ██████████████████████████████████████████████████████████ 100%
+```
+
+A click of the column 40 of the row 3, with the playback at 3:19:53, **said
+nothing at all and it moved the media nowhere**: the playback went on to
+3:21:22 with the time of the machine alone, and the row of the message stayed
+empty. The click of `docs/harness/click.sh` (T-316) reached the program, and
+`the_target_of_a_point` gave `TheTarget::Nothing` for every cell of the two
+bars.
+
+**The corrected program of the same harness**, with the playback in pause at
+5:13:34 of eight hours:
+
+| The click of the row 3 | The place of the media |
+|---|---|
+| The column 40 | 1:44:30, and the bar of the book at 21% |
+| The column 154, the last cell | 7:56:45, and the bar at 99% |
+| The column 8, the first cell | 0:00, and the bar at 0% |
+| The column 100 | 5:00:25, and the message `The playback goes to 5:00:25.` |
+
+**The controls of the same run.** A click of the column 3 of the row 3, which
+is the name `Book` of the bar, moved the media nowhere; and a click of the
+column 40 of the row 4, which is the bar of the chapter, moved it nowhere
+either.
+
+**The correction is four files.** `src/ui/the_mouse.rs` takes the field
+`the_bar_of_the_book` of `TheAreasOfTheMouse` and the variant
+`TheTarget::TheBarOfTheBook { the_second }`, and `the_target_of_a_point` reads
+that area with `the_second_of_a_column`, which is the arithmetic of the bar of
+the seek of the band (T-322); `src/ui/the_bars_of_the_chapters.rs` takes
+`the_area_of_the_bar_of_the_book`, and `render` gives the area of the cells of
+the first bar back, therefore the arithmetic of the render and the arithmetic
+of the click stay in one place; `src/ui/tui.rs` takes that area away before
+the view of every frame draws, and `render_chapters` writes it again;
+`src/app.rs` gives the new variant the arm of the bar of the seek, for the
+click and for the wheel.
+
+**The gate is `tests/the_click_of_the_bar_of_the_book_moves_the_media.rs`, of
+8 tests.** Seven of them are pure, and the eighth draws the two bars into a
+`Buffer` and it reads the columns that hold a cell of a bar, because **a gate
+of the arithmetic alone says nothing of the render** (the shape of T-256).
+**The build of the fault** (the trap 147), of five edits of one line each that
+keep every other line, made **3** of the 8 tests fail.
+
+**The decisions of this round.**
+
+- **The bar of the book is the bar of the seek of the Chapters view**,
+  therefore a click of it takes the road of `App::the_playback_goes_to` and it
+  says the same sentence as a click of the bar of the band. A second road to
+  the same work would say other words.
+- **The bar of the chapter under it takes no click.** The map of the mouse of
+  the note names the bar of the book alone, and a bar of a chapter of two
+  minutes gives one cell of the screen to about a second of the media, which
+  is a control that no user can aim at.
+- **The wheel over the bar of the book moves the media by ten seconds**, which
+  is the work of the wheel over the band (T-322): the two bars are one
+  control.
+- **The area of the bar goes away before the view of every frame draws.** The
+  areas of the mouse are the areas of the **last** frame, and the Chapters
+  view is the one view that draws this bar: an area that no frame took away
+  would give a click of another view to a playback.
+- **The click moves the cursor of the list nowhere.** The mark `▶` of the row
+  of the chapter that plays follows the playback by itself, and a click of the
+  bar names a place of the book and no row of the list.
+
+**What stays of the map of the mouse of `mockup-7.md`: nothing.** The three
+lines of that note are done, and T-330 and the mouse of the Chapters view are
+therefore finished.

@@ -60,6 +60,7 @@ fn the_areas_of_the_measurement() -> TheAreasOfTheMouse {
         // no playback.
         the_band_of_the_player: Rect::default(),
         the_bar_of_the_seek: Rect::default(),
+        the_bar_of_the_book: Rect::default(),
         the_length_of_the_media: 0,
     }
 }
@@ -185,6 +186,7 @@ fn a_panel_that_the_frame_did_not_draw_takes_no_click() {
         the_panel_of_the_gallery: Rect::default(),
         the_band_of_the_player: Rect::default(),
         the_bar_of_the_seek: Rect::default(),
+        the_bar_of_the_book: Rect::default(),
         the_length_of_the_media: 0,
     };
 

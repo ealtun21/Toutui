@@ -41,6 +41,18 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.167",
+        date: "17/08/2026",
+        body: &[
+            "Added:",
+            "- **A click of the bar of the book of the Chapters view moves the \
+             media to that place.** That bar is the bar of the seek of the \
+             view: a click of one of its cells says the same words as a click \
+             of the bar of the band of the player, and the wheel over it moves \
+             the media by ten seconds.",
+        ],
+    },
+    Entry {
         version: "0.8.166",
         date: "17/08/2026",
         body: &[
