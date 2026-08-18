@@ -59,10 +59,11 @@ fn the_start_names_the_filter_of_the_disk() {
         true,
         "authors.QUFBQQ==",
         "Lewis Carroll",
+        "lib-1",
     )
     .unwrap();
 
-    let (sort, desc, filter, name) = crud::get_library_sort("a").unwrap();
+    let (sort, desc, filter, name, lib) = crud::get_library_sort("a").unwrap();
 
     assert_eq!(sort, "media.metadata.title");
     assert!(desc);
@@ -71,15 +72,21 @@ fn the_start_names_the_filter_of_the_disk() {
         name, "Lewis Carroll",
         "the row of the account holds the name that the user read"
     );
+    assert_eq!(
+        lib, "lib-1",
+        "the row of the account holds the library of the filter (T-383)"
+    );
 
-    // **A removal of the filter takes the name away too**: a row of no filter
-    // must not keep the name of a filter that went away.
-    crud::update_library_sort("a", "media.metadata.title", true, "", "").unwrap();
+    // **A removal of the filter takes the name and the library away too**: a
+    // row of no filter must not keep the name or the library of a filter that
+    // went away.
+    crud::update_library_sort("a", "media.metadata.title", true, "", "", "").unwrap();
 
-    let (_, _, filter, name) = crud::get_library_sort("a").unwrap();
+    let (_, _, filter, name, lib) = crud::get_library_sort("a").unwrap();
 
     assert_eq!(filter, "");
     assert_eq!(name, "", "a row of no filter holds no name");
+    assert_eq!(lib, "", "a row of no filter holds no library");
 
     // **The name of the write comes of the box of the last application.** The
     // start seeds that box out of the row, therefore a write of the sequence
@@ -120,7 +127,7 @@ fn the_start_names_the_filter_of_the_disk() {
         "the migration moves a database of the version 10 forward"
     );
 
-    let (_, _, _, name) = crud::get_library_sort("a").unwrap();
+    let (_, _, _, name, _) = crud::get_library_sort("a").unwrap();
 
     assert_eq!(
         name, "",

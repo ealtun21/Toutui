@@ -98,10 +98,11 @@ pub fn get_is_show_key_bindings(username: &str) -> Result<bool> {
 
 /// Reads the sequence and the filter of the library of an account. See T-24.
 ///
-/// The four values are the name of the field, `1` for the other direction,
-/// the filter of the server, and the name of the filter that the user read
-/// (T-380). An account whose fields hold no character gives empty texts, and
-/// the program then asks the server as it did before.
+/// The five values are the name of the field, `1` for the other direction,
+/// the filter of the server, the name of the filter that the user read
+/// (T-380), and the library where the user took the filter (T-383). An
+/// account whose fields hold no character gives empty texts, and the program
+/// then asks the server as it did before.
 ///
 /// **A read that failed is not an account that chose nothing** (T-209). The old
 /// shape gave the three empty texts for every fault of the disk. The
@@ -111,11 +112,12 @@ pub fn get_is_show_key_bindings(username: &str) -> Result<bool> {
 /// Library view said `Library [17 items] — The title, the largest first`, and it
 /// then said `Library [17 items]`. **The sequence and the filter of the user
 /// went away with no word of the screen and no line of the log.**
-pub fn get_library_sort(username: &str) -> Result<(String, bool, String, String)> {
+pub fn get_library_sort(username: &str) -> Result<(String, bool, String, String, String)> {
     let conn = the_connection("get_library_sort")?;
 
     let mut stmt = conn.prepare(
-        "SELECT library_sort, library_desc, library_filter, library_filter_name
+        "SELECT library_sort, library_desc, library_filter, library_filter_name,
+                library_filter_lib
          FROM users WHERE username = ?1",
     )?;
 
@@ -125,6 +127,7 @@ pub fn get_library_sort(username: &str) -> Result<(String, bool, String, String)
             row.get::<_, String>(1)? == "1",
             row.get::<_, String>(2)?,
             row.get::<_, String>(3)?,
+            row.get::<_, String>(4)?,
         ))
     })
 }
@@ -141,18 +144,20 @@ pub fn update_library_sort(
     desc: bool,
     filter: &str,
     filter_name: &str,
+    filter_lib: &str,
 ) -> Result<()> {
     let conn = the_connection("update_library_sort")?;
 
     conn.execute(
         "UPDATE users SET library_sort = ?1, library_desc = ?2, library_filter = ?3,
-             library_filter_name = ?4
-         WHERE username = ?5",
+             library_filter_name = ?4, library_filter_lib = ?5
+         WHERE username = ?6",
         params![
             field,
             if desc { "1" } else { "0" },
             filter,
             filter_name,
+            filter_lib,
             username
         ],
     )?;

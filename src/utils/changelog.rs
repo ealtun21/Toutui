@@ -41,6 +41,20 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.214",
+        date: "18/08/2026",
+        body: &[
+            "Fixed:",
+            "- **A filter of an author stays in its library.** The value of \
+             a filter of an author and of a series holds an identity of one \
+             library: the filter rode into a second library of books, the \
+             server answered 0 items, and the view said that no media agrees \
+             with the filter. The account now keeps the library of the \
+             filter, such a filter stays out of a request of another \
+             library, and the library of the filter gives it back.",
+        ],
+    },
+    Entry {
         version: "0.8.213",
         date: "18/08/2026",
         body: &[

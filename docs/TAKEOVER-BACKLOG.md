@@ -36988,3 +36988,96 @@ T-379. (3) The candidates of T-381 that stay: the cursor of an empty list
 at large, the nine sibling views of `src/app.rs`; a fact value of an East
 Asian language in the panel 5; the offline mode with an old nameless
 filter row names the group (by design).
+
+## T-383 — A filter of an author stays in its library
+
+**The candidate came of the sweep of T-382.** The final paragraph of that
+round named it: a filter of an author of one library of books rides into a
+second library of books; the server honors it there and answers 0 items,
+the view says "No media of this library agrees with the filter", and the
+header names the author — true words, and still a filter of another
+library.
+
+**The fault, measured two ways against the sandbox on `:13399`, program
+v0.8.213 inside tmux at 160 columns.**
+
+1. `curl` of the server: the value of a filter of an author and of a
+   series holds an identity of one library. The author Lewis Carroll
+   (identity `312c42ff-e800-4b29-9974-d2d899d0bba9`, base64
+   `MzEyYzQyZmYtZTgwMC00YjI5LTk5NzQtZDJkODk5ZDBiYmE5`) gave 1 item in the
+   library `Books` and 0 items in the library `Large` of 2056 books, with
+   the same filter value.
+2. The real program: the filter of Lewis Carroll in the row of the account
+   and the library `Books` gave `Library [1 item] — a filter is on (f)`.
+   The key of the next library (two BTab) gave the library `Large`, and
+   the Library view then said `Library [0 items] — a filter is on (f)` and
+   `No media of this library agrees with the filter. Press f for the
+   sequence and the filter.` — over a library of 2056 books. The view of
+   the key `f` of `Large` offered `No filter` alone: the filter that acted
+   stood in no choice of the view. A restart with that row started in
+   `Large` with the same fault.
+
+**The root.** The row of the account holds one `library_filter` and one
+`library_filter_name`, and no column names the library where the user took
+the filter; a filter of an author or of a series carries an identity that
+one library alone gives a true answer for, and the guard of T-382 lets
+such a filter ride into any library of books alike.
+
+**The correction, v0.8.214, four parts.**
+
+1. The version 12 of the database adds the column `library_filter_lib` —
+   the library where the user took the filter — and the migration writes
+   the library of the row beside a filter that stands, because that
+   filter acted in the library of the row. The backfill runs when the two
+   source columns stand, because a table of a test of an older migration
+   can stand without them.
+2. `crud::get_library_sort` and `crud::update_library_sort` carry the new
+   value, and the write funnel
+   (`the_disk_takes_the_sequence_of_the_library`) writes the current
+   library beside a filter and an empty text beside no filter.
+3. `sort_filter::is_a_filter_of_another_library` — true for `authors.` and
+   `series.` when the library of the filter is known and is not the
+   current library; the five other kinds of a name and of the position
+   ride with their meaning, and a filter of no known library stays, as it
+   did before the version 12.
+4. A guard in `App::new`, after the guard of T-382: such a filter goes out
+   of the request and out of the header, and **the row of the disk keeps
+   it** — the library of the filter gives it back.
+
+The heal of T-381 (the name of the filter out of the choices of the
+server) now writes the library of the filter too, because the name came
+out of the choices of this library.
+
+**The control of the corrected binary inside tmux.** The start of a
+database of the version 11 with the filter in the row gave the version 12
+and `library_filter_lib` = the identity of `Books`; `Books` gave `Library
+[1 item] — a filter is on (f)`; two BTab and the Library view of `Large`
+gave `Library [500 items of 2056]` with no words of a filter; three more
+BTab back at `Books` gave `Library [1 item] — a filter is on (f)` again —
+the row of the disk kept the filter, its name, and its library through the
+whole road. **A key of a view that comes while the refresh of a library
+switch runs reaches no view** (the shape of the trap 214): the Tab of such
+a moment gave the Home view again, and the measurement pressed it after
+the refresh.
+
+**The test.**
+`tests/a_filter_of_an_author_stays_in_its_library.rs`, one test function
+(the rule of the box of the process). The build of the fault — the
+predicate disabled with `|| true` and the backfill of the migration
+disabled with `AND 0` — fails it.
+
+**The road back of the sandbox.** The row of the account holds the values
+of the start again, and no media of the sandbox changed.
+
+**What this round leaves open, each a candidate and not an item.** (1) A
+filter of a genre, of a tag, of a language, of a narrator, or of a
+publisher still rides into another library — it acts there with its
+meaning (a true filter of a name), and a library where that name stands
+empty then shows 0 items with true words. (2) A write of the sequence in a
+library where the filter stays suppressed erases the filter of the row
+(the row is the truth of the screen, the shape of T-382). (3) The header
+reads `▣ No filter` after a removal of the filter — the leftover of T-379.
+(4) The candidates of T-382 that stay: the cursor of an empty list at
+large, the nine sibling views of `src/app.rs`; a fact value of an East
+Asian language in the panel 5; the offline mode with an old nameless
+filter row names the group (by design).

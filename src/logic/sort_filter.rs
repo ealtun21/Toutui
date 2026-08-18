@@ -563,6 +563,26 @@ pub fn is_a_filter_of_the_library(filter: &str, is_podcast: bool) -> bool {
     )
 }
 
+/// Says whether a filter of an identity belongs to another library.
+///
+/// **The value of a filter of an author and of a series holds an identity of
+/// one library** (T-383): the sandbox gave 1 item for the author Lewis
+/// Carroll in the library of that author, and 0 items for the same identity
+/// in a second library of 2056 books. The filter of the row rode into that
+/// library, the view said that no media agrees with the filter, and the view
+/// of the sequence and of the filter did not hold the author at all. The five
+/// other kinds hold a name or the position, and a name acts in every library:
+/// they ride with their meaning. A filter whose library is not known (a row
+/// that an older program wrote after the migration) stays, as it did before
+/// the version 12 of the database.
+pub fn is_a_filter_of_another_library(filter: &str, filter_lib: &str, library: &str) -> bool {
+    if filter_lib.is_empty() || filter_lib == library {
+        return false;
+    }
+
+    filter.starts_with("authors.") || filter.starts_with("series.")
+}
+
 /// Gives the name of the filter back out of the choices of the server.
 ///
 /// The choices of `get_filter_data` hold the pair of the identity and of the

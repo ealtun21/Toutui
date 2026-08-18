@@ -930,9 +930,14 @@ impl App {
         // of one of them is the fault of the accounts: the start stops with the
         // words that name the database, and the key `R` keeps the application of
         // the user (T-205).
-        let (mut library_sort, library_desc, mut library_filter, library_filter_name) =
-            crate::db::crud::get_library_sort(&username)
-                .map_err(|error| crate::db::TheAccountsDidNotCome(error.to_string()))?;
+        let (
+            mut library_sort,
+            library_desc,
+            mut library_filter,
+            library_filter_name,
+            library_filter_lib,
+        ) = crate::db::crud::get_library_sort(&username)
+            .map_err(|error| crate::db::TheAccountsDidNotCome(error.to_string()))?;
 
         // The value of a filter of an author and of a series holds an
         // identity, and the box of the name lives in the process (T-379): a
@@ -1075,6 +1080,20 @@ impl App {
             library_filter = String::new();
         }
 
+        // **The value of a filter of an author and of a series holds an
+        // identity of one library** (T-383): the filter of the row rode into
+        // a second library of books, the server answered 0 items, and the
+        // view said that no media agrees with the filter. The row of the
+        // disk keeps the filter, in the way of the guard above: the library
+        // of the filter gives it back.
+        if crate::logic::sort_filter::is_a_filter_of_another_library(
+            &library_filter,
+            &library_filter_lib,
+            &id_selected_lib,
+        ) {
+            library_filter = String::new();
+        }
+
         // A filter of an author or of a series that an older database wrote
         // holds no name in the row of the account (T-380 added the column, and
         // the write of it stands behind a key): the start then named the group
@@ -1102,12 +1121,17 @@ impl App {
                                 &library_filter,
                                 &name,
                             );
+                            // The name of the filter came out of the choices
+                            // of this library, therefore the filter belongs
+                            // to it: the write heals the library of a filter
+                            // of an older row too (T-383).
                             if let Err(error) = crate::db::crud::update_library_sort(
                                 &username,
                                 &library_sort,
                                 library_desc,
                                 &library_filter,
                                 &name,
+                                &id_selected_lib,
                             ) {
                                 log::error!(
                                     "[app] the program did not write the name \"{}\" of the \
@@ -5957,12 +5981,22 @@ impl App {
         let the_name_of_the_filter =
             crate::logic::sort_filter::the_name_for_the_disk(&self.library_filter);
 
+        // The library where the user took the filter, for the guard of a
+        // filter of an identity in another library (T-383). A filter of no
+        // value has no library.
+        let the_library_of_the_filter = if self.library_filter.is_empty() {
+            ""
+        } else {
+            self.id_selected_lib.as_str()
+        };
+
         let of_the_disk = crate::db::crud::update_library_sort(
             &self.username,
             &self.library_sort,
             self.library_desc,
             &self.library_filter,
             &the_name_of_the_filter,
+            the_library_of_the_filter,
         );
 
         if let Err(error) = of_the_disk {

@@ -91,7 +91,7 @@ fn a_refresh_of_a_database_that_said_nothing_keeps_the_program() {
     .unwrap();
 
     assert!(
-        crud::update_library_sort("toutuitest", "title", false, "", "").is_err(),
+        crud::update_library_sort("toutuitest", "title", false, "", "", "").is_err(),
         "the sequence of a library of a database that says nothing is no sequence"
     );
     assert!(

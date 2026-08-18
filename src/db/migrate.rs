@@ -8,7 +8,7 @@ use rusqlite::{Connection, Result};
 use std::path::PathBuf;
 
 /// The schema version that this build of the program expects.
-pub const LATEST_VERSION: i64 = 11;
+pub const LATEST_VERSION: i64 = 12;
 
 /// Gives the full path of the database file.
 pub fn db_path() -> PathBuf {
@@ -113,7 +113,59 @@ pub fn run_migrations(conn: &Connection) -> Result<()> {
 
     if version < 11 {
         migrate_to_v11(conn)?;
+        version = 11;
         conn.execute_batch("PRAGMA user_version = 11")?;
+    }
+
+    if version < 12 {
+        migrate_to_v12(conn)?;
+        conn.execute_batch("PRAGMA user_version = 12")?;
+    }
+
+    Ok(())
+}
+
+/// Version 12 gives the filter of the library the library where the user took
+/// it. See T-383.
+///
+/// **The value of a filter of an author and of a series holds an identity of
+/// one library**: the server of the sandbox gave 1 item for the author Lewis
+/// Carroll in the library of that author, and 0 items for the same identity in
+/// a second library of 2056 books. The filter of the row rode into that
+/// library, and the view then said that no media agrees with the filter. The
+/// column holds the identity of the library of the filter, and the start
+/// keeps such a filter out of a request of another library.
+///
+/// The filter of a row that stands acted in the library of that row,
+/// therefore the migration writes the library of the row beside it. An empty
+/// value means "the library of the filter is not known": the start then keeps
+/// the filter, as it did before this version.
+///
+/// **The migration must be safe to run two times**, as the rule of the head of
+/// this file says.
+fn migrate_to_v12(conn: &Connection) -> Result<()> {
+    if !has_table(conn, "users")? {
+        return Ok(());
+    }
+
+    if has_column_in(conn, "users", "library_filter_lib")? {
+        return Ok(());
+    }
+
+    conn.execute(
+        "ALTER TABLE users ADD COLUMN library_filter_lib TEXT NOT NULL DEFAULT ''",
+        [],
+    )?;
+
+    // A table of a test of an older migration can stand without the two
+    // source columns. A real database of the version 11 holds the two.
+    if has_column_in(conn, "users", "id_selected_lib")?
+        && has_column_in(conn, "users", "library_filter")?
+    {
+        conn.execute(
+            "UPDATE users SET library_filter_lib = id_selected_lib WHERE library_filter != ''",
+            [],
+        )?;
     }
 
     Ok(())
