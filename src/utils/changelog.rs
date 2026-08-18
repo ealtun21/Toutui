@@ -41,6 +41,19 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.218",
+        date: "18/08/2026",
+        body: &[
+            "Fixed:",
+            "- **A choice of the filter with no value takes no row.** A row \
+             of the answer of the filter data with an identity, a name, or a \
+             text of no character gave a blank row, or a row of a ghost: the \
+             key of that row wrote a filter of no value into the account, \
+             the refresh then discarded it, and nothing at all happened for \
+             the user. Such a row now takes no choice, and the log says why.",
+        ],
+    },
+    Entry {
         version: "0.8.217",
         date: "18/08/2026",
         body: &[

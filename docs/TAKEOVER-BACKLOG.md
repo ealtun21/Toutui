@@ -37330,3 +37330,79 @@ T-383); the other never-swept paths of the coverage map —
 value of an East Asian language in the panel 5 (the truncation helpers
 measure columns already, therefore this candidate is weak now); the
 direct index of the podcast play road (a candidate of the words alone).
+
+## T-387 — A choice of the filter view with no value takes no row
+
+**The candidate came of the coverage gap after T-386.** The fix of T-386
+went to `get_authors`/`get_narrators` (`/api/libraries/:id/authors`), and
+the same view of the key `f` reads `/api/libraries/:id/filterdata`
+through `choices()` of `src/api/libraries/get_filter_data.rs`, which
+guarded only a missing id/name (`Option` → continue) and gave the five
+text groups (genres, tags, narrators, languages, publishers) no guard at
+all; only the tags of `GET /api/tags` were trimmed (`with_the_tags`).
+
+**The data of the fault.** No existing harness can give a field a value
+of no character — `a_field_of_one_row_goes_away.py` takes the field OUT
+(missing key → `Option::None` → the old guard catches it). The round
+wrote a new harness `docs/harness/another_body_of_one_path.py` (port,
+sandbox port, log, body file, part of the path: a request whose path
+holds the part takes the body of the file with status 200; every other
+request goes to the sandbox). The body: the real filterdata of the Books
+library with `authors[0] = {"id": "", "name": "A Ghost Author"}`,
+`genres[0] = ""`, `narrators[0] = ""`.
+
+A note of the sandbox: the server itself drops a text of no character
+from the filterdata aggregation — `PATCH /api/items/a4d8b9b2/media` with
+`genres [""]` answered 200 and the item row held `[""]`, and filterdata
+kept its 5 genres — therefore the proxy is the road (the rule of T-183: a
+server of another version). The genres of that book went back to `[]` at
+the end.
+
+**The fault, of v0.8.217 inside tmux at 160 columns**, the account at
+`http://127.0.0.1:13512` (the trap 129): the view of the key `f` showed
+the line "A Ghost Author" under The authors, and a blank line under The
+genres and under The narrators. The take of the ghost author wrote
+`library_filter = "authors."` to the row of the account; the refresh
+after the take makes a new application, and the start guard of T-386 then
+discarded the filter with the WARN `the filter "authors." of the row of
+toutuitest holds no value. The program does not apply it.` — the user
+sees nothing at all happen: the Library stayed `[18 items]`, no request
+with `filter=` left the program (the proxy log held zero of them), and no
+word said why. The take of the blank genre line (the cursor stood on a
+line of no words) wrote `genres.` with the same silent discard.
+
+**The correction, v0.8.218.** `choices()` drops a row of the authors or
+of the series whose identity or whose name is empty after a trim, with a
+WARN that names the kind, the identity, and the name; and it drops a text
+of the five groups that is empty after a trim, with a WARN that names the
+group. The text of a real choice stays as the server gave it, because the
+filter of the server compares that text.
+
+**The tests.** Three new unit tests in `get_filter_data.rs`:
+`an_author_of_an_empty_identity_gives_no_choice`,
+`an_author_of_an_empty_name_gives_no_choice`, and
+`a_text_of_no_character_gives_no_choice`. The build of the fault — the
+two guards disabled with `&& false` — fails exactly those three.
+
+**The control of the corrected binary**, against the same poisoned proxy:
+no ghost line, no blank line, and three WARNs name each dropped row.
+
+**The road back of the sandbox.** The account address went back to the
+sandbox, `library_filter` of the row cleared, the proxy stopped.
+
+**What this round leaves open, each a candidate and not an item.** An
+episode id that the server omits becomes the literal text "N/A" in
+`collect_ids_pod_ep` of `src/api/utils/collect_get_pod_ep.rs`, it reaches
+the path `POST /api/items/:id/play/N/A` (two segments), and it reaches
+the database column `id_pod`, where several id-less episodes of one
+podcast collapse onto the one key (item, "N/A") of `pending_progress` and
+they overwrite the place of each other; an episode of an id of no
+character gives a path of a trailing slash (`PlaybackTarget::episode_id`
+of `src/logic/playback/mod.rs:151` gives `Some("")` and it does not
+filter, unlike `src/logic/live.rs:122` which does); a value of the days
+map of `/api/me/listening-stats` that is not a number fails the whole
+decode into `State::Fault` (`listening_stats.rs` has no string-tolerant
+reader, unlike `get_media_progress.rs:80`); and the never-swept paths
+that stay: `/api/me/listening-stats`, the write side of the lists
+(`/api/collections` and `/api/playlists`), and the rows of
+`/api/podcasts`.

@@ -129,6 +129,21 @@ pub fn choices(data: &FilterData) -> Vec<FilterChoice> {
                 continue;
             };
 
+            // A value of no character gives a filter of no value, which the
+            // program does not apply (T-386): such a row is a row that does
+            // nothing. A name of no character gives a row of no words. Each
+            // of them takes a line of the log and no choice. See T-387.
+            if id.trim().is_empty() || name.trim().is_empty() {
+                log::warn!(
+                    "[filter] a row of {} of the server has no identity or no \
+                     name: id {:?}, name {:?}. It takes no choice.",
+                    kind,
+                    id,
+                    name
+                );
+                continue;
+            }
+
             out.push(FilterChoice {
                 label: name.clone(),
                 group,
@@ -147,6 +162,19 @@ pub fn choices(data: &FilterData) -> Vec<FilterChoice> {
         ("The publishers", "publishers", &data.publishers),
     ] {
         for one in values.iter().take(LIMIT) {
+            // A text of no character gives a blank row whose filter has no
+            // value (T-386): it takes a line of the log and no choice. The
+            // text of a real choice stays as the server gave it, because the
+            // filter of the server compares that text. See T-387.
+            if one.trim().is_empty() {
+                log::warn!(
+                    "[filter] a text of {} of the server has no character. \
+                     It takes no choice.",
+                    kind
+                );
+                continue;
+            }
+
             out.push(FilterChoice {
                 label: one.clone(),
                 group,
@@ -282,6 +310,59 @@ mod tests {
         .expect("an answer must read");
 
         assert!(choices(&data).is_empty());
+    }
+
+    /// An identity of no character gives a filter of no value, which the
+    /// program does not apply (T-386): the row then does nothing at all. The
+    /// measurement of T-387 took such a row, the disk held `authors.`, and
+    /// the refresh discarded it with no word.
+    #[test]
+    fn an_author_of_an_empty_identity_gives_no_choice() {
+        let data: FilterData = serde_json::from_value(serde_json::json!({
+            "authors": [
+                { "id": "", "name": "A Ghost Author" },
+                { "id": "a", "name": "A Real Author" }
+            ],
+            "series": [ { "id": "  ", "name": "A Ghost Series" } ]
+        }))
+        .expect("an answer must read");
+
+        let choices = choices(&data);
+        assert_eq!(choices.len(), 1);
+        assert_eq!(choices[0].label, "A Real Author");
+    }
+
+    /// A name of no character gives a row of no words: the user cannot read
+    /// what the filter takes. See T-387.
+    #[test]
+    fn an_author_of_an_empty_name_gives_no_choice() {
+        let data: FilterData = serde_json::from_value(serde_json::json!({
+            "authors": [ { "id": "a", "name": "" } ]
+        }))
+        .expect("an answer must read");
+
+        assert!(choices(&data).is_empty());
+    }
+
+    /// A text of no character gives a blank row whose filter has no value.
+    /// The measurement of T-387 took such a genre, the disk held `genres.`,
+    /// and the refresh discarded it with no word. A text with characters
+    /// stays as the server gave it, because the filter of the server
+    /// compares that text.
+    #[test]
+    fn a_text_of_no_character_gives_no_choice() {
+        let data: FilterData = serde_json::from_value(serde_json::json!({
+            "genres": ["", "  ", "Adventure"],
+            "narrators": [""],
+            "languages": ["  "],
+            "publishers": [""]
+        }))
+        .expect("an answer must read");
+
+        let choices = choices(&data);
+        assert_eq!(choices.len(), 1);
+        assert_eq!(choices[0].label, "Adventure");
+        assert_eq!(choices[0].value, filter_value("genres", "Adventure"));
     }
 
     /// A library of many authors must not give a list that no person reads.
