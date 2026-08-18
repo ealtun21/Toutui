@@ -61,6 +61,25 @@ pub async fn get_authors(
         .await?;
 
     let mut all = answer.authors;
+
+    // **An author with no identity belongs to no line** (T-386, and the rule
+    // of T-183 and of T-192): the one key of the line is the filter of that
+    // identity, and a filter of an identity of no character asks the server
+    // for nothing. The log holds the one word of that fault, because the
+    // view of a list that lost a line has no view of it (T-177).
+    all.retain(|one| {
+        if one.id.is_empty() {
+            log::warn!(
+                "[authors] The answer of the server holds the author \"{}\" with no \
+                 identity. The program cannot ask the server for the books of that \
+                 author, therefore the line goes away.",
+                one.name
+            );
+            return false;
+        }
+        true
+    });
+
     all.sort_by_key(|one| one.name.to_lowercase());
 
     Ok(all)
@@ -90,6 +109,22 @@ pub async fn get_narrators(
         .await?;
 
     let mut all = answer.narrators;
+
+    // **A narrator with no name belongs to no line** (T-386): a narrator
+    // holds no row of its own on the server, and the filter of a narrator
+    // takes the name. A name of no character asks the server for nothing.
+    all.retain(|one| {
+        if one.name.is_empty() {
+            log::warn!(
+                "[authors] The answer of the server holds a narrator with no name. The \
+                 program cannot ask the server for the books of that narrator, therefore \
+                 the line goes away."
+            );
+            return false;
+        }
+        true
+    });
+
     all.sort_by_key(|one| one.name.to_lowercase());
 
     Ok(all)

@@ -41,6 +41,21 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.217",
+        date: "18/08/2026",
+        body: &[
+            "Fixed:",
+            "- **An author of the server with no identity takes no line.** \
+             A row of the answer of the authors that lost its identity kept \
+             its line, and the key of that line wrote a filter of no value \
+             into the account. The server then answered 0 items, the view \
+             said that no media agrees with the filter, and the view of the \
+             filter could not show it. The line now goes away, a narrator \
+             with no name goes with it, the start does not apply a filter \
+             of no value, and the log says why.",
+        ],
+    },
+    Entry {
         version: "0.8.216",
         date: "18/08/2026",
         body: &[

@@ -1094,6 +1094,23 @@ impl App {
             library_filter = String::new();
         }
 
+        // **A filter whose value holds no character asks the server for
+        // nothing** (T-386): a row of the answer of the authors that lost
+        // its identity gave the row of the account the filter `authors.`,
+        // the server answered 0 items, and no view could show or name the
+        // filter that hid the library. Such a filter acts in no library,
+        // therefore the start does not apply it, and the next write of the
+        // sequence erases it from the row.
+        if crate::logic::sort_filter::is_a_filter_of_no_value(&library_filter) {
+            log::warn!(
+                "[app] the filter \"{}\" of the row of {} holds no value. The program does \
+                 not apply it.",
+                library_filter,
+                username
+            );
+            library_filter = String::new();
+        }
+
         // A filter of an author or of a series that an older database wrote
         // holds no name in the row of the account (T-380 added the column, and
         // the write of it stands behind a key): the start then named the group

@@ -563,6 +563,27 @@ pub fn is_a_filter_of_the_library(filter: &str, is_podcast: bool) -> bool {
     )
 }
 
+/// Says whether a filter holds no value after the point.
+///
+/// **A filter whose value holds no character asks the server for nothing**
+/// (T-386): the measurement of the real program v0.8.216 against the sandbox
+/// gave the row of the account the filter `authors.` when an author of the
+/// answer of the server held no identity. The request `filter=authors.` gave
+/// 0 items, the view said that no media agrees with the filter, and the view
+/// of the key `f` could not show or name it. Such a filter acts in no
+/// library, therefore the start does not apply it, and a write of the
+/// sequence erases it from the row (`the_filter_of_the_row_stays` keeps a
+/// filter of another condition alone).
+///
+/// An empty filter is no filter at all, and the guard of the start has
+/// nothing to clear: this function then says `false`.
+pub fn is_a_filter_of_no_value(filter: &str) -> bool {
+    match filter.split_once('.') {
+        Some((_, value)) => value.is_empty(),
+        None => false,
+    }
+}
+
 /// Says whether a filter of an identity belongs to another library.
 ///
 /// **The value of a filter of an author and of a series holds an identity of

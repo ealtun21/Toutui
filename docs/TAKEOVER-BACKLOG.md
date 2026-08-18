@@ -37227,3 +37227,106 @@ the sandbox changed.
    T-66 never shortens them — a `.get` there would still read better, and
    a `libraryItemId` that the server does not give reaches that road as
    the text `N/A`.
+
+## T-386 — An author of the server with no identity takes no line
+
+**The candidate came of the narrow-terminal road 0.b, which ran dry this
+round** (two sweeps at 40 columns and at 8 rows found only designed
+degradations, T-343 and T-362), and of the field-sweep coverage map, which
+named `/api/libraries/:id/authors` as never swept.
+
+**The fault, measured against the real program v0.8.216 inside tmux at 120
+columns**, with `docs/harness/a_field_of_one_row_goes_away.py` on port
+13506 (the rule `/api/libraries/1b090ea8-91c5-4591-ac9d-716985e61faf/authors
+authors 0 id` — the row 0 of the raw answer of the server is `Test
+Author`, 2 books). The account took `http://127.0.0.1:13506` (the trap
+129), with a copy of `db.sqlite3` for the road back.
+
+The view of the key `a` kept the line `Test Author [2 book(s)]` — an
+author with no identity kept its line. The key `l` of that line gave
+`Library [0 items] — a filter is on (f)` and the words `No media of this
+library agrees with the filter.` The two books of that author stood in
+the library.
+
+The proxy log held the request `GET
+/api/libraries/.../items?limit=500&page=0&filter=authors.&collapseseries=1`
+— the filter `authors.` holds an identity of no character (base64 of an
+empty text is an empty text).
+
+The row of the account then held `library_filter = "authors."`,
+`library_filter_name = "Test Author"`, and `library_filter_lib` of the
+library: the filter survived every start, the header of 84 to 119 columns
+would name a real author for a filter of nothing, and the view of the key
+`f` held no mark `✓` on any row — the program said that a filter is on
+and could not show it.
+
+**The root.** `Author.id` of `src/api/libraries/get_authors.rs` carries
+`#[serde(default)]`, therefore a row with no `id` deserializes to an
+empty text; `show_the_books_of_the_author` of `src/app.rs` then writes
+`filter_value("authors", "")` = `authors.` to the disk. A narrator holds
+the same shape with the name in the place of the identity (the filter of
+a narrator takes the name, T-73).
+
+**The correction, v0.8.217, three parts.** (1) `get_authors` drops a row
+of an empty `id` with a WARN of the log that names the author (the rule
+of T-183 and of T-192: a line that promises a function that the program
+does not have belongs to no view); (2) `get_narrators` drops a row of an
+empty `name` for the same reason; (3) a new predicate
+`is_a_filter_of_no_value` of `src/logic/sort_filter.rs` (a non-empty
+filter whose value after the point holds no character), and the start
+(`App::new`, beside the guards of T-382 and of T-383) does not apply such
+a filter, with a WARN of the log. The predicate of T-384
+(`the_filter_of_the_row_stays`) keeps a filter of another condition
+alone, therefore the next write of the sequence erases a filter of no
+value from the row — deliberate: it acts in no library, and no library
+gives it back.
+
+**The control of the corrected binary**, same proxy, and the row of the
+disk still holding `authors.` + `Test Author` from the fault run: the
+start gave `Library [18 items]` with no filter word and the WARN `the
+filter "authors." of the row of toutuitest holds no value. The program
+does not apply it.`; the key `a` gave `The authors [8 items]` without
+Test Author, and the WARN `The answer of the server holds the author
+"Test Author" with no identity. …the line goes away.`
+
+**The tests.** `tests/an_author_with_no_identity_takes_no_line.rs` (one
+test function, wiremock — a host of wiremock gives one status to one
+method of one path with no proxy at all, the rule of T-188; an author of
+no id and a narrator of no name each lose their line, the good rows
+stay) and `tests/a_filter_of_no_value_does_not_stand.rs` (one test
+function: the predicate cases, and the pin that
+`the_filter_of_the_row_stays("authors.", ...)` is false). The build of
+the fault — the three guards disabled with `&& false` — fails both
+tests.
+
+**The gates.** clippy, fmt, nextest 1636/1636, `cargo test -j 16
+--no-fail-fast` two times clean, and `cargo nextest run --run-ignored
+all` 1662/1662 against the sandbox.
+
+**The road back of the sandbox.** The account row went back to
+`http://localhost:13399` with the three filter columns empty, the proxy
+died by its pid of `ss -lptnH`, no media place moved except One Chapter
+Book, whose row went from a residue of past rounds (currentTime 123 of a
+file of 20 seconds, progress 1, isFinished false) to a clean end
+(currentTime 20, progress 1, isFinished true) through a control playback
+of this round; the reader position of A Long Test Book moved one chapter
+forward (a control of the reader at 8 rows).
+
+Also of this round, dry roads written for the record: the end-of-media
+road writes the row correctly (a clean playback of One Chapter Book to
+its end gave currentTime 20, progress 1, isFinished true — the residue
+123 was of past rounds); the name-based filter riding across libraries is
+a decision with tests behind it; the nine sibling empty-list cursors all
+absorb the index with `.get`.
+
+**What this round leaves open, each a candidate and not an item.** The
+row of the disk keeps a filter of no value until a write of the sequence
+(the start suppresses it and does not erase it — the way of T-382 and
+T-383); the other never-swept paths of the coverage map —
+`/api/libraries/:id/series` rows, `/api/libraries/:id/filterdata` choices
+(a choice of the `f` view could hold a value of no character too),
+`/api/me/listening-stats`, the write side of the lists
+(`/api/collections`, `/api/playlists`), and `/api/podcasts` rows; a fact
+value of an East Asian language in the panel 5 (the truncation helpers
+measure columns already, therefore this candidate is weak now); the
+direct index of the podcast play road (a candidate of the words alone).
