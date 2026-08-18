@@ -250,6 +250,11 @@ pub fn the_name_of_a_filter(value: &str, of_the_server: &[FilterChoice]) -> Stri
 /// whose sequence is the sequence of the server names that
 /// (`sort_filter::label_of`), and it names no direction: the direction of a
 /// request with no `sort` reaches the server in no field at all.
+///
+/// **A library with no filter names no filter** (T-385): the words `▣ No
+/// filter` say a filter when no filter stands, and a text must not say what
+/// the program does not have (T-91). The words then hold the sequence alone,
+/// and the row `No filter` of the view of the key `f` keeps its name.
 pub fn the_words_of_the_sequence_and_the_filter(
     is_podcast: bool,
     field: &str,
@@ -270,6 +275,10 @@ pub fn the_words_of_the_sequence_and_the_filter(
             }
         )
     };
+
+    if filter.is_empty() {
+        return format!("⇅ {}", of_the_sequence);
+    }
 
     format!(
         "⇅ {} ▣ {}",
@@ -476,7 +485,9 @@ mod tests {
         );
         assert!(words.contains("The author"), "{words}");
         assert!(words.contains("the smallest first"), "{words}");
-        assert!(words.contains("No filter"), "{words}");
+        // **A library with no filter names no filter** (T-385).
+        assert!(!words.contains("No filter"), "{words}");
+        assert!(!words.contains('▣'), "{words}");
 
         let words = the_words_of_the_sequence_and_the_filter(false, "addedAt", true, "", &[]);
         assert!(words.contains("the largest first"), "{words}");

@@ -28190,12 +28190,68 @@ offline mode with an old nameless filter row names the group (by design);
 and every candidate of the turns before this one.
 
 
+### The turn of the two hundred and seventeenth round (T-384)
+
+**The session of the two hundred and seventeenth turn shipped T-384**: a
+change of the sequence keeps the filter of another library now. **The
+candidate came of the sweep of T-383** (a write of the sequence in a
+library where the filter stays suppressed erases the filter of the row).
+
+**The fault**, of v0.8.214 inside tmux at 160 columns against the sandbox:
+the row of the account held the filter of Lewis Carroll of the library
+`Books`, and the program started in the library `Large`. The start
+suppressed the filter (the guard of T-383), and the header said `Library
+[500 items of 2056]` with no words of a filter. The key `f` and one Enter
+on the row `The title` wrote the sequence — and the row of the disk then
+held `library_filter`, `library_filter_name`, and `library_filter_lib`
+all empty. The user never touched the filter, and no library gives it
+back. The root: the write funnel
+`the_disk_takes_the_sequence_of_the_library` writes the filter of the
+application on every write, and the guards of T-382 and of T-383 empty
+that value in `App::new` while the row of the disk keeps it.
+
+**The correction, v0.8.215, two parts**: the predicate
+`sort_filter::the_filter_of_the_row_stays` — true when the filter of the
+row is one that the view holds back in this library (not a filter of the
+library, T-382, or a filter of another library, T-383), and false for a
+filter that acts here, because an empty filter of the application then
+came of the key of the user; and the write funnel — when the filter of
+the application is empty, it reads the row of the disk, and when the
+predicate says the filter stays, the write keeps the three columns of
+the filter of the row; a fault of that read takes a line of the log
+alone. The control of the corrected binary: the write of the sequence in
+`Large` kept the row whole, `Books` after it gave `Library [1 item] — a
+filter is on (f)`, and Enter on `No filter` in `Books` erased the three
+columns — the key of the user still takes the filter away in the library
+where it acts. The build of the fault — the predicate disabled with
+`|| true` — fails the new test
+`tests/a_sequence_of_another_library_keeps_the_filter.rs`. **A window of
+a fixed number of characters of a source test met the trap 209 again**:
+the window of
+`tests/a_refresh_of_a_database_that_said_nothing_keeps_the_program.rs`
+ends at the function after the named one now. The row of the account
+holds the values of the start again, and no media of the sandbox
+changed.
+
+**What this round leaves open, and each of them is a candidate and not an
+item**: a choice of `No filter` in a library where the filter stays
+suppressed keeps the filter too — the user takes it away in the library
+where it acts (a decision of this round: the view of `f` there never
+shows the filter); a filter of a name (a genre, a tag, a language, a
+narrator, or a publisher) still rides into another library — it acts
+there with its meaning, and true words stand over 0 items; the header
+reads `▣ No filter` after a removal of the filter — the leftover of
+T-379; the cursor of an empty list at large — the nine sibling views of
+`src/app.rs`; a fact value of an East Asian language in the panel 5; the
+offline mode with an old nameless filter row names the group (by
+design); and every candidate of the turns before this one.
+
 ## The prompt for the next session
 
 
 > Continue the Toutui takeover. Repo: `/home/nyverino/Documents/Toutui`
 > (ealtun21/Toutui, branch main). Maintained fork of the archived
-> AlbanDAVID/Toutui. Newest release **v0.8.214**; `Cargo.toml` is at 0.8.214. The
+> AlbanDAVID/Toutui. Newest release **v0.8.216**; `Cargo.toml` is at 0.8.216. The
 > workflow refuses a tag that disagrees with `Cargo.toml`, **and it builds
 > `--locked`**. **A release holds three files together**: `Cargo.toml`,
 > `Cargo.lock`, and one new entry at the top of `THE_ENTRIES_OF_THE_FORK` of
@@ -29208,59 +29264,48 @@ and every candidate of the turns before this one.
 > 1. **A condition of the program that no measurement has reached.** A sweep of
 >    this shape found a fault in one hundred and nineteen sessions of one
 >    hundred and twenty.
-> **The session of the two hundred and seventeenth turn shipped T-384**: a
-> change of the sequence keeps the filter of another library now. **The
-> candidate came of the sweep of T-383** (a write of the sequence in a
-> library where the filter stays suppressed erases the filter of the row).
+> **The session of the two hundred and eighteenth turn shipped T-385**: the
+> header of no filter names no filter now. **The candidate came of the
+> leftover of T-379**, carried in the open lists of T-379 to T-384.
 >
-> **The fault**, of v0.8.214 inside tmux at 160 columns against the sandbox:
-> the row of the account held the filter of Lewis Carroll of the library
-> `Books`, and the program started in the library `Large`. The start
-> suppressed the filter (the guard of T-383), and the header said `Library
-> [500 items of 2056]` with no words of a filter. The key `f` and one Enter
-> on the row `The title` wrote the sequence — and the row of the disk then
-> held `library_filter`, `library_filter_name`, and `library_filter_lib`
-> all empty. The user never touched the filter, and no library gives it
-> back. The root: the write funnel
-> `the_disk_takes_the_sequence_of_the_library` writes the filter of the
-> application on every write, and the guards of T-382 and of T-383 empty
-> that value in `App::new` while the row of the disk keeps it.
+> **The fault**, of v0.8.215 inside tmux at 100 columns against the sandbox
+> (the width of 84 to 119 columns where the header keeps the words of the
+> sequence and of the filter): the second row of the header read
+> `⇅ The sequence of the server ▣ No filter` at the start of the program,
+> with no filter in the row of the account, and it read the same words
+> after the user took a filter away with the row `No filter` of the view of
+> the key `f`. The words say a filter when no filter stands (T-91). The
+> root: `the_words_of_the_sequence_and_the_filter` of
+> `src/ui/the_panels_of_the_stack.rs` wrote `⇅ {sequence} ▣ {filter}` for
+> every value, and `the_name_of_a_filter` gives `No filter` for an empty
+> value.
 >
-> **The correction, v0.8.215, two parts**: the predicate
-> `sort_filter::the_filter_of_the_row_stays` — true when the filter of the
-> row is one that the view holds back in this library (not a filter of the
-> library, T-382, or a filter of another library, T-383), and false for a
-> filter that acts here, because an empty filter of the application then
-> came of the key of the user; and the write funnel — when the filter of
-> the application is empty, it reads the row of the disk, and when the
-> predicate says the filter stays, the write keeps the three columns of
-> the filter of the row; a fault of that read takes a line of the log
-> alone. The control of the corrected binary: the write of the sequence in
-> `Large` kept the row whole, `Books` after it gave `Library [1 item] — a
-> filter is on (f)`, and Enter on `No filter` in `Books` erased the three
-> columns — the key of the user still takes the filter away in the library
-> where it acts. The build of the fault — the predicate disabled with
-> `|| true` — fails the new test
-> `tests/a_sequence_of_another_library_keeps_the_filter.rs`. **A window of
-> a fixed number of characters of a source test met the trap 209 again**:
-> the window of
-> `tests/a_refresh_of_a_database_that_said_nothing_keeps_the_program.rs`
-> ends at the function after the named one now. The row of the account
-> holds the values of the start again, and no media of the sandbox
-> changed.
+> **The correction, v0.8.216**: when the filter is empty, the words of the
+> header hold the sequence alone. A filter that stands keeps its mark and
+> its name, and `the_name_of_a_filter` did not change: the row `No filter`
+> of the view of the key `f` and the panel 3 keep their words. The control
+> of the corrected binary: the start read `⇅ The sequence of the server`,
+> Enter on `Started, not finished` gave
+> `⇅ The sequence of the server ▣ Started, not finished`, and Enter on
+> `No filter` gave the sequence alone again. The build of the fault — the
+> correction disabled with `&& false` — fails the new test
+> `tests/a_header_of_no_filter_names_no_filter.rs`, and the two tests that
+> pinned the old words changed with the correction. The row of the account
+> holds the values of the start, and no media of the sandbox changed.
 >
 > **What this round leaves open, and each of them is a candidate and not an
-> item**: a choice of `No filter` in a library where the filter stays
-> suppressed keeps the filter too — the user takes it away in the library
-> where it acts (a decision of this round: the view of `f` there never
-> shows the filter); a filter of a name (a genre, a tag, a language, a
-> narrator, or a publisher) still rides into another library — it acts
-> there with its meaning, and true words stand over 0 items; the header
-> reads `▣ No filter` after a removal of the filter — the leftover of
-> T-379; the cursor of an empty list at large — the nine sibling views of
+> item**: the candidates of T-384 that stay — a choice of `No filter` in a
+> library where the filter stays suppressed keeps the filter (the decision
+> of T-384); a filter of a name (a genre, a tag, a language, a narrator, or
+> a publisher) still rides into another library with its meaning; the
+> cursor of an empty list at large — the nine sibling views of
 > `src/app.rs`; a fact value of an East Asian language in the panel 5; the
 > offline mode with an old nameless filter row names the group (by
-> design); and every candidate of the turns before this one.
+> design) — and one new fact of this round: the direct index of the podcast
+> play road of the Home view (`src/app.rs`, `ids_cnt_list[...]`) cannot
+> fail today, because the two vectors map one to one over
+> `episode_entities`; a `.get` there is a candidate of the words alone.
+>
 >    **The turns before this one stand in `## The turns before the three
 >    newest ones` of this file**, above the heading of this prompt. **This item
 >    held three turns, and the block then stood above its limit of size**
@@ -29527,7 +29572,7 @@ and every candidate of the turns before this one.
 > and it held **88074** bytes with **one** turn in it. The round of the two
 > hundred and fifth found it at 88308 bytes with one turn in it, and it did the
 > same work: the block held **81281** bytes with no turn at all after the
-> removal, and it held **85713** bytes with **one** turn in it. The round of the two hundred and sixth found it at 85713 bytes with one turn in it, and it did the same work: it holds about **86000** bytes with **one** turn in it now. The round of the two hundred and seventh found it at 85815 bytes with one turn in it, and it did the same work. The round of the two hundred and eighth found it at 85404 bytes with one turn in it, and it did the same work. The round of the two hundred and ninth found it at 85391 bytes with one turn in it, and it did the same work. The round of the two hundred and tenth found it at 85549 bytes with one turn in it, and it did the same work. The round of the two hundred and eleventh found it at 85579 bytes with one turn in it, and it did the same work. The round of the two hundred and twelfth found it at 85050 bytes with one turn in it, and it did the same work. The round of the two hundred and thirteenth found it at 85565 bytes with one turn in it, and it did the same work. The round of the two hundred and fourteenth found it at 85376 bytes with one turn in it, and it did the same work. The round of the two hundred and fifteenth found it at 85762 bytes with one turn in it, and it did the same work. The round of the two hundred and sixteenth found it at 85762 bytes with one turn in it, and it did the same work. The round of the two hundred and seventeenth found it at 86680 bytes with one turn in it, and it did the same work.
+> removal, and it held **85713** bytes with **one** turn in it. The round of the two hundred and sixth found it at 85713 bytes with one turn in it, and it did the same work: it holds about **86000** bytes with **one** turn in it now. The round of the two hundred and seventh found it at 85815 bytes with one turn in it, and it did the same work. The round of the two hundred and eighth found it at 85404 bytes with one turn in it, and it did the same work. The round of the two hundred and ninth found it at 85391 bytes with one turn in it, and it did the same work. The round of the two hundred and tenth found it at 85549 bytes with one turn in it, and it did the same work. The round of the two hundred and eleventh found it at 85579 bytes with one turn in it, and it did the same work. The round of the two hundred and twelfth found it at 85050 bytes with one turn in it, and it did the same work. The round of the two hundred and thirteenth found it at 85565 bytes with one turn in it, and it did the same work. The round of the two hundred and fourteenth found it at 85376 bytes with one turn in it, and it did the same work. The round of the two hundred and fifteenth found it at 85762 bytes with one turn in it, and it did the same work. The round of the two hundred and sixteenth found it at 85762 bytes with one turn in it, and it did the same work. The round of the two hundred and seventeenth found it at 86680 bytes with one turn in it, and it did the same work. The round of the two hundred and eighteenth found it at 86873 bytes with one turn in it, and it did the same work.
 > **A block that stands at 80000 bytes or under holds two
 > turns**, and the turn of the stage before this one names the parts of that
 > stage which stay open. **The list of the decisions

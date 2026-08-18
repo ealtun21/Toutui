@@ -37156,3 +37156,74 @@ leftover of T-379. (4) The candidates of T-383 that stay: the cursor of an
 empty list at large; a fact value of an East Asian language in the panel
 5; the offline mode with an old nameless filter row names the group (by
 design).
+
+## T-385 — The header of no filter names no filter
+
+**The candidate came of the leftover of T-379, carried in the open lists of
+T-379 through T-384.** The header reads `▣ No filter` after a removal of
+the filter.
+
+**The fault, measured against the sandbox on `:13399`, program v0.8.215
+inside tmux at 100 columns** (the width of 84 to 119 columns where the
+header keeps the words of the sequence and of the filter, the decision 3 of
+the road of the panels).
+
+The second row of the header read `🔗 localhost:13399  ⇅ The sequence of
+the server ▣ No filter` at the start of the program, with no filter in the
+row of the account and no key of the user. The key `f` and Enter on
+`Started, not finished` gave `⇅ The sequence of the server ▣ Started, not
+finished`, and the header of the list said `Library [4 items] — a filter is
+on (f)`. The key `f` and Enter on `No filter` took the filter away — and
+the second row then read `⇅ The sequence of the server ▣ No filter` again.
+The words `▣ No filter` say a filter when no filter stands, and a text
+must not say what the program does not have (T-91).
+
+**The root.** `the_words_of_the_sequence_and_the_filter` of
+`src/ui/the_panels_of_the_stack.rs` wrote the shape `⇅ {sequence} ▣
+{filter}` for every value, and `the_name_of_a_filter` gives `No filter`
+for an empty value. The name `No filter` belongs to the row of the view of
+the key `f` and to the panel 3 of the stack, where the user opened a place
+for the filter; the header opened no such place.
+
+**The correction, v0.8.216.** When the filter is empty, the words of the
+header hold the sequence alone (`⇅ The sequence of the server`, or `⇅ The
+title, the largest first` when a sequence stands). A filter that stands
+keeps its mark and its name. `the_name_of_a_filter` did not change: the
+row `No filter` of the view of the key `f` (`src/logic/sort_filter.rs`)
+and the panel 3 keep their words.
+
+**The control of the corrected binary, inside tmux at 100 columns.** The
+start read `⇅ The sequence of the server` with no filter word; Enter on
+`Started, not finished` gave `⇅ The sequence of the server ▣ Started, not
+finished`; Enter on `No filter` gave `⇅ The sequence of the server` again.
+
+**The test.** `tests/a_header_of_no_filter_names_no_filter.rs`, one test
+function (the rule of the box of the process). The build of the fault —
+the correction disabled with `&& false` — fails it. Two tests that pinned
+the old words changed with the correction:
+`the_words_of_the_header_name_the_sequence_and_the_filter` of
+`src/ui/the_panels_of_the_stack.rs` and
+`the_header_of_a_screen_of_no_stack_names_the_sequence_and_the_filter` of
+`tests/the_panels_of_the_sequence_and_of_the_filter.rs`.
+
+**The road back of the sandbox.** The row of the account holds the values
+of the start (library `Books`, no sequence, no filter), and no media of
+the sandbox changed.
+
+**What this round leaves open, each a candidate and not an item.**
+
+1. The candidates of T-384 that stay: a choice of `No filter` in a library
+   where the filter stays suppressed keeps the filter (by the decision of
+   T-384); a filter of a name (a genre, a tag, a language, a narrator, or a
+   publisher) still rides into another library with its meaning; the
+   cursor of an empty list at large, the nine sibling views of
+   `src/app.rs`; a fact value of an East Asian language in the panel 5; the
+   offline mode with an old nameless filter row names the group (by
+   design).
+2. A new fact of this round: the direct index
+   `ids_cnt_list[selected_cnt_list.unwrap_or(0)]` of the podcast play road
+   of the Home view (`src/app.rs:4487`) cannot fail today, because the two
+   vectors map one to one over `episode_entities` and the live road of
+   T-66 never shortens them — a `.get` there would still read better, and
+   a `libraryItemId` that the server does not give reaches that road as
+   the text `N/A`.

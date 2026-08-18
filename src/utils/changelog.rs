@@ -41,6 +41,19 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.216",
+        date: "18/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The header of no filter names no filter.** The second row \
+             of the header of a terminal of 84 to 119 columns said \
+             `▣ No filter` at the start of the program and after a removal \
+             of the filter. The words said a filter when no filter stands. \
+             The header now holds the sequence alone, and a filter that \
+             stands keeps its mark and its name.",
+        ],
+    },
+    Entry {
         version: "0.8.215",
         date: "18/08/2026",
         body: &[

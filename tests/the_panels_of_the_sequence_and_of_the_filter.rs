@@ -247,12 +247,13 @@ fn the_two_panels_and_the_view_of_the_key_f_hold_one_rule() {
 /// **The parts of this test stay in one function.**
 #[test]
 fn the_header_of_a_screen_of_no_stack_names_the_sequence_and_the_filter() {
-    // The measurement of tmux at 100 columns, of the library `Large` of the
-    // sandbox at the start of the program:
-    // `🔗 localhost:13399        ⇅ The sequence of the server ▣ No filter`
+    // **A library with no filter names no filter** (T-385). The header of the
+    // start said `⇅ The sequence of the server ▣ No filter` before the
+    // correction, and the words `No filter` say a filter when no filter
+    // stands.
     let of_the_start =
         the_panels::the_words_of_the_sequence_and_the_filter(false, "", false, "", &[]);
-    assert_eq!(of_the_start, "⇅ The sequence of the server ▣ No filter");
+    assert_eq!(of_the_start, "⇅ The sequence of the server");
 
     // The sequence of the author, the largest first, and the media that the
     // user started.
