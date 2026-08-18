@@ -37081,3 +37081,78 @@ reads `▣ No filter` after a removal of the filter — the leftover of T-379.
 large, the nine sibling views of `src/app.rs`; a fact value of an East
 Asian language in the panel 5; the offline mode with an old nameless
 filter row names the group (by design).
+
+## T-384 — A change of the sequence keeps the filter of another library
+
+**The candidate came of the final paragraph of T-383.** A write of the
+sequence in a library where the filter stays suppressed erases the filter
+of the row: the guard of T-382 and of T-383 empty the filter of the
+application at the start, and the write funnel of the sequence writes that
+empty value over the row of the disk.
+
+**The fault, measured against the sandbox on `:13399`, program v0.8.214
+inside tmux at 160 columns.**
+
+The row of the account held the filter of the author Lewis Carroll
+(`authors.MzEyYzQyZmYtZTgwMC00YjI5LTk5NzQtZDJkODk5ZDBiYmE5`, name `Lewis
+Carroll`, library `1b090ea8-...` — the library `Books`), and the selected
+library was `Large` (2056 books). The start suppressed the filter, by the
+guard of T-383: the header read `Library [500 items of 2056]` with no
+words of a filter. The key `f` opened the view of the sequence and the
+filter, and one Enter on the row `The title` wrote the sequence — and the
+row of the disk then held `library_filter`, `library_filter_name`, and
+`library_filter_lib` all empty. The user never touched the filter, and no
+library gives it back.
+
+**The root.** The write funnel
+`the_disk_takes_the_sequence_of_the_library` (`src/app.rs`) writes
+`self.library_filter` of the application on every write, and the guards of
+T-382 and of T-383 empty that value in `App::new` while the row of the
+disk keeps it: the first write of the sequence in such a library therefore
+erased the row. The same road stands for a filter that a library of
+podcasts ignores (T-382).
+
+**The correction, v0.8.215, two parts.**
+
+1. A new predicate `sort_filter::the_filter_of_the_row_stays(row_filter,
+   row_filter_lib, library, is_podcast)` — true when the filter of the row
+   is one that the view holds back in this library: not a filter of the
+   library (T-382) or a filter of another library (T-383). An empty
+   filter of the row gives false, and a filter that acts in this library
+   gives false, because an empty filter of the application then came of
+   the key of the user.
+2. The write funnel: when the filter of the application is empty, it reads
+   the row of the disk (`crud::get_library_sort`), and when the predicate
+   says the filter stays, the write keeps the three columns of the filter
+   of the row; a fault of that read takes a line of the log alone, and the
+   write then erases, as before.
+
+**The control of the corrected binary, inside tmux.** The same road kept
+the row whole — after Enter on the sequence the row still held the Lewis
+Carroll filter, its name, and its library; the direction toggled (`The
+title, the largest first`). Back in `Books` the header read `Library [1
+item] — ... — a filter is on (f)`, the view of `f` held Lewis Carroll, and
+Enter on `No filter` there erased the three columns — the key of the user
+still takes the filter away in the library where it acts.
+
+**The test.**
+`tests/a_sequence_of_another_library_keeps_the_filter.rs`, one test
+function (the rule of the box of the process). The build of the fault —
+the predicate disabled with `|| true` — fails it.
+
+**The road back of the sandbox.** The row of the account holds the values
+of the start again, and no media of the sandbox changed.
+
+**What this round leaves open, each a candidate and not an item.** (1) A
+change of the sequence in a suppressed library keeps the filter, and a
+choice of `No filter` there keeps it too — a user who wants the filter
+gone must take it away in the library where it acts (a decision of this
+round: the view of `f` of the suppressed library never shows the filter,
+therefore `No filter` there is a no-op of that library). (2) A filter of a
+name (genre, tag, language, narrator, publisher) still rides into another
+library of books with its meaning, and true words can stand over 0 items.
+(3) The header reads `▣ No filter` after a removal of the filter — the
+leftover of T-379. (4) The candidates of T-383 that stay: the cursor of an
+empty list at large; a fact value of an East Asian language in the panel
+5; the offline mode with an old nameless filter row names the group (by
+design).

@@ -5975,28 +5975,59 @@ impl App {
         &mut self,
         of_the_old: (String, bool, String),
     ) -> bool {
-        // The name of the filter goes to the disk beside the value, and a
-        // start of the program then names an author and a series too. See
-        // T-380.
-        let the_name_of_the_filter =
-            crate::logic::sort_filter::the_name_for_the_disk(&self.library_filter);
-
-        // The library where the user took the filter, for the guard of a
-        // filter of an identity in another library (T-383). A filter of no
-        // value has no library.
-        let the_library_of_the_filter = if self.library_filter.is_empty() {
-            ""
-        } else {
-            self.id_selected_lib.as_str()
-        };
+        // The filter of the application is empty in a library where the
+        // start holds the filter of the row back (T-382 and T-383), and the
+        // row of the disk is the truth of that filter: a write of the
+        // sequence here must not erase it. A filter of the row that acts in
+        // this library is different: the user took it away with the key of
+        // the filter, and the write erases it. See T-384.
+        let (the_filter, the_name_of_the_filter, the_library_of_the_filter) =
+            if self.library_filter.is_empty() {
+                match crate::db::crud::get_library_sort(&self.username) {
+                    Ok((_, _, of_the_row, its_name, its_library))
+                        if crate::logic::sort_filter::the_filter_of_the_row_stays(
+                            &of_the_row,
+                            &its_library,
+                            &self.id_selected_lib,
+                            self.is_podcast,
+                        ) =>
+                    {
+                        (of_the_row, its_name, its_library)
+                    }
+                    Ok(_) => (String::new(), String::new(), String::new()),
+                    Err(error) => {
+                        // The write below meets the same disk, and its fault
+                        // speaks to the user: this read takes a line of the
+                        // log alone (T-177 and T-205).
+                        log::error!(
+                            "[the sequence of the library] the program did not read \
+                             the filter of the row of {}: {}",
+                            self.username,
+                            error
+                        );
+                        (String::new(), String::new(), String::new())
+                    }
+                }
+            } else {
+                // The name of the filter goes to the disk beside the value,
+                // and a start of the program then names an author and a
+                // series too (T-380). The library where the user took the
+                // filter guards a filter of an identity in another library
+                // (T-383).
+                (
+                    self.library_filter.clone(),
+                    crate::logic::sort_filter::the_name_for_the_disk(&self.library_filter),
+                    self.id_selected_lib.clone(),
+                )
+            };
 
         let of_the_disk = crate::db::crud::update_library_sort(
             &self.username,
             &self.library_sort,
             self.library_desc,
-            &self.library_filter,
+            &the_filter,
             &the_name_of_the_filter,
-            the_library_of_the_filter,
+            &the_library_of_the_filter,
         );
 
         if let Err(error) = of_the_disk {

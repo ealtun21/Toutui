@@ -120,8 +120,17 @@ fn a_refresh_of_a_database_that_said_nothing_keeps_the_program() {
             .nth(1)
             .unwrap_or_else(|| panic!("{} stands in the application", the_key));
 
+        // The window ends at the function after this one, and not at a
+        // fixed number of characters: a longer body must not push the
+        // sentence out of the window (the trap 209).
+        let the_end = ["\n    fn ", "\n    pub fn "]
+            .iter()
+            .filter_map(|mark| the_body.find(mark))
+            .min()
+            .unwrap_or(the_body.len());
+
         assert!(
-            the_body[..the_body.len().min(2600)].contains(the_words),
+            the_body[..the_end].contains(the_words),
             "{} says {} when the disk did not take the write",
             the_key,
             the_words

@@ -28135,6 +28135,61 @@ East Asian language in the panel 5; the offline mode with an old
 nameless filter row names the group (by design); and every candidate
 of the turns before this one.
 
+### The turn of the two hundred and sixteenth round (T-383)
+
+**The session of the two hundred and sixteenth turn shipped T-383**: a
+filter of an author stays in its library now. **The candidate came of the
+sweep of T-382** (a filter of an author of one library of books rides into
+a second library of books).
+
+**The fault**, of v0.8.213 inside tmux at 160 columns against the sandbox:
+`curl` first — the identity of the author Lewis Carroll gave 1 item in the
+library `Books` and 0 items in the library `Large` of 2056 books, with the
+same filter value. Then the program: the filter of Lewis Carroll in the
+row and the library `Books` gave `Library [1 item] — a filter is on (f)`;
+two BTab gave `Large`, and the Library view then said `Library [0 items]
+— a filter is on (f)` and `No media of this library agrees with the
+filter.` — over 2056 books — and the view of the key `f` of `Large`
+offered `No filter` alone. A restart with that row started in `Large`
+with the same fault.
+
+**The correction, v0.8.214, four parts**: the version 12 of the database
+adds `library_filter_lib` — the library where the user took the filter —
+and the migration writes the library of the row beside a filter that
+stands; `crud::get_library_sort` and `crud::update_library_sort` carry
+the value, and the write funnel writes the current library beside a
+filter and an empty text beside no filter;
+`sort_filter::is_a_filter_of_another_library` — true for `authors.` and
+`series.` of a known library that is not the current one, and the five
+kinds of a name and of the position ride with their meaning; and a guard
+in `App::new` after the guard of T-382 — such a filter goes out of the
+request and out of the header, and the row of the disk keeps it: the
+library of the filter gives it back. The heal of T-381 writes the library
+of the filter too. The control of the corrected binary: the start of a
+database of the version 11 gave the version 12 and the backfill; `Books`
+gave `[1 item]`, `Large` gave `Library [500 items of 2056]` with no words
+of a filter, and `Books` after it gave `[1 item]` again. The build of the
+fault — the predicate disabled with `|| true` and the backfill with
+`AND 0` — fails the new test
+`tests/a_filter_of_an_author_stays_in_its_library.rs`. The row of the
+account holds the values of the start again, and no media of the sandbox
+changed. **A key of a view that comes while the refresh of a library
+switch runs reaches no view** (the shape of the trap 214): the Tab of
+such a moment gave the Home view again.
+
+**What this round leaves open, and each of them is a candidate and not an
+item**: a filter of a name (a genre, a tag, a language, a narrator, or a
+publisher) still rides into another library — it acts there with its
+meaning, and true words stand over 0 items; a write of the sequence in a
+library where the filter stays suppressed erases the filter of the row
+(the row is the truth of the screen, the shape of T-382); the header
+reads `▣ No filter` after a removal of the filter — the leftover of
+T-379; the cursor of an empty list at large — the nine sibling views of
+`src/app.rs`; a fact value of an East Asian language in the panel 5; the
+offline mode with an old nameless filter row names the group (by design);
+and every candidate of the turns before this one.
+
+
 ## The prompt for the next session
 
 
@@ -29153,57 +29208,59 @@ of the turns before this one.
 > 1. **A condition of the program that no measurement has reached.** A sweep of
 >    this shape found a fault in one hundred and nineteen sessions of one
 >    hundred and twenty.
-> **The session of the two hundred and sixteenth turn shipped T-383**: a
-> filter of an author stays in its library now. **The candidate came of the
-> sweep of T-382** (a filter of an author of one library of books rides into
-> a second library of books).
+> **The session of the two hundred and seventeenth turn shipped T-384**: a
+> change of the sequence keeps the filter of another library now. **The
+> candidate came of the sweep of T-383** (a write of the sequence in a
+> library where the filter stays suppressed erases the filter of the row).
 >
-> **The fault**, of v0.8.213 inside tmux at 160 columns against the sandbox:
-> `curl` first — the identity of the author Lewis Carroll gave 1 item in the
-> library `Books` and 0 items in the library `Large` of 2056 books, with the
-> same filter value. Then the program: the filter of Lewis Carroll in the
-> row and the library `Books` gave `Library [1 item] — a filter is on (f)`;
-> two BTab gave `Large`, and the Library view then said `Library [0 items]
-> — a filter is on (f)` and `No media of this library agrees with the
-> filter.` — over 2056 books — and the view of the key `f` of `Large`
-> offered `No filter` alone. A restart with that row started in `Large`
-> with the same fault.
+> **The fault**, of v0.8.214 inside tmux at 160 columns against the sandbox:
+> the row of the account held the filter of Lewis Carroll of the library
+> `Books`, and the program started in the library `Large`. The start
+> suppressed the filter (the guard of T-383), and the header said `Library
+> [500 items of 2056]` with no words of a filter. The key `f` and one Enter
+> on the row `The title` wrote the sequence — and the row of the disk then
+> held `library_filter`, `library_filter_name`, and `library_filter_lib`
+> all empty. The user never touched the filter, and no library gives it
+> back. The root: the write funnel
+> `the_disk_takes_the_sequence_of_the_library` writes the filter of the
+> application on every write, and the guards of T-382 and of T-383 empty
+> that value in `App::new` while the row of the disk keeps it.
 >
-> **The correction, v0.8.214, four parts**: the version 12 of the database
-> adds `library_filter_lib` — the library where the user took the filter —
-> and the migration writes the library of the row beside a filter that
-> stands; `crud::get_library_sort` and `crud::update_library_sort` carry
-> the value, and the write funnel writes the current library beside a
-> filter and an empty text beside no filter;
-> `sort_filter::is_a_filter_of_another_library` — true for `authors.` and
-> `series.` of a known library that is not the current one, and the five
-> kinds of a name and of the position ride with their meaning; and a guard
-> in `App::new` after the guard of T-382 — such a filter goes out of the
-> request and out of the header, and the row of the disk keeps it: the
-> library of the filter gives it back. The heal of T-381 writes the library
-> of the filter too. The control of the corrected binary: the start of a
-> database of the version 11 gave the version 12 and the backfill; `Books`
-> gave `[1 item]`, `Large` gave `Library [500 items of 2056]` with no words
-> of a filter, and `Books` after it gave `[1 item]` again. The build of the
-> fault — the predicate disabled with `|| true` and the backfill with
-> `AND 0` — fails the new test
-> `tests/a_filter_of_an_author_stays_in_its_library.rs`. The row of the
-> account holds the values of the start again, and no media of the sandbox
-> changed. **A key of a view that comes while the refresh of a library
-> switch runs reaches no view** (the shape of the trap 214): the Tab of
-> such a moment gave the Home view again.
+> **The correction, v0.8.215, two parts**: the predicate
+> `sort_filter::the_filter_of_the_row_stays` — true when the filter of the
+> row is one that the view holds back in this library (not a filter of the
+> library, T-382, or a filter of another library, T-383), and false for a
+> filter that acts here, because an empty filter of the application then
+> came of the key of the user; and the write funnel — when the filter of
+> the application is empty, it reads the row of the disk, and when the
+> predicate says the filter stays, the write keeps the three columns of
+> the filter of the row; a fault of that read takes a line of the log
+> alone. The control of the corrected binary: the write of the sequence in
+> `Large` kept the row whole, `Books` after it gave `Library [1 item] — a
+> filter is on (f)`, and Enter on `No filter` in `Books` erased the three
+> columns — the key of the user still takes the filter away in the library
+> where it acts. The build of the fault — the predicate disabled with
+> `|| true` — fails the new test
+> `tests/a_sequence_of_another_library_keeps_the_filter.rs`. **A window of
+> a fixed number of characters of a source test met the trap 209 again**:
+> the window of
+> `tests/a_refresh_of_a_database_that_said_nothing_keeps_the_program.rs`
+> ends at the function after the named one now. The row of the account
+> holds the values of the start again, and no media of the sandbox
+> changed.
 >
 > **What this round leaves open, and each of them is a candidate and not an
-> item**: a filter of a name (a genre, a tag, a language, a narrator, or a
-> publisher) still rides into another library — it acts there with its
-> meaning, and true words stand over 0 items; a write of the sequence in a
-> library where the filter stays suppressed erases the filter of the row
-> (the row is the truth of the screen, the shape of T-382); the header
+> item**: a choice of `No filter` in a library where the filter stays
+> suppressed keeps the filter too — the user takes it away in the library
+> where it acts (a decision of this round: the view of `f` there never
+> shows the filter); a filter of a name (a genre, a tag, a language, a
+> narrator, or a publisher) still rides into another library — it acts
+> there with its meaning, and true words stand over 0 items; the header
 > reads `▣ No filter` after a removal of the filter — the leftover of
 > T-379; the cursor of an empty list at large — the nine sibling views of
 > `src/app.rs`; a fact value of an East Asian language in the panel 5; the
-> offline mode with an old nameless filter row names the group (by design);
-> and every candidate of the turns before this one.
+> offline mode with an old nameless filter row names the group (by
+> design); and every candidate of the turns before this one.
 >    **The turns before this one stand in `## The turns before the three
 >    newest ones` of this file**, above the heading of this prompt. **This item
 >    held three turns, and the block then stood above its limit of size**
@@ -29470,7 +29527,7 @@ of the turns before this one.
 > and it held **88074** bytes with **one** turn in it. The round of the two
 > hundred and fifth found it at 88308 bytes with one turn in it, and it did the
 > same work: the block held **81281** bytes with no turn at all after the
-> removal, and it held **85713** bytes with **one** turn in it. The round of the two hundred and sixth found it at 85713 bytes with one turn in it, and it did the same work: it holds about **86000** bytes with **one** turn in it now. The round of the two hundred and seventh found it at 85815 bytes with one turn in it, and it did the same work. The round of the two hundred and eighth found it at 85404 bytes with one turn in it, and it did the same work. The round of the two hundred and ninth found it at 85391 bytes with one turn in it, and it did the same work. The round of the two hundred and tenth found it at 85549 bytes with one turn in it, and it did the same work. The round of the two hundred and eleventh found it at 85579 bytes with one turn in it, and it did the same work. The round of the two hundred and twelfth found it at 85050 bytes with one turn in it, and it did the same work. The round of the two hundred and thirteenth found it at 85565 bytes with one turn in it, and it did the same work. The round of the two hundred and fourteenth found it at 85376 bytes with one turn in it, and it did the same work. The round of the two hundred and fifteenth found it at 85762 bytes with one turn in it, and it did the same work. The round of the two hundred and sixteenth found it at 85762 bytes with one turn in it, and it did the same work.
+> removal, and it held **85713** bytes with **one** turn in it. The round of the two hundred and sixth found it at 85713 bytes with one turn in it, and it did the same work: it holds about **86000** bytes with **one** turn in it now. The round of the two hundred and seventh found it at 85815 bytes with one turn in it, and it did the same work. The round of the two hundred and eighth found it at 85404 bytes with one turn in it, and it did the same work. The round of the two hundred and ninth found it at 85391 bytes with one turn in it, and it did the same work. The round of the two hundred and tenth found it at 85549 bytes with one turn in it, and it did the same work. The round of the two hundred and eleventh found it at 85579 bytes with one turn in it, and it did the same work. The round of the two hundred and twelfth found it at 85050 bytes with one turn in it, and it did the same work. The round of the two hundred and thirteenth found it at 85565 bytes with one turn in it, and it did the same work. The round of the two hundred and fourteenth found it at 85376 bytes with one turn in it, and it did the same work. The round of the two hundred and fifteenth found it at 85762 bytes with one turn in it, and it did the same work. The round of the two hundred and sixteenth found it at 85762 bytes with one turn in it, and it did the same work. The round of the two hundred and seventeenth found it at 86680 bytes with one turn in it, and it did the same work.
 > **A block that stands at 80000 bytes or under holds two
 > turns**, and the turn of the stage before this one names the parts of that
 > stage which stay open. **The list of the decisions

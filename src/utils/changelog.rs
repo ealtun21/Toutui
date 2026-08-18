@@ -41,6 +41,21 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.215",
+        date: "18/08/2026",
+        body: &[
+            "Fixed:",
+            "- **A change of the sequence does not erase the filter of \
+             another library.** The program keeps a filter of another \
+             library and a filter that a library of podcasts ignores out of \
+             the view, and the account keeps the filter. One change of the \
+             sequence in such a library then erased the filter, its name, \
+             and its library together. The write of the sequence now keeps \
+             the filter of the account, and the library of the filter gives \
+             it back.",
+        ],
+    },
+    Entry {
         version: "0.8.214",
         date: "18/08/2026",
         body: &[

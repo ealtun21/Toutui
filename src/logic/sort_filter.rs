@@ -583,6 +583,34 @@ pub fn is_a_filter_of_another_library(filter: &str, filter_lib: &str, library: &
     filter.starts_with("authors.") || filter.starts_with("series.")
 }
 
+/// Says whether the filter of the row of the disk stays through a write of
+/// the sequence.
+///
+/// **A write of the sequence in a library where the filter stays suppressed
+/// must not erase the filter of the row** (T-384). The start keeps a filter
+/// of another library (T-383) and a filter that a library of podcasts
+/// ignores (T-382) out of the request and out of the header, and the row of
+/// the disk keeps it: the library of the filter gives it back. The write
+/// funnel writes the filter of the application, and that filter is empty in
+/// such a library: one write of the sequence then erased the filter, its
+/// name, and its library together, and no library gave it back.
+///
+/// A filter of the row that acts in this library is different: the user took
+/// it away with the key of the filter, and the write must erase it.
+pub fn the_filter_of_the_row_stays(
+    row_filter: &str,
+    row_filter_lib: &str,
+    library: &str,
+    is_podcast: bool,
+) -> bool {
+    if row_filter.is_empty() {
+        return false;
+    }
+
+    !is_a_filter_of_the_library(row_filter, is_podcast)
+        || is_a_filter_of_another_library(row_filter, row_filter_lib, library)
+}
+
 /// Gives the name of the filter back out of the choices of the server.
 ///
 /// The choices of `get_filter_data` hold the pair of the identity and of the
