@@ -37773,3 +37773,100 @@ filter type given) and a large upscale of a small cover might look blocky;
 a `Some(FilterType::Lanczos3)` or similar is a candidate if that is
 visible, but no measurement of this round found a cover of the sandbox
 whose native size needed more than a small upscale to fill its box.
+
+## T-394 — The large cover of a book in two panels shared one picture
+
+**T-393 helped but did not finish the fix**: the user confirmed
+`Resize::Scale` made no visible difference on their real Kitty terminal.
+Their screenshot of v0.8.222 (an actual real desktop, not the sandbox)
+still showed the same small square with empty space below it, in the
+same shape as the original report.
+
+**The measurement.** With the user's explicit permission, this round drove
+their actual `cargo run --release` window directly: `niri msg` to find and
+focus the window, `wtype` to send keys (after confirming with `niri msg
+focused-window` that the target window held focus — mouse-follows-focus in
+niri means a `focus-window` IPC call does not survive the user's own mouse
+movement, and one round of this measurement sent keystrokes into the wrong
+window before that check was added), and `niri msg action screenshot-window`
+plus a private, fully offscreen Wayland session (`weston --backend=x11`
+against a headless `Xvfb`, confirmed absent from the user's real display
+before and after) for a second, independent real-Kitty measurement that
+never touched the user's screen.
+
+**Fifteen isolated reproductions, in order, each against the real Kitty
+terminal:** a synthetic image with `Resize::Fit` (small) and `Resize::Scale`
+(fills correctly); the same shared `StatefulProtocol` rendered at two sizes
+in one frame (filled correctly — the coordinates did not touch); a picture
+growing from small to big across frames (filled correctly); the exact real
+`Rect` and `FontSize` from the log (filled correctly); the real WebP file
+with `EnableMouseCapture` set, matching `the_program_reads_the_mouse` at
+startup (filled correctly). Every deliberately narrow reproduction passed.
+Direct instrumentation of the real `App`'s own `Buffer` — reading the public
+field `cell.diff_option` and the length of `cell.symbol()` right after the
+cover renders and again at the end of `render_home` — showed the escape
+sequence exactly correct both times: 30 placeholder characters for a
+30-column box, the full base64 transmission present, nothing overwritten
+later in the frame. `gh api search/issues` against
+`ratatui/ratatui-image` found a live u16-overflow bug (PR #189) that does
+not reach our cell counts, and closed issues about `Resize::Scale` that
+predate v11.0.6.
+
+**The reproduction that finally worked**: a screen busy with several other
+`StatefulProtocol`s and blocks of filler text, built to resemble the real
+`App::render`. Removing the filler text kept the fault; removing the extra
+unrelated images kept the fault. What stayed to the end: the **same**
+`StatefulProtocol` object rendered **big** (panel 5) and then **small**
+(panel 6), at coordinates that share no cell — the shape of `CoverArt` in
+`src/ui/cover.rs`, whose one `HashMap<String, Option<StatefulProtocol>>`
+gives one identity of the media the one picture of the terminal, and the
+panel 5 of a book that the panel 6 (or the panel 4) also shows draws that
+one picture twice.
+
+**The root.** `ratatui_image::picker::Picker::new_resize_protocol` gives
+each `StatefulProtocol` a Kitty image identity at random
+(`StatefulKitty::new(random(), ...)`), fixed for the life of that Rust
+value. `StatefulProtocolTrait::resize_encode`, called once per distinct
+target size within one render, **keeps that identity** and re-transmits
+the image under it (`protocol/kitty.rs`: `resize_encode` makes a fresh
+`KittyProtoState`, which resets `transmitted` to `false`, so the next
+`render()` sends `a=T` again). Kitty's own graphics protocol treats a
+second transmission under one identity as replacing the picture that the
+identity names — the unicode placeholders of the **first**, already-drawn,
+large placement keep pointing at that identity, and the terminal now shows
+them against the small picture that just replaced it. Placeholder cells
+whose row or column falls outside the small picture's grid show nothing:
+the visible remainder is the small picture's own top-left corner, held
+inside a box that the layout correctly sized for the large one — exactly
+the screenshot, on every terminal this round measured it on.
+
+**The correction, v0.8.223.** `CoverArt::pictures` keys on `(ThePlaceOfACover,
+String)` and not on the identity of the media alone: `ThePlaceOfACover` names
+the one large cover of the panel 5, the shelf of many books inside the panel
+5, the panel 6, and a cell of a band of the panel 4. A media of the panel 5
+and the panel 4 or 6 at once now decodes and holds **two** `StatefulProtocol`s
+— two Kitty identities of the terminal — one that the large cover always
+asks for and one that the small cell always asks for, and Kitty never sees
+one identity asked for two sizes in the same frame. `plan.shelf` of a shelf
+of one book with no media that plays takes the place of the large cover
+itself (`cover::plan_covers`'s `shelf_of_one`), and it must agree, or the
+same fault reaches that road too.
+
+**The test**, `the_same_identity_at_two_places_gives_two_pictures` in
+`src/ui/cover.rs`: one identity, read at `ThePlaceOfACover::TheLargeCover`
+and then at `ThePlaceOfACover::TheGallery`, must give the store two entries.
+The build of the fault — the key shorted back to one place regardless of
+the argument — failed exactly this test.
+
+**The gates.** clippy, fmt, nextest 1650/1650, `cargo test -j 16
+--no-fail-fast` two times clean, `cargo nextest run --run-ignored all` gave
+1675/1675 against the sandbox, and the user confirmed the fix on their own
+Kitty terminal: the large cover of "Fourth Wing" filled its box, and the
+panel 6 beside it kept its own five small covers, correctly sized.
+
+**What this round leaves open, and each of them is a candidate and not an
+item**: the user asked for the grid cells of the panel 4 and the panel 6
+themselves to grow, with no margin around the picture inside them; and for
+the panel 5 to give the picture a fixed four-fifths of its height and the
+words a fixed one-fifth, scrolling, instead of T-330.3's rule that the
+words take the rows that they need and the picture takes what stays.

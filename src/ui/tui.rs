@@ -1300,15 +1300,29 @@ impl App {
                 selected.len(),
                 large,
             );
-
             if let (Some(area), Some(id)) = (plan.playing, playing.as_deref()) {
-                if let Some(picture) = self.covers.picture(&api, id) {
+                if let Some(picture) =
+                    self.covers
+                        .picture(&api, id, cover::ThePlaceOfACover::TheLargeCover)
+                {
                     the_widget_of_a_cover().render(area, buf, picture);
                 }
             }
 
+            // **A shelf of one book, with no media that plays, is the large
+            // cover itself** (`cover::plan_covers`'s `shelf_of_one`): the
+            // place must agree, or the same identity renders at the size of
+            // the large cover and at the size of a small cell of the shelf
+            // in the same frame, and Kitty corrupts the earlier of the two
+            // (T-393).
+            let of_the_shelf = if selected.len() == 1 && playing.is_none() {
+                cover::ThePlaceOfACover::TheLargeCover
+            } else {
+                cover::ThePlaceOfACover::TheShelf
+            };
+
             for (area, id) in plan.shelf.iter().zip(selected.iter()) {
-                if let Some(picture) = self.covers.picture(&api, id) {
+                if let Some(picture) = self.covers.picture(&api, id, of_the_shelf) {
                     the_widget_of_a_cover().render(*area, buf, picture);
                 }
             }
@@ -1431,7 +1445,10 @@ impl App {
             let area = cover::box_of_the_picture(cell.the_picture, font, form);
 
             if area.width > 0 && area.height > 0 {
-                if let Some(picture) = self.covers.picture(&api, &media.id) {
+                if let Some(picture) =
+                    self.covers
+                        .picture(&api, &media.id, cover::ThePlaceOfACover::TheGallery)
+                {
                     the_widget_of_a_cover().render(area, buf, picture);
                 }
             }
@@ -2969,7 +2986,10 @@ impl App {
                 let of_the_picture = cover::box_of_the_picture(cell.the_picture, font, form);
 
                 if of_the_picture.width > 0 && of_the_picture.height > 0 {
-                    if let Some(picture) = self.covers.picture(&api, &id) {
+                    if let Some(picture) =
+                        self.covers
+                            .picture(&api, &id, cover::ThePlaceOfACover::TheBand)
+                    {
                         the_widget_of_a_cover().render(of_the_picture, buf, picture);
                     }
                 }

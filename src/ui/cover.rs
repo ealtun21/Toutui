@@ -465,9 +465,35 @@ async fn fetch(api: &Arc<ApiClient>, id: &str) -> TheAnswer {
 /// The value belongs to `App`. A refresh with the key `R` makes a new `App`,
 /// therefore this map goes away and the render makes the pictures again from
 /// the bytes of the store. No request goes to the server a second time.
+/// Where a picture stands on the screen. See [`CoverArt::picture`] for the
+/// reason this exists.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum ThePlaceOfACover {
+    /// The one large picture of the panel 5, of the media that plays or of
+    /// the media of the cursor.
+    TheLargeCover,
+    /// A picture of the shelf of the panel 5, when the shelf holds more than
+    /// one book (a series).
+    TheShelf,
+    /// A cell of the panel 6, the gallery.
+    TheGallery,
+    /// A cell of a band of the panel 4.
+    TheBand,
+}
+
 #[derive(Default)]
 pub struct CoverArt {
-    pictures: HashMap<String, Option<StatefulProtocol>>,
+    /// **One entry for one place, and not one entry for one identity**
+    /// (T-393): the media that the cursor holds can stand in the panel 5 and
+    /// in the panel 6 at once, at two different sizes. Kitty gives its
+    /// picture one numeric identity of the terminal (`new_resize_protocol`
+    /// picks it at random), and a second render of that same identity, at a
+    /// second size, in the same frame, replaces the picture that the
+    /// terminal already sent to the user: the box of the panel 5 kept its
+    /// size, and the picture inside it shrank to the size of the panel 6,
+    /// with the rest of the box empty. A `StatefulProtocol` of its own for
+    /// every place keeps every picture at the one size of its own place.
+    pictures: HashMap<(ThePlaceOfACover, String), Option<StatefulProtocol>>,
     /// The width divided by the height of each picture. The plan of the panel
     /// reads it, therefore a cover that is higher than it is wide takes the
     /// whole height of the panel. See T-50.
@@ -505,16 +531,26 @@ impl CoverArt {
         self.the_new_covers_of_this_frame = 0;
     }
 
-    /// Gives the picture of one item, or nothing.
+    /// Gives the picture of one item at one place of the screen, or nothing.
     ///
     /// The function asks the server when no task asked before. It gives
     /// nothing until the answer comes.
-    pub fn picture(&mut self, api: &Arc<ApiClient>, id: &str) -> Option<&mut StatefulProtocol> {
+    ///
+    /// **`place` picks the entry of the store of the pictures, and not `id`
+    /// alone** (T-393). See the field `pictures` for the reason.
+    pub fn picture(
+        &mut self,
+        api: &Arc<ApiClient>,
+        id: &str,
+        place: ThePlaceOfACover,
+    ) -> Option<&mut StatefulProtocol> {
         if id.is_empty() {
             return None;
         }
 
-        if !self.pictures.contains_key(id) {
+        let key = (place, id.to_string());
+
+        if !self.pictures.contains_key(&key) {
             // The lock must go away before the match. A guard that stands in
             // the expression of a match lives to the end of that match, and
             // `request` then asks for the write lock on the same thread. That
@@ -532,7 +568,7 @@ impl CoverArt {
                 // fault. The program asks no second time, and the key `R`
                 // empties the store. See T-185.
                 Some(CoverBytes::NoCover) | Some(CoverBytes::Fault) => {
-                    self.pictures.insert(id.to_string(), None);
+                    self.pictures.insert(key, None);
                     return None;
                 }
                 // The task did not finish. The next frame asks again.
@@ -561,10 +597,10 @@ impl CoverArt {
 
                 picker().new_resize_protocol(image)
             });
-            self.pictures.insert(id.to_string(), picture);
+            self.pictures.insert(key.clone(), picture);
         }
 
-        self.pictures.get_mut(id).and_then(|slot| slot.as_mut())
+        self.pictures.get_mut(&key).and_then(|slot| slot.as_mut())
     }
 
     /// Gives the form of one picture, as the width divided by the height.
@@ -1024,8 +1060,20 @@ mod tests {
             let _guard = runtime.enter();
 
             let mut art = CoverArt::new();
-            let first = art.picture(&api, "an-item-with-no-answer").is_none();
-            let second = art.picture(&api, "an-item-with-no-answer").is_none();
+            let first = art
+                .picture(
+                    &api,
+                    "an-item-with-no-answer",
+                    ThePlaceOfACover::TheLargeCover,
+                )
+                .is_none();
+            let second = art
+                .picture(
+                    &api,
+                    "an-item-with-no-answer",
+                    ThePlaceOfACover::TheLargeCover,
+                )
+                .is_none();
 
             let _ = sender.send(first && second);
         });
@@ -1091,7 +1139,11 @@ mod tests {
 
         art.a_new_frame();
         for id in &of_the_view {
-            assert!(art.picture(&api, id).is_none(), "no answer came yet");
+            assert!(
+                art.picture(&api, id, ThePlaceOfACover::TheLargeCover)
+                    .is_none(),
+                "no answer came yet"
+            );
         }
         assert_eq!(
             the_requests(),
@@ -1101,7 +1153,11 @@ mod tests {
 
         art.a_new_frame();
         for id in &of_the_view {
-            assert!(art.picture(&api, id).is_none(), "no answer came yet");
+            assert!(
+                art.picture(&api, id, ThePlaceOfACover::TheLargeCover)
+                    .is_none(),
+                "no answer came yet"
+            );
         }
         assert_eq!(
             the_requests(),
@@ -1111,7 +1167,11 @@ mod tests {
 
         art.a_new_frame();
         for id in &of_the_view {
-            assert!(art.picture(&api, id).is_none(), "no answer came yet");
+            assert!(
+                art.picture(&api, id, ThePlaceOfACover::TheLargeCover)
+                    .is_none(),
+                "no answer came yet"
+            );
         }
         assert_eq!(
             the_requests(),
@@ -1319,6 +1379,68 @@ mod tests {
         file.extend_from_slice(&chunk);
         file.extend_from_slice(&crc32(&chunk).to_be_bytes());
         file
+    }
+
+    /// **The same identity, at two places, gives two pictures, not one**
+    /// (T-393). Kitty gives one picture one numeric identity of the terminal,
+    /// and a second render of that identity, at a second size, in the same
+    /// frame, replaces the picture that the terminal already sent to the
+    /// user: the large cover of a book that the panel 6 also shows, small,
+    /// shrank to the size of the panel 6, with the rest of its own box
+    /// empty. The store of the pictures must therefore hold one entry for
+    /// one place, and not one entry for one identity.
+    #[test]
+    fn the_same_identity_at_two_places_gives_two_pictures() {
+        use image::ImageFormat;
+
+        let _guard = guard();
+        forget();
+
+        let picture = DynamicImage::new_rgb8(4, 4);
+        let mut bytes: Vec<u8> = Vec::new();
+        picture
+            .write_to(&mut std::io::Cursor::new(&mut bytes), ImageFormat::Png)
+            .expect("a PNG file");
+
+        {
+            let mut map = store().write().expect("the store of the covers");
+            map.insert(
+                "the-book-of-two-places".to_string(),
+                CoverBytes::Ready(Arc::new(bytes)),
+            );
+        }
+
+        let pool = crate::api::client::endpoint::EndpointPool::new(vec![
+            crate::api::client::endpoint::Endpoint::new("http://127.0.0.1:1", 0),
+        ]);
+        let api = Arc::new(ApiClient::new(Arc::new(pool), "token".to_string()).expect("a client"));
+
+        let mut art = CoverArt::new();
+
+        art.a_new_frame();
+        assert!(
+            art.picture(
+                &api,
+                "the-book-of-two-places",
+                ThePlaceOfACover::TheLargeCover
+            )
+            .is_some(),
+            "the large cover reads the picture"
+        );
+        assert!(
+            art.picture(&api, "the-book-of-two-places", ThePlaceOfACover::TheGallery)
+                .is_some(),
+            "the gallery reads the picture too"
+        );
+
+        assert_eq!(
+            art.pictures.len(),
+            2,
+            "the same identity at two places gives two entries of the store, \
+             and not one that a second render at a second size corrupts"
+        );
+
+        forget();
     }
 
     #[test]

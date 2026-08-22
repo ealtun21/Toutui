@@ -41,6 +41,21 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.223",
+        date: "22/08/2026",
+        body: &[
+            "Fixed:",
+            "- **The large cover of a book that also stands in the panel of \
+             the covers stayed small.** A book that the panel of the covers \
+             and the large cover both show at once shared one picture of \
+             the terminal: a second render of that picture, at the small \
+             size of the panel, took the place of the first one, at the \
+             large size, and the large cover then showed a small picture \
+             with empty space around it. The two places now keep a picture \
+             of their own.",
+        ],
+    },
+    Entry {
         version: "0.8.222",
         date: "22/08/2026",
         body: &[
