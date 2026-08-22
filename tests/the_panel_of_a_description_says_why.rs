@@ -233,7 +233,9 @@ async fn the_panel_of_a_podcast_says_why_it_holds_no_description() {
                     "id": "9fa45bd1-66bc-4c17-ba49-a5a6a5ec8806",
                     "mediaType": "podcast",
                     "media": { "metadata": { "title": "Letters of Two Brides" } },
-                    "recentEpisode": { "id": "episode-1", "title": "Letter 1", "subtitle": "" }
+                    "recentEpisode": { "id": "episode-1",
+                                       "libraryItemId": "9fa45bd1-66bc-4c17-ba49-a5a6a5ec8806",
+                                       "title": "Letter 1", "subtitle": "" }
                 }
             ]
         }

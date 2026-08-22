@@ -16,6 +16,14 @@ use crate::utils::html_text::to_plain_text;
 /// screen reads those lists by one number. Therefore every function of this
 /// file walks these entities, in this sequence, and it pushes one value for
 /// each of them. See T-24.
+///
+/// **An episode with no identity, or a podcast with no identity, gives the
+/// program no road to a playback.** `collect_ids_pod_cnt_list` wrote "N/A"
+/// for the item, and `collect_ids_ep_pod_cnt_list` wrote it for the episode:
+/// either one reached `PlaybackTarget::Episode` and the key `Enter` then sent
+/// a path with "N/A" for an id (T-389, the same fault as T-388). This function
+/// now drops such an entity, with a WARN that names the episode title, before
+/// every collector of this file reads the sequence.
 pub fn episode_entities(shelves: &[Root]) -> impl Iterator<Item = (&Entity, &RecentEpisode)> {
     shelves
         .iter()
@@ -28,6 +36,26 @@ pub fn episode_entities(shelves: &[Root]) -> impl Iterator<Item = (&Entity, &Rec
             // against the others.
             entity.media.as_ref()?;
             Some((entity, episode))
+        })
+        .filter(|(_, episode)| {
+            let has_an_identity = episode
+                .id
+                .as_deref()
+                .is_some_and(|id| !id.trim().is_empty())
+                && episode
+                    .library_item_id
+                    .as_deref()
+                    .is_some_and(|id| !id.trim().is_empty());
+
+            if !has_an_identity {
+                let title = episode.title.as_deref().unwrap_or("");
+                log::warn!(
+                    "The answer of the server holds the episode \"{}\" with no identity. The program cannot play it, therefore the line goes away.",
+                    title
+                );
+            }
+
+            has_an_identity
         })
 }
 
@@ -287,5 +315,32 @@ mod tests {
 
         assert!(collect_titles_cnt_list_pod(&shelves).await.is_empty());
         assert!(collect_titles_pod_cnt_list(&shelves).await.is_empty());
+    }
+
+    /// An episode with no identity, or a podcast with no identity, gives no
+    /// line: the program has no road to a playback of it. See T-389.
+    #[tokio::test]
+    async fn an_episode_or_a_podcast_with_no_identity_takes_no_line() {
+        let shelves: Vec<Root> = serde_json::from_value(serde_json::json!([
+            { "id": "newest-episodes", "label": "Newest Episodes",
+              "entities": [
+                  { "id": "pod-1", "media": { "metadata": { "title": "A Podcast" } },
+                    "recentEpisode": { "libraryItemId": "pod-1", "title": "No Episode Id" } },
+                  { "id": "pod-1", "media": { "metadata": { "title": "A Podcast" } },
+                    "recentEpisode": { "id": "ep-4", "title": "No Item Id" } },
+                  { "id": "pod-1", "media": { "metadata": { "title": "A Podcast" } },
+                    "recentEpisode": { "id": "ep-5", "libraryItemId": "pod-1",
+                                       "title": "A Real Episode" } }
+              ] }
+        ]))
+        .expect("the answer must read");
+
+        let titles = collect_titles_cnt_list_pod(&shelves).await;
+        let ids = collect_ids_pod_cnt_list(&shelves).await;
+        let episodes = collect_ids_ep_pod_cnt_list(&shelves).await;
+
+        assert_eq!(titles, vec!["A Real Episode"]);
+        assert_eq!(ids, vec!["pod-1"]);
+        assert_eq!(episodes, vec!["ep-5"]);
     }
 }

@@ -8,9 +8,38 @@
 //! The functions here are pure, therefore a test needs no server and no
 //! screen.
 
-use crate::api::libraries::get_library_perso_view::Root;
-use crate::api::libraries::get_library_perso_view_pod::Root as RootPod;
+use crate::api::libraries::get_library_perso_view::{Entity, Root};
+use crate::api::libraries::get_library_perso_view_pod::{Entity as EntityPod, Root as RootPod};
 use crate::api::utils::collect_series::SeriesView;
+
+/// A text of no letter is no identity. See T-114.
+fn some_identity(id: Option<&String>) -> bool {
+    id.is_some_and(|id| !id.trim().is_empty())
+}
+
+/// Tells if an entity of a library of books gives the program a road to a
+/// playback.
+///
+/// **An entity with no identity gives no such road**: the key `Enter` sends a
+/// path built of that identity, and a path with no identity asks the server
+/// for an item that does not exist (T-389, the same fault as T-388). Every
+/// function of this module that counts a media of the Home view must agree
+/// with `crate::api::utils::collect_personalized_view::media_entities` on
+/// which entity gives a line (the rule of T-24), and this is that one rule.
+fn media_entity_has_an_identity(entity: &Entity) -> bool {
+    some_identity(entity.id.as_ref())
+}
+
+/// The same rule for a library of podcasts: an episode needs the identity of
+/// the episode itself and the identity of the item that holds it, because the
+/// key `Enter` builds a path of the two of them.
+fn episode_entity_has_an_identity(entity: &EntityPod) -> bool {
+    let Some(episode) = entity.recent_episode.as_ref() else {
+        return false;
+    };
+
+    some_identity(episode.id.as_ref()) && some_identity(episode.library_item_id.as_ref())
+}
 
 /// One line of the Home view.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -74,9 +103,16 @@ pub fn group_home(shelves: &[Root], series: &[SeriesView]) -> Vec<HomeRow> {
         let mut of_this_shelf: Vec<HomeRow> = Vec::new();
 
         for entity in shelf.entities.iter().flatten() {
+            // **An entity with no identity gives no line here** (T-389): the
+            // sequence of this function must be the sequence of
+            // `crate::api::utils::collect_personalized_view::media_entities`
+            // (the rule of T-24), and that function now drops such an entity
+            // too, because the program has no road to a playback of it.
             if entity.media.is_some() {
-                of_this_shelf.push(HomeRow::Media { item });
-                item += 1;
+                if media_entity_has_an_identity(entity) {
+                    of_this_shelf.push(HomeRow::Media { item });
+                    item += 1;
+                }
                 continue;
             }
 
@@ -116,7 +152,16 @@ pub fn group_home_pod(shelves: &[RootPod]) -> Vec<HomeRow> {
         let mut of_this_shelf: Vec<HomeRow> = Vec::new();
 
         for entity in shelf.entities.iter().flatten() {
-            if entity.recent_episode.is_some() && entity.media.is_some() {
+            // **An episode or a podcast with no identity gives no line here**
+            // (T-389): the sequence of this function must be the sequence of
+            // `crate::api::utils::collect_personalized_view_pod::episode_entities`
+            // (the rule of T-24), and that function now drops such an entity
+            // too, because the program has no road to a playback of it.
+            if entity.recent_episode.is_none() || entity.media.is_none() {
+                continue;
+            }
+
+            if episode_entity_has_an_identity(entity) {
                 of_this_shelf.push(HomeRow::Media { item });
                 item += 1;
             }
@@ -139,7 +184,8 @@ pub fn group_home_pod(shelves: &[RootPod]) -> Vec<HomeRow> {
 /// the shelf of Continue Listening.
 ///
 /// The number of the value is the number of `HomeRow::Media`, therefore this
-/// function counts the entities in the same way as `group_home`.
+/// function counts the entities in the same way as `group_home`, and it must
+/// keep the same rule of an identity (T-389).
 pub fn the_media_of_continue_listening(shelves: &[Root]) -> Vec<bool> {
     let mut of_the_shelf: Vec<bool> = Vec::new();
 
@@ -147,7 +193,7 @@ pub fn the_media_of_continue_listening(shelves: &[Root]) -> Vec<bool> {
         let is_the_shelf = the_shelf_of_continue_listening(shelf.id.as_deref(), &shelf.label);
 
         for entity in shelf.entities.iter().flatten() {
-            if entity.media.is_some() {
+            if entity.media.is_some() && media_entity_has_an_identity(entity) {
                 of_the_shelf.push(is_the_shelf);
             }
         }
@@ -164,7 +210,11 @@ pub fn the_media_of_continue_listening_pod(shelves: &[RootPod]) -> Vec<bool> {
         let is_the_shelf = the_shelf_of_continue_listening(shelf.id.as_deref(), &shelf.label);
 
         for entity in shelf.entities.iter().flatten() {
-            if entity.recent_episode.is_some() && entity.media.is_some() {
+            if entity.recent_episode.is_none() || entity.media.is_none() {
+                continue;
+            }
+
+            if episode_entity_has_an_identity(entity) {
                 of_the_shelf.push(is_the_shelf);
             }
         }
@@ -514,11 +564,13 @@ mod tests {
     fn a_shelf_of_podcasts_gives_the_episodes_only() {
         let shelves: Vec<RootPod> = serde_json::from_value(serde_json::json!([
             { "id": "newest-episodes", "label": "Newest Episodes",
-              "entities": [ { "id": "p1", "media": {}, "recentEpisode": { "id": "e1" } } ] },
+              "entities": [ { "id": "p1", "media": {},
+                              "recentEpisode": { "id": "e1", "libraryItemId": "p1" } } ] },
             { "id": "recently-added", "label": "Recently Added",
               "entities": [ { "id": "p2", "media": {} } ] },
             { "id": "listen-again", "label": "Listen Again",
-              "entities": [ { "id": "p1", "media": {}, "recentEpisode": { "id": "e2" } } ] }
+              "entities": [ { "id": "p1", "media": {},
+                              "recentEpisode": { "id": "e2", "libraryItemId": "p1" } } ] }
         ]))
         .expect("the answer must read");
 
@@ -533,6 +585,56 @@ mod tests {
                     label: "Listen Again".to_string()
                 },
                 HomeRow::Media { item: 1 },
+            ]
+        );
+    }
+
+    /// A media, or an episode, with no identity gives no line: the program has
+    /// no road to a playback of it, and the number of a line must still count
+    /// the same media as `crate::api::utils::collect_personalized_view` and
+    /// `crate::api::utils::collect_personalized_view_pod` (the rule of T-24).
+    /// See T-389.
+    #[test]
+    fn a_media_with_no_identity_gives_no_line() {
+        let shelves: Vec<Root> = serde_json::from_value(serde_json::json!([
+            { "id": "continue-listening", "label": "Continue Listening",
+              "entities": [ { "media": {} },
+                            { "id": "   ", "media": {} },
+                            { "id": "b", "media": {} } ] }
+        ]))
+        .expect("the answer must read");
+
+        assert_eq!(
+            group_home(&shelves, &[]),
+            vec![
+                HomeRow::Shelf {
+                    label: "Continue Listening".to_string()
+                },
+                HomeRow::Media { item: 0 },
+            ]
+        );
+    }
+
+    #[test]
+    fn an_episode_with_no_identity_gives_no_line() {
+        let shelves: Vec<RootPod> = serde_json::from_value(serde_json::json!([
+            { "id": "newest-episodes", "label": "Newest Episodes",
+              "entities": [
+                  { "id": "p1", "media": {}, "recentEpisode": { "libraryItemId": "p1" } },
+                  { "id": "p1", "media": {}, "recentEpisode": { "id": "e1" } },
+                  { "id": "p1", "media": {},
+                    "recentEpisode": { "id": "e2", "libraryItemId": "p1" } }
+              ] }
+        ]))
+        .expect("the answer must read");
+
+        assert_eq!(
+            group_home_pod(&shelves),
+            vec![
+                HomeRow::Shelf {
+                    label: "Newest Episodes".to_string()
+                },
+                HomeRow::Media { item: 0 },
             ]
         );
     }
@@ -758,10 +860,12 @@ mod tests {
     fn the_shelf_of_each_episode_of_a_library_of_podcasts() {
         let shelves: Vec<RootPod> = serde_json::from_value(serde_json::json!([
             { "id": "continue-listening", "label": "Continue Listening",
-              "entities": [ { "id": "p1", "media": {}, "recentEpisode": { "id": "e1" } },
+              "entities": [ { "id": "p1", "media": {},
+                              "recentEpisode": { "id": "e1", "libraryItemId": "p1" } },
                             { "id": "p2", "media": {} } ] },
             { "id": "newest-episodes", "label": "Newest Episodes",
-              "entities": [ { "id": "p3", "media": {}, "recentEpisode": { "id": "e2" } } ] }
+              "entities": [ { "id": "p3", "media": {},
+                              "recentEpisode": { "id": "e2", "libraryItemId": "p3" } } ] }
         ]))
         .expect("the answer must read");
 
@@ -850,7 +954,8 @@ mod tests {
     fn a_shelf_of_podcasts_with_no_name_keeps_its_media() {
         let shelves: Vec<RootPod> = serde_json::from_value(serde_json::json!([
             { "id": "newest-episodes",
-              "entities": [ { "id": "a", "media": {}, "recentEpisode": {} } ] }
+              "entities": [ { "id": "a", "media": {},
+                              "recentEpisode": { "id": "e1", "libraryItemId": "a" } } ] }
         ]))
         .unwrap();
 

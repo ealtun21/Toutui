@@ -19,11 +19,35 @@ use crate::utils::html_text::to_plain_text;
 /// entity held a media, and the lists agreed. A second shelf of a series would
 /// have moved one list against the others, and the screen would have shown the
 /// title of one book beside the author of a different book.
+///
+/// **An entity with no identity gives the program no road to a playback.**
+/// `collect_ids_cnt_list` wrote the text "N/A" for such an entity, the key
+/// `Enter` then sent `POST /api/items/N/A/play`, and the program said that the
+/// server does not have an item that the server has (T-389, the same fault as
+/// T-388). This function now drops such an entity, with a WARN that names the
+/// title, before every collector of this file reads the sequence.
 pub fn media_entities(shelves: &[Root]) -> impl Iterator<Item = (&Entity, &Media)> {
     shelves
         .iter()
         .flat_map(|shelf| shelf.entities.iter().flatten())
         .filter_map(|entity| entity.media.as_ref().map(|media| (entity, media)))
+        .filter(|(entity, media)| {
+            let has_an_identity = entity.id.as_deref().is_some_and(|id| !id.trim().is_empty());
+
+            if !has_an_identity {
+                let title = media
+                    .metadata
+                    .as_ref()
+                    .and_then(|metadata| metadata.title.as_deref())
+                    .unwrap_or("");
+                log::warn!(
+                    "The answer of the server holds the media \"{}\" with no identity. The program cannot play it, therefore the line goes away.",
+                    title
+                );
+            }
+
+            has_an_identity
+        })
 }
 
 /// Reads one value of the metadata of a media, or gives `N/A`.
@@ -217,6 +241,27 @@ mod tests {
             descriptions[1],
             crate::utils::values_of_the_server::NO_DESCRIPTION
         );
+    }
+
+    /// A media with no identity, or with an identity of no character, gives
+    /// no line: the program has no road to a playback of it. See T-389.
+    #[tokio::test]
+    async fn a_media_with_no_identity_takes_no_line() {
+        let shelves: Vec<Root> = serde_json::from_value(serde_json::json!([
+            { "id": "continue-listening", "label": "Continue Listening",
+              "entities": [
+                  { "media": { "metadata": { "title": "No Id At All" } } },
+                  { "id": "   ", "media": { "metadata": { "title": "An Id Of No Character" } } },
+                  { "id": "book-9", "media": { "metadata": { "title": "A Real Book" } } }
+              ] }
+        ]))
+        .expect("the answer must read");
+
+        let titles = collect_titles_cnt_list(&shelves).await;
+        let ids = collect_ids_cnt_list(&shelves).await;
+
+        assert_eq!(titles, vec!["A Real Book"]);
+        assert_eq!(ids, vec!["book-9"]);
     }
 
     #[tokio::test]

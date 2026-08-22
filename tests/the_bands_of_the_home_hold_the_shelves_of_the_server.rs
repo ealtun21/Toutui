@@ -85,7 +85,8 @@ fn the_shelves_of_the_library_of_podcasts() -> Vec<RootPod> {
             .map(|one| {
                 serde_json::json!({
                     "id": format!("{name}-{one}"), "media": {},
-                    "recentEpisode": { "id": format!("{name}-episode-{one}") } })
+                    "recentEpisode": { "id": format!("{name}-episode-{one}"),
+                                       "libraryItemId": format!("{name}-{one}") } })
             })
             .collect::<Vec<_>>()
     };

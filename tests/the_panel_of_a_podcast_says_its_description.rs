@@ -45,7 +45,9 @@ async fn the_panel_of_a_podcast_says_the_description_of_that_podcast() {
                         "title": "Letters of Two Brides",
                         "description": "Letters of Two Brides is an epistolary novel."
                     } },
-                    "recentEpisode": { "id": "episode-1", "title": "Letter 1", "subtitle": "" }
+                    "recentEpisode": { "id": "episode-1",
+                                       "libraryItemId": "9fa45bd1-66bc-4c17-ba49-a5a6a5ec8806",
+                                       "title": "Letter 1", "subtitle": "" }
                 },
                 // A subtitle of the episode stays the text of the panel.
                 {
@@ -56,7 +58,9 @@ async fn the_panel_of_a_podcast_says_the_description_of_that_podcast() {
                         "description": "The Narrative of Arthur Gordon Pym of Nantucket."
                     } },
                     "recentEpisode": {
-                        "id": "episode-2", "title": "Chapter 01",
+                        "id": "episode-2",
+                        "libraryItemId": "31d0f7c9-0a2b-4a1e-9c8d-0e5b6a7c8d9e",
+                        "title": "Chapter 01",
                         "subtitle": "The first chapter."
                     }
                 },
@@ -65,7 +69,9 @@ async fn the_panel_of_a_podcast_says_the_description_of_that_podcast() {
                     "id": "5c4b3a29-1d0e-4f6a-8b7c-2e1d0c9b8a76",
                     "mediaType": "podcast",
                     "media": { "metadata": { "title": "A Podcast Of No Words" } },
-                    "recentEpisode": { "id": "episode-3", "title": "The Only Episode" }
+                    "recentEpisode": { "id": "episode-3",
+                                       "libraryItemId": "5c4b3a29-1d0e-4f6a-8b7c-2e1d0c9b8a76",
+                                       "title": "The Only Episode" }
                 }
             ]
         }

@@ -43,9 +43,9 @@ const THE_SHELVES_OF_A_BOOK: &str = r#"[
 /// The shelves of a library of podcasts. The row 0 holds no `label`.
 const THE_SHELVES_OF_A_PODCAST: &str = r#"[
     {"id": "newest-episodes",
-     "entities": [{"id": "a", "media": {}, "recentEpisode": {}}]},
+     "entities": [{"id": "a", "media": {}, "recentEpisode": {"id": "e-a", "libraryItemId": "a"}}]},
     {"id": "listen-again", "label": "Listen Again",
-     "entities": [{"id": "b", "media": {}, "recentEpisode": {}}]}
+     "entities": [{"id": "b", "media": {}, "recentEpisode": {"id": "e-b", "libraryItemId": "b"}}]}
 ]"#;
 
 /// Starts a host that answers every request with one body.

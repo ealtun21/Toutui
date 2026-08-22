@@ -37484,3 +37484,90 @@ whole decode into `State::Fault` (`listening_stats.rs` has no tolerant
 number reader, unlike `a_number` of `get_media_progress.rs`); and the
 never-swept paths that stay — the write side of the lists
 (`/api/collections`, `/api/playlists`) and the rows of `/api/podcasts`.
+
+## T-389 — A media of the Home view with no identity takes no line
+
+**The candidate came of the open list of T-388.** The same "N/A" road
+reaches the Home view: `collect_ids_cnt_list` of
+`src/api/utils/collect_personalized_view.rs` (line 140) gives "N/A" for
+an entity of no identity, and `or_not_available` of
+`src/api/utils/collect_personalized_view_pod.rs` gives it for a
+`library_item_id` or an episode `id` that the server omits.
+
+**The data of the fault.** `docs/harness/a_field_of_one_row_goes_away.py`
+on port 13506, the rule `/api/libraries/1b090ea8-91c5-4591-ac9d-716985e61faf/personalized
+0.entities 1 id` — the second entity of the shelf `continue-listening`
+("A Big Book Of A Scan") loses its id. The account took
+`http://127.0.0.1:13506` (the trap 129), with a copy of `db.sqlite3` for
+the road back.
+
+**The fault, measured against the real program v0.8.219 inside tmux at
+160 columns.** The panel 4 said "Continue Listening — 3 of 3", the
+middle cell held no title, and the key `l` moved the cursor onto it. The
+key `Enter` sent `POST /api/items/N/A/play` (the proxy log holds it),
+the server answered 404, and the message row said "The server did not
+start the playback: The server does not have this item." The log said
+`[play] the server did not start the session: The server does not have
+this item.`
+
+**The root, and a second fault that the first measurement found.**
+`media_entities` of `collect_personalized_view.rs` and `episode_entities`
+of `collect_personalized_view_pod.rs` are the one sequence of T-24 for the
+collectors of the Home view, and a filter there alone would have left
+`group_home` and `group_home_pod` of `src/logic/home_view.rs` — and
+`the_media_of_continue_listening` and `the_media_of_continue_listening_pod`
+beside them — counting the dropped entity: the header would have kept
+saying "3 of 3" against two real media, and the count of Continue
+Listening would have stood one ahead of `_ids_cnt_list`. A first build of
+the correction that touched the collectors alone left the header wrong
+and the second cell of the shelf blank in the measurement: the four
+functions of `home_view.rs` needed the same rule.
+
+**The correction, v0.8.220.** `media_entities` drops an entity whose media
+holds no identity, with a WARN that names the title; `episode_entities`
+drops an entity whose episode `id` or `library_item_id` is missing or
+empty after a trim, with a WARN that names the episode title. Two shared
+predicates in `home_view.rs`, `media_entity_has_an_identity` and
+`episode_entity_has_an_identity`, hold the same rule for `group_home`,
+`group_home_pod`, `the_media_of_continue_listening`, and
+`the_media_of_continue_listening_pod`, so the four functions and the two
+collectors agree on which entity gives a line (T-24).
+
+**The tests.** `a_media_with_no_identity_takes_no_line` in
+`collect_personalized_view.rs`;
+`an_episode_or_a_podcast_with_no_identity_takes_no_line` in
+`collect_personalized_view_pod.rs`; `a_media_with_no_identity_gives_no_line`
+and `an_episode_with_no_identity_gives_no_line` in `home_view.rs`. Four
+existing test fixtures across `home_view.rs` and three integration test
+files gave an episode with no `libraryItemId`, and the correction gave
+them one, because they tested a different rule and not this one. The
+build of the fault — the four predicates disabled, and the two
+collectors' filters shorted with `true ||` — failed exactly these four
+new tests and no other.
+
+**The control of the corrected binary**, same poisoned proxy: the panel
+said "Continue Listening — 2 of 2", "[33 items]" (was 34), no blank cell,
+the WARN in the log named the title, the key `l` moved onto "The Test
+Chronicles Volume 2", and the key `Enter` started that playback — the log
+said `[play] the item 89be0784-ce09-431a-bf2e-72f81f99e39a starts at 1.23
+seconds`, and no "N/A" reached the log of the proxy.
+
+**The gates.** clippy, fmt, nextest 1646/1646 (twice, before and after the
+build of the fault), `cargo test -j 16 --no-fail-fast` two times clean, and
+`cargo nextest run --run-ignored all` gave 1672/1672 against the sandbox.
+
+**The road back of the sandbox.** The account row went back to
+`http://localhost:13399`, the proxy died by its pid of `ss -lptnH`, and no
+place of a media moved (the playback that started ran a moment and the
+program went back to Home before it left the sandbox in a different
+condition; no `PATCH` of a place was needed for this media).
+
+**What this round leaves open, each a candidate and not an item.** A
+value of the days map of `/api/me/listening-stats` that is not a number
+fails the whole decode into `State::Fault`; the never-swept paths that
+stay — the write side of the lists (`/api/collections`,
+`/api/playlists`) and the rows of `/api/podcasts`; and
+`PlaybackTarget::episode_id` itself still gives `Some("")` for an empty
+id from a source that this round did not filter (the Library view and
+the Search view read a podcast's episodes through a different
+collector, `collect_get_pod_ep.rs`, which T-388 already guards).
