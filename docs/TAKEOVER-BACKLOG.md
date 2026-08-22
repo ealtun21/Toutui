@@ -37406,3 +37406,81 @@ reader, unlike `get_media_progress.rs:80`); and the never-swept paths
 that stay: `/api/me/listening-stats`, the write side of the lists
 (`/api/collections` and `/api/playlists`), and the rows of
 `/api/podcasts`.
+
+## T-388 — An episode of the server with no identity takes no line
+
+**The candidate came of the open list of T-387.** An episode id that the
+server omits becomes the literal text "N/A" in `collect_ids_pod_ep` of
+`src/api/utils/collect_get_pod_ep.rs` (line 31).
+
+**The data of the fault.** `docs/harness/a_field_of_one_row_goes_away.py`
+on port 13506, the rule `/api/items/b793354b-9841-480a-bd09-41923596517e
+media.episodes 0 id` — episode 0 ("Chapter 00") of the podcast "Arthur
+Gordon Pym" (11 episodes) of the Podcasts library loses its id. The
+account took `http://127.0.0.1:13506` (the trap 129), with a copy of
+`db.sqlite3` for the road back.
+
+**The fault, measured against the real program v0.8.218 inside tmux at
+160 columns.** The view of the episodes said `Episodes [11 items]` and
+the line "Chapter 00" stood with the panel `Progress: N/A%, N/A`. The key
+`l` of that line sent `POST
+/api/items/b793354b-9841-480a-bd09-41923596517e/play/N/A` (the proxy log
+holds it at 42.152 seconds), the server answered 404, and the message row
+said `The server did not start the playback: The server does not have
+this item.` — the server has the item; the program built the path of an
+episode that does not exist. The log of the program said `[play] the
+server did not start the session: The server does not have this item.`
+
+**The root.** `Episode.id` of `src/api/library_items/get_pod_ep.rs` is
+`Option<String>`; `collect_ids_pod_ep` wrote `"N/A"` for `None`. That id
+reached `PlaybackTarget::Episode`, the play path, and the column `id_pod`
+of `pending_progress`, whose primary key is `(id_item, username, server,
+id_pod)` — several id-less episodes of one podcast would collapse onto
+the one key (item, "N/A") and overwrite the place of each other. An id of
+no character would give the path `/api/items/:id/play/` with an empty
+last segment (`PlaybackTarget::episode_id` gives `Some("")` and does not
+filter, unlike `the_key_of_the_media` of `src/logic/live.rs:123`).
+
+**The correction, v0.8.219.** A new function
+`keep_the_episodes_with_an_identity` in
+`src/api/library_items/get_pod_ep.rs` runs inside `get_pod_ep` after the
+decode. It drops an episode whose id is missing or empty after a trim,
+with a WARN that names the episode title: `The answer of the server
+holds the episode "Chapter 00" with no identity. The program cannot play
+it, therefore the line goes away.` The removal stands before every
+collector, therefore the parallel lists of the view (the rule of T-24)
+all read the same rows and stay aligned. The rule of T-183 and of T-386:
+a line that promises a function that the program does not have belongs
+to no view.
+
+**The tests.** Three unit tests in `get_pod_ep.rs`:
+`an_episode_with_no_identity_takes_no_line`,
+`an_episode_of_an_identity_of_no_character_takes_no_line`, and
+`the_episodes_with_an_identity_keep_their_lines`. The build of the fault
+— the retain disabled with `|| true` — fails exactly the first two.
+
+**The control of the corrected binary**, same poisoned proxy: `Episodes
+[10 items]`, no line "Chapter 00", the WARN in the log names it, and the
+first line "Chapter 01" holds its own place (22%), its own duration
+(22m), and its own show notes — the lists stayed aligned.
+
+**The gates.** clippy, fmt, nextest 1642/1642, `cargo test -j 16
+--no-fail-fast` two times clean, and `cargo nextest run --run-ignored
+all` against the sandbox (the number stands in the log of the round).
+
+**The road back of the sandbox.** The account row went back to
+`http://localhost:13399` with the Books library, the proxy died by its
+pid of `ss -lptnH`, and no place of a media moved (no playback ran to its
+end; the fault press of `l` never started a session).
+
+**What this round leaves open, each a candidate and not an item.** The
+same "N/A" road of the Home view (`collect_personalized_view.rs:140`
+gives an entity id of "N/A", and `or_not_available` of
+`collect_personalized_view_pod.rs` gives "N/A" for a `library_item_id`
+that the server omits); a defense at `PlaybackTarget::episode_id` itself
+(it still gives `Some("")` for an empty id of another source); a value of
+the days map of `/api/me/listening-stats` that is not a number fails the
+whole decode into `State::Fault` (`listening_stats.rs` has no tolerant
+number reader, unlike `a_number` of `get_media_progress.rs`); and the
+never-swept paths that stay — the write side of the lists
+(`/api/collections`, `/api/playlists`) and the rows of `/api/podcasts`.

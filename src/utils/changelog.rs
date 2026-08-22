@@ -41,6 +41,19 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.219",
+        date: "18/08/2026",
+        body: &[
+            "Fixed:",
+            "- **An episode of the server with no identity takes no line.** \
+             A row of the episodes of a podcast whose identity the server \
+             did not give kept its line: the play of that line asked the \
+             server for the episode \"N/A\", and the program then said that \
+             the server does not have an item that the server has. Such a \
+             row now takes no line, and the log says why.",
+        ],
+    },
+    Entry {
         version: "0.8.218",
         date: "18/08/2026",
         body: &[
