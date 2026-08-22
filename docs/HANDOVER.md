@@ -29367,48 +29367,54 @@ design); and every candidate of the turns before this one.
 > 1. **A condition of the program that no measurement has reached.** A sweep of
 >    this shape found a fault in one hundred and twenty sessions of one
 >    hundred and twenty-one.
-> **The session of the two hundred and twentieth turn shipped T-387**: a
-> choice of the filter view with no value takes no row now. **The
-> candidate came of the coverage gap after T-386**: the same view of the
-> key `f` reads `/api/libraries/:id/filterdata` through `choices()` of
-> `src/api/libraries/get_filter_data.rs`, which guarded a missing id
-> alone (`Option`) and gave the five text groups (genres, tags,
-> narrators, languages, publishers) no guard at all.
+> **The round of the two hundred and twenty-first shipped T-388 and
+> T-389.** T-388, left built but uncommitted by the round before it, went
+> out first: an episode of a podcast with no identity took a line, the
+> key `l` sent `POST /api/items/:id/play/N/A`, and the program said the
+> server does not have an item that the server has.
+> `keep_the_episodes_with_an_identity` of `src/api/library_items/get_pod_ep.rs`
+> now drops such a row before every collector reads it, with a WARN that
+> names the title. v0.8.219, three new unit tests, gates and the sandbox
+> suite all clean.
 >
-> **The fault**, of v0.8.217 inside tmux, with the new harness
-> `docs/harness/another_body_of_one_path.py` on the port 13512 (it
-> answers one path with the body of a file; no older harness gives a
-> field a value of no character, and the sandbox drops such a text from
-> its filterdata aggregation): the view of the key `f` held the line
-> `A Ghost Author` (of `{"id": "", ...}`) and a blank line under The
-> genres and under The narrators. The take of each wrote a filter of no
-> value (`authors.`, `genres.`) to the row of the account, the refresh
-> then made a new application, and the start guard of T-386 discarded it
-> — nothing at all happened for the user, and no word said why.
+> **T-389 followed the same road into the Home view.** The candidate came
+> of the open list of T-388: `collect_ids_cnt_list` of
+> `src/api/utils/collect_personalized_view.rs` and `or_not_available` of
+> `src/api/utils/collect_personalized_view_pod.rs` gave "N/A" for a media
+> or an episode of no identity. **The fault**, measured against v0.8.219
+> inside tmux with `docs/harness/a_field_of_one_row_goes_away.py` on port
+> 13506 stripping the id of the second entity of the shelf
+> `continue-listening` (`0.entities 1 id`): the panel said "Continue
+> Listening — 3 of 3", the middle cell held no title, and the key `Enter`
+> on it sent `POST /api/items/N/A/play` and the message row said the
+> server does not have an item that the server has.
 >
-> **The correction, v0.8.218**: `choices()` drops a row of the authors
-> and of the series whose identity or whose name is empty after a trim,
-> and a text of the five groups that is empty after a trim, each with a
-> WARN that names the row (the rule of T-183); the text of a real choice
-> stays as the server gave it, because the filter of the server compares
-> that text. The build of the fault — the two guards disabled with
-> `&& false` — fails the three new unit tests of `get_filter_data.rs`.
-> The control against the same poisoned proxy: no ghost line, no blank
-> line, and three WARNs name each dropped row.
+> **The correction, v0.8.220, touched six functions, not one.**
+> `media_entities` and `episode_entities` (the one sequence of T-24 for
+> the collectors) now drop an entity of no identity, with a WARN. **A
+> first build that touched the collectors alone left the header wrong**:
+> `group_home`, `group_home_pod`, `the_media_of_continue_listening`, and
+> `the_media_of_continue_listening_pod` of `src/logic/home_view.rs` each
+> walk the shelves on their own to make the lines and the count of the
+> panel, and none of them agreed with the filtered collectors — the
+> header kept saying "3 of 3" against two real media in the measurement.
+> Two shared predicates, `media_entity_has_an_identity` and
+> `episode_entity_has_an_identity`, now hold the one rule for all six
+> functions. Four existing test fixtures across `home_view.rs` and three
+> integration test files gave an episode no `libraryItemId` for a
+> different reason; the correction gave them one. The build of the fault
+> — the two predicates and the two collectors' filters shorted to `true`
+> — failed exactly the four new tests and no other. The control: "2 of
+> 2", "[33 items]" (was 34), no blank cell, and the key `Enter` started
+> "The Test Chronicles Volume 2" with no "N/A" in the proxy log.
 >
 > **What this round leaves open, and each of them is a candidate and not
-> an item**: an episode id that the server omits becomes the literal text
-> `N/A` (`collect_ids_pod_ep` of `src/api/utils/collect_get_pod_ep.rs`),
-> it reaches the path `POST /api/items/:id/play/N/A`, and several id-less
-> episodes of one podcast collapse onto the one key (item, `N/A`) of
-> `pending_progress` and they overwrite the place of each other; an
-> episode of an id of no character gives a path of a trailing slash
-> (`PlaybackTarget::episode_id` gives `Some("")` and it does not filter,
-> unlike `src/logic/live.rs`); a `days` value of `/api/me/listening-stats`
-> that is not a number fails the whole decode into `State::Fault`; and
-> the never-swept paths that stay — `/api/me/listening-stats`, the write
-> side of the lists (`/api/collections` and `/api/playlists`), and the
-> rows of `/api/podcasts`.
+> an item**: a `days` value of `/api/me/listening-stats` that is not a
+> number fails the whole decode into `State::Fault`; the never-swept
+> paths that stay — `/api/me/listening-stats`, the write side of the
+> lists (`/api/collections` and `/api/playlists`), and the rows of
+> `/api/podcasts`; and `PlaybackTarget::episode_id` itself still gives
+> `Some("")` for an empty id from a source neither round filtered.
 >
 >    **The turns before this one stand in `## The turns before the three
 >    newest ones` of this file**, above the heading of this prompt. **This item

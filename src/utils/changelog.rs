@@ -41,6 +41,46 @@ struct Entry {
 /// `THE_VERSIONS_WITH_NO_RELEASE` of the tests holds the reason.
 const THE_ENTRIES_OF_THE_FORK: &[Entry] = &[
     Entry {
+        version: "0.8.222",
+        date: "22/08/2026",
+        body: &[
+            "Fixed:",
+            "- **A cover smaller than its box stayed small.** The picture of \
+             a cover, of the panel of a media and of the reader, never grew \
+             past the pixels of the file that the server sent: a box that \
+             had room for a larger picture then showed the small one with \
+             empty space around it. Such a picture now grows to the size of \
+             its box.",
+        ],
+    },
+    Entry {
+        version: "0.8.221",
+        date: "22/08/2026",
+        body: &[
+            "Fixed:",
+            "- **A zoom of the terminal moves the picture of a cover to the \
+             size of its box.** The program asked the terminal for the \
+             pixels of its font one time, at the start, and it kept that \
+             answer for the whole life of the program: a picture then kept \
+             the size of the font before a zoom, and it filled less of its \
+             box, or more, than the box had room for. The program now asks \
+             the terminal again at every resize of the window.",
+            "- **The count of a band of the Home view moves with the \
+             cursor.** The title of a band said how many of its covers the \
+             screen could draw, and that number stayed the same while the \
+             keys `h` and `l` moved the cursor over them. The band that \
+             holds the cursor now says the position of the cursor.",
+            "Changed:",
+            "- **The covers of a view come together, and not one group at a \
+             time.** A frame that met more new covers than a small limit \
+             asked the server for the first ones of them alone, and it left \
+             the rest for the frame after it: the covers of an ordinary \
+             view then came in two groups, a fraction of a second apart, and \
+             the user saw them pop in. The limit is larger now, and an \
+             ordinary view asks for every cover of its first frame together.",
+        ],
+    },
+    Entry {
         version: "0.8.220",
         date: "18/08/2026",
         body: &[

@@ -167,11 +167,11 @@ fn the_count_of_a_title_says_the_media_of_the_program_and_not_the_total() {
     // The shelf `recently-added` says `total: 22`, and it gives ten media.
     let recently_added = &bands[1];
     assert_eq!(
-        the_count_of_a_band(6, recently_added.the_cells.len()),
+        the_count_of_a_band(6, recently_added.the_cells.len(), None),
         "6 of 10"
     );
     assert_eq!(
-        the_count_of_a_band(10, recently_added.the_cells.len()),
+        the_count_of_a_band(10, recently_added.the_cells.len(), None),
         "10 of 10"
     );
 }

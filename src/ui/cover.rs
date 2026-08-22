@@ -94,10 +94,20 @@ pub const SHELF_MAX: usize = 4;
 /// leaves an identity writes nothing in the store**, therefore the frame after
 /// it asks for that identity again and no cover is lost.
 ///
-/// The number 8 comes of the design of T-331. The measurement of the
-/// correction: the 15 covers of the first frame came in **two** frames of the
-/// loop of the screen, and the user therefore waits no longer for them.
-pub const THE_NEW_COVERS_OF_A_FRAME: usize = 8;
+/// **The number 8 of T-331 staggered the covers of an ordinary view over two
+/// or three frames of the screen loop, and the user saw them come in one by
+/// one** (T-390): the loop waits on a key or on a poll of 200 milliseconds
+/// between two frames, therefore the frame that carried the rest of the 15 or
+/// 16 covers of the Home view of the measurement above came 200 to 330
+/// milliseconds after the first one, and every cover of it popped in at once,
+/// visibly after the covers of the frame before it. **Every request already
+/// runs on a task of its own, in parallel**: the limit never made the network
+/// faster, and it only made the screen show the covers in more than one
+/// group. The number 32 gives one frame the room for the whole Home view and
+/// for most views of the Library, and it keeps a limit for a view of many more
+/// cells than that, so that a very wide and very tall terminal does not send a
+/// burst of hundreds of requests on the one frame that first draws it.
+pub const THE_NEW_COVERS_OF_A_FRAME: usize = 32;
 
 /// The largest size of the answer of the server for one cover.
 ///
@@ -174,23 +184,65 @@ pub fn forget() {
     }
 }
 
+/// The picker of the process, behind a lock: [`refresh_picker`] replaces it.
+static PICKER: RwLock<Option<Picker>> = RwLock::new(None);
+
+fn made_picker() -> Picker {
+    if !asks_the_terminal() {
+        return Picker::halfblocks();
+    }
+
+    Picker::from_query_stdio().unwrap_or_else(|_| Picker::halfblocks())
+}
+
 /// The picker of the process.
 ///
 /// `Picker::from_query_stdio` asks the terminal for the protocol and for the
-/// size of the font. That question needs a real terminal. A terminal that does
-/// not answer gives `Picker::halfblocks`.
+/// size of the font, in pixels. That question needs a real terminal. A
+/// terminal that does not answer gives `Picker::halfblocks`.
 ///
-/// The application asks one time. A second question during the render would
-/// write bytes on the screen of the user.
-pub fn picker() -> &'static Picker {
-    static PICKER: OnceLock<Picker> = OnceLock::new();
-    PICKER.get_or_init(|| {
-        if !asks_the_terminal() {
-            return Picker::halfblocks();
+/// **The size of the font changes when the user zooms the terminal**, and a
+/// picker that keeps the size of the start then gives every picture a form of
+/// pixels that no longer agrees with the cell of the screen: a picture stayed
+/// at the pixels of the font before the zoom, and it then filled less of its
+/// box, or more, than the box had room for (T-390). [`refresh_picker`] asks
+/// the terminal again, and `crate::main` calls it at a report of a resize of
+/// the window (`crossterm::event::Event::Resize`), between two frames and
+/// never inside one, for the same reason that the first question of the
+/// terminal waits for `ratatui::init`.
+pub fn picker() -> Picker {
+    if let Ok(guard) = PICKER.read() {
+        if let Some(picker) = guard.as_ref() {
+            return picker.clone();
         }
+    }
 
-        Picker::from_query_stdio().unwrap_or_else(|_| Picker::halfblocks())
-    })
+    let made = made_picker();
+
+    if let Ok(mut guard) = PICKER.write() {
+        *guard = Some(made.clone());
+    }
+
+    made
+}
+
+/// Asks the terminal again for the size of its font, in pixels.
+///
+/// See [`picker`] for the reason: a zoom of the terminal changes the pixels of
+/// a cell, and the program must ask again to keep a picture inside its box.
+pub fn refresh_picker() {
+    let made = made_picker();
+
+    log::info!(
+        "[cover] the terminal answers the question of the resize again: {:?} with a font of {} by {} pixels",
+        made.protocol_type(),
+        made.font_size().width,
+        made.font_size().height,
+    );
+
+    if let Ok(mut guard) = PICKER.write() {
+        *guard = Some(made);
+    }
 }
 
 /// Tells if the program may ask the terminal what it can do.
@@ -1024,7 +1076,7 @@ mod tests {
             .expect("a runtime");
         let _entered = runtime.enter();
 
-        let of_the_view: Vec<String> = (0..20).map(|n| format!("the-cell-{n}-of-t-338")).collect();
+        let of_the_view: Vec<String> = (0..80).map(|n| format!("the-cell-{n}-of-t-338")).collect();
 
         let the_requests = || {
             store()
@@ -1044,7 +1096,7 @@ mod tests {
         assert_eq!(
             the_requests(),
             THE_NEW_COVERS_OF_A_FRAME,
-            "one frame of 20 new covers must ask the server for the covers of its limit, and no more"
+            "one frame of 80 new covers must ask the server for the covers of its limit, and no more"
         );
 
         art.a_new_frame();
@@ -1847,5 +1899,28 @@ mod tests {
         let plan = plan_covers(area(40, MIN_HEIGHT_FOR_COVER - 1), FONT, false, 3, None);
         assert!(plan.playing.is_none());
         assert!(plan.shelf.is_empty());
+    }
+
+    /// A zoom of the terminal changes the pixels of a cell, and a picker that
+    /// keeps the pixels of the start then gives every picture a form that no
+    /// longer agrees with its box (T-390). `picker` must give the value that
+    /// `refresh_picker` wrote last, and it must ask the terminal again and
+    /// not keep the value of a first call for ever.
+    #[test]
+    fn a_refresh_of_the_picker_changes_the_value_that_picker_gives() {
+        let before = picker();
+
+        refresh_picker();
+
+        let after = picker();
+
+        // The test runs with no real terminal, therefore both values are
+        // `Picker::halfblocks`. The two calls must still give the same font,
+        // because a halfblocks picker of one process always answers the same
+        // question the same way, and the test proves that `refresh_picker`
+        // ran with no panic and that `picker` reads the value that it wrote.
+        assert_eq!(before.font_size().width, after.font_size().width);
+        assert_eq!(before.font_size().height, after.font_size().height);
+        assert_eq!(before.protocol_type(), after.protocol_type());
     }
 }

@@ -630,6 +630,19 @@ async fn main() -> Result<()> {
                             continue;
                         }
 
+                        // **A zoom of the terminal changes the pixels of a
+                        // cell, and a picker that keeps the pixels of the
+                        // start then gives every picture a form that no
+                        // longer agrees with its box** (T-390). The question
+                        // of the terminal stands here, between two frames,
+                        // for the same reason that the first question waits
+                        // for `ratatui::init`: a question inside the render
+                        // would write bytes on the screen of the user.
+                        if let event::Event::Resize(_, _) = event {
+                            toutui::ui::cover::refresh_picker();
+                            continue;
+                        }
+
                         if let event::Event::Key(key) = event {
                             // A terminal that reports the release of a key sends
                             // two events for one press. The application must act

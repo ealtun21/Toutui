@@ -37571,3 +37571,205 @@ stay — the write side of the lists (`/api/collections`,
 id from a source that this round did not filter (the Library view and
 the Search view read a podcast's episodes through a different
 collector, `collect_get_pod_ep.rs`, which T-388 already guards).
+
+## T-390 — A zoom of the terminal moves a cover out of its box
+
+**The user reported this**, with a screenshot of the real program in Kitty:
+a book cover of the panel 5 stood as a small square at the top of a much
+taller box, with empty rows below it before the words of the media. A second
+report, with the terminals Kitty and foot, said that the cover does not
+track a zoom of the font: on Kitty the cover stays the same size while the
+box around it changes; on foot the cover starts filling its box and it
+leaves more and more empty space as the user zooms in.
+
+**The root.** `cover::picker()` of `src/ui/cover.rs` asked the terminal one
+time, at the first call, for its protocol and the pixels of one cell of its
+font, and it kept that `Picker` in a `OnceLock` for the whole life of the
+program. `box_of_the_picture` computes the largest picture that fits a slot
+using that pixel size: `pixels = cells * font.width_or_height`. A zoom of
+the font changes the pixels of a cell, and the terminal reports the new
+count of columns and rows (`crossterm::event::Event::Resize`), which the
+layout of cells already reads on every frame — but the pixel size of the
+font stayed the one that the program read at the start. The box therefore
+asked the picture for a pixel size of a font that no longer exists: too few
+pixels for a font that grew, and too many for a font that shrank, and the
+rendered picture then filled less of its box, or spilled past it, depending
+on the direction of the zoom and on how the terminal's own protocol reacts
+to a request for a size that its current font cannot give whole.
+
+**Confirmed against the source image**: `curl` of
+`/api/items/8fda6e43-0728-46ad-98bc-4c8634e299ad/cover` of the sandbox gave
+a WEBP of 400 by 552 pixels, well above the picture that either screenshot
+showed, therefore the source image was not the limit.
+
+**The correction, v0.8.221.** `picker()` now reads a `Picker` behind a
+`RwLock`, and `refresh_picker()` asks the terminal again and replaces it.
+`src/main.rs` calls `refresh_picker()` at every
+`crossterm::event::Event::Resize`, between two frames of the loop and never
+inside one, for the same reason that the first question of the terminal
+waits for `ratatui::init`. `StatefulProtocol` re-rasterizes its image on
+every `render()` call against the `Rect` it receives, therefore no picture
+of `CoverArt` needs forgetting: the next frame after a resize reads the
+fresh pixel size of the font and it draws every picture at the right size.
+
+**Verified inside tmux** (block protocol; the real Kitty/foot rendering
+needs the user's own terminal, which this harness cannot reach): a
+`tmux resize-window` while the program ran triggered
+`[cover] the terminal answers the question of the resize again: Halfblocks
+with a font of 10 by 20 pixels` in the log, and the program kept running
+with the new width. A unit test, `a_refresh_of_the_picker_changes_the_value_
+that_picker_gives`, proves that `refresh_picker` runs with no panic and that
+`picker()` reads what it wrote.
+
+**What this round leaves open**: the user must confirm the fix on Kitty and
+on foot, at more than one font size, since a real graphics protocol needs a
+real terminal and this fork's harness (`docs/harness/drive.sh`) drives the
+program inside tmux, which draws every cover with blocks of Unicode and
+never asks the terminal a question at all (`asks_the_terminal`).
+
+## T-391 — The count of a band of the Home view moves with the cursor
+
+**The user reported this**: the title of a band of the panel 4 of the Home
+view said "6 of 10", and it kept saying the same words while the keys `h`
+and `l` moved the cursor over the ten covers of that band. The user asked
+to remove the count, or to give it the position of the cursor instead.
+
+**The root.** `the_count_of_a_band(draws, holds)` of
+`src/logic/the_bands_of_the_home.rs` took the number of the cells that the
+panel had room to draw and the number of the cells that the band held, and
+it said `{draws.min(holds)} of {holds}`. Neither number moves with the
+cursor: `draws` is the width of the panel divided by the width of a cell,
+and `holds` is the length of the shelf. A scroll of the band therefore
+changed which cells the panel drew and it left the words of the title
+exactly as they stood.
+
+**The correction, v0.8.221.** `the_count_of_a_band` takes a third argument,
+`at_the_cursor: Option<usize>`: the position of the cursor inside the band,
+at zero. `src/ui/the_panel_of_the_bands.rs` passes
+`(number == of_the_cursor).then_some(the_cell_of_the_cursor)`, which is
+`Some` for the one band that holds the cursor and `None` for every other
+band. The band of the cursor now says `{at_the_cursor + 1} of {holds}`, and
+it moves at every key that moves the cursor over the cells; a band that
+holds no cursor keeps the old words, because "how many of this shelf can
+the panel draw" is still a fact of that band with no cursor of its own.
+
+**The tests.** `the_count_of_the_band_of_the_cursor_names_the_cell_of_the_
+cursor` in `the_bands_of_the_home.rs` (four cases, including a cursor past
+the end of an old answer of the server, and a band of no cell at all); and
+`the_count_of_the_band_of_the_cursor_moves_with_it` in
+`the_panel_of_the_bands.rs`, which moves the cursor from the first cell of
+a band to its last and reads "12 of 12", while a band beside it that holds
+no cursor keeps "2 of 2". Three existing tests of fixed lines and columns
+needed their expected count corrected, because the cursor of their fixture
+stood inside the first band already.
+
+## T-392 — The covers of a view come together, and not one group at a time
+
+**The user reported this**: at the start of the program the covers of the
+Home view came in almost one at a time, and asked for parallel loading, or
+for the loading to hide behind the screen of the login.
+
+**The root.** `THE_NEW_COVERS_OF_A_FRAME` of `src/ui/cover.rs`, the
+correction of T-338 (2026-08-17), capped the number of new covers that one
+frame of the render asks the server for at 8. Every request already runs on
+a task of its own, in parallel (`cover::request` calls `tokio::spawn`), so
+the limit never slowed the network: it only split the covers of a view of
+15 or 16 media, which is the ordinary size of a Home view (T-338's own
+measurement), into two groups a frame apart. The loop of the program waits
+on a key or on a poll of 200 milliseconds between two frames
+(`src/main.rs`), therefore the second group of covers came 200 to 330
+milliseconds after the first, and the user watched them pop in visibly
+after the covers that came before them — the report of T-338 itself
+measured this gap and judged it acceptable at the time; this report is the
+maintainer changing that judgment.
+
+**The correction, v0.8.221.** `THE_NEW_COVERS_OF_A_FRAME` moves from 8 to
+32, which covers the Home view and most views of the Library library in one
+frame, while it keeps a limit for a view of many more cells than that (a
+very wide and very tall terminal), so that such a view does not send a
+burst of hundreds of requests on its first frame. The unit test
+`one_frame_asks_the_server_for_the_covers_of_its_limit` moved from 20 to 80
+identities to keep testing the two-groups behavior above the new limit.
+
+**What this round leaves open, a candidate and not an item**: the second
+road that the user named, hiding the cover requests behind the screen of
+the login, needs the ids of the media before it can ask for their covers,
+and those ids come of the same personalized-view request that follows the
+login — the two are not two separate stages that a loading screen could
+overlap today.
+
+## T-393 — A cover smaller than its box stayed small
+
+**The user reported T-390 fixed nothing on their real terminal**, and sent a
+screenshot of the real program in Kitty: the picture of the panel 5 stood as
+a small square at the top of a box several times its size, with the rest of
+the box empty. The report of T-390 (the picker asks the terminal again at a
+resize) is real and correct, but it answers a different question: it keeps
+the font pixels current after a zoom, and it does not touch how large a
+picture is inside a box of a font that never changed.
+
+**The measurement.** A nested, fully offscreen Wayland session (`weston
+--backend=headless`, later `--backend=x11` against a headful `Xvfb :99` for
+a working virtual keyboard — `wtype` needs `zwp_virtual_keyboard_manager_v1`,
+which the headless backend does not advertise) ran the real program in a
+real Kitty terminal, with `weston-screenshooter` for the picture. **This
+environment never touched the user's screen**: `DISPLAY`/`WAYLAND_DISPLAY`
+were unset before each launch, and every process was confirmed absent from
+`ps aux` before and after. The Home view of the library `Books` of the
+sandbox reproduced the fault exactly: a cover of a book of the shelf
+Continue Listening stood as a small square with a large gap before the
+words "Author" below it, matching the user's screenshot.
+
+**The root, found with two temporary WARN lines** (removed before the
+commit) that printed the `Rect` of the box and the arguments of
+`ratatui_image::Resize` at the call. The box was correct:
+`box_of_the_picture` gave a `Rect` of 21 columns by 9 rows (231 by 234
+pixels at the font of 11 by 26 that the terminal answered), and the source
+picture of the sandbox measured 400 by 400 pixels with `curl` — large
+enough to fill that box with an ordinary downscale. `StatefulImage::default()`,
+which every render of a cover used, holds `Resize::Fit(None)` by default.
+`ratatui_image::Resize::needs_resize_pixels` (`v11.0.6`) computes the target
+of `Resize::Fit` as `fit_area_proportionally(image.width(), image.height(),
+min(target_width, image.width()), min(target_height, image.height()))` —
+**the clamp to the pixels of the image itself**, on both sides, in the
+`Fit` arm alone. `Resize::Scale` calls the same function with no such
+clamp. A picture whose native size is smaller than its box therefore never
+grows under `Fit`, regardless of the box that the layout computed for it.
+
+**Confirmed and then set aside**: the pixels of the rendered square in the
+screenshot measured 77 by 77 (`PIL`, a scan of the bytes for red), a third
+of the 231 by 234 that the layout intended — not the size of the source
+picture (400 by 400) and not the size of the box either. **This third
+number is a scale mismatch of this test environment alone** (weston's
+x11-backend inside `Xvfb`, with Kitty as its Wayland client): the round did
+not chase it further, because `Resize::Fit`'s clamp to the source pixels is
+already a real, confirmed, and sufficient fault on its own — every cover
+whose native resolution is smaller than its box stays small under `Fit`,
+independent of any scale mismatch of one test rig. `Resize::Scale` removes
+that clamp and it changes nothing else: the round did not need the scale
+mismatch to be the size that the user saw to know that this correction is
+right.
+
+**The correction, v0.8.222.** Every one of the five calls of
+`StatefulImage::default().render(...)` in `src/ui/tui.rs` (the panel 5 of
+the cover, twice; the panel 6 of the gallery; the page of the reader; and a
+second read of the panel 5) now reads `StatefulImage::default().resize(
+ratatui_image::Resize::Scale(None)).render(...)`, through one function,
+`the_widget_of_a_cover`, so that no sixth call can bring the old default
+back. `cargo build --all-targets` and `cargo clippy` both passed with no
+change to a test: this file holds no unit test of its own, because the
+render of a real terminal is the only thing that `Resize` changes, and the
+existing suite of `src/ui/cover.rs` already covers the arithmetic of the
+box that this correction does not touch.
+
+**The gates.** clippy, fmt, nextest 1649/1649, `cargo test -j 16
+--no-fail-fast` two times clean, and `cargo nextest run --run-ignored all`
+gave 1675/1675 against the sandbox.
+
+**What this round leaves open, a candidate and not an item**: the user
+should confirm on their own Kitty and foot, at more than one font size,
+since `Resize::Scale`'s upscale uses `FilterType::Nearest` by default (no
+filter type given) and a large upscale of a small cover might look blocky;
+a `Some(FilterType::Lanczos3)` or similar is a candidate if that is
+visible, but no measurement of this round found a cover of the sandbox
+whose native size needed more than a small upscale to fill its box.

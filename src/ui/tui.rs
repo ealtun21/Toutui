@@ -13,7 +13,19 @@ use ratatui::{
         Scrollbar, ScrollbarOrientation, ScrollbarState, StatefulWidget, Widget, Wrap,
     },
 };
-use ratatui_image::StatefulImage;
+use ratatui_image::{Resize, StatefulImage};
+
+/// **The default resize of `StatefulImage` never enlarges a picture past its
+/// own pixels** (T-390): `ratatui_image::Resize::Fit`, the default, clamps
+/// its target to `min(target, the pixels of the picture)`, therefore a cover
+/// of a small file stayed small inside a box that `box_of_the_picture`
+/// already sized for it, with the rest of the box empty. `Resize::Scale`
+/// does the same arithmetic with no such clamp, and it fills the box that the
+/// layout gave the picture, in both directions. Every render of a cover, and
+/// of a page of the reader, must use it and not `StatefulImage::default()`.
+fn the_widget_of_a_cover<T: ratatui_image::ResizeEncodeRender>() -> StatefulImage<T> {
+    StatefulImage::default().resize(Resize::Scale(None))
+}
 
 /// The smallest number of rows of the footer of a view.
 ///
@@ -1291,13 +1303,13 @@ impl App {
 
             if let (Some(area), Some(id)) = (plan.playing, playing.as_deref()) {
                 if let Some(picture) = self.covers.picture(&api, id) {
-                    StatefulImage::default().render(area, buf, picture);
+                    the_widget_of_a_cover().render(area, buf, picture);
                 }
             }
 
             for (area, id) in plan.shelf.iter().zip(selected.iter()) {
                 if let Some(picture) = self.covers.picture(&api, id) {
-                    StatefulImage::default().render(*area, buf, picture);
+                    the_widget_of_a_cover().render(*area, buf, picture);
                 }
             }
         }
@@ -1420,7 +1432,7 @@ impl App {
 
             if area.width > 0 && area.height > 0 {
                 if let Some(picture) = self.covers.picture(&api, &media.id) {
-                    StatefulImage::default().render(area, buf, picture);
+                    the_widget_of_a_cover().render(area, buf, picture);
                 }
             }
         }
@@ -1608,7 +1620,7 @@ impl App {
         let area = cover::box_of_the_picture(panel, cover::picker().font_size(), form);
 
         if let Some(Some(made)) = self.pictures_of_the_reader.get_mut(&key) {
-            StatefulImage::default().render(area, buf, made);
+            the_widget_of_a_cover().render(area, buf, made);
         }
     }
 }
@@ -2958,7 +2970,7 @@ impl App {
 
                 if of_the_picture.width > 0 && of_the_picture.height > 0 {
                     if let Some(picture) = self.covers.picture(&api, &id) {
-                        StatefulImage::default().render(of_the_picture, buf, picture);
+                        the_widget_of_a_cover().render(of_the_picture, buf, picture);
                     }
                 }
             }

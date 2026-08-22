@@ -296,6 +296,7 @@ pub fn plan_the_bands(
             the_count: crate::logic::the_bands_of_the_home::the_count_of_a_band(
                 cells.len(),
                 band.the_cells.len(),
+                (number == of_the_cursor).then_some(the_cell_of_the_cursor),
             ),
             the_title: Rect {
                 x: inside.x,
@@ -419,9 +420,29 @@ mod tests {
         assert_eq!(plan.the_cells_of_a_band, 6);
         assert!(plan.stands());
         assert_eq!(plan.bands[0].cells.len(), 6);
-        assert_eq!(plan.bands[0].the_count, "6 of 12");
+        // The cursor stands at the first cell of this band (T-391), and the
+        // count of the title of the band of the cursor names the cell of the
+        // cursor, at one, and not the cells that the panel draws.
+        assert_eq!(plan.bands[0].the_count, "1 of 12");
         assert_eq!(plan.bands[1].cells.len(), 2);
         assert_eq!(plan.bands[2].cells.len(), 1);
+    }
+
+    /// The count of the title of the band of the cursor moves with the
+    /// cursor, and the count of every other band does not: a scroll of the
+    /// keys `h` and `l` inside one band must not change the words of a band
+    /// that holds no cursor. See T-391.
+    #[test]
+    fn the_count_of_the_band_of_the_cursor_moves_with_it() {
+        let bands = the_bands(&the_rows());
+
+        // The line 12 is the last media of the shelf `Continue Listening`.
+        let plan = plan_the_bands(the_panel(71, 39), 10, the_font(), &bands, 12, &[]);
+
+        assert_eq!(plan.bands[0].the_count, "12 of 12");
+        // The band `Discover` holds no cursor, and it keeps the old count of
+        // the cells that the panel draws.
+        assert_eq!(plan.bands[1].the_count, "2 of 2");
     }
 
     #[test]
@@ -607,7 +628,10 @@ mod tests {
         let row = the_row_of_a_title(&plan.bands[0], 71);
 
         assert!(row.starts_with("Continue Listening ─"), "{}", row);
-        assert!(row.ends_with("‹ 6 of 12 ›"), "{}", row);
+        // The line 9 is the ninth media of this band, therefore the cursor
+        // stands on the cell 8, at zero, and the count names it at one
+        // (T-391).
+        assert!(row.ends_with("‹ 9 of 12 ›"), "{}", row);
         assert_eq!(crate::logic::message::the_columns_of(&row), 71);
 
         // A band that holds no cell beside the ones that it draws says no arrow.

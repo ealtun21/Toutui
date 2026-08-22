@@ -181,10 +181,29 @@ fn the_first_cell_of_the_view(bands: &[ABand]) -> Option<usize> {
 /// media that no key of the user can reach (T-118, and the decision 4 of the
 /// design).
 ///
+/// `at_the_cursor` is the position of the cursor inside the band, at zero,
+/// when the cursor stands on this band. **A count of the cells that the panel
+/// draws said the same words while the user moved the cursor over the band**
+/// (T-391): a scroll of the keys `h` and `l` moves the cells that the panel
+/// draws, and `the_count_of_a_band(6, 10)` of a band of ten cells and a panel
+/// with room for six gave "6 of 10" at the first cell and at the last cell
+/// alike, therefore the count said nothing that the user could use. The count
+/// of the band of the cursor now names the cell of the cursor, at one, and it
+/// moves at every key that moves the cursor over the cells.
+///
 /// `draws` is the number of the cells that the panel has the room for, and
-/// `holds` is the number of the cells of the band. A panel that has the room
-/// for more cells than the band holds says the cells of the band.
-pub fn the_count_of_a_band(draws: usize, holds: usize) -> String {
+/// `holds` is the number of the cells of the band. A band that holds no
+/// cursor keeps the old count: a panel that has the room for more cells than
+/// the band holds says the cells of the band.
+pub fn the_count_of_a_band(draws: usize, holds: usize, at_the_cursor: Option<usize>) -> String {
+    if let Some(at_the_cursor) = at_the_cursor {
+        return format!(
+            "{} of {}",
+            at_the_cursor.min(holds.saturating_sub(1)) + 1,
+            holds
+        );
+    }
+
     format!("{} of {}", draws.min(holds), holds)
 }
 
@@ -313,8 +332,22 @@ mod tests {
 
     #[test]
     fn the_count_of_a_title_says_the_media_of_the_program() {
-        assert_eq!(the_count_of_a_band(6, 24), "6 of 24");
-        assert_eq!(the_count_of_a_band(8, 5), "5 of 5");
-        assert_eq!(the_count_of_a_band(0, 0), "0 of 0");
+        assert_eq!(the_count_of_a_band(6, 24, None), "6 of 24");
+        assert_eq!(the_count_of_a_band(8, 5, None), "5 of 5");
+        assert_eq!(the_count_of_a_band(0, 0, None), "0 of 0");
+    }
+
+    /// The band of the cursor names the cell of the cursor, at one, and not
+    /// the cells that the panel draws: a scroll of the keys `h` and `l` moves
+    /// the cursor over the cells, and the count of the panel must move with
+    /// it. See T-391.
+    #[test]
+    fn the_count_of_the_band_of_the_cursor_names_the_cell_of_the_cursor() {
+        assert_eq!(the_count_of_a_band(6, 10, Some(0)), "1 of 10");
+        assert_eq!(the_count_of_a_band(6, 10, Some(5)), "6 of 10");
+        assert_eq!(the_count_of_a_band(6, 10, Some(9)), "10 of 10");
+        // A cursor of an old answer of the server must not point past the end.
+        assert_eq!(the_count_of_a_band(6, 10, Some(99)), "10 of 10");
+        assert_eq!(the_count_of_a_band(6, 0, Some(0)), "1 of 0");
     }
 }
